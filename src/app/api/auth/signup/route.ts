@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { sql } from '@/lib/db';
-import { sendEmail, emailTemplates } from '@/lib/email';
-
 export async function POST(request: NextRequest) {
     try {
         const { username, password, email, phone, role } = await request.json();
