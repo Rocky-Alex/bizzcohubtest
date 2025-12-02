@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import { Product } from '@/lib/schema';
 
 // GET /api/products?type=laptop|accessory&category=Dell|HP|etc
 export async function GET(request: NextRequest) {
@@ -43,7 +42,7 @@ export async function GET(request: NextRequest) {
 // POST /api/products - Create new product
 export async function POST(request: NextRequest) {
     try {
-        const product: Product = await request.json();
+        const product: any = await request.json();
 
         const result = await sql`
       INSERT INTO products (
@@ -75,7 +74,7 @@ export async function POST(request: NextRequest) {
 // PUT /api/products - Update existing product
 export async function PUT(request: NextRequest) {
     try {
-        const product: Product = await request.json();
+        const product: any = await request.json();
 
         const result = await sql`
       UPDATE products SET

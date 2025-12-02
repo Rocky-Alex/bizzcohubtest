@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import { Product } from '@/lib/schema';
 
 // POST /api/products/import - Bulk import products
 export async function POST(request: NextRequest) {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import { sendEmail, emailTemplates } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
     try {
@@ -31,17 +30,6 @@ export async function POST(request: NextRequest) {
             }
 
             const user = result[0];
-
-            // Send welcome email if user has email
-            if (user.email) {
-                try {
-                    const emailTemplate = emailTemplates.welcome(user.username, user.role);
-                    await sendEmail(user.email, emailTemplate);
-                } catch (emailError) {
-                    console.error('Failed to send welcome email:', emailError);
-                    // Don't fail the approval if email fails
-                }
-            }
 
             return NextResponse.json({
                 success: true,
