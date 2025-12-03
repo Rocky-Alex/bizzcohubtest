@@ -13,7 +13,7 @@
 .home-wrapper {
     font-family: 'Bebas Neue', sans-serif;
     overflow-x: hidden;
-    background: linear-gradient(135deg, #a5a6ff 0%, #6bffb5 100%);
+
     min-height: 100vh;
 }
 
