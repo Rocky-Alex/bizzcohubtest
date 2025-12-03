@@ -42,10 +42,17 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-        // Load saved theme
+        // Load saved theme and apply it immediately
         const savedTheme = localStorage.getItem('siteTheme');
+        const themeIndex = savedTheme ? parseInt(savedTheme) : 0;
+
+        // Apply theme immediately on mount
+        document.body.style.background = themes[themeIndex].gradient;
+        document.documentElement.style.setProperty('--accent-1', themes[themeIndex].accent1);
+        document.documentElement.style.setProperty('--accent-2', themes[themeIndex].accent2);
+
         if (savedTheme) {
-            setCurrentTheme(parseInt(savedTheme));
+            setCurrentTheme(themeIndex);
         }
 
         // Parallax effect on mouse move
@@ -67,7 +74,7 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-        // Apply theme
+        // Apply theme whenever it changes
         document.body.style.background = themes[currentTheme].gradient;
 
         // Update CSS custom properties for accents
