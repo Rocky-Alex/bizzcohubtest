@@ -78,6 +78,8 @@ export default function Home() {
         localStorage.setItem('siteTheme', currentTheme.toString());
     }, [currentTheme]);
 
+
+
     const handleThemeChange = (index: number) => {
         setCurrentTheme(index);
     };
@@ -130,39 +132,250 @@ export default function Home() {
 
             {/* Services Section */}
             <section className="services-section">
-                <div className="service-card">
-                    <div className="card-image">
-                        <img src="/uploads/homecard1.jpg" alt="Laptop Refurbishing" />
-                    </div>
-                    <div className="card-content">
-                        <h3>Laptop Refurbishing</h3>
-                        <p>Professional restoration to optimal performance</p>
-                        <Link href="/services/refurbishing" className="card-link">Learn more →</Link>
-                    </div>
+                <div className="services-header">
+                    <h2 className="section-title">Our Services</h2>
+                    <p className="section-subtitle">Comprehensive solutions for all your technology needs</p>
                 </div>
+                <div className="services-grid">
+                    <div className="service-card">
+                        <div className="card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </div>
+                        <div className="card-image">
+                            <img src="/uploads/homecard1.jpg" alt="Laptop Refurbishing" />
+                        </div>
+                        <div className="card-content">
+                            <h3>Laptop Refurbishing</h3>
+                            <p>Professional restoration to optimal performance with quality parts and expert care</p>
+                            <Link href="services/#refurbishing" className="card-link">
+                                Learn more
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </Link>
+                        </div>
+                    </div>
 
-                <div className="service-card">
-                    <div className="card-image">
-                        <img src="/uploads/homecard2.jpg" alt="Premium Accessories" />
+                    <div className="service-card">
+                        <div className="card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                            </svg>
+                        </div>
+                        <div className="card-image">
+                            <img src="/uploads/homecard2.jpg" alt="Laptop Repairing & Service" />
+                        </div>
+                        <div className="card-content">
+                            <h3>Repairing & Service</h3>
+                            <p>Expert technicians handling all laptop issues with precision and guaranteed results</p>
+                            <Link href="/services/#repair" className="card-link">
+                                Learn more
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </Link>
+                        </div>
                     </div>
-                    <div className="card-content">
-                        <h3>Premium Accessories</h3>
-                        <p>Complete your setup with quality peripherals</p>
-                        <Link href="/products/accessories" className="card-link">Shop accessories →</Link>
-                    </div>
-                </div>
 
-                <div className="service-card">
-                    <div className="card-image">
-                        <img src="/uploads/homecard3.jpg" alt="Web Design" />
-                    </div>
-                    <div className="card-content">
-                        <h3>Web Design</h3>
-                        <p>Modern, responsive solutions for your business</p>
-                        <Link href="/services/web-design" className="card-link">View services →</Link>
+                    <div className="service-card">
+                        <div className="card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="16 18 22 12 16 6"></polyline>
+                                <polyline points="8 6 2 12 8 18"></polyline>
+                            </svg>
+                        </div>
+                        <div className="card-image">
+                            <img src="/uploads/homecard3.jpg" alt="Web Design" />
+                        </div>
+                        <div className="card-content">
+                            <h3>Web Design</h3>
+                            <p>Modern, responsive websites that elevate your business and engage your audience</p>
+                            <Link href="/services/#webdesign" className="card-link">
+                                Learn more
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>
+
+
+            {/* Product Categories Section */}
+            <section style={{
+                padding: '100px 100px',
+                background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)'
+            }}>
+                <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+                    <h2 style={{
+                        textAlign: 'center',
+                        fontSize: '2.5rem',
+                        marginBottom: '50px',
+                        fontFamily: 'Bebas Neue, sans-serif',
+                        letterSpacing: '2px',
+                        color: '#333'
+                    }}>
+                        Shop By Category
+                    </h2>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                        gap: '30px',
+                        justifyContent: 'center'
+                    }}>
+                        {/* Laptop Refurbishing Card */}
+                        <Link href="/products/laptops" style={{ textDecoration: 'none' }}>
+                            <div className="product-cat-card" style={{
+                                background: '#fff',
+                                borderRadius: '20px',
+                                overflow: 'hidden',
+                                boxShadow: '0 10px 10px rgba(0, 0, 0, 0.1)',
+                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                cursor: 'pointer',
+                                height: '100%'
+                            }}>
+                                <div style={{
+                                    width: '100%',
+                                    height: '260px',
+                                    overflow: 'hidden',
+                                    background: '#000',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    position: 'relative'
+                                }}>
+                                    <img
+                                        src="/uploads/homecard1.jpg"
+                                        alt="Laptop Refurbishing"
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            transition: 'transform 0.5s ease'
+                                        }}
+                                        className="card-image-hover"
+                                    />
+                                </div>
+                                <div style={{ padding: '30px', textAlign: 'center' }}>
+                                    <h3 style={{
+                                        fontSize: '24px',
+                                        fontWeight: '700',
+                                        color: '#333',
+                                        marginBottom: '10px',
+                                        fontFamily: 'Inter, sans-serif'
+                                    }}>
+                                        Laptop Refurbishing
+                                    </h3>
+                                    <p style={{
+                                        fontSize: '16px',
+                                        color: '#666',
+                                        marginBottom: '20px',
+                                        lineHeight: '1.5',
+                                        fontFamily: 'Inter, sans-serif'
+                                    }}>
+                                        Professional restoration to optimal performance
+                                    </p>
+                                    <span style={{
+                                        color: '#007bff',
+                                        textDecoration: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '16px',
+                                        transition: 'color 0.3s ease',
+                                        fontFamily: 'Inter, sans-serif'
+                                    }}>
+                                        Learn more →
+                                    </span>
+                                </div>
+                            </div>
+                        </Link>
+
+                        {/* Premium Accessories Card */}
+                        <Link href="/products/accessories" style={{ textDecoration: 'none' }}>
+                            <div className="product-cat-card" style={{
+                                background: '#fff',
+                                borderRadius: '20px',
+                                overflow: 'hidden',
+                                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
+                                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                cursor: 'pointer',
+                                height: '100%'
+                            }}>
+                                <div style={{
+                                    width: '100%',
+                                    height: '260px',
+                                    overflow: 'hidden',
+                                    background: '#000',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    position: 'relative'
+                                }}>
+                                    <img
+                                        src="/uploads/homecard2.jpg"
+                                        alt="Premium Accessories"
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            transition: 'transform 0.5s ease'
+                                        }}
+                                        className="card-image-hover"
+                                    />
+
+                                </div>
+                                <div style={{ padding: '30px', textAlign: 'center' }}>
+                                    <h3 style={{
+                                        fontSize: '24px',
+                                        fontWeight: '700',
+                                        color: '#333',
+                                        marginBottom: '10px',
+                                        fontFamily: 'Inter, sans-serif'
+                                    }}>
+                                        Premium Accessories
+                                    </h3>
+                                    <p style={{
+                                        fontSize: '16px',
+                                        color: '#666',
+                                        marginBottom: '20px',
+                                        lineHeight: '1.5',
+                                        fontFamily: 'Inter, sans-serif'
+                                    }}>
+                                        Complete your setup with quality peripherals
+                                    </p>
+                                    <span style={{
+                                        color: '#007bff',
+                                        textDecoration: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '16px',
+                                        transition: 'color 0.3s ease',
+                                        fontFamily: 'Inter, sans-serif'
+                                    }}>
+                                        Shop accessories →
+                                    </span>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            <style jsx>{`
+                .product-cat-card:hover {
+                    transform: translateY(-10px);
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+                }
+                .product-cat-card:hover .card-image-hover {
+                    transform: scale(1.1);
+                }
+            `}</style>
         </div>
     );
 }

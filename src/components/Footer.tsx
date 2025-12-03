@@ -40,7 +40,7 @@ export default function Footer() {
                             <Link href="/products/laptops">Laptops</Link>
                             <Link href="/products/accessories">Accessories</Link>
                             <Link href="/contact">Contact</Link>
-                            {/* <Link href="/about">About</Link> */}
+
                         </div>
                         <div className="footer-info">
                             <p>© {new Date().getFullYear()} Bizz Co Hub. All rights reserved.</p>

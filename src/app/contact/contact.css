@@ -1,0 +1,255 @@
+/* Contact Page Styles */
+
+/* Hero Section */
+.page-hero {
+    position: relative;
+    padding: 60px 0;
+    text-align: center;
+    color: white;
+    margin-bottom: 0;
+}
+
+.page-hero h1 {
+    font-size: 4rem;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.page-hero p {
+    font-size: 1.5rem;
+    font-weight: 300;
+    max-width: 600px;
+    margin: 0 auto;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Contact Section */
+.contact-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 60px;
+    margin-bottom: 80px;
+}
+
+/* Contact Info */
+.contact-info {
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+    height: fit-content;
+}
+
+.contact-info h2 {
+    font-size: 2rem;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+}
+
+.contact-info>p {
+    color: #666;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.contact-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #007bff 0%, #00d4ff 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+}
+
+.contact-icon i {
+    font-size: 1.2rem;
+    color: white;
+}
+
+.contact-text h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 5px;
+}
+
+.contact-text p {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.contact-text a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-text a:hover {
+    color: #007bff;
+}
+
+/* Contact Form */
+.contact-form-wrapper {
+    background: white;
+    padding: 50px;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+.contact-form-wrapper h2 {
+    font-size: 2rem;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+    color: #1a1a1a;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 123, 255, 0.2);
+}
+
+/* Success Message */
+.success-message {
+    margin-top: 20px;
+    padding: 20px;
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    border-radius: 12px;
+    color: #065f46;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.success-message i {
+    font-size: 1.2rem;
+}
+
+/* Map Section */
+.map-section h2 {
+    font-size: 2rem;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+    color: #1a1a1a;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.map-container {
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+    height: 450px;
+}
+
+.map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .page-hero h1 {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .contact-form-wrapper {
+        padding: 30px;
+    }
+
+    .contact-info {
+        padding: 30px;
+    }
+
+    .page-hero {
+        padding: 80px 0;
+    }
+}
