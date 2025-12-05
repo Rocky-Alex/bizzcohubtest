@@ -1,10 +1,13 @@
 import { neon } from '@neondatabase/serverless';
 
-if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL environment variable is not set!');
-    console.error('Please check your .env.local file or Vercel environment variables.');
-    throw new Error('DATABASE_URL environment variable is not set');
+const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+    console.error('❌ POSTGRES_URL or DATABASE_URL environment variable is not set!');
+    console.error('Please check your .env file or environment variables.');
+    throw new Error('Database URL environment variable is not set');
 }
 
 console.log('✅ Initializing database connection...');
-export const sql = neon(process.env.DATABASE_URL);
+export const sql = neon(databaseUrl);
+

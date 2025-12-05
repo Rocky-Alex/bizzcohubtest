@@ -49,7 +49,7 @@ export default function Home() {
                                 </span>
                                 <div className="btn-shine"></div>
                             </Link>
-                            <button className="btn-glass-animated magnetic-btn">
+                            {/* <button className="btn-glass-animated magnetic-btn">
                                 <span className="btn-icon">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                         <polygon points="10 8 16 12 10 16 10 8"></polygon>
@@ -57,27 +57,7 @@ export default function Home() {
                                 </span>
                                 <span className="btn-text">Watch Video</span>
                                 <div className="ripple"></div>
-                            </button>
-                        </div>
-
-                        <div className="hero-stats fade-in-up delay-4">
-                            <div className="stat-card">
-                                <h3 className="counter" data-target="5000">0</h3>
-                                <p>Happy Customers</p>
-                                <div className="stat-glow"></div>
-                            </div>
-                            <div className="stat-divider"></div>
-                            <div className="stat-card">
-                                <h3 className="counter" data-target="200">0</h3>
-                                <p>Premium Products</p>
-                                <div className="stat-glow"></div>
-                            </div>
-                            <div className="stat-divider"></div>
-                            <div className="stat-card">
-                                <h3 className="counter" data-target="99">0</h3>
-                                <p>Satisfaction Rate</p>
-                                <div className="stat-glow"></div>
-                            </div>
+                            </button> */}
                         </div>
                     </div>
 
@@ -192,7 +172,7 @@ export default function Home() {
                 </div>
 
                 <div className="categories-grid-v3">
-                    <Link href="/products/laptops" className="category-card-v3 large hover-scale">
+                    <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
                             <img src="/uploads/category-laptops.jpg" alt="Laptops" />
                             <div className="category-overlay gradient-overlay"></div>
@@ -352,54 +332,6 @@ export default function Home() {
             </section>
 
             {/* Services CTA */}
-            <section className="services-cta-v3">
-                <div className="cta-bg-animated"></div>
-                <div className="services-cta-container">
-                    <div className="services-cta-content fade-in-up">
-                        <h2 className="cta-title">
-                            <span className="title-line">Professional</span>
-                            <span className="title-line gradient-text-animated">Tech Services</span>
-                        </h2>
-                        <p>Expert laptop repair, refurbishing, and custom web design solutions for your business</p>
-                        <Link href="/services" className="btn-gradient-animated magnetic-btn">
-                            <span className="btn-text">Explore Services</span>
-                            <span className="btn-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </span>
-                            <div className="btn-shine"></div>
-                        </Link>
-                    </div>
-                    <div className="service-icon-grid fade-in-up delay-1">
-                        <div className="service-icon-card hover-lift">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                            <span>Repair</span>
-                            <div className="card-glow"></div>
-                        </div>
-                        <div className="service-icon-card hover-lift">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-                            </svg>
-                            <span>Refurbish</span>
-                            <div className="card-glow"></div>
-                        </div>
-                        <div className="service-icon-card hover-lift">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="16 18 22 12 16 6"></polyline>
-                                <polyline points="8 6 2 12 8 18"></polyline>
-                            </svg>
-                            <span>Web Design</span>
-                            <div className="card-glow"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
 
         </div>
     );

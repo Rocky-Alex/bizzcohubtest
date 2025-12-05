@@ -26,7 +26,7 @@ export default function CursorFollower() {
         window.addEventListener('resize', resizeCanvas);
 
         // Particle Class
-        const colors = ['#4A90E2', '#7B68EE', '#50C878', '#FF6B9D', '#FFA500', '#00CED1'];
+        const colors = ['#38393aff', '#6e6d6eff', '#50C878', '#2f517cff', '#ffffffff', '#0044ffff'];
 
         class Particle {
             x: number;

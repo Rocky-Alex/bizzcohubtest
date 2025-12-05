@@ -20,7 +20,6 @@ export default function ContactPage() {
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-        // Clear error when typing
         if (errors[name]) {
             setErrors((prev) => {
                 const newErrors = { ...prev };
@@ -59,29 +58,6 @@ export default function ContactPage() {
             setErrors(newErrors);
             return;
         }
-
-        // Since we can't easily do the formsubmit.co redirect in SPA without page reload or fetch
-        // We will submit via fetch or just allow the form to submit natively.
-        // For this port, let's use the native form submission behavior but with validation first.
-        // To do that, we need to trigger the native submit programmatically or remove e.preventDefault() if valid.
-        // But we are in a React handler.
-        // Let's use fetch to submit to formsubmit.co to avoid redirect, or just let it redirect.
-        // The legacy code allowed redirect with `_next`.
-
-        // We'll construct a hidden form and submit it, or just use the form ref.
-        // For simplicity in this "broken" environment, let's just show success message.
-        // In a real app, we'd use a server action or API route.
-
-        // Simulating success for now as we don't have a backend.
-        // If the user wants the actual formsubmit.co functionality, we should use a real form tag.
-        // I'll use a real form tag and `e.target.submit()`? No, React event is synthetic.
-
-        // Let's just use the form tag attributes and remove e.preventDefault() if valid.
-        // But I called e.preventDefault() at the start.
-
-        // I'll refactor to NOT prevent default if valid, but I need to validate first.
-        // Standard pattern: e.preventDefault(), validate, if valid -> e.target.submit().
-
         const form = e.target as HTMLFormElement;
         form.submit();
         setSuccess(true);
@@ -323,6 +299,85 @@ export default function ContactPage() {
                                 allowFullScreen={true}
                                 loading="lazy"
                             ></iframe>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* About Section - Mission & Vision */}
+            <section className="mission-vision-section">
+                <div className="container">
+                    <div className="section-header-about">
+                        <span className="subtitle">Who We Are</span>
+                        <h2>About Bizz Co Hub</h2>
+                        <p>Your premier destination for high-quality refurbished electronics and professional IT services.</p>
+                    </div>
+                    <div className="mission-grid">
+                        <div className="mission-card">
+                            <div className="icon-box">
+                                <i className="fas fa-bullseye"></i>
+                            </div>
+                            <h3>Our Mission</h3>
+                            <p>To provide accessible, high-quality technology solutions that empower individuals and businesses to achieve their full potential while promoting sustainability through circular economy practices.</p>
+                        </div>
+                        <div className="mission-card">
+                            <div className="icon-box">
+                                <i className="fas fa-eye"></i>
+                            </div>
+                            <h3>Our Vision</h3>
+                            <p>To be the global leader in refurbished electronics and IT services, setting new standards for quality, reliability, and customer satisfaction in the tech industry.</p>
+                        </div>
+                        <div className="mission-card">
+                            <div className="icon-box">
+                                <i className="fas fa-gem"></i>
+                            </div>
+                            <h3>Our Values</h3>
+                            <p>Integrity, Innovation, Quality, and Sustainability are at the core of everything we do. We believe in building lasting relationships with our customers through trust and excellence.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Story Section */}
+            <section className="story-section">
+                <div className="container">
+                    <div className="story-content">
+                        <div className="story-text">
+                            <h2>Our Story</h2>
+                            <p>Founded with a passion for technology and a commitment to sustainability, Bizz Co Hub started as a small team of tech enthusiasts who saw an opportunity to make premium technology more accessible.</p>
+                            <p>We realized that millions of high-quality devices were being discarded simply because they were "used," while many people struggled to afford the latest tech. We decided to change that.</p>
+                            <p>Today, we have grown into a comprehensive technology hub, offering not just refurbished devices but also expert repair services, IT consulting, and web development solutions. Our journey is driven by our customers' success and our planet's well-being.</p>
+                        </div>
+                        <div className="story-image">
+                            <div className="image-wrapper">
+                                <div className="placeholder-image">
+                                    <i className="fas fa-history"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Stats Section */}
+            <section className="stats-section">
+                <div className="container">
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <span className="stat-number">5000+</span>
+                            <span className="stat-label">Happy Customers</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-number">10k+</span>
+                            <span className="stat-label">Devices Refurbished</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-number">50+</span>
+                            <span className="stat-label">Expert Team Members</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-number">99%</span>
+                            <span className="stat-label">Satisfaction Rate</span>
                         </div>
                     </div>
                 </div>

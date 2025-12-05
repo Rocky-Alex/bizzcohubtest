@@ -41,10 +41,6 @@ export default function Header() {
                         <span>Services</span>
                         <div className="nav-indicator"></div>
                     </Link>
-                    <Link href="/about" className={`nav-link ${isActive('/about')}`}>
-                        <span>About</span>
-                        <div className="nav-indicator"></div>
-                    </Link>
                     <Link href="/contact" className={`nav-link ${isActive('/contact')}`}>
                         <span>Contact</span>
                         <div className="nav-indicator"></div>
