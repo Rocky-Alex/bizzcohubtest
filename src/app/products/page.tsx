@@ -55,7 +55,7 @@ export default function ProductsPage() {
             const allProducts = [
                 ...(laptopsData.products || []),
                 ...(accessoriesData.products || [])
-            ];
+            ].filter((p: Product) => p.id && p.type); // Filter out invalid products
 
             setProducts(allProducts);
 
@@ -426,7 +426,7 @@ export default function ProductsPage() {
                             {filteredProducts.map((product) => (
                                 <Link
                                     key={product.id}
-                                    href={`/products/${product.type === 'laptop' ? 'laptops' : 'accessories'}/${product.id}`}
+                                    href={`/products/${product.type}/${product.id}`}
                                     style={{ textDecoration: 'none' }}
                                 >
                                     <div className="product-card" style={{

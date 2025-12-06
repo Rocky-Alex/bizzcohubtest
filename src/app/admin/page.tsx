@@ -19,6 +19,7 @@ import "./dashboard.css";
 import "./inventory-modern.css";
 import "./inventory-stats.css";
 import "./inventory-filters.css";
+import "./product-table.css";
 
 export default function AdminPage() {
     const router = useRouter();

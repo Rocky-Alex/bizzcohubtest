@@ -8,7 +8,8 @@ interface Product {
     price: number;
     offer_price: number;
     stock: number;
-    image: string;
+    image?: string;
+    images?: string[];
     badge?: string;
     discount: number;
     // Laptop specific
@@ -67,7 +68,11 @@ export default function ProductCard({ product, type }: ProductCardProps) {
     return (
         <div className={`product-card ${inStock ? "in-stock" : "out-of-stock"}`}>
             <div className="product-image">
-                <img src={product.image} alt={product.name} loading="lazy" />
+                <img
+                    src={product.images?.[0] || product.image || '/uploads/placeholder.jpg'}
+                    alt={product.name}
+                    loading="lazy"
+                />
                 {product.badge && <span className="product-badge">{product.badge}</span>}
                 {product.stock <= 5 && product.stock > 0 && (
                     <span className="low-stock-badge">Only {product.stock} left!</span>

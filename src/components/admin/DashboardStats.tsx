@@ -255,7 +255,7 @@ export default function DashboardStats({
                         recentProducts.map((p, index) => (
                             <div key={index} className="recent-product-card">
                                 <div className="product-image-wrapper">
-                                    <img src={p.image} alt={p.name} />
+                                    <img src={p.images?.[0] || p.image || '/uploads/placeholder.jpg'} alt={p.name} />
                                     <span className={`product-type-badge ${p.type.toLowerCase()}`}>
                                         {p.type}
                                     </span>
@@ -273,7 +273,7 @@ export default function DashboardStats({
                                 </div>
                                 <div className="product-price-section">
                                     <span className="product-price">
-                                        AED {(p.offer_price || 0).toLocaleString("en-IN")}
+                                        AED {(p.price || 0).toLocaleString("en-IN")}
                                     </span>
                                     <button
                                         className="product-edit-btn"

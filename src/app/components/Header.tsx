@@ -54,14 +54,14 @@ export default function Header() {
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </Link>
-                    <button className="action-btn icon-btn cart-btn">
+                    <Link href="/cart" className="action-btn icon-btn cart-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M9 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"></path>
                             <path d="M20 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"></path>
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                         </svg>
-                        <span className="cart-badge">0</span>
-                    </button>
+                        <span className="cart-badge">3</span>
+                    </Link>
                     <button
                         className="mobile-menu-btn"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

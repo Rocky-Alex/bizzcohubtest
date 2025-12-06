@@ -20,8 +20,8 @@ export default function AccessoriesPage() {
                     throw new Error('Failed to fetch accessories');
                 }
                 const data = await response.json();
-                setAccessories(data.products || []);
-                setFilteredAccessories(data.products || []);
+                setAccessories((data.products || []).filter((p: any) => p.code || p.id));
+                setFilteredAccessories((data.products || []).filter((p: any) => p.code || p.id));
             } catch (err) {
                 console.error("Error loading accessories:", err);
                 setError("Failed to load products. Please try again later.");

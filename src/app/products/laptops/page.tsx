@@ -20,8 +20,8 @@ export default function LaptopsPage() {
                     throw new Error('Failed to fetch laptops');
                 }
                 const data = await response.json();
-                setLaptops(data.products || []);
-                setFilteredLaptops(data.products || []);
+                setLaptops((data.products || []).filter((p: any) => p.code || p.id));
+                setFilteredLaptops((data.products || []).filter((p: any) => p.code || p.id));
             } catch (err) {
                 console.error("Error loading laptops:", err);
                 setError("Failed to load products. Please try again later.");

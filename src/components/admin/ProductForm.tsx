@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "./product-form.css";
 
 interface ProductFormProps {
     type: "laptop" | "accessory";
@@ -13,567 +14,495 @@ export default function ProductForm({
     onSave,
     onCancel,
 }: ProductFormProps) {
+    const [activeTab, setActiveTab] = useState("basic");
+    const [previewImages, setPreviewImages] = useState<string[]>([]);
+    const [uploadingImages, setUploadingImages] = useState(false);
+
+    // Main Form Data
     const [formData, setFormData] = useState<any>({
         name: "",
         category: "",
-        customCategory: "",
-        badge: "",
-        actualPrice: "",
+        badge: "New",
+        price: "",
         offerPrice: "",
-        quantity: "",
-        image: "",
-        // Laptop specific
-        processor: "",
-        ram: "",
-        customRam: "",
-        storage: "",
-        customStorage: "",
+        stock: "",
+        description: "",
+        // Tech Specs (Mapped to DB columns)
         screen: "",
-        customScreen: "",
+        resolution: "", // Merged into screen on save
+        panelType: "",  // Merged into screen on save
+        refreshRate: "", // Merged into screen on save
+        processor: "",
         graphics: "",
-        customGraphics: "",
-        graphicsStorage: "",
-        customGraphicsStorage: "",
-        feature: "",
-        // Accessory specific
-        about: "",
-        features: "",
+        ram: "",
+        storage: "",
+        // Features
+        shippingInfo: "",
+        warrantyInfo: "",
+        returnPolicy: "",
+        // Collections
+        images: [],
+        colors: "",
     });
 
-    const [previewImage, setPreviewImage] = useState<string>("");
+    // Configuration Lists (UI State)
+    // In a real variant system, these would be complex objects.
+    // Here we use them to build the strings for the legacy string columns or just for UI show.
+    const [processorOptions, setProcessorOptions] = useState<any[]>([]);
+    const [ramOptions, setRamOptions] = useState<any[]>([]);
+    const [storageOptions, setStorageOptions] = useState<any[]>([]);
+    const [colorOptions, setColorOptions] = useState<any[]>([]);
+
+    // Dropdown Options State
+    const [categories, setCategories] = useState(['Apple', 'Dell', 'HP', 'Lenovo', 'Asus', 'Acer', 'Microsoft', 'Razer', 'Samsung', 'LG', 'Other']);
+    const [badges, setBadges] = useState(['New', 'Refurbished', 'Best Seller', 'On Sale', 'Featured']);
+    const [screens, setScreens] = useState(['13.3 inches', '14 inches', '15.6 inches', '16 inches', '17.3 inches']);
+    const [resolutions, setResolutions] = useState(['1920 x 1080 (FHD)', '2560 x 1440 (QHD)', '3840 x 2160 (4K UHD)', '1366 x 768 (HD)']);
+    const [panelTypes, setPanelTypes] = useState(['IPS', 'OLED', 'TN', 'VA', 'Mini-LED']);
+    const [refreshRates, setRefreshRates] = useState(['60Hz', '90Hz', '120Hz', '144Hz', '165Hz', '240Hz', '360Hz']);
+    const [processors, setProcessors] = useState(['Intel Core i3', 'Intel Core i5', 'Intel Core i7', 'Intel Core i9', 'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'Apple M1', 'Apple M2']);
+    const [graphicsCards, setGraphicsCards] = useState(['Integrated Graphics', 'NVIDIA GeForce RTX 3050', 'NVIDIA GeForce RTX 3060', 'NVIDIA GeForce RTX 4050', 'NVIDIA GeForce RTX 4060']);
+    const [ramSizes, setRamSizes] = useState(['8GB', '16GB', '32GB', '64GB', '128GB']);
+    const [storageSizes, setStorageSizes] = useState(['256GB SSD', '512GB SSD', '1TB SSD', '2TB SSD']);
+    const [shippingInfos, setShippingInfos] = useState(['Free Shipping - Delivery in 2-3 days', 'Standard Shipping - 3-5 Business Days']);
+    const [warrantyInfos, setWarrantyInfos] = useState(['1-Year Standard Warranty', '2-Year Extended Warranty', '3-Year Premium Support']);
+    const [returnPolicies, setReturnPolicies] = useState(['30-Day Returns', '14-Day Returns', 'No Returns']);
 
     useEffect(() => {
         if (editItem) {
-            setFormData(editItem);
-            setPreviewImage(editItem.image);
-        } else {
-            // Reset form
             setFormData({
-                name: "",
-                category: "",
-                customCategory: "",
-                badge: "",
-                actualPrice: "",
-                offerPrice: "",
-                quantity: "",
-                image: "",
-                processor: "",
-                ram: "",
-                customRam: "",
-                storage: "",
-                customStorage: "",
-                screen: "",
-                customScreen: "",
-                graphics: "",
-                customGraphics: "",
-                graphicsStorage: "",
-                customGraphicsStorage: "",
-                feature: "",
-                about: "",
-                features: "",
+                ...editItem,
+                price: editItem.price || "",
+                offerPrice: editItem.offer_price || editItem.offerPrice || "",
+                stock: editItem.stock || "",
+                description: editItem.about || editItem.description || "",
+                // Try to parse specs if they were merged? For now just direct map
+                screen: editItem.screen || "",
+                processor: editItem.processor || "",
+                graphics: editItem.graphics || "",
+                ram: editItem.ram || "",
+                storage: editItem.storage || "",
+                colors: editItem.colors || "",
+                images: editItem.images || (editItem.image ? [editItem.image] : [])
             });
-            setPreviewImage("");
+
+            if (editItem.images) setPreviewImages(editItem.images);
+            else if (editItem.image) setPreviewImages([editItem.image]);
+
+            // Attempt to populate lists from comma strings if basic data exists
+            if (editItem.colors) {
+                const cols = editItem.colors.split(',').map((c: string, i: number) => ({
+                    id: `col_${i}`, label: c.trim(), value: c.trim()
+                }));
+                setColorOptions(cols);
+            }
         }
     }, [editItem]);
 
-    const handleChange = (
-        e: React.ChangeEvent<
-            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-        >
-    ) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev: any) => ({ ...prev, [name]: value }));
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                alert("⚠️ Image size must be less than 5MB");
-                return;
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        setUploadingImages(true);
+        const fileArray = Array.from(files);
+        const newUrls: string[] = [];
+
+        try {
+            for (const file of fileArray) {
+                if (file.size > 5 * 1024 * 1024) continue; // Skip huge files
+
+                const response = await uploadToImageKit(file);
+                if (response) newUrls.push(response);
             }
+
+            if (newUrls.length > 0) {
+                const updatedImages = [...previewImages, ...newUrls].slice(0, 5);
+                setPreviewImages(updatedImages);
+                setFormData((prev: any) => ({ ...prev, images: updatedImages }));
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Upload failed");
+        } finally {
+            setUploadingImages(false);
+        }
+    };
+
+    const uploadToImageKit = async (file: File): Promise<string | null> => {
+        return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                const result = ev.target?.result as string;
-                setPreviewImage(result);
-                setFormData((prev: any) => ({ ...prev, image: result }));
+            reader.onload = async (ev) => {
+                const base64 = ev.target?.result as string;
+                try {
+                    const res = await fetch('/api/imagekit/upload', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ file: base64, fileName: file.name, folder: 'products' })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        resolve(data.url);
+                    } else resolve(null);
+                } catch { resolve(null); }
             };
             reader.readAsDataURL(file);
-        }
+        });
     };
 
-    const generateProductCode = async (category: string) => {
-        try {
-            const response = await fetch('/api/products');
-            const type = editItem ? editItem.type : (formData.type || "laptop");
-            let products: any[] = [];
-
-            if (response.ok) {
-                const data = await response.json();
-                products = data.products.filter((p: any) => p.type === type);
-            } else {
-                // Fallback to localStorage
-                const storageKey = type === "laptop" ? "bchLaptops" : "bchAccessories";
-                products = JSON.parse(localStorage.getItem(storageKey) || "[]");
-            }
-
-            // Simple prefix: LP for laptops, AC for accessories
-            const prefix = type === "laptop" ? "LP" : "AC";
-
-            // Find the highest existing number for this type
-            let maxNumber = 999; // Start from 1000 (999 + 1)
-            products.forEach((p: any) => {
-                if (p.code && p.code.startsWith(`BCH-${prefix}-`)) {
-                    const match = p.code.match(/\d+$/);
-                    if (match) {
-                        const num = parseInt(match[0]);
-                        if (num > maxNumber) maxNumber = num;
-                    }
-                }
-            });
-
-            // Generate next number with 4-digit padding
-            const nextNumber = String(maxNumber + 1).padStart(4, "0");
-            return `BCH-${prefix}-${nextNumber}`;
-        } catch (error) {
-            console.error('Error generating product code:', error);
-            return `BCH-${Date.now()}`;
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const productCode = editItem ? editItem.code : await generateProductCode(formData.category);
-
-        const newProduct = {
-            code: productCode,
-            name: formData.name,
-            type: type,
-            category: formData.category === "Custom" ? formData.customCategory : formData.category,
-            brand: formData.brand || (type === "accessory" ? "N/A" : formData.category),
-            price: parseFloat(formData.actualPrice),
-            offer_price: parseFloat(formData.offerPrice),
-            stock: parseInt(formData.quantity),
-            condition: formData.badge,
-            processor: type === "laptop" ? formData.processor : "N/A",
-            ram: type === "laptop" ? (formData.ram === "Custom" ? formData.customRam : formData.ram) : "N/A",
-            storage: type === "laptop" ? (formData.storage === "Custom" ? formData.customStorage : formData.storage) : "N/A",
-            screen: type === "laptop" ? (formData.screen === "Custom" ? formData.customScreen : formData.screen) : "N/A",
-            graphics: type === "laptop" ? (formData.graphics === "Custom" ? formData.customGraphics : formData.graphics) : "N/A",
-            graphics_storage: type === "laptop" ? (formData.graphicsStorage === "Custom" ? formData.customGraphicsStorage : formData.graphicsStorage) : "N/A",
-            feature: formData.feature || "",
-            about: formData.about || "",
-            features: formData.features || "",
-            badge: formData.badge,
-            image: formData.image,
-            discount: Math.round(
-                ((formData.actualPrice - formData.offerPrice) / formData.actualPrice) *
-                100
-            ),
-            date_added: new Date().toISOString().split("T")[0],
+    const handleSubmit = async () => {
+        // Construct final object
+        const finalProduct = {
+            ...formData,
+            type,
+            price: parseFloat(formData.price) || 0,
+            offer_price: parseFloat(formData.offerPrice) || 0,
+            stock: parseInt(formData.stock) || 0,
+            // Logic to merge fields if needed, e.g. screen info
+            screen: formData.screen + (formData.resolution ? `, ${formData.resolution}` : "") + (formData.refreshRate ? `, ${formData.refreshRate}` : ""),
+            // Map colors from options list if changed, else use string
+            colors: colorOptions.length > 0 ? colorOptions.map(c => c.label).join(', ') : formData.colors,
+            // Use date if new
+            date_added: editItem ? editItem.date_added : new Date().toISOString().split("T")[0],
+            // Ensure Image legacy field is populated
+            image: previewImages[0] || "",
+            // Features field hacking for now
+            feature: `${formData.shippingInfo}|${formData.warrantyInfo}|${formData.returnPolicy}`
         };
 
-        try {
-            const method = editItem ? 'PUT' : 'POST';
-            const response = await fetch('/api/products', {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newProduct),
-            });
+        const method = editItem ? 'PUT' : 'POST';
+        const res = await fetch('/api/products', {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...finalProduct, code: editItem?.code }) // Generate code in backend or generate here if new
+        });
 
-            if (response.ok) {
-                onSave();
-            } else {
-                const error = await response.json();
-                alert(`⚠️ Failed to save product: ${error.error}`);
-            }
-        } catch (error) {
-            console.error('Error saving product:', error);
-            alert('⚠️ Failed to save product. Check console for details.');
-        }
+        if (res.ok) onSave();
+        else alert("Failed to save product");
     };
 
-    return (
-        <div className="form-container">
-            <h3>
-                <i className="fas fa-plus-circle"></i>{" "}
-                {editItem ? "Edit Product" : "Add New Product"}
-            </h3>
+    const renderCreatableSelect = (label: string, name: string, options: string[], setOptions: React.Dispatch<React.SetStateAction<string[]>>) => (
+        <div className="form-group">
+            <label>{label}</label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <select
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    style={{ flex: 1 }}
+                >
+                    <option value="">Select {label}</option>
+                    {options.map((opt, i) => (
+                        <option key={i} value={opt}>{opt}</option>
+                    ))}
+                </select>
+                <button
+                    type="button"
+                    onClick={() => {
+                        const newVal = prompt(`Add new ${label}:`);
+                        if (newVal) {
+                            setOptions(prev => [...prev, newVal]);
+                            setFormData((prev: any) => ({ ...prev, [name]: newVal }));
+                        }
+                    }}
+                    className="btn-add-small"
+                    title="Add Option"
+                >
+                    +
+                </button>
+            </div>
+        </div>
+    );
 
-            <form onSubmit={handleSubmit} className="product-form">
-                {/* Image Upload */}
-                <div className="form-group">
-                    <label>Product Image *</label>
-                    <div
-                        className="image-upload-area"
-                        onClick={() => document.getElementById("productImage")?.click()}
-                    >
-                        {previewImage ? (
-                            <div className="image-preview" style={{ display: "block" }}>
-                                <img src={previewImage} style={{ display: "block" }} />
-                            </div>
-                        ) : (
-                            <div className="image-preview">
-                                <i className="fas fa-cloud-upload-alt"></i>
-                                <p>Click to upload image (Max 5MB)</p>
-                            </div>
-                        )}
-                    </div>
-                    <input
-                        type="file"
-                        id="productImage"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={handleImageUpload}
-                    />
-                </div>
+    // --- RENDER HELPERS ---
 
-                {/* Common Fields */}
+    const renderBasicInfo = () => (
+        <div className="form-card">
+            <h4 className="card-section-title">Basic Information</h4>
+            <div className="form-group">
+                <label>Product Name *</label>
+                <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="e.g., UltraBook Pro 15"
+                />
+            </div>
+            <div className="form-group">
+                <label>Product Description *</label>
+                <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={4}
+                    placeholder="Enter detailed product description..."
+                />
+            </div>
+            <div className="form-row">
                 <div className="form-group">
-                    <label>Product Name *</label>
+                    <label>Base Price ($) *</label>
                     <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
+                        type="number"
+                        name="price"
+                        value={formData.price}
                         onChange={handleChange}
-                        required
-                        placeholder="Product Name"
+                        placeholder="1299.99"
                     />
                 </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Category *</label>
-                        {type === "laptop" ? (
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">Select Category</option>
-                                <option value="Apple">Apple</option>
-                                <option value="Dell">Dell</option>
-                                <option value="HP">HP</option>
-                                <option value="Lenovo">Lenovo</option>
-                                <option value="Desktop">Desktop</option>
-                                <option value="Custom">Custom (Enter Manually)</option>
-                            </select>
-                        ) : (
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value="">Select Category</option>
-                                <option value="Keyboard">Keyboard</option>
-                                <option value="Mouse">Mouse</option>
-                                <option value="Headset">Headset</option>
-                                <option value="Monitor">Monitor</option>
-                                <option value="Cable">Cable</option>
-                                <option value="Webcam">Webcam</option>
-                                <option value="Speaker">Speaker</option>
-                                <option value="Other">Other</option>
-                                <option value="Custom">Custom (Enter Manually)</option>
-                            </select>
-                        )}
-                    </div>
-                    {formData.category === "Custom" && (
-                        <div className="form-group">
-                            <label>Custom Category *</label>
-                            <input
-                                type="text"
-                                name="customCategory"
-                                value={formData.customCategory}
-                                onChange={handleChange}
-                                required
-                                placeholder={type === "laptop" ? "e.g. Asus, Acer, MSI" : "e.g. USB Hub, Docking Station"}
-                            />
-                        </div>
-                    )}
-
-                    <div className="form-group">
-                        <label>Badge Type *</label>
-                        <select
-                            name="badge"
-                            value={formData.badge}
-                            onChange={handleChange}
-                            required
-                        >
-                            <option value="">Select Badge Type</option>
-                            <option value="Refurbished">Refurbished</option>
-                            <option value="New">New</option>
-                        </select>
-                    </div>
+                <div className="form-group">
+                    <label>Sale Price ($)</label>
+                    <input
+                        type="number"
+                        name="offerPrice"
+                        value={formData.offerPrice}
+                        onChange={handleChange}
+                        placeholder="1099.99"
+                    />
                 </div>
+            </div>
+            <div className="form-group">
+                <label>Stock Quantity *</label>
+                <input
+                    type="number"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={handleChange}
+                    placeholder="e.g. 50"
+                />
+            </div>
+            <div className="form-row">
+                {renderCreatableSelect("Category *", "category", categories, setCategories)}
+                {renderCreatableSelect("Badge Type", "badge", badges, setBadges)}
+            </div>
 
-                {/* Type Specific Fields */}
-                {type === "laptop" ? (
-                    <>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Processor *</label>
-                                <input
-                                    type="text"
-                                    name="processor"
-                                    value={formData.processor}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Intel Core i5"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>RAM *</label>
-                                <select
-                                    name="ram"
-                                    value={formData.ram}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="">Select RAM</option>
-                                    <option value="4GB">4GB</option>
-                                    <option value="8GB">8GB</option>
-                                    <option value="16GB">16GB</option>
-                                    <option value="32GB">32GB</option>
-                                    <option value="64GB">64GB</option>
-                                    <option value="Custom">Custom (Enter Manually)</option>
-                                </select>
-                            </div>
-                            {formData.ram === "Custom" && (
-                                <div className="form-group">
-                                    <label>Custom RAM *</label>
-                                    <input
-                                        type="text"
-                                        name="customRam"
-                                        value={formData.customRam}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="e.g. 128GB DDR5"
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Storage *</label>
-                                <select
-                                    name="storage"
-                                    value={formData.storage}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="">Select Storage</option>
-                                    <option value="128GB SSD">128GB SSD</option>
-                                    <option value="256GB SSD">256GB SSD</option>
-                                    <option value="512GB SSD">512GB SSD</option>
-                                    <option value="1TB SSD">1TB SSD</option>
-                                    <option value="2TB SSD">2TB SSD</option>
-                                    <option value="500GB HDD">500GB HDD</option>
-                                    <option value="1TB HDD">1TB HDD</option>
-                                    <option value="Custom">Custom (Enter Manually)</option>
-                                </select>
-                            </div>
-                            {formData.storage === "Custom" && (
-                                <div className="form-group">
-                                    <label>Custom Storage *</label>
-                                    <input
-                                        type="text"
-                                        name="customStorage"
-                                        value={formData.customStorage}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="e.g. 4TB SSD"
-                                    />
-                                </div>
-                            )}
-                            <div className="form-group">
-                                <label>Screen *</label>
-                                <select
-                                    name="screen"
-                                    value={formData.screen}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="">Select Screen</option>
-                                    <option value='13.3" HD'>13.3" HD</option>
-                                    <option value='14" Full HD'>14" Full HD</option>
-                                    <option value='15.6" Full HD'>15.6" Full HD</option>
-                                    <option value='15.6" 4K'>15.6" 4K</option>
-                                    <option value='17" Full HD'>17" Full HD</option>
-                                    <option value='24" Full HD'>24" Full HD (Desktop)</option>
-                                    <option value='27" QHD'>27" QHD (Desktop)</option>
-                                    <option value="Custom">Custom (Enter Manually)</option>
-                                </select>
-                            </div>
-                            {formData.screen === "Custom" && (
-                                <div className="form-group">
-                                    <label>Custom Screen *</label>
-                                    <input
-                                        type="text"
-                                        name="customScreen"
-                                        value={formData.customScreen}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder='e.g. 32" 4K UHD'
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Graphics (Optional)</label>
-                                <select
-                                    name="graphics"
-                                    value={formData.graphics}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select Graphics</option>
-                                    <option value="Integrated">Integrated Graphics</option>
-                                    <option value="NVIDIA GTX 1650">NVIDIA GTX 1650</option>
-                                    <option value="NVIDIA RTX 3050">NVIDIA RTX 3050</option>
-                                    <option value="NVIDIA RTX 3060">NVIDIA RTX 3060</option>
-                                    <option value="NVIDIA RTX 4050">NVIDIA RTX 4050</option>
-                                    <option value="NVIDIA RTX 4060">NVIDIA RTX 4060</option>
-                                    <option value="AMD Radeon">AMD Radeon</option>
-                                    <option value="Intel Iris Xe">Intel Iris Xe</option>
-                                    <option value="Custom">Custom (Enter Manually)</option>
-                                </select>
-                            </div>
-                            {formData.graphics === "Custom" && (
-                                <div className="form-group">
-                                    <label>Custom Graphics *</label>
-                                    <input
-                                        type="text"
-                                        name="customGraphics"
-                                        value={formData.customGraphics}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="e.g. NVIDIA RTX 4090"
-                                    />
-                                </div>
-                            )}
-                            <div className="form-group">
-                                <label>Graphics Storage (Optional)</label>
-                                <select
-                                    name="graphicsStorage"
-                                    value={formData.graphicsStorage}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select VRAM</option>
-                                    <option value="Shared">Shared Memory</option>
-                                    <option value="2GB">2GB</option>
-                                    <option value="4GB">4GB</option>
-                                    <option value="6GB">6GB</option>
-                                    <option value="8GB">8GB</option>
-                                    <option value="12GB">12GB</option>
-                                    <option value="16GB">16GB</option>
-                                    <option value="Custom">Custom (Enter Manually)</option>
-                                </select>
-                            </div>
-                            {formData.graphicsStorage === "Custom" && (
-                                <div className="form-group">
-                                    <label>Custom Graphics Storage *</label>
-                                    <input
-                                        type="text"
-                                        name="customGraphicsStorage"
-                                        value={formData.customGraphicsStorage}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="e.g. 24GB"
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        <div className="form-group">
-                            <label>Additional Features</label>
-                            <input
-                                type="text"
-                                name="feature"
-                                value={formData.feature}
-                                onChange={handleChange}
-                                placeholder="Windows 10 Pro, Backlit Keyboard"
+            <h4 className="card-section-title" style={{ marginTop: "2rem" }}>Product Images</h4>
+            <div
+                className="image-dropzone"
+                onClick={() => document.getElementById('img-upload')?.click()}
+            >
+                <input
+                    id="img-upload"
+                    type="file"
+                    multiple
+                    hidden
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                />
+                <div className="dropzone-icon">
+                    <i className="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div className="dropzone-text">Click to upload or drag and drop</div>
+                <div className="dropzone-hint">PNG, JPG up to 5MB (Recommended: 1000x1000px)</div>
+            </div>
+            {previewImages.length > 0 && (
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', overflowX: 'auto' }}>
+                    {previewImages.map((src, i) => (
+                        <div key={i} style={{ position: 'relative', width: '80px', height: '80px' }}>
+                            <img
+                                src={src}
+                                alt=""
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid #ddd' }}
                             />
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setPreviewImages(prev => prev.filter((_, idx) => idx !== i)); }}
+                                style={{ position: 'absolute', top: -5, right: -5, background: 'red', color: 'white', borderRadius: '50%', border: 'none', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                &times;
+                            </button>
                         </div>
-                    </>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
+    const renderConfigurations = () => (
+        <div className="form-card">
+            {/* Processor Config */}
+            <div className="config-group">
+                <div className="config-header">
+                    <h4>Processor Options</h4>
+                    <button type="button" className="btn-add-option" onClick={() => {
+                        const label = prompt("Enter Processor Name (e.g. Intel Core i5):");
+                        if (label) setProcessorOptions([...processorOptions, { label, id: label.toLowerCase().replace(/ /g, '-'), price: 0 }]);
+                    }}>
+                        <i className="fas fa-plus"></i> Add Processor
+                    </button>
+                </div>
+                {processorOptions.length === 0 && <p style={{ color: '#999', fontSize: '0.9rem' }}>No options added. Will use basic spec.</p>}
+                {processorOptions.map((opt, i) => (
+                    <div key={i} className="config-item">
+                        <div className="form-row">
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label>Label</label>
+                                <input type="text" value={opt.label} readOnly />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label>Additional Price</label>
+                                <input type="number" placeholder="0" />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* RAM Config */}
+            <div className="config-group">
+                <div className="config-header">
+                    <h4>Memory (RAM) Options</h4>
+                    <button type="button" className="btn-add-option" onClick={() => {
+                        const label = prompt("Enter RAM (e.g. 16GB DDR4):");
+                        if (label) setRamOptions([...ramOptions, { label, id: label.toLowerCase().replace(/ /g, '-'), price: 0 }]);
+                    }}>
+                        <i className="fas fa-plus"></i> Add RAM
+                    </button>
+                </div>
+                {ramOptions.length === 0 && <p style={{ color: '#999', fontSize: '0.9rem' }}>No options added. Will use basic spec.</p>}
+                {ramOptions.map((opt, i) => (
+                    <div key={i} className="config-item">
+                        <div className="form-row">
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label>Label</label>
+                                <input type="text" value={opt.label} readOnly />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Color Config */}
+            <div className="config-group">
+                <div className="config-header">
+                    <h4>Color Options</h4>
+                    <button type="button" className="btn-add-option" onClick={() => {
+                        const label = prompt("Enter Color Name (e.g. Silver):");
+                        if (label) setColorOptions([...colorOptions, { label, id: label.toLowerCase(), code: '#cccccc' }]);
+                    }}>
+                        <i className="fas fa-plus"></i> Add Color
+                    </button>
+                </div>
+                {colorOptions.length === 0 && <p style={{ color: '#999', fontSize: '0.9rem' }}>No colors added.</p>}
+                {colorOptions.map((opt, i) => (
+                    <div key={i} className="config-item">
+                        <div className="form-row">
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label>Label</label>
+                                <input type="text" value={opt.label} onChange={(e) => {
+                                    const newCols = [...colorOptions];
+                                    newCols[i].label = e.target.value;
+                                    setColorOptions(newCols);
+                                }} />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label>Color Code</label>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <input type="color" className="color-preview" value={opt.code || "#cccccc"} onChange={(e) => {
+                                        const newCols = [...colorOptions];
+                                        newCols[i].code = e.target.value;
+                                        setColorOptions(newCols);
+                                    }} />
+                                    <input type="text" value={opt.code || ""} placeholder="#Hex" readOnly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderSpecifications = () => (
+        <div className="form-card">
+            <h4 className="card-section-title">Technical Specifications</h4>
+
+            <h5 className="specs-section-title">Display</h5>
+            <div className="specs-grid">
+                {renderCreatableSelect("Screen Size", "screen", screens, setScreens)}
+                {renderCreatableSelect("Resolution", "resolution", resolutions, setResolutions)}
+                {renderCreatableSelect("Panel Type", "panelType", panelTypes, setPanelTypes)}
+                {renderCreatableSelect("Refresh Rate", "refreshRate", refreshRates, setRefreshRates)}
+            </div>
+
+            <h5 className="specs-section-title">Performance</h5>
+            <div className="specs-grid">
+                {renderCreatableSelect("Processor", "processor", processors, setProcessors)}
+                {renderCreatableSelect("Graphics", "graphics", graphicsCards, setGraphicsCards)}
+                {renderCreatableSelect("Memory", "ram", ramSizes, setRamSizes)}
+                {renderCreatableSelect("Storage", "storage", storageSizes, setStorageSizes)}
+            </div>
+        </div>
+    );
+
+    const renderFeatures = () => (
+        <div className="form-card">
+            <h4 className="card-section-title">Product Features & Benefits</h4>
+            {renderCreatableSelect("Shipping Information", "shippingInfo", shippingInfos, setShippingInfos)}
+            {renderCreatableSelect("Warranty Information", "warrantyInfo", warrantyInfos, setWarrantyInfos)}
+            {renderCreatableSelect("Return Policy", "returnPolicy", returnPolicies, setReturnPolicies)}
+        </div>
+    );
+
+    return (
+        <div className="product-form-container">
+            <div className="form-header">
+                <h2>{editItem ? "Edit Product" : `Add New ${type === 'laptop' ? 'Laptop' : 'Accessory'} Product`}</h2>
+                <p>Enter all product details, configurations, and specifications</p>
+            </div>
+
+            <div className="form-tabs">
+                <button
+                    className={`tab-btn ${activeTab === 'basic' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('basic')}
+                >
+                    Basic Info
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'configurations' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('configurations')}
+                >
+                    Configurations
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'specifications' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('specifications')}
+                >
+                    Specifications
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'features' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('features')}
+                >
+                    Features
+                </button>
+            </div>
+
+            {activeTab === 'basic' && renderBasicInfo()}
+            {activeTab === 'configurations' && renderConfigurations()}
+            {activeTab === 'specifications' && renderSpecifications()}
+            {activeTab === 'features' && renderFeatures()}
+
+            <div className="form-actions">
+                <button className="btn-cancel" onClick={onCancel}>Cancel</button>
+
+                {activeTab === 'features' ? (
+                    <button className="btn-save" onClick={handleSubmit}>
+                        <i className="fas fa-save"></i> Save Product
+                    </button>
                 ) : (
-                    <>
-                        <div className="form-group">
-                            <label>About This Item *</label>
-                            <textarea
-                                name="about"
-                                value={formData.about}
-                                onChange={handleChange}
-                                rows={3}
-                                required
-                                placeholder="Describe the product..."
-                            ></textarea>
-                        </div>
-                        <div className="form-group">
-                            <label>Features (Optional)</label>
-                            <input
-                                type="text"
-                                name="features"
-                                value={formData.features}
-                                onChange={handleChange}
-                                placeholder="Wireless, Ergonomic (comma-separated)"
-                            />
-                        </div>
-                    </>
+                    <button className="btn-save" onClick={() => {
+                        if (activeTab === 'basic') setActiveTab('configurations');
+                        else if (activeTab === 'configurations') setActiveTab('specifications');
+                        else if (activeTab === 'specifications') setActiveTab('features');
+                    }}>
+                        Next Page <i className="fas fa-arrow-right" style={{ marginLeft: '8px' }}></i>
+                    </button>
                 )}
-
-                {/* Pricing */}
-                <div className="price-section">
-                    <h4>
-                        <i className="fas fa-tag"></i> Pricing & Stock
-                    </h4>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Actual Price (AED) *</label>
-                            <input
-                                type="number"
-                                name="actualPrice"
-                                value={formData.actualPrice}
-                                onChange={handleChange}
-                                required
-                                min="0"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Offer Price (AED) *</label>
-                            <input
-                                type="number"
-                                name="offerPrice"
-                                value={formData.offerPrice}
-                                onChange={handleChange}
-                                required
-                                min="0"
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group">
-                        <label>Quantity in Stock *</label>
-                        <input
-                            type="number"
-                            name="quantity"
-                            value={formData.quantity}
-                            onChange={handleChange}
-                            required
-                            min="0"
-                        />
-                    </div>
-                </div>
-
-                <div className="form-buttons">
-                    <button type="submit" className="btn btn-primary">
-                        <i className="fas fa-save"></i> {editItem ? "Update" : "Add"} Product
-                    </button>
-                    <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                        <i className="fas fa-redo"></i> Cancel
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     );
 }

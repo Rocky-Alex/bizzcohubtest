@@ -10,7 +10,7 @@ export const SiteConfig = {
     },
     contact: {
         phone: '+971-567064457',
-        email: 'info@bizzcohub.com',
+        email: 'bizzcohub@gmail.com',
         address: 'Your Address Here',
         city: 'Your City',
         country: 'UAE',
@@ -21,7 +21,7 @@ export const SiteConfig = {
         instagram: '#',
         whatsapp: 'https://wa.me/971567064457',
         tiktok: '#',
-        gmail: 'mailto:info@bizzcohub.com'
+        gmail: 'mailto:bizzcohub@gmail.com'
     },
     footer: {
         companyDescription: 'Your trusted partner in refurbished technology and digital solutions.',

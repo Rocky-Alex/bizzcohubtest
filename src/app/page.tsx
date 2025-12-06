@@ -1,7 +1,27 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import CursorFollower from "./components/CursorFollower";
 
 export default function Home() {
+    const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+                if (data.products) {
+                    setFeaturedProducts(data.products.slice(0, 4));
+                }
+            } catch (error) {
+                console.error("Error fetching featured products:", error);
+            }
+        };
+        fetchProducts();
+    }, []);
+
     return (
         <div className="landing-page">
             <CursorFollower />
@@ -178,11 +198,10 @@ export default function Home() {
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
-                            <div className="category-badge shine-effect">Featured</div>
-                            <h3>Premium Laptops</h3>
+                            <h3>Renewed Laptops</h3>
                             <p>High-performance computing</p>
                             <div className="category-cta">
-                                <span>Shop Now</span>
+                                <span>Explore</span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M5 12h14M12 5l7 7-7 7" />
                                 </svg>
@@ -191,14 +210,14 @@ export default function Home() {
                         <div className="card-shine-effect"></div>
                     </Link>
 
-                    <Link href="/products/headphones" className="category-card-v3 hover-scale">
+                    <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="/uploads/category-headphones.jpg" alt="Headphones" />
+                            <img src="/uploads/MacBook Pro.jpg" alt="MacBook" style={{ transform: "scale(1.15)" }} />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
-                            <h3>Audio Gear</h3>
-                            <p>Premium sound quality</p>
+                            <h3>MacBook</h3>
+                            <p>Power & Performance</p>
                             <div className="category-cta">
                                 <span>Explore</span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -218,7 +237,7 @@ export default function Home() {
                             <h3>Accessories</h3>
                             <p>Complete your setup</p>
                             <div className="category-cta">
-                                <span>Discover</span>
+                                <span>Explore</span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M5 12h14M12 5l7 7-7 7" />
                                 </svg>
@@ -227,17 +246,16 @@ export default function Home() {
                         <div className="card-shine-effect"></div>
                     </Link>
 
-                    <Link href="/products/speakers" className="category-card-v3 hover-scale">
+                    <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="/uploads/category-speakers.jpg" alt="Speakers" />
+                            <img src="/uploads/gaming-laptop.png" alt="Gaming Laptops" />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
-                            <div className="category-badge hot shine-effect">Hot</div>
-                            <h3>Speakers</h3>
-                            <p>Immersive audio</p>
+                            <h3>Gaming Laptops</h3>
+                            <p>Dominate the Game</p>
                             <div className="category-cta">
-                                <span>View All</span>
+                                <span>Explore</span>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M5 12h14M12 5l7 7-7 7" />
                                 </svg>
@@ -270,12 +288,7 @@ export default function Home() {
                 </div>
 
                 <div className="products-grid-v3">
-                    {[
-                        { name: "Sony WH-1000XM5", category: "Headphones", price: 399, original: 449, badge: "new", img: "product-1.jpg", rating: 5, reviews: 128 },
-                        { name: "Apple AirPods Pro", category: "Earbuds", price: 249, original: 299, badge: "sale", img: "product-2.jpg", rating: 5, reviews: 256 },
-                        { name: "Bose QuietComfort 45", category: "Headphones", price: 329, original: null, badge: null, img: "product-3.jpg", rating: 4, reviews: 89 },
-                        { name: "JBL Flip 6", category: "Speakers", price: 129, original: null, badge: "hot", img: "product-4.jpg", rating: 5, reviews: 342 }
-                    ].map((product, index) => (
+                    {featuredProducts.map((product, index) => (
                         <div key={index} className="product-card-v3 hover-lift">
                             {product.badge && (
                                 <div className={`product-badge-v3 ${product.badge} pulse-animation`}>
@@ -283,35 +296,41 @@ export default function Home() {
                                 </div>
                             )}
                             <div className="product-image-v3">
-                                <img src={`/uploads/${product.img}`} alt={product.name} />
+                                <Link href={`/products/${product.type?.toLowerCase()}/${product.id}`} className="block h-full w-full">
+                                    <img src={product.images?.[0] || product.image || '/uploads/placeholder.jpg'} alt={product.name} />
+                                </Link>
                                 <div className="product-actions">
                                     <button className="action-btn magnetic-btn">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                         </svg>
                                     </button>
-                                    <button className="action-btn magnetic-btn">
+                                    <Link href={`/products/${product.type?.toLowerCase()}/${product.id}`} className="action-btn magnetic-btn flex items-center justify-center">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <circle cx="12" cy="12" r="3"></circle>
                                             <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
                                         </svg>
-                                    </button>
+                                    </Link>
                                 </div>
                                 <div className="image-overlay"></div>
                             </div>
                             <div className="product-info-v3">
                                 <div className="product-category">{product.category}</div>
-                                <h3>{product.name}</h3>
+                                <h3>
+                                    <Link href={`/products/${product.type?.toLowerCase()}/${product.id}`} className="text-inherit no-underline hover:text-primary transition-colors">
+                                        {product.name}
+                                    </Link>
+                                </h3>
                                 <div className="product-rating-v3">
-                                    <div className="stars">{"★".repeat(product.rating)}{"☆".repeat(5 - product.rating)}</div>
-                                    <span className="rating-count">({product.reviews})</span>
+                                    <div className="stars">{"★".repeat(product.rating || 5)}{"☆".repeat(5 - (product.rating || 5))}</div>
+                                    <span className="rating-count">({product.reviews || 0})</span>
                                 </div>
                                 <div className="product-price-v3">
-                                    <span className="current">${product.price}</span>
-                                    {product.original && (
+                                    <span className="current">AED {product.offer_price || product.price}</span>
+                                    {product.originalPrice && (
                                         <>
-                                            <span className="original">${product.original}</span>
-                                            <span className="discount">-{Math.round((1 - product.price / product.original) * 100)}%</span>
+                                            <span className="original">AED {product.originalPrice}</span>
+                                            <span className="discount">-{Math.round((1 - (product.offer_price || product.price) / product.originalPrice) * 100)}%</span>
                                         </>
                                     )}
                                 </div>
