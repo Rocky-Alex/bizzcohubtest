@@ -585,23 +585,7 @@ export default function AdminPage() {
 
     return (
         <div className="admin-body">
-            <header className="admin-header">
-                <div className="container">
-                    <div className="admin-nav">
-                        <div className="admin-logo">
-                            <i className="fas fa-user-shield"></i>
-                            <h1>Admin Panel</h1>
-                        </div>
-                        <div className="admin-actions">
-                            <ProfileMenu
-                                username={username}
-                                userRole={userRole}
-                                onLogout={handleLogout}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </header>
+
 
             <div className="admin-container">
                 <AdminSidebar

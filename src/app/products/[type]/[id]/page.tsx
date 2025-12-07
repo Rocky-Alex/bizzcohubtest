@@ -18,36 +18,23 @@ interface Product {
     createdAt: string;
     stock: number;
     description?: string;
+    features?: string;
     specifications?: Record<string, string>;
 }
 
-// Configuration options for laptops
-const processorOptions = [
-    { name: 'Intel Core i5', gen: '11th Gen, 4.2GHz', price: 0, label: 'Included' },
-    { name: 'Intel Core i7', gen: '11th Gen, 4.7GHz', price: 5200 },
-    { name: 'Intel Core i9', gen: '11th Gen, 5.0GHz', price: 5400 },
-];
+interface ConfigOption {
+    id?: string;
+    label: string;
+    price: number;
+    name?: string;
+    gen?: string;
+    size?: string;
+}
 
-const ramOptions = [
-    { size: '8GB RAM', price: 0, label: 'Included' },
-    { size: '16GB RAM', price: 5100 },
-    { size: '32GB RAM', price: 5250 },
-    { size: '64GB RAM', price: 5500 },
-];
-
-const storageOptions = [
-    { size: '256GB SSD', price: 0, label: 'Included' },
-    { size: '512GB SSD', price: 5150 },
-    { size: '1TB SSD', price: 5300 },
-    { size: '2TB SSD', price: 5600 },
-];
-
-const colorOptions = [
-    { name: 'Silver', hex: '#C0C0C0' },
-    { name: 'Space Gray', hex: '#4A4A4A' },
-    { name: 'Gold', hex: '#D4AF37' },
-    { name: 'Midnight Blue', hex: '#191970' },
-];
+interface ColorOption {
+    label: string;
+    code: string;
+}
 
 export default function ProductDetailPage() {
     const params = useParams();
@@ -59,11 +46,18 @@ export default function ProductDetailPage() {
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
     const [activeTab, setActiveTab] = useState<'specifications' | 'features' | 'reviews'>('specifications');
 
+    // Dynamic Configuration Options (loaded from database)
+    const [processorOptions, setProcessorOptions] = useState<ConfigOption[]>([]);
+    const [ramOptions, setRamOptions] = useState<ConfigOption[]>([]);
+    const [storageOptions, setStorageOptions] = useState<ConfigOption[]>([]);
+    const [colorOptions, setColorOptions] = useState<ColorOption[]>([]);
+
     // Configuration states
     const [selectedProcessor, setSelectedProcessor] = useState(0);
     const [selectedRam, setSelectedRam] = useState(0);
     const [selectedStorage, setSelectedStorage] = useState(0);
     const [selectedColor, setSelectedColor] = useState(0);
+    const [addedToCart, setAddedToCart] = useState(false);
 
     useEffect(() => {
         if (params.id && params.type) {
@@ -71,16 +65,67 @@ export default function ProductDetailPage() {
         }
     }, [params.id, params.type]);
 
+    const parseConfigOptions = (configString: string): ConfigOption[] => {
+        if (!configString) return [];
+
+        try {
+            // Try to parse as JSON first (new format)
+            if (configString.trim().startsWith('[')) {
+                const parsed = JSON.parse(configString);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+        } catch (e) {
+            console.warn('Failed to parse config as JSON:', e);
+        }
+
+        // Fallback: return empty array for non-JSON strings
+        return [];
+    };
+
+    const parseColorOptions = (colorString: string): ColorOption[] => {
+        if (!colorString) return [];
+
+        try {
+            // Try to parse as JSON first (new format with color codes)
+            if (colorString.trim().startsWith('[')) {
+                const parsed = JSON.parse(colorString);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+        } catch (e) {
+            console.warn('Failed to parse colors as JSON:', e);
+        }
+
+        // Fallback: parse as comma-separated list (legacy format)
+        return colorString.split(',').map((color, index) => ({
+            label: color.trim(),
+            code: ['#C0C0C0', '#4A4A4A', '#D4AF37', '#191970'][index % 4] // Default colors
+        }));
+    };
+
     const fetchProduct = async () => {
         try {
             setLoading(true);
             const response = await fetch(`/api/products?type=${params.type}`);
             const data = await response.json();
 
-            const foundProduct = data.products?.find((p: Product) => p.id === params.id);
+            const foundProduct = data.products?.find((p: any) => p.id === params.id);
 
             if (foundProduct) {
                 setProduct(foundProduct);
+
+                // Parse and set configuration options from database
+                if (foundProduct.type === 'laptop') {
+                    const processors = parseConfigOptions(foundProduct.specifications?.Processor || '');
+                    const rams = parseConfigOptions(foundProduct.specifications?.RAM || '');
+                    const storages = parseConfigOptions(foundProduct.specifications?.Storage || '');
+                    const colors = parseColorOptions(foundProduct.specifications?.colors || '');
+
+                    setProcessorOptions(processors.length > 0 ? processors : [{ label: foundProduct.specifications?.Processor || 'Standard Processor', price: 0 }]);
+                    setRamOptions(rams.length > 0 ? rams : [{ label: foundProduct.specifications?.RAM || '8GB RAM', price: 0 }]);
+                    setStorageOptions(storages.length > 0 ? storages : [{ label: foundProduct.specifications?.Storage || '256GB SSD', price: 0 }]);
+                    setColorOptions(colors.length > 0 ? colors : [{ label: 'Silver', code: '#C0C0C0' }]);
+                }
+
                 const related = data.products
                     ?.filter((p: Product) => p.id !== params.id)
                     ?.slice(0, 4) || [];
@@ -99,19 +144,19 @@ export default function ProductDetailPage() {
     const calculateTotalPrice = () => {
         if (!product) return 0;
         const basePrice = product.price;
-        const processorPrice = product.type === 'laptop' ? processorOptions[selectedProcessor].price : 0;
-        const ramPrice = product.type === 'laptop' ? ramOptions[selectedRam].price : 0;
-        const storagePrice = product.type === 'laptop' ? storageOptions[selectedStorage].price : 0;
+        const processorPrice = product.type === 'laptop' && processorOptions[selectedProcessor] ? processorOptions[selectedProcessor].price : 0;
+        const ramPrice = product.type === 'laptop' && ramOptions[selectedRam] ? ramOptions[selectedRam].price : 0;
+        const storagePrice = product.type === 'laptop' && storageOptions[selectedStorage] ? storageOptions[selectedStorage].price : 0;
         return basePrice + processorPrice + ramPrice + storagePrice;
     };
 
     const getSelectedOptions = () => {
         if (product?.type !== 'laptop') return {};
         return {
-            processor: processorOptions[selectedProcessor].name,
-            ram: ramOptions[selectedRam].size,
-            storage: storageOptions[selectedStorage].size,
-            color: colorOptions[selectedColor].name
+            processor: processorOptions[selectedProcessor]?.label || '',
+            ram: ramOptions[selectedRam]?.label || '',
+            storage: storageOptions[selectedStorage]?.label || '',
+            color: colorOptions[selectedColor]?.label || ''
         };
     };
 
@@ -132,7 +177,12 @@ export default function ProductDetailPage() {
 
     const handleAddToCart = () => {
         addToCartAction();
-        alert(`Added ${quantity} x ${product?.name} to cart!`);
+        setAddedToCart(true);
+
+        // Reset the message after 3 seconds
+        setTimeout(() => {
+            setAddedToCart(false);
+        }, 3000);
     };
 
     const handleBuyNow = () => {
@@ -223,21 +273,21 @@ ${optionsStr ? `Configuration: ${optionsStr}` : ''}`;
                         <div className="trust-item">
                             <i className="fas fa-shipping-fast"></i>
                             <div>
-                                <strong>Free Shipping</strong>
+                                <strong>{product.features?.split('|')[0] || 'Free Shipping'}</strong>
                                 <p>Delivery in 2-3 business days</p>
                             </div>
                         </div>
                         <div className="trust-item">
                             <i className="fas fa-shield-alt"></i>
                             <div>
-                                <strong>2-Year Warranty</strong>
+                                <strong>{product.features?.split('|')[1] || '2-Year Warranty'}</strong>
                                 <p>Extended warranty available</p>
                             </div>
                         </div>
                         <div className="trust-item">
                             <i className="fas fa-undo"></i>
                             <div>
-                                <strong>30-Day Returns</strong>
+                                <strong>{product.features?.split('|')[2] || '30-Day Returns'}</strong>
                                 <p>Full refund, no questions asked</p>
                             </div>
                         </div>
@@ -279,10 +329,9 @@ ${optionsStr ? `Configuration: ${optionsStr}` : ''}`;
                                             className={`option-card ${selectedProcessor === index ? 'selected' : ''}`}
                                             onClick={() => setSelectedProcessor(index)}
                                         >
-                                            <div className="option-name">{option.name}</div>
-                                            <div className="option-detail">{option.gen}</div>
+                                            <div className="option-name">{option.label}</div>
                                             <div className="option-price">
-                                                {option.label || `+AED ${option.price}`}
+                                                {index === 0 ? 'Included' : `+AED ${option.price}`}
                                             </div>
                                         </div>
                                     ))}
@@ -299,9 +348,9 @@ ${optionsStr ? `Configuration: ${optionsStr}` : ''}`;
                                             className={`option-card ${selectedRam === index ? 'selected' : ''}`}
                                             onClick={() => setSelectedRam(index)}
                                         >
-                                            <div className="option-name">{option.size}</div>
+                                            <div className="option-name">{option.label}</div>
                                             <div className="option-price">
-                                                {option.label || `+AED ${option.price}`}
+                                                {index === 0 ? 'Included' : `+AED ${option.price}`}
                                             </div>
                                         </div>
                                     ))}
@@ -318,9 +367,9 @@ ${optionsStr ? `Configuration: ${optionsStr}` : ''}`;
                                             className={`option-card ${selectedStorage === index ? 'selected' : ''}`}
                                             onClick={() => setSelectedStorage(index)}
                                         >
-                                            <div className="option-name">{option.size}</div>
+                                            <div className="option-name">{option.label}</div>
                                             <div className="option-price">
-                                                {option.label || `+AED ${option.price}`}
+                                                {index === 0 ? 'Included' : `+AED ${option.price}`}
                                             </div>
                                         </div>
                                     ))}
@@ -345,9 +394,9 @@ ${optionsStr ? `Configuration: ${optionsStr}` : ''}`;
                                         >
                                             <div
                                                 className="color-circle"
-                                                style={{ backgroundColor: color.hex }}
+                                                style={{ backgroundColor: color.code }}
                                             ></div>
-                                            <div className="color-name">{color.name}</div>
+                                            <div className="color-name">{color.label}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -461,20 +510,8 @@ ${optionsStr ? `Configuration: ${optionsStr}` : ''}`;
                             <div className="spec-column">
                                 <h4>Performance</h4>
                                 <div className="spec-row">
-                                    <span className="spec-label">Processor</span>
-                                    <span className="spec-value">{product.specifications?.Processor || processorOptions[selectedProcessor].name}</span>
-                                </div>
-                                <div className="spec-row">
                                     <span className="spec-label">Graphics</span>
-                                    <span className="spec-value">{product.specifications?.Graphics || 'NVIDIA GeForce RTX 3060 8GB'}</span>
-                                </div>
-                                <div className="spec-row">
-                                    <span className="spec-label">Memory</span>
-                                    <span className="spec-value">{product.specifications?.RAM || ramOptions[selectedRam].size}</span>
-                                </div>
-                                <div className="spec-row">
-                                    <span className="spec-label">Storage</span>
-                                    <span className="spec-value">{product.specifications?.Storage || storageOptions[selectedStorage].size}</span>
+                                    <span className="spec-value">{product.specifications?.Graphics || 'NVIDIA GeForce RTX 3050'}</span>
                                 </div>
                             </div>
 
@@ -495,19 +532,7 @@ ${optionsStr ? `Configuration: ${optionsStr}` : ''}`;
                             </div>
 
                             <div className="spec-column">
-                                <h4>Battery & Dimensions</h4>
-                                <div className="spec-row">
-                                    <span className="spec-label">Battery Life</span>
-                                    <span className="spec-value">Up to 14 hours</span>
-                                </div>
-                                <div className="spec-row">
-                                    <span className="spec-label">Weight</span>
-                                    <span className="spec-value">3.9 lbs (1.77 kg)</span>
-                                </div>
-                                <div className="spec-row">
-                                    <span className="spec-label">Dimensions</span>
-                                    <span className="spec-value">14.1 x 9.8 x 0.7 inches</span>
-                                </div>
+                                <h4>Operating System</h4>
                                 <div className="spec-row">
                                     <span className="spec-label">Operating System</span>
                                     <span className="spec-value">Windows 11 Pro</span>

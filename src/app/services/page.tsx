@@ -5,12 +5,13 @@ export default function ServicesPage() {
     return (
         <>
             {/* Services Hero */}
-            <section className="page-hero">
+            {/* Services Hero */}
+            <section style={{ padding: '100px 0 50px', textAlign: 'center' }}>
                 <div className="container">
-                    <h1>
-                        <i className="fas fa-cogs"></i> Our Services
+                    <h1 style={{ fontSize: '3rem', fontWeight: 'bold' }}>
+                        <i className="fas fa-cogs" style={{ marginRight: '1rem' }}></i>
+                        OUR SERVICES
                     </h1>
-                    <p>Comprehensive Technology Solutions for Your Business</p>
                 </div>
             </section>
 

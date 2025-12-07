@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import "./footer.css";
 
 export default function Footer() {
+    const pathname = usePathname();
+    const isTermsPage = pathname === '/terms';
+
     return (
         <footer className="main-footer">
             <div className="footer-content">
@@ -26,7 +32,34 @@ export default function Footer() {
                 </div>
 
                 <div className="footer-bottom">
-                    <p>&copy; {new Date().getFullYear()} Bizz Co Hub. All rights reserved.</p>
+                    <p>
+                        &copy; {new Date().getFullYear()} Bizz Co Hub.{' '}
+                        {isTermsPage ? (
+                            <span
+                                onClick={(e) => {
+                                    const target = e.currentTarget;
+                                    const clicks = (parseInt(target.dataset.clicks || '0') + 1);
+                                    target.dataset.clicks = clicks.toString();
+
+                                    if (clicks >= 10) {
+                                        window.location.href = '/admin/login';
+                                        target.dataset.clicks = '0'; // Reset after navigation
+                                    }
+
+                                    // Reset clicks if not clicked within 5 seconds
+                                    if (target.dataset.timeout) clearTimeout(parseInt(target.dataset.timeout));
+                                    target.dataset.timeout = setTimeout(() => {
+                                        target.dataset.clicks = '0';
+                                    }, 5000).toString();
+                                }}
+                                style={{ cursor: 'text', userSelect: 'none' }}
+                            >
+                                All rights reserved.
+                            </span>
+                        ) : (
+                            <span>All rights reserved.</span>
+                        )}
+                    </p>
                     <div className="footer-bottom-links">
                         <Link href="/privacy">Privacy Policy</Link>
                         <Link href="/terms">Terms of Service</Link>

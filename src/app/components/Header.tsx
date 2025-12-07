@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import "./header.css";
@@ -9,6 +10,8 @@ export default function Header() {
     const pathname = usePathname();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [cartCount, setCartCount] = useState(0);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -18,50 +21,82 @@ export default function Header() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    useEffect(() => {
+        // Update cart count from localStorage
+        const updateCartCount = () => {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            setCartCount(cart.reduce((sum: number, item: any) => sum + item.quantity, 0));
+        };
+
+        updateCartCount();
+        window.addEventListener('cart-updated', updateCartCount);
+        return () => window.removeEventListener('cart-updated', updateCartCount);
+    }, []);
+
     const isActive = (path: string) => pathname === path ? 'active' : '';
 
     return (
         <header className={`main-header ${scrolled ? 'scrolled' : ''}`}>
             <div className="header-container">
+                {/* Logo */}
                 <Link href="/" className="logo">
-                    <span className="logo-text">Bizz<span className="highlight">Co</span>Hub</span>
-                    <div className="logo-dot"></div>
+                    <Image
+                        src="/icon/nav-logo.png"
+                        alt="Bizz Co Hub Logo"
+                        width={32}
+                        height={32}
+                        className="logo-image"
+                    />
+                    <span className="logo-text">Bizz Co Hub</span>
                 </Link>
 
-                <nav className={`main-nav ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-                    <Link href="/" className={`nav-link ${isActive('/')}`}>
-                        <span>Home</span>
-                        <div className="nav-indicator"></div>
+                {/* Desktop Navigation - Centered */}
+                <nav className="main-nav">
+                    <Link href="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
+                        Home
                     </Link>
-                    <Link href="/products" className={`nav-link ${isActive('/products')}`}>
-                        <span>Products</span>
-                        <div className="nav-indicator"></div>
+
+                    <Link href="/products" className={`nav-link ${pathname.startsWith('/products') ? 'active' : ''}`}>
+                        E-Commerce
                     </Link>
-                    <Link href="/services" className={`nav-link ${isActive('/services')}`}>
-                        <span>Services</span>
-                        <div className="nav-indicator"></div>
+
+                    <Link href="/services" className={`nav-link ${isActive('/services') ? 'active' : ''}`}>
+                        Services
                     </Link>
-                    <Link href="/contact" className={`nav-link ${isActive('/contact')}`}>
-                        <span>Contact</span>
-                        <div className="nav-indicator"></div>
+
+                    <Link href="/contact" className={`nav-link ${isActive('/contact') ? 'active' : ''}`}>
+                        Contact
                     </Link>
+
                 </nav>
 
+                {/* Right Side Actions */}
                 <div className="header-actions">
-                    <Link href="/admin" className="action-btn icon-btn" title="Admin Dashboard">
+                    {/* Search Button */}
+                    <button
+                        className="header-action-btn search-btn"
+                        onClick={() => setSearchOpen(!searchOpen)}
+                        title="Search"
+                    >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
                         </svg>
-                    </Link>
-                    <Link href="/cart" className="action-btn icon-btn cart-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"></path>
-                            <path d="M20 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"></path>
+                    </button>
+
+                    {/* Cart Button */}
+                    <Link href="/cart" className="header-action-btn cart-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                         </svg>
-                        <span className="cart-badge">3</span>
+                        {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
                     </Link>
+
+
+
+                    {/* Mobile Menu Button */}
                     <button
                         className="mobile-menu-btn"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -76,6 +111,72 @@ export default function Header() {
                     </button>
                 </div>
             </div>
+
+            {/* Search Overlay */}
+            {searchOpen && (
+                <div className="search-overlay">
+                    <div className="search-container-overlay">
+                        <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input
+                            type="search"
+                            placeholder="Search products..."
+                            className="search-input"
+                            autoFocus
+                        />
+                        <button className="search-close" onClick={() => setSearchOpen(false)}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Menu */}
+            {mobileMenuOpen && (
+                <div className="mobile-menu">
+                    <div className="mobile-menu-content">
+                        <Link
+                            href="/"
+                            className={`mobile-nav-link ${isActive('/') ? 'active' : ''}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Home
+                        </Link>
+
+                        <Link
+                            href="/services"
+                            className={`mobile-nav-link ${isActive('/services') ? 'active' : ''}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Services
+                        </Link>
+
+                        <Link
+                            href="/contact"
+                            className={`mobile-nav-link ${isActive('/contact') ? 'active' : ''}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Contact
+                        </Link>
+
+                        <Link
+                            href="/products/laptop"
+                            className={`mobile-nav-link ${pathname.startsWith('/products') ? 'active' : ''}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            E-Commerce
+                        </Link>
+
+                        <div className="mobile-menu-divider"></div>
+
+
+                    </div>
+                </div>
+            )}
         </header>
     );
 }

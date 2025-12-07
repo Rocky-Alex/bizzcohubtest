@@ -6,11 +6,11 @@
     width: 100%;
     z-index: 1000;
     padding: 2px 0;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(25px) saturate(200%);
+    -webkit-backdrop-filter: blur(25px) saturate(200%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
     animation: navSlideDown 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     transition: all 0.4s ease;
     font-family: 'Bebas Neue', sans-serif;
@@ -38,17 +38,17 @@
 }
 
 .nav-container {
-    max-width: 1400px;
+    max-width: 120%;
     margin: 0 auto;
-    padding: 0 10px;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 1200px;
+    width: 100%;
 }
 
 .nav-logo {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: 2px;
     color: #ffffff;
@@ -94,7 +94,7 @@
     text-decoration: none;
     color: #fffffff8;
     font-weight: 700;
-    font-size: 22px;
+    font-size: 18px;
     letter-spacing: 2px;
     transition: all 0.3s ease;
     position: relative;
@@ -144,7 +144,7 @@
 }
 
 .hamburger span {
-    width: 28px;
+    width: 26px;
     height: 2.5px;
     background: #333;
     border-radius: 3px;

@@ -131,32 +131,7 @@ export default function ProductsPage() {
 
     return (
         <>
-            {/* Hero Section */}
-            <section
-                style={{
-                    backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url(/uploads/lapproduct.png)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundAttachment: 'fixed',
-                    minHeight: '25vh',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}
-            >
-                <div style={{ textAlign: 'center', padding: '0 20px' }}>
-                    <h1 style={{
-                        fontSize: '4rem',
-                        color: 'white',
-                        margin: 0,
-                        fontFamily: 'Bebas Neue, sans-serif',
-                        letterSpacing: '3px'
-                    }}>
-                        <i className="fas fa-shopping-bag" style={{ marginRight: '1rem' }}></i>
-                        OUR PRODUCTS
-                    </h1>
-                </div>
-            </section>
+            {/* Hero Section Removed */}
 
             {/* Filters and Products Section */}
             <section style={{

@@ -26,16 +26,19 @@ function transformProduct(dbProduct: any) {
         createdAt: dbProduct.date_added || dbProduct.created_at,
         stock: parseInt(dbProduct.stock) || 0,
         description: dbProduct.about || dbProduct.feature,
+        features: dbProduct.feature || '', // Raw feature string for trust info
         specifications: {
-            ...(dbProduct.processor && { Processor: dbProduct.processor }),
-            ...(dbProduct.ram && { RAM: dbProduct.ram }),
-            ...(dbProduct.storage && { Storage: dbProduct.storage }),
+            // Pass raw configuration strings for frontend parsing
+            Processor: dbProduct.processor || '',
+            RAM: dbProduct.ram || '',
+            Storage: dbProduct.storage || '',
+            colors: dbProduct.colors || '',
+            // Also include other specs
             ...(dbProduct.screen && { Screen: dbProduct.screen }),
             ...(dbProduct.graphics && { Graphics: dbProduct.graphics }),
             ...(dbProduct.graphics_storage && { 'Graphics Storage': dbProduct.graphics_storage }),
             ...(dbProduct.condition && { Condition: dbProduct.condition }),
         },
-        colors: dbProduct.colors ? dbProduct.colors.split(',').map((c: string) => c.trim()) : [],
     };
 }
 
@@ -56,15 +59,15 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ product: transformProduct(query[0]) }, { status: 200 });
         } else if (type && categoryFilter) {
             // Filter by both type and category (brand)
-            query = await sql`SELECT * FROM products WHERE type = ${type} AND category = ${categoryFilter} ORDER BY created_at DESC`;
+            query = await sql`SELECT * FROM products WHERE type = ${type} AND category = ${categoryFilter} ORDER BY date_added DESC`;
         } else if (type) {
             // Filter by type only (laptop or accessory)
-            query = await sql`SELECT * FROM products WHERE type = ${type} ORDER BY created_at DESC`;
+            query = await sql`SELECT * FROM products WHERE type = ${type} ORDER BY date_added DESC`;
         } else if (categoryFilter) {
             // Filter by category (brand) only
-            query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY created_at DESC`;
+            query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY date_added DESC`;
         } else {
-            query = await sql`SELECT * FROM products ORDER BY created_at DESC`;
+            query = await sql`SELECT * FROM products ORDER BY date_added DESC`;
         }
 
         // Transform all products to frontend format

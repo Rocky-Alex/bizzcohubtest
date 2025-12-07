@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import CursorFollower from "./components/CursorFollower";
+import Stack from "./components/Stack";
 
 export default function Home() {
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -22,10 +22,15 @@ export default function Home() {
         fetchProducts();
     }, []);
 
+    const stackCards = useMemo(() => [
+        <img key={1} src="/uploads/product-1.jpg" alt="Product 1" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={2} src="/uploads/product-2.jpg" alt="Product 2" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={3} src="/uploads/category-laptops.jpg" alt="Laptops" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={4} src="/uploads/MacBook Pro.jpg" alt="MacBook" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />
+    ], []);
+
     return (
         <div className="landing-page">
-            <CursorFollower />
-
             {/* Hero Section */}
             <section className="hero-section-v3">
                 <div className="hero-bg-animated"></div>
@@ -69,57 +74,19 @@ export default function Home() {
                                 </span>
                                 <div className="btn-shine"></div>
                             </Link>
-                            {/* <button className="btn-glass-animated magnetic-btn">
-                                <span className="btn-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <polygon points="10 8 16 12 10 16 10 8"></polygon>
-                                    </svg>
-                                </span>
-                                <span className="btn-text">Watch Video</span>
-                                <div className="ripple"></div>
-                            </button> */}
                         </div>
                     </div>
 
                     <div className="hero-visual">
-                        <div className="visual-card card-1 float-animation">
-                            <img src="/uploads/product-1.jpg" alt="Product" />
-                            <div className="card-glow"></div>
-                        </div>
-                        <div className="visual-card card-2 float-animation delay-1">
-                            <img src="/uploads/product-2.jpg" alt="Product" />
-                            <div className="card-glow"></div>
-                        </div>
-                        <div className="visual-card card-3 float-animation delay-2">
-                            <img src="/uploads/category-laptops.jpg" alt="Product" />
-                            <div className="card-glow"></div>
-                        </div>
-
-                        <div className="floating-badge badge-1 bounce-slow">
-                            <div className="badge-icon gradient-bg">⚡</div>
-                            <div className="badge-text">
-                                <span className="badge-label">Fast Delivery</span>
-                                <span className="badge-value">24-48 Hours</span>
-                            </div>
-                            <div className="badge-shine"></div>
-                        </div>
-
-                        <div className="floating-badge badge-2 bounce-slow delay-1">
-                            <div className="badge-icon gradient-bg">✓</div>
-                            <div className="badge-text">
-                                <span className="badge-label">Quality</span>
-                                <span className="badge-value">Guaranteed</span>
-                            </div>
-                            <div className="badge-shine"></div>
-                        </div>
-
-                        <div className="floating-badge badge-3 bounce-slow delay-2">
-                            <div className="badge-icon gradient-bg">★</div>
-                            <div className="badge-text">
-                                <span className="badge-label">Rating</span>
-                                <span className="badge-value">4.9/5.0</span>
-                            </div>
-                            <div className="badge-shine"></div>
+                        <div style={{ width: '100%', height: '600px', position: 'relative' }}>
+                            <Stack
+                                randomRotation={true}
+                                sensitivity={180}
+                                sendToBackOnClick={true}
+                                autoplay={true}
+                                autoplayDelay={3000}
+                                cards={stackCards}
+                            />
                         </div>
                     </div>
                 </div>
@@ -349,9 +316,6 @@ export default function Home() {
                     ))}
                 </div>
             </section>
-
-            {/* Services CTA */}
-
         </div>
     );
 }

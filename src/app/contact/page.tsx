@@ -66,20 +66,14 @@ export default function ContactPage() {
     return (
         <>
             {/* Contact Hero */}
-            <section
-                className="page-hero"
-                style={{
-                    backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.6)), url(/uploads/contactustittle.png)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundAttachment: 'fixed'
-                }}
-            >
+            {/* Contact Hero */}
+            <section style={{ padding: '100px 0 50px', textAlign: 'center' }}>
                 <div className="container">
-                    <h1>
-                        <i className="fas fa-envelope"></i> Contact Us
+                    <h1 style={{ fontSize: '3rem', fontWeight: 'bold' }}>
+                        <i className="fas fa-envelope" style={{ marginRight: '1rem' }}></i>
+                        CONTACT US
                     </h1>
-                    <p>Get in touch with our team</p>
+                    <p style={{ marginTop: '1rem', fontSize: '1.2rem', color: '#666' }}>Get in touch with our team</p>
                 </div>
             </section>
 

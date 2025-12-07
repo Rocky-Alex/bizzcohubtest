@@ -1,28 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import "./nav-styles.css";
 
 export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-
-    useEffect(() => {
-        // Handle scroll effect for navbar
-        const handleScroll = () => {
-            setScrolled(window.scrollY > window.innerHeight - 100);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
 
     return (
-        <nav className={`landing-nav ${scrolled ? 'scrolled' : ''}`}>
+        <nav className="landing-nav">
             <div className="nav-container">
                 <Link href="/" className="nav-logo">BIZZ CO HUB</Link>
 

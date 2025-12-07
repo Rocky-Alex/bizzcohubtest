@@ -67,6 +67,7 @@ export default function ProductForm({
     const [shippingInfos, setShippingInfos] = useState(['Free Shipping - Delivery in 2-3 days', 'Standard Shipping - 3-5 Business Days']);
     const [warrantyInfos, setWarrantyInfos] = useState(['1-Year Standard Warranty', '2-Year Extended Warranty', '3-Year Premium Support']);
     const [returnPolicies, setReturnPolicies] = useState(['30-Day Returns', '14-Day Returns', 'No Returns']);
+    const [sourceColors, setSourceColors] = useState(['Silver', 'Space Gray', 'Midnight', 'Starlight', 'Gold', 'Black', 'White', 'Blue', 'Red']);
 
     useEffect(() => {
         if (editItem) {
@@ -91,10 +92,35 @@ export default function ProductForm({
 
             // Attempt to populate lists from comma strings if basic data exists
             if (editItem.colors) {
-                const cols = editItem.colors.split(',').map((c: string, i: number) => ({
-                    id: `col_${i}`, label: c.trim(), value: c.trim()
-                }));
-                setColorOptions(cols);
+                // Check if it's JSON config or legacy CSV
+                if (editItem.colors.trim().startsWith('[')) {
+                    try {
+                        setColorOptions(JSON.parse(editItem.colors));
+                    } catch { setColorOptions([]); }
+                } else {
+                    const cols = editItem.colors.split(',').map((c: string, i: number) => ({
+                        id: `col_${i}`, label: c.trim(), value: c.trim()
+                    }));
+                    setColorOptions(cols);
+                }
+            }
+
+            // Parse Configs (Processor, RAM, Storage)
+            const parseConfig = (val: string) => {
+                try {
+                    const parsed = JSON.parse(val);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch { return []; }
+            };
+
+            if (editItem.processor && editItem.processor.trim().startsWith('[')) {
+                setProcessorOptions(parseConfig(editItem.processor));
+            }
+            if (editItem.ram && editItem.ram.trim().startsWith('[')) {
+                setRamOptions(parseConfig(editItem.ram));
+            }
+            if (editItem.storage && editItem.storage.trim().startsWith('[')) {
+                setStorageOptions(parseConfig(editItem.storage));
             }
         }
     }, [editItem]);
@@ -155,34 +181,82 @@ export default function ProductForm({
     };
 
     const handleSubmit = async () => {
-        // Construct final object
+        // Generate Code if new
+        let productCode = editItem?.code;
+        if (!productCode) {
+            const prefix = type === 'laptop' ? 'BCH-LP' : 'BCH-AC';
+            const random = Math.floor(1000 + Math.random() * 9000);
+            productCode = `${prefix}-${random}`;
+        }
+
+        // Serialize Configurations to store in DB columns
+        const processorVal = processorOptions.length > 0
+            ? JSON.stringify(processorOptions)
+            : formData.processor;
+
+        const ramVal = ramOptions.length > 0
+            ? JSON.stringify(ramOptions)
+            : formData.ram;
+
+        const storageVal = storageOptions.length > 0
+            ? JSON.stringify(storageOptions)
+            : formData.storage;
+
+        const colorsVal = colorOptions.length > 0
+            ? JSON.stringify(colorOptions) // Use JSON for structure now
+            : formData.colors;
+
+
+        // Construct final object - map form fields to API expected fields
         const finalProduct = {
-            ...formData,
+            code: productCode,
+            name: formData.name,
+            brand: formData.category, // Use category as brand
+            category: formData.category,
             type,
             price: parseFloat(formData.price) || 0,
             offer_price: parseFloat(formData.offerPrice) || 0,
             stock: parseInt(formData.stock) || 0,
-            // Logic to merge fields if needed, e.g. screen info
-            screen: formData.screen + (formData.resolution ? `, ${formData.resolution}` : "") + (formData.refreshRate ? `, ${formData.refreshRate}` : ""),
-            // Map colors from options list if changed, else use string
-            colors: colorOptions.length > 0 ? colorOptions.map(c => c.label).join(', ') : formData.colors,
-            // Use date if new
-            date_added: editItem ? editItem.date_added : new Date().toISOString().split("T")[0],
-            // Ensure Image legacy field is populated
+            condition: formData.condition || 'New',
+            discount: 0,
+            badge: formData.badge || null,
+
+            // Technical specs
+            screen: formData.screen + (formData.resolution ? `, ${formData.resolution}` : "") + (formData.panelType ? `, ${formData.panelType}` : "") + (formData.refreshRate ? `, ${formData.refreshRate}` : ""),
+            processor: processorVal,
+            ram: ramVal,
+            storage: storageVal,
+            graphics: formData.graphics || null,
+            graphics_storage: null,
+
+            // Content
+            about: formData.description || null,
+            feature: `${formData.shippingInfo || ''}|${formData.warrantyInfo || ''}|${formData.returnPolicy || ''}`,
+            features: null,
+
+            // Images and colors
             image: previewImages[0] || "",
-            // Features field hacking for now
-            feature: `${formData.shippingInfo}|${formData.warrantyInfo}|${formData.returnPolicy}`
+            images: previewImages,
+            colors: colorsVal,
+
+            // Dates
+            date_added: editItem ? editItem.date_added : new Date().toISOString().split("T")[0]
         };
 
         const method = editItem ? 'PUT' : 'POST';
         const res = await fetch('/api/products', {
             method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...finalProduct, code: editItem?.code }) // Generate code in backend or generate here if new
+            body: JSON.stringify(finalProduct)
         });
 
-        if (res.ok) onSave();
-        else alert("Failed to save product");
+        if (res.ok) {
+            alert("Product Saved Successfully!");
+            onSave();
+        } else {
+            const err = await res.json();
+            alert(`Failed to save product: ${err.details || err.error}`);
+        }
     };
 
     const renderCreatableSelect = (label: string, name: string, options: string[], setOptions: React.Dispatch<React.SetStateAction<string[]>>) => (
@@ -321,97 +395,170 @@ export default function ProductForm({
         </div>
     );
 
+    const renderConfigRow = (
+        index: number,
+        item: any,
+        list: any[],
+        setList: any,
+        sourceList: string[],
+        setSourceList: any,
+        type: 'price' | 'color'
+    ) => (
+        <div key={index} className="config-item">
+            <div className="form-row" style={{ alignItems: 'flex-end' }}>
+                <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
+                    <label>Label</label>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <select
+                            value={item.label}
+                            onChange={(e) => {
+                                const newList = [...list];
+                                newList[index].label = e.target.value;
+                                if (type === 'price') newList[index].id = e.target.value.toLowerCase().replace(/ /g, '-');
+                                setList(newList);
+                            }}
+                            style={{ flex: 1 }}
+                        >
+                            <option value="">Select Option</option>
+                            {sourceList.map((opt, i) => (
+                                <option key={i} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const newVal = prompt("Add new option:");
+                                if (newVal) {
+                                    setSourceList((prev: string[]) => [...prev, newVal]);
+                                    const newList = [...list];
+                                    newList[index].label = newVal;
+                                    setList(newList);
+                                }
+                            }}
+                            className="btn-add-small"
+                        >
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                {type === 'price' ? (
+                    <div className="form-group" style={{ marginBottom: 0, width: '150px' }}>
+                        <label>Extra Price ($)</label>
+                        <input
+                            type="number"
+                            value={item.price || 0}
+                            onChange={(e) => {
+                                const newList = [...list];
+                                newList[index].price = parseFloat(e.target.value);
+                                setList(newList);
+                            }}
+                            placeholder="0"
+                        />
+                    </div>
+                ) : (
+                    <div className="form-group" style={{ marginBottom: 0, width: '150px' }}>
+                        <label>Color Preview</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <input
+                                type="color"
+                                className="color-preview"
+                                value={item.code || "#cccccc"}
+                                onChange={(e) => {
+                                    const newList = [...list];
+                                    newList[index].code = e.target.value;
+                                    setList(newList);
+                                }}
+                            />
+                            <input
+                                type="text"
+                                value={item.code || ""}
+                                readOnly
+                                style={{ width: '60px', padding: '0.25rem' }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <button
+                    type="button"
+                    onClick={() => setList(list.filter((_, i) => i !== index))}
+                    style={{
+                        marginBottom: '2px',
+                        height: '42px',
+                        width: '42px',
+                        background: '#fee2e2',
+                        border: '1px solid #ef4444',
+                        color: '#ef4444',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <i className="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    );
+
     const renderConfigurations = () => (
         <div className="form-card">
             {/* Processor Config */}
             <div className="config-group">
-                <div className="config-header">
-                    <h4>Processor Options</h4>
-                    <button type="button" className="btn-add-option" onClick={() => {
-                        const label = prompt("Enter Processor Name (e.g. Intel Core i5):");
-                        if (label) setProcessorOptions([...processorOptions, { label, id: label.toLowerCase().replace(/ /g, '-'), price: 0 }]);
-                    }}>
-                        <i className="fas fa-plus"></i> Add Processor
-                    </button>
-                </div>
-                {processorOptions.length === 0 && <p style={{ color: '#999', fontSize: '0.9rem' }}>No options added. Will use basic spec.</p>}
-                {processorOptions.map((opt, i) => (
-                    <div key={i} className="config-item">
-                        <div className="form-row">
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label>Label</label>
-                                <input type="text" value={opt.label} readOnly />
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label>Additional Price</label>
-                                <input type="number" placeholder="0" />
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                <h4 style={{ marginBottom: '1rem' }}>Processor Options</h4>
+                {processorOptions.map((opt, i) => renderConfigRow(i, opt, processorOptions, setProcessorOptions, processors, setProcessors, 'price'))}
+                <button
+                    type="button"
+                    className="btn-add-option"
+                    style={{ marginTop: '1rem' }}
+                    onClick={() => setProcessorOptions([...processorOptions, { label: '', id: '', price: 0 }])}
+                >
+                    <i className="fas fa-plus"></i> Add Processor
+                </button>
             </div>
 
             {/* RAM Config */}
             <div className="config-group">
-                <div className="config-header">
-                    <h4>Memory (RAM) Options</h4>
-                    <button type="button" className="btn-add-option" onClick={() => {
-                        const label = prompt("Enter RAM (e.g. 16GB DDR4):");
-                        if (label) setRamOptions([...ramOptions, { label, id: label.toLowerCase().replace(/ /g, '-'), price: 0 }]);
-                    }}>
-                        <i className="fas fa-plus"></i> Add RAM
-                    </button>
-                </div>
-                {ramOptions.length === 0 && <p style={{ color: '#999', fontSize: '0.9rem' }}>No options added. Will use basic spec.</p>}
-                {ramOptions.map((opt, i) => (
-                    <div key={i} className="config-item">
-                        <div className="form-row">
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label>Label</label>
-                                <input type="text" value={opt.label} readOnly />
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                <h4 style={{ marginBottom: '1rem' }}>Memory (RAM) Options</h4>
+                {ramOptions.map((opt, i) => renderConfigRow(i, opt, ramOptions, setRamOptions, ramSizes, setRamSizes, 'price'))}
+                <button
+                    type="button"
+                    className="btn-add-option"
+                    style={{ marginTop: '1rem' }}
+                    onClick={() => setRamOptions([...ramOptions, { label: '', id: '', price: 0 }])}
+                >
+                    <i className="fas fa-plus"></i> Add RAM
+                </button>
+            </div>
+
+            {/* Storage Config */}
+            <div className="config-group">
+                <h4 style={{ marginBottom: '1rem' }}>Storage Options</h4>
+                {storageOptions.map((opt, i) => renderConfigRow(i, opt, storageOptions, setStorageOptions, storageSizes, setStorageSizes, 'price'))}
+                <button
+                    type="button"
+                    className="btn-add-option"
+                    style={{ marginTop: '1rem' }}
+                    onClick={() => setStorageOptions([...storageOptions, { label: '', id: '', price: 0 }])}
+                >
+                    <i className="fas fa-plus"></i> Add Storage
+                </button>
             </div>
 
             {/* Color Config */}
             <div className="config-group">
-                <div className="config-header">
-                    <h4>Color Options</h4>
-                    <button type="button" className="btn-add-option" onClick={() => {
-                        const label = prompt("Enter Color Name (e.g. Silver):");
-                        if (label) setColorOptions([...colorOptions, { label, id: label.toLowerCase(), code: '#cccccc' }]);
-                    }}>
-                        <i className="fas fa-plus"></i> Add Color
-                    </button>
-                </div>
-                {colorOptions.length === 0 && <p style={{ color: '#999', fontSize: '0.9rem' }}>No colors added.</p>}
-                {colorOptions.map((opt, i) => (
-                    <div key={i} className="config-item">
-                        <div className="form-row">
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label>Label</label>
-                                <input type="text" value={opt.label} onChange={(e) => {
-                                    const newCols = [...colorOptions];
-                                    newCols[i].label = e.target.value;
-                                    setColorOptions(newCols);
-                                }} />
-                            </div>
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label>Color Code</label>
-                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <input type="color" className="color-preview" value={opt.code || "#cccccc"} onChange={(e) => {
-                                        const newCols = [...colorOptions];
-                                        newCols[i].code = e.target.value;
-                                        setColorOptions(newCols);
-                                    }} />
-                                    <input type="text" value={opt.code || ""} placeholder="#Hex" readOnly />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                <h4 style={{ marginBottom: '1rem' }}>Color Options</h4>
+                {colorOptions.map((opt, i) => renderConfigRow(i, opt, colorOptions, setColorOptions, sourceColors, setSourceColors, 'color'))}
+                <button
+                    type="button"
+                    className="btn-add-option"
+                    style={{ marginTop: '1rem' }}
+                    onClick={() => setColorOptions([...colorOptions, { label: '', code: '#cccccc' }])}
+                >
+                    <i className="fas fa-plus"></i> Add Color
+                </button>
             </div>
         </div>
     );
