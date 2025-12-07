@@ -1,11 +1,21 @@
 import ImageKit from 'imagekit';
 
-// Initialize ImageKit
-export const imagekit = new ImageKit({
-    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || '',
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || '',
-});
+// Initialize ImageKit with safety check for build time
+const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY;
+const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
+
+export const imagekit = (publicKey && privateKey && urlEndpoint)
+    ? new ImageKit({
+        publicKey,
+        privateKey,
+        urlEndpoint,
+    })
+    : {
+        getAuthenticationParameters: () => { throw new Error("ImageKit not configured"); },
+        upload: async () => { throw new Error("ImageKit not configured"); },
+        deleteFile: async () => { throw new Error("ImageKit not configured"); },
+    } as any;
 
 // Helper function to upload image to ImageKit
 export async function uploadToImageKit(
