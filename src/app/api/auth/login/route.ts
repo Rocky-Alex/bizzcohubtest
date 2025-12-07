@@ -3,6 +3,9 @@ import { cookies } from 'next/headers';
 import { createHash } from 'crypto';
 import { sql } from '@/lib/db';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // Session token generator
 function generateSessionToken(): string {
     return createHash('sha256')
