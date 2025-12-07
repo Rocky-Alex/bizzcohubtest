@@ -331,7 +331,7 @@ export default function InventoryManager({ onEdit, onDelete }: InventoryManagerP
 
                     <select value={filterBrand} onChange={(e) => setFilterBrand(e.target.value)}>
                         <option value="all">All Brands</option>
-                        {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
+                        {uniqueBrands.map((b, index) => <option key={`brand-${b}-${index}`} value={b}>{b}</option>)}
                     </select>
 
                     <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>

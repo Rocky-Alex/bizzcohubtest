@@ -177,34 +177,98 @@ export default function AdminPage() {
             return;
         }
 
-        const data = laptops.map((p: any) => ({
-            ID: p.code,
-            Name: p.name,
-            Brand: p.brand || "N/A",
-            Price: p.price,
-            OfferPrice: p.offerPrice || p.price,
-            Stock: p.stock || 0,
-            Condition: p.condition || "N/A",
-            Category: "Laptop",
-            Processor: p.processor || "N/A",
-            RAM: p.ram || "N/A",
-            Storage: p.storage || "N/A",
-            Screen: p.screen || "N/A",
-            Graphics: p.graphics || "N/A",
-            GraphicsStorage: p.graphicsStorage || "N/A",
-            Feature: p.feature || "N/A",
-            About: p.about || "N/A",
-            Features: p.features || "N/A",
-            Badge: p.badge || "N/A",
-            DateAdded: p.dateAdded || new Date().toISOString().split("T")[0],
-            Image: p.image || "",
-        }));
+        const data = laptops.map((p: any) => {
+            // Parse configuration options if they exist
+            const parseConfig = (val: any) => {
+                try {
+                    const parsed = typeof val === 'string' ? JSON.parse(val) : val;
+                    if (Array.isArray(parsed)) {
+                        return parsed.map(opt => `${opt.label} (+${opt.price || 0} AED)`).join(', ');
+                    }
+                    return val || 'N/A';
+                } catch {
+                    return val || 'N/A';
+                }
+            };
+
+            return {
+                // Basic Info
+                'Product Code': p.code || p.productCode || p.id,
+                'Product Name': p.name,
+                'Brand': p.brand || p.category || 'N/A',
+                'Category': p.category || 'Laptop',
+                'Badge': p.badge || 'N/A',
+                'Condition': p.condition || 'New',
+
+                // Pricing
+                'Base Price (AED)': p.price || 0,
+                'Offer Price (AED)': p.originalPrice || p.offer_price || p.offerPrice || p.price || 0,
+                'Discount %': p.discount || 0,
+
+                // Stock
+                'Stock Quantity': p.stock || 0,
+
+                // Performance Specs
+                'Processor': parseConfig(p.specifications?.Processor || p.processor),
+                'RAM': parseConfig(p.specifications?.RAM || p.ram),
+                'Storage': parseConfig(p.specifications?.Storage || p.storage),
+                'Graphics': p.specifications?.Graphics || p.graphics || 'N/A',
+                'Graphics Storage': p.specifications?.['Graphics Storage'] || p.graphics_storage || p.graphicsStorage || 'N/A',
+
+                // Display Specs
+                'Screen': p.specifications?.Screen || p.screen || 'N/A',
+
+                // Color Options
+                'Colors': parseConfig(p.specifications?.colors || p.colors),
+
+                // Product Details
+                'Description': p.description || p.about || 'N/A',
+                'Features': p.features || p.feature || 'N/A',
+
+                // Media
+                'Primary Image': Array.isArray(p.images) ? p.images[0] : (p.image || ''),
+                'All Images': Array.isArray(p.images) ? p.images.join(' | ') : (p.image || ''),
+
+                // Metadata
+                'Date Added': p.dateAdded || p.date_added || p.createdAt || new Date().toISOString().split("T")[0],
+                'Last Updated': p.updated_at || 'N/A',
+            };
+        });
 
         const worksheet = XLSX.utils.json_to_sheet(data);
+
+        // Set column widths for better readability
+        const columnWidths = [
+            { wch: 15 }, // Product Code
+            { wch: 30 }, // Product Name
+            { wch: 15 }, // Brand
+            { wch: 15 }, // Category
+            { wch: 12 }, // Badge
+            { wch: 12 }, // Condition
+            { wch: 12 }, // Base Price
+            { wch: 12 }, // Offer Price
+            { wch: 10 }, // Discount
+            { wch: 10 }, // Stock
+            { wch: 30 }, // Processor
+            { wch: 25 }, // RAM
+            { wch: 25 }, // Storage
+            { wch: 25 }, // Graphics
+            { wch: 15 }, // Graphics Storage
+            { wch: 20 }, // Screen
+            { wch: 30 }, // Colors
+            { wch: 50 }, // Description
+            { wch: 50 }, // Features
+            { wch: 50 }, // Primary Image
+            { wch: 80 }, // All Images
+            { wch: 12 }, // Date Added
+            { wch: 12 }, // Last Updated
+        ];
+        worksheet['!cols'] = columnWidths;
+
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Laptops");
-        XLSX.writeFile(workbook, `laptops_${new Date().toISOString().split("T")[0]}.xlsx`);
-        alert(`✅ Exported ${laptops.length} laptops successfully!`);
+        XLSX.writeFile(workbook, `laptops_full_export_${new Date().toISOString().split("T")[0]}.xlsx`);
+        alert(`✅ Exported ${laptops.length} laptops with full data successfully!`);
     };
 
     const downloadLaptopTemplate = () => {
@@ -249,31 +313,71 @@ export default function AdminPage() {
                 const worksheet = workbook.Sheets[sheetName];
                 const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-                const imported = jsonData.map((product: any, index: number) => ({
-                    code: product.ID || `IMP${Date.now()}${index}`,
-                    name: product.Name,
-                    type: "laptop",
-                    category: product.Brand || "Laptop",
-                    brand: product.Brand,
-                    price: parseFloat(product.Price) || 0,
-                    offerPrice: parseFloat(product.OfferPrice) || parseFloat(product.Price) || 0,
-                    stock: parseInt(product.Stock) || 0,
-                    condition: product.Condition || "New",
-                    processor: product.Processor || "",
-                    ram: product.RAM || "",
-                    storage: product.Storage || "",
-                    screen: product.Screen || "",
-                    graphics: product.Graphics || "",
-                    graphicsStorage: product.GraphicsStorage || "",
-                    feature: product.Feature || "",
-                    about: product.About || "",
-                    features: product.Features || "",
-                    badge: product.Badge || product.Condition || "New",
-                    image: product.Image || "",
-                    discount: product.Discount ? parseInt(product.Discount) : Math.round(
-                        ((parseFloat(product.Price) - (parseFloat(product.OfferPrice) || parseFloat(product.Price))) / parseFloat(product.Price)) * 100
-                    ) || 0,
-                }));
+                const imported = jsonData.map((product: any, index: number) => {
+                    // Parse configuration strings back to simple values or keep as-is
+                    const parseImportConfig = (val: string) => {
+                        if (!val || val === 'N/A') return '';
+                        // If it contains pricing info like "8GB (+0 AED)", extract just the label
+                        if (val.includes('(+') && val.includes('AED)')) {
+                            return val.split(',')[0].split('(')[0].trim();
+                        }
+                        return val;
+                    };
+
+                    // Parse images (handle both single and pipe-separated)
+                    const parseImages = (primaryImg: string, allImg: string) => {
+                        if (allImg && allImg !== 'N/A') {
+                            return allImg.split(' | ').filter(img => img && img !== 'N/A');
+                        }
+                        if (primaryImg && primaryImg !== 'N/A') {
+                            return [primaryImg];
+                        }
+                        return [];
+                    };
+
+                    const images = parseImages(
+                        product['Primary Image'] || product.Image || '',
+                        product['All Images'] || ''
+                    );
+
+                    return {
+                        // Use new column names first, fallback to old names
+                        code: product['Product Code'] || product.ID || `IMP${Date.now()}${index}`,
+                        name: product['Product Name'] || product.Name,
+                        type: "laptop",
+                        category: product.Category || product.Brand || "Laptop",
+                        brand: product.Brand || product.Category || "N/A",
+                        price: parseFloat(product['Base Price (AED)'] || product.Price) || 0,
+                        offer_price: parseFloat(product['Offer Price (AED)'] || product.OfferPrice || product.Price) || 0,
+                        stock: parseInt(product['Stock Quantity'] || product.Stock) || 0,
+                        condition: product.Condition || "New",
+                        discount: parseInt(product['Discount %'] || product.Discount) || 0,
+                        badge: product.Badge || product.Condition || "New",
+
+                        // Performance specs (parse if needed)
+                        processor: parseImportConfig(product.Processor) || "",
+                        ram: parseImportConfig(product.RAM) || "",
+                        storage: parseImportConfig(product.Storage) || "",
+                        graphics: product.Graphics || "",
+                        graphics_storage: product['Graphics Storage'] || product.GraphicsStorage || "",
+                        screen: product.Screen || "",
+
+                        // Color options (parse if needed)
+                        colors: parseImportConfig(product.Colors) || "",
+
+                        // Product details
+                        about: product.Description || product.About || "",
+                        feature: product.Features || product.Feature || "",
+                        features: product.Features || "",
+
+                        // Images
+                        image: images.length > 0 ? images.join(',') : "",
+                        images: images,
+
+                        // Metadata
+                        date_added: product['Date Added'] || product.DateAdded || new Date().toISOString().split("T")[0],
+                    };
+                });
 
                 const response = await fetch('/api/products/import', {
                     method: 'POST',
@@ -305,24 +409,82 @@ export default function AdminPage() {
             return;
         }
 
-        const data = accessories.map((p: any) => ({
-            "ID": p.code,
-            "Product Image": p.image || "",
-            "Product Name": p.name,
-            "Category": p.category || "Accessory",
-            "Badge Type": p.badge || "N/A",
-            "About This Item": p.about || "N/A",
-            "Features (Optional)": p.features || "N/A",
-            "Actual Price (AED)": p.price,
-            "Offer Price (AED)": p.offerPrice || p.price,
-            "Quantity in Stock": p.stock || 0,
-        }));
+        const data = accessories.map((p: any) => {
+            // Parse configuration options if they exist
+            const parseConfig = (val: any) => {
+                try {
+                    const parsed = typeof val === 'string' ? JSON.parse(val) : val;
+                    if (Array.isArray(parsed)) {
+                        return parsed.map(opt => `${opt.label} (+${opt.price || 0} AED)`).join(', ');
+                    }
+                    return val || 'N/A';
+                } catch {
+                    return val || 'N/A';
+                }
+            };
+
+            return {
+                // Basic Info
+                'Product Code': p.code || p.productCode || p.id,
+                'Product Name': p.name,
+                'Category': p.category || 'Accessory',
+                'Brand': p.brand || 'N/A',
+                'Badge': p.badge || 'N/A',
+                'Condition': p.condition || 'New',
+
+                // Pricing
+                'Base Price (AED)': p.price || 0,
+                'Offer Price (AED)': p.originalPrice || p.offer_price || p.offerPrice || p.price || 0,
+                'Discount %': p.discount || 0,
+
+                // Stock
+                'Stock Quantity': p.stock || 0,
+
+                // Color Options (if applicable)
+                'Colors': parseConfig(p.specifications?.colors || p.colors),
+
+                // Product Details
+                'Description': p.description || p.about || 'N/A',
+                'Features': p.features || p.feature || 'N/A',
+
+                // Media
+                'Primary Image': Array.isArray(p.images) ? p.images[0] : (p.image || ''),
+                'All Images': Array.isArray(p.images) ? p.images.join(' | ') : (p.image || ''),
+
+                // Metadata
+                'Date Added': p.dateAdded || p.date_added || p.createdAt || new Date().toISOString().split("T")[0],
+                'Last Updated': p.updated_at || 'N/A',
+            };
+        });
 
         const worksheet = XLSX.utils.json_to_sheet(data);
+
+        // Set column widths for better readability
+        const columnWidths = [
+            { wch: 15 }, // Product Code
+            { wch: 30 }, // Product Name
+            { wch: 15 }, // Category
+            { wch: 15 }, // Brand
+            { wch: 12 }, // Badge
+            { wch: 12 }, // Condition
+            { wch: 12 }, // Base Price
+            { wch: 12 }, // Offer Price
+            { wch: 10 }, // Discount
+            { wch: 10 }, // Stock
+            { wch: 30 }, // Colors
+            { wch: 50 }, // Description
+            { wch: 50 }, // Features
+            { wch: 50 }, // Primary Image
+            { wch: 80 }, // All Images
+            { wch: 12 }, // Date Added
+            { wch: 12 }, // Last Updated
+        ];
+        worksheet['!cols'] = columnWidths;
+
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Accessories");
-        XLSX.writeFile(workbook, `accessories_${new Date().toISOString().split("T")[0]}.xlsx`);
-        alert(`✅ Exported ${accessories.length} accessories successfully!`);
+        XLSX.writeFile(workbook, `accessories_full_export_${new Date().toISOString().split("T")[0]}.xlsx`);
+        alert(`✅ Exported ${accessories.length} accessories with full data successfully!`);
     };
 
     const downloadAccessoryTemplate = () => {
@@ -358,31 +520,75 @@ export default function AdminPage() {
                 const worksheet = workbook.Sheets[sheetName];
                 const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-                const imported = jsonData.map((product: any, index: number) => ({
-                    code: product["ID"] || `IMP${Date.now()}${index}`,
-                    name: product["Product Name"],
-                    type: "accessory",
-                    category: product["Category"] || "Accessory",
-                    brand: "N/A",
-                    price: parseFloat(product["Actual Price (AED)"]) || 0,
-                    offerPrice: parseFloat(product["Offer Price (AED)"]) || parseFloat(product["Actual Price (AED)"]) || 0,
-                    stock: parseInt(product["Quantity in Stock"]) || 0,
-                    condition: "New",
-                    image: product["Product Image"] || "",
-                    about: product["About This Item"] || "",
-                    features: product["Features (Optional)"] || "",
-                    badge: product["Badge Type"] || "New",
-                    processor: "N/A",
-                    ram: "N/A",
-                    storage: "N/A",
-                    screen: "N/A",
-                    graphics: "N/A",
-                    graphicsStorage: "N/A",
-                    feature: "",
-                    discount: Math.round(
-                        ((parseFloat(product["Actual Price (AED)"]) - (parseFloat(product["Offer Price (AED)"]) || parseFloat(product["Actual Price (AED)"]))) / parseFloat(product["Actual Price (AED)"])) * 100
-                    ) || 0,
-                }));
+                const imported = jsonData.map((product: any, index: number) => {
+                    // Parse configuration strings back to simple values or keep as-is
+                    const parseImportConfig = (val: string) => {
+                        if (!val || val === 'N/A') return '';
+                        // If it contains pricing info like "Silver (+0 AED)", extract just the label
+                        if (val.includes('(+') && val.includes('AED)')) {
+                            return val.split(',')[0].split('(')[0].trim();
+                        }
+                        return val;
+                    };
+
+                    // Parse images (handle both single and pipe-separated)
+                    const parseImages = (primaryImg: string, allImg: string) => {
+                        if (allImg && allImg !== 'N/A') {
+                            return allImg.split(' | ').filter(img => img && img !== 'N/A');
+                        }
+                        if (primaryImg && primaryImg !== 'N/A') {
+                            return [primaryImg];
+                        }
+                        return [];
+                    };
+
+                    const images = parseImages(
+                        product['Primary Image'] || product['Product Image'] || '',
+                        product['All Images'] || ''
+                    );
+
+                    return {
+                        // Use new column names first, fallback to old names
+                        code: product['Product Code'] || product["ID"] || `IMP${Date.now()}${index}`,
+                        name: product['Product Name'] || product["Product Name"],
+                        type: "accessory",
+                        category: product.Category || product["Category"] || "Accessory",
+                        brand: product.Brand || "N/A",
+                        price: parseFloat(product['Base Price (AED)'] || product["Actual Price (AED)"]) || 0,
+                        offer_price: parseFloat(product['Offer Price (AED)'] || product["Offer Price (AED)"] || product["Actual Price (AED)"]) || 0,
+                        stock: parseInt(product['Stock Quantity'] || product["Quantity in Stock"]) || 0,
+                        condition: product.Condition || "New",
+                        discount: parseInt(product['Discount %']) || Math.round(
+                            ((parseFloat(product['Base Price (AED)'] || product["Actual Price (AED)"]) -
+                                (parseFloat(product['Offer Price (AED)'] || product["Offer Price (AED)"] || product["Actual Price (AED)"]))) /
+                                parseFloat(product['Base Price (AED)'] || product["Actual Price (AED)"])) * 100
+                        ) || 0,
+                        badge: product.Badge || product["Badge Type"] || "New",
+
+                        // Color options (parse if needed)
+                        colors: parseImportConfig(product.Colors) || "",
+
+                        // Product details
+                        about: product.Description || product["About This Item"] || "",
+                        features: product.Features || product["Features (Optional)"] || "",
+                        feature: product.Features || product["Features (Optional)"] || "",
+
+                        // Images
+                        image: images.length > 0 ? images.join(',') : "",
+                        images: images,
+
+                        // Not applicable for accessories
+                        processor: "N/A",
+                        ram: "N/A",
+                        storage: "N/A",
+                        screen: "N/A",
+                        graphics: "N/A",
+                        graphicsStorage: "N/A",
+
+                        // Metadata
+                        date_added: product['Date Added'] || new Date().toISOString().split("T")[0],
+                    };
+                });
 
                 const response = await fetch('/api/products/import', {
                     method: 'POST',

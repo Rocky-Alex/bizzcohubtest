@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import "./header.css";
+import GradientText from "./GradientText";
 
 export default function Header() {
     const pathname = usePathname();
@@ -47,7 +48,14 @@ export default function Header() {
                         height={32}
                         className="logo-image"
                     />
-                    <span className="logo-text">Bizz Co Hub</span>
+                    <GradientText
+                        colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                        animationSpeed={3}
+                        showBorder={false}
+                        className="logo-text"
+                    >
+                        Bizz Co Hub
+                    </GradientText>
                 </Link>
 
                 {/* Desktop Navigation - Centered */}

@@ -1,3 +1,17 @@
+/* Admin Login Page - Remove White Background */
+.admin-login-page {
+    background: #0a0a0a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 100vh !important;
+}
+
+/* Override body background for admin login */
+body:has(.admin-login-page) {
+    background: #0a0a0a !important;
+}
+
+
 /* Admin Login Styles */
 .login-container {
     min-height: 100vh;

@@ -8,6 +8,28 @@ interface ProductListProps {
     onClearAll: () => void;
 }
 
+// Helper function to parse spec values (JSON or plain string)
+const parseSpecValue = (value: any): string => {
+    if (!value) return '';
+
+    // If it's already a string and not JSON, return it
+    if (typeof value === 'string' && !value.trim().startsWith('[')) {
+        return value;
+    }
+
+    // Try to parse JSON array
+    try {
+        const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            // Return the first option's label
+            return parsed[0].label || parsed[0];
+        }
+        return value;
+    } catch {
+        return value;
+    }
+};
+
 export default function ProductList({
     type,
     products,
@@ -40,64 +62,71 @@ export default function ProductList({
                     </thead>
                     <tbody>
                         {products.length > 0 ? (
-                            products.map((product, index) => (
-                                <tr key={index}>
-                                    <td className="col-image">
-                                        <div className="table-img-wrapper">
-                                            <img
-                                                src={product.images?.[0] || product.image || '/uploads/placeholder.jpg'}
-                                                alt={product.name}
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="col-details">
-                                        <div className="product-info-cell">
-                                            <span className="product-name">{product.name}</span>
-                                            <span className="product-code">{product.code || product.productCode || product.id}</span>
-                                            <span className="product-meta">
-                                                {product.category}
-                                                {type === "laptop"
-                                                    ? ` | ${product.specifications?.RAM || product.ram || ''} | ${product.specifications?.Storage || product.storage || ''}`
-                                                    : ""}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="col-price">
-                                        <div className="price-cell">
-                                            {product.originalPrice && (
-                                                <span className="price-old">AED {product.originalPrice.toLocaleString()}</span>
-                                            )}
-                                            <span className="price-current">AED {(product.price || 0).toLocaleString()}</span>
-                                            {product.originalPrice && (
-                                                <span className="discount-badge">{Math.round((1 - product.price / product.originalPrice) * 100)}% OFF</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="col-stock">
-                                        <div className={`stock-badge ${(product.stock || 0) <= (type === "laptop" ? 5 : 10) ? "low" : "good"}`}>
-                                            {product.stock || 0} units
-                                        </div>
-                                    </td>
-                                    <td className="col-actions">
-                                        <div className="actions-cell">
-                                            <button
-                                                className="btn-action edit"
-                                                onClick={() => onEdit(product)}
-                                                title="Edit"
-                                            >
-                                                <i className="fas fa-edit"></i>
-                                            </button>
-                                            <button
-                                                className="btn-action delete"
-                                                onClick={() => onDelete(product.code || product.productCode || product.id)}
-                                                title="Delete"
-                                            >
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                            products.map((product, index) => {
+                                // Parse performance specs
+                                const processor = parseSpecValue(product.specifications?.Processor || product.processor);
+                                const ram = parseSpecValue(product.specifications?.RAM || product.ram);
+                                const storage = parseSpecValue(product.specifications?.Storage || product.storage);
+
+                                return (
+                                    <tr key={index}>
+                                        <td className="col-image">
+                                            <div className="table-img-wrapper">
+                                                <img
+                                                    src={product.images?.[0] || product.image || '/uploads/placeholder.jpg'}
+                                                    alt={product.name}
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="col-details">
+                                            <div className="product-info-cell">
+                                                <span className="product-name">{product.name}</span>
+                                                <span className="product-code">{product.code || product.productCode || product.id}</span>
+                                                <span className="product-meta">
+                                                    {product.category}
+                                                    {type === "laptop" && (processor || ram || storage)
+                                                        ? ` | ${processor || ''} | ${ram || ''} | ${storage || ''}`
+                                                        : ""}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="col-price">
+                                            <div className="price-cell">
+                                                {product.originalPrice && (
+                                                    <span className="price-old">AED {product.originalPrice.toLocaleString()}</span>
+                                                )}
+                                                <span className="price-current">AED {(product.price || 0).toLocaleString()}</span>
+                                                {product.originalPrice && (
+                                                    <span className="discount-badge">{Math.round((1 - product.price / product.originalPrice) * 100)}% OFF</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="col-stock">
+                                            <div className={`stock-badge ${(product.stock || 0) <= (type === "laptop" ? 5 : 10) ? "low" : "good"}`}>
+                                                {product.stock || 0} units
+                                            </div>
+                                        </td>
+                                        <td className="col-actions">
+                                            <div className="actions-cell">
+                                                <button
+                                                    className="btn-action edit"
+                                                    onClick={() => onEdit(product)}
+                                                    title="Edit"
+                                                >
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button
+                                                    className="btn-action delete"
+                                                    onClick={() => onDelete(product.code || product.productCode || product.id)}
+                                                    title="Delete"
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })
                         ) : (
                             <tr>
                                 <td colSpan={5} className="empty-table">

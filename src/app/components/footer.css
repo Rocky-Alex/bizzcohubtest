@@ -36,16 +36,23 @@
     min-width: 200px;
 }
 
+.footer-brand-simple .logo {
+    display: inline-block;
+    text-align: left;
+    text-decoration: none;
+}
+
+.footer-brand-simple .logo .animated-gradient-text {
+    margin: 0;
+    justify-content: flex-start;
+}
+
 .footer-brand-simple .logo-text {
-    color: #ffffff;
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -1px;
-}
-
-.footer-brand-simple .logo-text .highlight {
-    color: #007bff;
+    /* Color is handled by GradientText component */
 }
 
 .footer-brand-simple p {

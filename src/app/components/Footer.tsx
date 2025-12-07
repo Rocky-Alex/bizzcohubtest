@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./footer.css";
+import GradientText from "./GradientText";
 
 export default function Footer() {
     const pathname = usePathname();
@@ -14,7 +15,14 @@ export default function Footer() {
                 <div className="footer-simple">
                     <div className="footer-brand-simple">
                         <Link href="/" className="logo">
-                            <span className="logo-text">Bizz<span className="highlight">Co</span>Hub</span>
+                            <GradientText
+                                colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                                animationSpeed={3}
+                                showBorder={false}
+                                className="logo-text"
+                            >
+                                Bizz Co Hub
+                            </GradientText>
                         </Link>
                         <p>Premium refurbished electronics and professional IT services.</p>
                     </div>
