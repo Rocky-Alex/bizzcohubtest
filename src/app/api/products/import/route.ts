@@ -1,6 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
+// Helper function to generate next sequential code
+async function generateNextCode(type: string): Promise<string> {
+    const prefix = type === 'laptop' ? 'BCH-LP' : 'BCH-AC';
+
+    try {
+        // Query database for the highest code across ALL products (both BCH-LP and BCH-AC)
+        const result = await sql`
+            SELECT code FROM products 
+            WHERE code LIKE 'BCH-%'
+            ORDER BY code DESC
+            LIMIT 1
+        `;
+
+        let nextNumber = 1000;
+        if (result.length > 0) {
+            const lastCode = result[0].code;
+            const match = lastCode.match(/-(\d+)$/);
+            if (match) {
+                const lastNumber = parseInt(match[1], 10);
+                nextNumber = lastNumber + 1;
+            }
+        }
+
+        return `${prefix}-${nextNumber}`;
+    } catch (error) {
+        console.error('Error generating sequential code:', error);
+        // Fallback to timestamp-based code
+        return `${prefix}-${Date.now()}`;
+    }
+}
+
 // POST /api/products/import - Bulk import products
 export async function POST(request: NextRequest) {
     try {
@@ -18,6 +49,11 @@ export async function POST(request: NextRequest) {
 
         for (const product of products) {
             try {
+                // Generate code if not provided
+                if (!product.code) {
+                    product.code = await generateNextCode(product.type);
+                }
+
                 // Handle images - convert array to comma-separated string
                 const imageData = product.images && Array.isArray(product.images) && product.images.length > 0
                     ? product.images.join(',')

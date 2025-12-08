@@ -1,5 +1,5 @@
 import Link from "next/link";
-import "./privacy.css";
+import "./styles/privacy.css";
 
 export default function PrivacyPolicyPage() {
     return (

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getCart, updateCartItemQuantity, removeFromCart, CartItem } from "@/utils/cart";
-import "./cart.css";
+import "./styles/cart.css";
 
 export default function CartPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);

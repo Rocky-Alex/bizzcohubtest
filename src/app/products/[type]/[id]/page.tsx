@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { addToCart } from "@/utils/cart";
-import "./product-detail.css";
+import "./styles/product-detail.css";
 
 interface Product {
     id: string;

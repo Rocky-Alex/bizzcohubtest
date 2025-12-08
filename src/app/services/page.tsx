@@ -1,5 +1,5 @@
 import Link from "next/link";
-import "./services.css";
+import "./styles/services.css";
 
 export default function ServicesPage() {
     return (

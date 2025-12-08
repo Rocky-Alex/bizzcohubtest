@@ -1,5 +1,5 @@
 import Link from "next/link";
-import "../privacy/privacy.css";
+import "../privacy/styles/privacy.css";
 
 export default function TermsOfServicePage() {
     return (

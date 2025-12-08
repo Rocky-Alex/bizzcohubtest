@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import "./billing-styles.css";
-import InvoiceForm from "./InvoiceForm";
+import "./styles/billing-styles.css";
+import InvoiceForm from "./components/InvoiceForm";
 
 // Types
 interface BrandingSettings {

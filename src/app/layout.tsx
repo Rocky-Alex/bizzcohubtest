@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "./landing-page.css";
-import LayoutWrapper from "./components/LayoutWrapper";
+import LayoutWrapper from "../Navigation/LayoutWrapper";
 
 export const metadata: Metadata = {
     title: "Bizz Co Hub",

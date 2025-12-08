@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SiteConfig } from "../../config/site";
-import "./contact.css";
+import { SiteConfig } from "@/config/site";
+import "./styles/contact.css";
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
