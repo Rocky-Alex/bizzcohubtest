@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadToImageKit, deleteFromImageKit } from '@/lib/imagekit';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/imagekit/upload - Upload image to ImageKit
 export async function POST(request: NextRequest) {
     try {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { sql } from '@/lib/db';
 import { cookies } from 'next/headers';
 import { createHash } from 'crypto';
