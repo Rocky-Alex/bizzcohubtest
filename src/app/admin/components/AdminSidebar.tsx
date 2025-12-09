@@ -1,13 +1,14 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import NoonIcon from "./icons/NoonIcon";
 
 interface AdminSidebarProps {
     activeSection: string;
     setActiveSection: (section: string) => void;
     onLogout: () => void;
     userRole?: string;
+    username?: string;
 }
 
 export default function AdminSidebar({
@@ -15,59 +16,78 @@ export default function AdminSidebar({
     setActiveSection,
     onLogout,
     userRole = 'accountant',
+    username = 'Admin'
 }: AdminSidebarProps) {
-    const router = useRouter();
+    const [collapsed, setCollapsed] = useState(false);
 
-    const menuItems = [];
+    const toggleSidebar = () => setCollapsed(!collapsed);
 
-    if (userRole === 'admin') {
-        menuItems.push(
-            { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
-            { id: "inventory", icon: "fa-boxes", label: "Inventory" },
-            { id: "billing", icon: "fa-file-invoice-dollar", label: "Billing" },
-            { id: "users", icon: "fa-users", label: "Users" }
-        );
-    } else if (userRole === 'accountant') {
-        menuItems.push(
-            { id: "billing", icon: "fa-file-invoice-dollar", label: "Billing" }
-        );
-    }
+    const menuItems = [
+        { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
+        { id: "orders", icon: "fa-shopping-cart", label: "Order Mgmt" },
+        { id: "amazon", icon: "fab fa-amazon", label: "Amazon" },
+        { id: "noon", icon: "fa-store", label: "Noon" },
+        { id: "products", icon: "fa-laptop", label: "Products" },
+        { id: "accessories", icon: "fa-keyboard", label: "Accessories" },
+        { id: "customers", icon: "fa-users", label: "Customer Mgmt" },
+        { id: "production", icon: "fa-industry", label: "Production" },
+        { id: "reports", icon: "fa-chart-line", label: "Reports" },
+        { id: "invoicing", icon: "fa-file-invoice", label: "Invoicing" },
+        { id: "accounting", icon: "fa-coins", label: "Accounting" },
+        { id: "users", icon: "fa-user-shield", label: "User Mgmt" },
+    ];
 
-    const handleNavigation = (id: string) => {
-        if (id === "billing") {
-            router.push("/billing");
-        } else {
-            setActiveSection(id);
-        }
-    };
+    const displayedItems = userRole === 'accountant'
+        ? menuItems.filter(item => ['dashboard', 'orders', 'amazon', 'noon', 'invoicing', 'accounting'].includes(item.id))
+        : menuItems;
 
     return (
-        <aside className="admin-sidebar">
-            <nav className="admin-menu">
-                {menuItems.map((item) => (
+        <aside className={`modern-sidebar ${collapsed ? "collapsed" : ""}`}>
+            <div className="sidebar-header">
+                <div className="user-profile" onClick={onLogout} title="Click to Logout">
+                    <div className="user-avatar">
+                        {username.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="user-info">
+                        <span className="user-name">{username}</span>
+                        <span className="user-role">{userRole}</span>
+                    </div>
+                    {!collapsed && <i className="fas fa-sign-out-alt user-menu-trigger"></i>}
+                </div>
+            </div>
+
+            <nav className="sidebar-menu">
+                <div className="menu-label">MAIN MENU</div>
+                {displayedItems.map((item) => (
                     <button
                         key={item.id}
-                        className={`menu-item ${activeSection === item.id ? "active" : ""}`}
-                        onClick={() => handleNavigation(item.id)}
-                        style={{
-                            width: "100%",
-                            textAlign: "left",
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            padding: "1rem",
-                            color: "var(--text-light)",
-                            fontSize: "1rem",
-                            transition: "all 0.3s ease",
-                        }}
+                        className={`nav-item ${activeSection === item.id ? "active" : ""}`}
+                        onClick={() => setActiveSection(item.id)}
+                        title={collapsed ? item.label : ""}
                     >
-                        <i className={`fas ${item.icon}`} style={{ marginRight: "10px" }}></i>{" "}
-                        {item.label}
+                        {item.id === 'noon' ? (
+                            <NoonIcon className="sidebar-icon-custom" />
+                        ) : (
+                            <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
+                        )}
+                        <span className="nav-text">{item.label}</span>
                     </button>
                 ))}
             </nav>
+
+            <div className="sidebar-footer">
+                <div className="footer-controls">
+                    <button
+                        className="control-btn"
+                        onClick={toggleSidebar}
+                        title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+                    >
+                        <i className={`fas ${collapsed ? "fa-align-left" : "fa-align-right"}`}></i>
+                    </button>
+                </div>
+            </div>
+
+
         </aside>
     );
 }

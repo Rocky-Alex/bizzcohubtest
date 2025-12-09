@@ -2,24 +2,16 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Particles from "./components/Particles";
 import Stack from "./components/Stack";
+
 import "./styles/landing-page.css";
 import "./styles/home-styles.css";
 
 export default function LandingPage() {
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-    const [particles, setParticles] = useState<Array<{ left: string; delay: string; duration: string }>>([]);
 
-    useEffect(() => {
-        // Generate particles only on client-side to avoid hydration mismatch
-        setParticles(
-            [...Array(20)].map(() => ({
-                left: `${Math.random() * 100}%`,
-                delay: `${Math.random() * 5}s`,
-                duration: `${5 + Math.random() * 10}s`
-            }))
-        );
-    }, []);
+    // Removed old particles state logic as we are using the new component
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -37,26 +29,30 @@ export default function LandingPage() {
     }, []);
 
     const stackCards = useMemo(() => [
-        <img key={1} src="https://ik.imagekit.io/kxci2a0h5/landing-page/product-1_zPKpkzjHz.jpg" alt="Product 1" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
-        <img key={2} src="https://ik.imagekit.io/kxci2a0h5/landing-page/product-2_iNNO-8VUqy.jpg" alt="Product 2" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
-        <img key={3} src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg" alt="Laptops" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
-        <img key={4} src="https://ik.imagekit.io/kxci2a0h5/landing-page/MacBook_Pro_oD-caFVemW.jpg" alt="MacBook" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />
+        <img key={1} src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80" alt="Product 1" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={2} src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80" alt="Product 2" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={3} src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80" alt="Laptops" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={4} src="https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80" alt="MacBook" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />
     ], []);
 
     return (
         <div className="landing-page">
+
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
+                <Particles
+                    particleColors={['#667EEA', '#764BA2', '#F093FB', '#111827']}
+                    particleCount={800}
+                    particleSpread={10}
+                    speed={0.1}
+                    particleBaseSize={100}
+                    moveParticlesOnHover={true}
+                    alphaParticles={true}
+                    disableRotation={false}
+                />
+            </div>
+
             {/* Hero Section */}
-            <section className="hero-section-v3">
-                <div className="hero-bg-animated"></div>
-                <div className="particles-container">
-                    {particles.map((particle, i) => (
-                        <div key={i} className="particle" style={{
-                            left: particle.left,
-                            animationDelay: particle.delay,
-                            animationDuration: particle.duration
-                        }}></div>
-                    ))}
-                </div>
+            <section className="hero-section-v3" style={{ background: 'transparent', zIndex: 1 }}>
 
                 <div className="hero-container">
                     <div className="hero-content fade-in-up">
@@ -175,7 +171,7 @@ export default function LandingPage() {
                 <div className="categories-grid-v3">
                     <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg" alt="Laptops" />
+                            <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80" alt="Laptops" />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -193,7 +189,7 @@ export default function LandingPage() {
 
                     <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/MacBook_Pro_oD-caFVemW.jpg" alt="MacBook" style={{ transform: "scale(1.15)" }} />
+                            <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80" alt="MacBook" style={{ transform: "scale(1.15)" }} />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -211,7 +207,7 @@ export default function LandingPage() {
 
                     <Link href="/products/accessories" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories_WP-uAIpNO.jpg" alt="Accessories" />
+                            <img src="https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80" alt="Accessories" />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -229,7 +225,7 @@ export default function LandingPage() {
 
                     <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop_LZK5EOorF.png" alt="Gaming Laptops" />
+                            <img src="https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=800&q=80" alt="Gaming Laptops" />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -278,7 +274,7 @@ export default function LandingPage() {
                             )}
                             <div className="product-image-v3">
                                 <Link href={`/products/${product.type?.toLowerCase()}/${product.id}`} className="block h-full w-full">
-                                    <img src={product.images?.[0] || product.image || 'https://ik.imagekit.io/kxci2a0h5/landing-page/placeholder_FheZc6Tci.jpg'} alt={product.name} />
+                                    <img src={product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80'} alt={product.name} />
                                 </Link>
                                 <div className="product-actions">
                                     <button className="action-btn magnetic-btn">
