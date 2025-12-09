@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 // POST /api/imagekit/upload - Upload image to ImageKit
 export async function POST(request: NextRequest) {
     try {
-        const { file, fileName, folder } = await request.json();
+        const { file, fileName, folder, productType, brand, productName } = await request.json();
 
         if (!file || !fileName) {
             return NextResponse.json(
@@ -15,7 +15,25 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const result = await uploadToImageKit(file, fileName, folder || 'products');
+        let targetFolder = folder || 'products';
+
+        // dynamic folder logic
+        if (productType && brand && productName) {
+            const typeLower = productType.toLowerCase();
+            let categoryFolder = 'Other';
+
+            if (typeLower.includes('laptop')) {
+                categoryFolder = 'Laptop';
+            } else if (typeLower.includes('accessor')) {
+                categoryFolder = 'Accessories';
+            }
+
+            // Sanitize names for folder usage if necessary, but keeping user's format preference
+            // Structure: Product/Category/Brand/Name
+            targetFolder = `Product/${categoryFolder}/${brand.trim()}/${productName.trim()}`;
+        }
+
+        const result = await uploadToImageKit(file, fileName, targetFolder);
 
         return NextResponse.json(result, { status: 200 });
     } catch (error: any) {

@@ -29,15 +29,14 @@ export default function LandingPage() {
     }, []);
 
     const stackCards = useMemo(() => [
-        <img key={1} src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80" alt="Product 1" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
-        <img key={2} src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80" alt="Product 2" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
-        <img key={3} src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80" alt="Laptops" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
-        <img key={4} src="https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80" alt="MacBook" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />
+        <img key={1} src="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop.png?updatedAt=1765254743460" alt="Gaming Laptop" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={2} src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories.jpg?updatedAt=1765254764848" alt="Accessories" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={3} src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg?updatedAt=1765186346540" alt="Laptops" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />,
+        <img key={4} src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-macbook.jpg?updatedAt=1765254808557" alt="MacBook" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1rem' }} />
     ], []);
 
     return (
         <div className="landing-page">
-
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
                 <Particles
                     particleColors={['#667EEA', '#764BA2', '#F093FB', '#111827']}
@@ -171,7 +170,7 @@ export default function LandingPage() {
                 <div className="categories-grid-v3">
                     <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80" alt="Laptops" />
+                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg?updatedAt=1765186346540" alt="Laptops" />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -189,7 +188,7 @@ export default function LandingPage() {
 
                     <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80" alt="MacBook" style={{ transform: "scale(1.15)" }} />
+                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-macbook.jpg?updatedAt=1765254808557" alt="MacBook" style={{ transform: "scale(1.15)" }} />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -207,7 +206,7 @@ export default function LandingPage() {
 
                     <Link href="/products/accessories" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80" alt="Accessories" />
+                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories.jpg?updatedAt=1765254764848" alt="Accessories" />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -225,7 +224,7 @@ export default function LandingPage() {
 
                     <Link href="/products/laptops" className="category-card-v3 hover-scale">
                         <div className="category-image-v3">
-                            <img src="https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=800&q=80" alt="Gaming Laptops" />
+                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop.png?updatedAt=1765254743460" alt="Gaming Laptops" />
                             <div className="category-overlay gradient-overlay"></div>
                         </div>
                         <div className="category-content-v3">
@@ -326,6 +325,6 @@ export default function LandingPage() {
                     ))}
                 </div>
             </section>
-        </div>
+        </div >
     );
 }

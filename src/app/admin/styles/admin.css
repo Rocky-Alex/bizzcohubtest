@@ -2,8 +2,7 @@
 .admin-body {
     display: flex;
     min-height: 100vh;
-    padding-top: 2.5rem;
-    /* Push down to clear fixed header */
+    padding-top: 0;
     background-color: #f3f4f6;
     font-family: 'Inter', sans-serif;
 }

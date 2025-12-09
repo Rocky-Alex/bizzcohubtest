@@ -18,76 +18,191 @@ export default function AdminSidebar({
     userRole = 'accountant',
     username = 'Admin'
 }: AdminSidebarProps) {
-    const [collapsed, setCollapsed] = useState(false);
-
-    const toggleSidebar = () => setCollapsed(!collapsed);
-
     const menuItems = [
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
-        { id: "orders", icon: "fa-shopping-cart", label: "Order Mgmt" },
-        { id: "amazon", icon: "fab fa-amazon", label: "Amazon" },
-        { id: "noon", icon: "fa-store", label: "Noon" },
-        { id: "products", icon: "fa-laptop", label: "Products" },
-        { id: "accessories", icon: "fa-keyboard", label: "Accessories" },
-        { id: "customers", icon: "fa-users", label: "Customer Mgmt" },
-        { id: "production", icon: "fa-industry", label: "Production" },
-        { id: "reports", icon: "fa-chart-line", label: "Reports" },
-        { id: "invoicing", icon: "fa-file-invoice", label: "Invoicing" },
-        { id: "accounting", icon: "fa-coins", label: "Accounting" },
-        { id: "users", icon: "fa-user-shield", label: "User Mgmt" },
+        {
+            id: "orders",
+            icon: "fa-shopping-cart",
+            label: "Order Mgmt",
+            subItems: [
+                { id: "orders-all", label: "All Orders" },
+                { id: "orders-create", label: "Create Order" },
+                { id: "orders-returns", label: "Returns" }
+            ]
+        },
+        {
+            id: "amazon",
+            icon: "fab fa-amazon",
+            label: "Amazon",
+            subItems: [
+                { id: "amazon-dashboard", label: "Dashboard" },
+                { id: "amazon-orders", label: "Orders" },
+                { id: "amazon-listings", label: "Listings" }
+            ]
+        },
+        {
+            id: "noon",
+            icon: "fa-store",
+            label: "Noon",
+            subItems: [
+                { id: "noon-dashboard", label: "Dashboard" },
+                { id: "noon-orders", label: "Orders" },
+                { id: "noon-listings", label: "Listings" }
+            ]
+        },
+        {
+            id: "products",
+            icon: "fa-laptop",
+            label: "Products",
+            subItems: [
+                { id: "products-list", label: "Product List" },
+                { id: "products-add", label: "Add Product" }
+            ]
+        },
+        {
+            id: "accessories",
+            icon: "fa-keyboard",
+            label: "Accessories",
+            subItems: [
+                { id: "accessories-list", label: "Accessory List" },
+                { id: "accessories-add", label: "Add Accessory" }
+            ]
+        },
+        {
+            id: "customers",
+            icon: "fa-users",
+            label: "Customer Mgmt",
+            subItems: [
+                { id: "customers-all", label: "All Customers" },
+                { id: "customers-groups", label: "Groups" }
+            ]
+        },
+        {
+            id: "production",
+            icon: "fa-industry",
+            label: "Production",
+            subItems: [
+                { id: "production-pipeline", label: "Pipeline" },
+                { id: "production-history", label: "History" }
+            ]
+        },
+        {
+            id: "reports",
+            icon: "fa-chart-line",
+            label: "Reports",
+            subItems: [
+                { id: "reports-sales", label: "Sales Report" },
+                { id: "reports-inventory", label: "Inventory Report" }
+            ]
+        },
+        {
+            id: "invoicing",
+            icon: "fa-file-invoice",
+            label: "Invoicing",
+            subItems: [
+                { id: "invoicing-all", label: "All Invoices" },
+                { id: "invoicing-new", label: "New Invoice" }
+            ]
+        },
+        {
+            id: "accounting",
+            icon: "fa-coins",
+            label: "Accounting",
+            subItems: [
+                { id: "accounting-overview", label: "Overview" },
+                { id: "accounting-transactions", label: "Transactions" }
+            ]
+        },
+        {
+            id: "users",
+            icon: "fa-user-shield",
+            label: "User Mgmt",
+            subItems: [
+                { id: "users-all", label: "All Users" },
+                { id: "users-roles", label: "Roles" }
+            ]
+        },
     ];
+
+    const [isHovered, setIsHovered] = useState(false);
+    const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+
+    const toggleMenu = (id: string) => {
+        setExpandedMenus(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    };
+
+    const handleItemClick = (item: any) => {
+        if (item.subItems) {
+            toggleMenu(item.id);
+        } else {
+            setActiveSection(item.id);
+        }
+    };
 
     const displayedItems = userRole === 'accountant'
         ? menuItems.filter(item => ['dashboard', 'orders', 'amazon', 'noon', 'invoicing', 'accounting'].includes(item.id))
         : menuItems;
 
     return (
-        <aside className={`modern-sidebar ${collapsed ? "collapsed" : ""}`}>
+        <aside
+            className={`modern-sidebar ${!isHovered ? "collapsed" : ""}`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => {
+                setIsHovered(false);
+                setExpandedMenus([]); // Option: collapse all on mouse leave
+            }}
+        >
             <div className="sidebar-header">
-                <div className="user-profile" onClick={onLogout} title="Click to Logout">
-                    <div className="user-avatar">
-                        {username.charAt(0).toUpperCase()}
+                <div className="brand-wrapper">
+                    <div className="brand-logo">
+                        <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
-                    <div className="user-info">
-                        <span className="user-name">{username}</span>
-                        <span className="user-role">{userRole}</span>
-                    </div>
-                    {!collapsed && <i className="fas fa-sign-out-alt user-menu-trigger"></i>}
+                    {isHovered && <span className="brand-text">Bizzcohub</span>}
                 </div>
             </div>
 
             <nav className="sidebar-menu">
                 <div className="menu-label">MAIN MENU</div>
-                {displayedItems.map((item) => (
-                    <button
-                        key={item.id}
-                        className={`nav-item ${activeSection === item.id ? "active" : ""}`}
-                        onClick={() => setActiveSection(item.id)}
-                        title={collapsed ? item.label : ""}
-                    >
-                        {item.id === 'noon' ? (
-                            <NoonIcon className="sidebar-icon-custom" />
-                        ) : (
-                            <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
-                        )}
-                        <span className="nav-text">{item.label}</span>
-                    </button>
-                ))}
+                {displayedItems.map((item) => {
+                    const isActive = activeSection === item.id || (item.subItems && item.subItems.some((sub: any) => sub.id === activeSection));
+                    const isExpanded = expandedMenus.includes(item.id);
+
+                    return (
+                        <div key={item.id} className="nav-item-wrapper">
+                            <button
+                                className={`nav-item ${isActive ? "active" : ""}`}
+                                onClick={() => handleItemClick(item)}
+                            >
+                                {item.id === 'noon' ? (
+                                    <NoonIcon className="sidebar-icon-custom" />
+                                ) : (
+                                    <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
+                                )}
+                                <span className="nav-text">{item.label}</span>
+                                {item.subItems && (
+                                    <i className={`fas fa-chevron-right dropdown-arrow ${isExpanded ? 'rotated' : ''}`}></i>
+                                )}
+                            </button>
+
+                            {item.subItems && (
+                                <div className={`sub-menu ${isExpanded ? 'expanded' : ''}`}>
+                                    {item.subItems.map((sub: any) => (
+                                        <button
+                                            key={sub.id}
+                                            className={`sub-nav-item ${activeSection === sub.id ? "active" : ""}`}
+                                            onClick={() => setActiveSection(sub.id)}
+                                        >
+                                            <span className="sub-nav-text">{sub.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </nav>
-
-            <div className="sidebar-footer">
-                <div className="footer-controls">
-                    <button
-                        className="control-btn"
-                        onClick={toggleSidebar}
-                        title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-                    >
-                        <i className={`fas ${collapsed ? "fa-align-left" : "fa-align-right"}`}></i>
-                    </button>
-                </div>
-            </div>
-
-
         </aside>
     );
 }

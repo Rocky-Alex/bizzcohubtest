@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AdminSidebar from "./components/AdminSidebar";
+import AdminHeader from "./components/AdminHeader";
 import DashboardOverview from "./components/DashboardOverview";
 import LogoutModal from "./components/LogoutModal";
 import PlatformDashboard from "./components/PlatformDashboard";
+import AdminTable from "./components/AdminTable";
+import AdminForm from "./components/AdminForm";
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
@@ -21,6 +24,95 @@ export default function AdminPage() {
 
     // Placeholder data state (to be replaced with real data fetching)
     const [laptops, setLaptops] = useState<any[]>([]);
+
+    // --- Mock Data for Tables ---
+    const initialProducts = [
+        { id: "P001", name: "MacBook Pro M3", category: "Laptop", stock: 12, price: "$1299" },
+        { id: "P002", name: "Dell XPS 15", category: "Laptop", stock: 8, price: "$1199" },
+        { id: "P003", name: "Logitech MX Master 3", category: "Accessory", stock: 45, price: "$99" },
+    ];
+
+    const initialOrders = [
+        { id: "ORD-7829", customer: "John Doe", total: "$1299", status: "Processing", date: "2024-11-20" },
+        { id: "ORD-7830", customer: "Jane Smith", total: "$99", status: "Shipped", date: "2024-11-21" },
+    ];
+
+    const initialCustomers = [
+        { id: "C001", name: "John Doe", email: "john@example.com", group: "Retail", orders: 5 },
+        { id: "C002", name: "Jane Smith", email: "jane@example.com", group: "Wholesale", orders: 12 },
+    ];
+
+    const initialProduction = [
+        { id: "PRD-001", item: "Custom PC Build", stage: "Assembly", deadline: "2024-12-15", priority: "High" },
+        { id: "PRD-002", item: "Laptop Refurbishment", stage: "Testing", deadline: "2024-12-10", priority: "Medium" },
+    ];
+
+    const initialInvoices = [
+        { id: "INV-2024-001", customer: "John Doe", amount: "$1299", status: "Paid", dueDate: "2024-12-01" },
+        { id: "INV-2024-002", customer: "Tech Corp", amount: "$5000", status: "Pending", dueDate: "2024-12-15" },
+    ];
+
+    const initialTransactions = [
+        { id: "TRX-9988", type: "Income", amount: "$1299", category: "Sales", date: "2024-12-05" },
+        { id: "TRX-9989", type: "Expense", amount: "$450", category: "Utilities", date: "2024-12-06" },
+    ];
+
+    const initialUsers = [
+        { id: "U001", name: "Admin User", role: "Administrator", email: "admin@bizzcohub.com", status: "Active" },
+        { id: "U002", name: "Sales Rep 1", role: "Sales", email: "sales1@bizzcohub.com", status: "Active" },
+    ];
+
+    const [products, setProducts] = useState(initialProducts);
+    const [orders, setOrders] = useState(initialOrders);
+    const [customers, setCustomers] = useState(initialCustomers);
+    const [production, setProduction] = useState(initialProduction);
+    const [invoices, setInvoices] = useState(initialInvoices);
+    const [transactions, setTransactions] = useState(initialTransactions);
+    const [users, setUsers] = useState(initialUsers);
+
+    // --- generic Handlers ---
+    const handleEdit = (item: any, type: string) => {
+        alert(`Edit ${type}: ${item.id || item.name} (Implementation Pending)`);
+    };
+
+    const handleDelete = (item: any, type: string) => {
+        if (confirm(`Are you sure you want to delete ${type}: ${item.id || item.name}?`)) {
+            if (type === 'Product') setProducts(prev => prev.filter(p => p.id !== item.id));
+            else if (type === 'Order') setOrders(prev => prev.filter(o => o.id !== item.id));
+            else if (type === 'Customer') setCustomers(prev => prev.filter(c => c.id !== item.id));
+            else if (type === 'Production') setProduction(prev => prev.filter(p => p.id !== item.id));
+            else if (type === 'Invoice') setInvoices(prev => prev.filter(i => i.id !== item.id));
+            else if (type === 'Transaction') setTransactions(prev => prev.filter(t => t.id !== item.id));
+            else if (type === 'User') setUsers(prev => prev.filter(u => u.id !== item.id));
+        }
+    };
+
+    const handleAddSubmit = (data: any, type: string) => {
+        console.log("Adding", type, data);
+        if (type === 'Product') {
+            setProducts([...products, { id: `P${Date.now()}`, ...data, price: `$${data.price}`, stock: Number(data.stock) }]);
+            setActiveSection('products-list');
+        } else if (type === 'Order') {
+            setOrders([...orders, { id: `ORD-${Math.floor(Math.random() * 1000)}`, ...data, date: new Date().toISOString().split('T')[0] }]);
+            setActiveSection('orders-all');
+        } else if (type === 'Customer') {
+            setCustomers([...customers, { id: `C${Date.now()}`, ...data }]);
+            setActiveSection('customers-all');
+        } else if (type === 'Production') {
+            setProduction([...production, { id: `PRD-${Date.now()}`, ...data }]);
+            setActiveSection('production-pipeline');
+        } else if (type === 'Invoice') {
+            setInvoices([...invoices, { id: `INV-${Date.now()}`, ...data, status: 'Pending' }]);
+            setActiveSection('invoicing-all');
+        } else if (type === 'Transaction') {
+            setTransactions([...transactions, { id: `TRX-${Date.now()}`, ...data }]);
+            setActiveSection('accounting-transactions');
+        } else if (type === 'User') {
+            setUsers([...users, { id: `U${Date.now()}`, ...data, status: 'Active' }]);
+            setActiveSection('users-all');
+        }
+    };
+
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -76,33 +168,183 @@ export default function AdminPage() {
     );
 
     const renderContent = () => {
+        // Handle sub-menu routing by checking major prefixes
+        if (activeSection.startsWith("amazon")) {
+            if (activeSection === "amazon-listings") return <AdminTable
+                title="Amazon Listings"
+                columns={["ASIN", "Title", "Price", "Status"]}
+                data={[]} // Pending real data
+                onEdit={() => { }}
+                onDelete={() => { }}
+                addLabel="Link Listing"
+            />;
+            return <PlatformDashboard platformName="Amazon" />;
+        }
+        if (activeSection.startsWith("noon")) {
+            if (activeSection === "noon-listings") return <AdminTable
+                title="Noon Listings"
+                columns={["SKU", "Title", "Price", "Stock"]}
+                data={[]}
+                onEdit={() => { }}
+                onDelete={() => { }}
+                addLabel="Add to Noon"
+            />;
+            return <PlatformDashboard platformName="Noon" />;
+        }
+
         switch (activeSection) {
             case "dashboard":
                 return <DashboardOverview setActiveSection={setActiveSection} laptops={laptops} />;
-            case "amazon":
-                return <PlatformDashboard platformName="Amazon" />;
-            case "noon":
-                return <PlatformDashboard platformName="Noon" />;
-            case "orders":
-                return renderPlaceholder("Order Management", "fa-shopping-cart", "Track new orders, status, and shipping information");
-            case "products":
-                return renderPlaceholder("Product Management", "fa-laptop", "Manage laptops and stock status");
-            case "accessories":
-                return renderPlaceholder("Accessories", "fa-keyboard", "Manage details of accessories");
-            case "customers":
-                return renderPlaceholder("Customer Management", "fa-users", "View customer information and history");
-            case "production":
-                return renderPlaceholder("Production Management", "fa-industry", "Manage manufacturing related matters");
-            case "reports":
-                return renderPlaceholder("Reports", "fa-chart-line", "View daily, weekly, monthly and yearly reports");
-            case "invoicing":
-                return renderPlaceholder("Invoicing", "fa-file-invoice", "Generate and track invoices");
-            case "accounting":
-                return renderPlaceholder("Accounting", "fa-coins", "Examine income, expenditure, and profit");
-            case "users":
-                return renderPlaceholder("User Management", "fa-user-shield", "Manage various users and access levels");
+
+            // --- Orders ---
+            case "orders-all":
+                return <AdminTable
+                    title="All Orders"
+                    columns={["ID", "Customer", "Total", "Status", "Date"]}
+                    data={orders}
+                    onEdit={(item: any) => handleEdit(item, 'Order')}
+                    onDelete={(item: any) => handleDelete(item, 'Order')}
+                    onAdd={() => setActiveSection('orders-create')}
+                    addLabel="Create Order"
+                />;
+            case "orders-create":
+                return <AdminForm
+                    title="Create New Order"
+                    fields={[
+                        { name: "customer", label: "Customer Name", type: "text" },
+                        { name: "total", label: "Total Amount", type: "number" },
+                        { name: "status", label: "Status", type: "select", options: ["Pending", "Processing", "Shipped", "Delivered"] }
+                    ]}
+                    onSubmit={(data) => handleAddSubmit(data, 'Order')}
+                    onCancel={() => setActiveSection('orders-all')}
+                />;
+
+            // --- Products ---
+            case "products-list":
+                return <AdminTable
+                    title="Product List"
+                    columns={["ID", "Name", "Category", "Stock", "Price"]}
+                    data={products}
+                    onEdit={(item: any) => handleEdit(item, 'Product')}
+                    onDelete={(item: any) => handleDelete(item, 'Product')}
+                    onAdd={() => setActiveSection('products-add')}
+                    addLabel="Add Product"
+                />;
+            case "products-add":
+                return <AdminForm
+                    title="Add New Product"
+                    fields={[
+                        { name: "name", label: "Product Name", type: "text" },
+                        { name: "category", label: "Category", type: "select", options: ["Laptop", "Desktop", "Accessory", "Component"] },
+                        { name: "price", label: "Price ($)", type: "number" },
+                        { name: "stock", label: "Initial Stock", type: "number" },
+                        { name: "description", label: "Description", type: "textarea" }
+                    ]}
+                    onSubmit={(data) => handleAddSubmit(data, 'Product')}
+                    onCancel={() => setActiveSection('products-list')}
+                />;
+
+            // --- Accessories ---
+            case "accessories-list":
+                return <AdminTable
+                    title="Accessories List"
+                    columns={["ID", "Name", "Category", "Stock", "Price"]}
+                    data={products.filter(p => p.category === 'Accessory')}
+                    onEdit={(item: any) => handleEdit(item, 'Accessory')}
+                    onDelete={(item: any) => handleDelete(item, 'Accessory')}
+                    onAdd={() => setActiveSection('accessories-add')}
+                />;
+            case "accessories-add":
+                return <AdminForm
+                    title="Add Accessory"
+                    fields={[
+                        { name: "name", label: "Accessory Name", type: "text" },
+                        { name: "category", label: "Type", type: "text" },
+                        { name: "price", label: "Price", type: "number" }
+                    ]}
+                    onSubmit={(data) => handleAddSubmit({ ...data, category: 'Accessory' }, 'Product')}
+                    onCancel={() => setActiveSection('accessories-list')}
+                />;
+
+            // --- Customers ---
+            case "customers-all":
+                return <AdminTable
+                    title="All Customers"
+                    columns={["ID", "Name", "Email", "Group", "Orders"]}
+                    data={customers}
+                    onEdit={(item: any) => handleEdit(item, 'Customer')}
+                    onDelete={(item: any) => handleDelete(item, 'Customer')}
+                    onAdd={() => setActiveSection('customers-groups')} // Assuming groups is where we might add? keeping simple for now
+                />;
+
+            // --- Production ---
+            case "production-pipeline":
+                return <AdminTable
+                    title="Production Pipeline"
+                    columns={["ID", "Item", "Stage", "Deadline", "Priority"]}
+                    data={production}
+                    onEdit={(item: any) => handleEdit(item, 'Production')}
+                    onDelete={(item: any) => handleDelete(item, 'Production')}
+                    onAdd={() => setActiveSection('production-history')} // Placeholder transition
+                />;
+
+            // --- Invoicing ---
+            case "invoicing-all":
+                return <AdminTable
+                    title="All Invoices"
+                    columns={["ID", "Customer", "Amount", "Status", "DueDate"]}
+                    data={invoices}
+                    onEdit={(item: any) => handleEdit(item, 'Invoice')}
+                    onDelete={(item: any) => handleDelete(item, 'Invoice')}
+                    onAdd={() => setActiveSection('invoicing-new')}
+                    addLabel="Create Invoice"
+                />;
+            case "invoicing-new":
+                return <AdminForm
+                    title="Create Invoice"
+                    fields={[
+                        { name: "customer", label: "Customer", type: "text" },
+                        { name: "amount", label: "Amount ($)", type: "number" },
+                        { name: "dueDate", label: "Due Date", type: "date" }
+                    ]}
+                    onSubmit={(data) => handleAddSubmit(data, 'Invoice')}
+                    onCancel={() => setActiveSection('invoicing-all')}
+                />;
+
+            // --- Accounting ---
+            case "accounting-transactions":
+                return <AdminTable
+                    title="Transactions"
+                    columns={["ID", "Type", "Amount", "Category", "Date"]}
+                    data={transactions}
+                    onEdit={(item: any) => handleEdit(item, 'Transaction')}
+                    onDelete={(item: any) => handleDelete(item, 'Transaction')}
+                    onAdd={() => setActiveSection('accounting-overview')}
+                />;
+
+            // --- Users ---
+            case "users-all":
+                return <AdminTable
+                    title="All Users"
+                    columns={["ID", "Name", "Role", "Email", "Status"]}
+                    data={users}
+                    onEdit={(item: any) => handleEdit(item, 'User')}
+                    onDelete={(item: any) => handleDelete(item, 'User')}
+                    onAdd={() => setActiveSection('users-roles')}
+                />;
+
+            // Fallback for sub-menus not yet implemented fully but having prefix
             default:
-                return <div>Section not found</div>;
+                if (activeSection.startsWith("orders")) return renderPlaceholder("Order Management", "fa-shopping-cart", "Manage orders");
+                if (activeSection.startsWith("products")) return renderPlaceholder("Product Management", "fa-laptop", "Manage products");
+                if (activeSection.startsWith("customers")) return renderPlaceholder("Customer Management", "fa-users", "Manage customers");
+                if (activeSection.startsWith("production")) return renderPlaceholder("Production", "fa-industry", "Manage production");
+                if (activeSection.startsWith("reports")) return renderPlaceholder("Reports", "fa-chart-line", "View daily, weekly, monthly and yearly reports");
+                if (activeSection.startsWith("invoicing")) return renderPlaceholder("Invoicing", "fa-file-invoice", "Manage invoices");
+                if (activeSection.startsWith("accounting")) return renderPlaceholder("Accounting", "fa-coins", "Accounting module");
+                if (activeSection.startsWith("users")) return renderPlaceholder("User Management", "fa-user-shield", "Manage various users and access levels");
+
+                return <div>Section not found: {activeSection}</div>;
         }
     };
 
@@ -116,9 +358,13 @@ export default function AdminPage() {
                     userRole={userRole}
                     username={username}
                 />
-                <main className="admin-content">
-                    {renderContent()}
-                </main>
+
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <AdminHeader onLogout={handleLogout} />
+                    <main className="admin-content">
+                        {renderContent()}
+                    </main>
+                </div>
             </div>
             <LogoutModal
                 isOpen={isLogoutModalOpen}

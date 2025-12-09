@@ -1,133 +1,580 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 
 interface DashboardOverviewProps {
     setActiveSection: (section: string) => void;
-    // Props for future real data
-    orders?: any[];
-    customers?: any[];
     laptops?: any[];
 }
+
+// --- Mock Data Generator ---
+// Helper to create consistent random data for dates
+const seedRandom = (seed: number) => {
+    const x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+};
+
+const generateMockData = () => {
+    const data = [];
+    const today = new Date();
+    // Generate data for the last 2 years (approx) to cover enough range
+    const start = new Date(today.getFullYear() - 1, 0, 1);
+    const end = new Date(today.getFullYear() + 1, 11, 31);
+    let seed = 1;
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        // Use seeded random so data is stable across re-renders if needed, 
+        // though strictly 'Math.random' inside component would jitter. 
+        // We do this outside component or memoized.
+
+        const r = () => {
+            const val = seedRandom(seed++);
+            return val;
+        };
+
+        data.push({
+            date: new Date(d),
+            invoices: Math.floor(r() * 20),
+            customers: Math.floor(r() * 5),
+            amountDue: Math.floor(r() * 1000),
+            quotations: Math.floor(r() * 10),
+            sales: Math.floor(r() * 5000),
+            purchase: Math.floor(r() * 3000),
+            expenses: Math.floor(r() * 500),
+            credits: Math.floor(r() * 600),
+            invoicedAmt: Math.floor(r() * 2000),
+            receivedAmt: Math.floor(r() * 1500),
+            outstandingAmt: Math.floor(r() * 800),
+            overdueAmt: Math.floor(r() * 200),
+            products: 897 + Math.floor(r() * 10) - 5,
+        });
+    }
+    return data;
+};
+
+// Generate once
+const MOCK_DATA = generateMockData();
+
+// --- Date Helper Functions ---
+const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
+};
+
+const isSameDay = (d1: Date, d2: Date) => {
+    return d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate();
+};
+
+const getDaysInMonth = (year: number, month: number) => {
+    const date = new Date(year, month, 1);
+    const days = [];
+
+    // Previous month padding
+    const firstDayOfWeek = date.getDay(); // 0 = Sunday
+    for (let i = 0; i < firstDayOfWeek; i++) {
+        days.push({ day: null, fullDate: null });
+    }
+
+    // Days of current month
+    while (date.getMonth() === month) {
+        days.push({
+            day: date.getDate(),
+            fullDate: new Date(date)
+        });
+        date.setDate(date.getDate() + 1);
+    }
+
+    return days;
+};
+
 
 export default function DashboardOverview({
     setActiveSection,
     laptops = []
 }: DashboardOverviewProps) {
-    const stats = {
-        totalOrders: 0,
-        totalCustomers: 0,
-        totalRevenue: 0,
-        lowStockItems: laptops.filter(laptop => (laptop.stock || 0) < 5).length
+    // --- State ---
+    const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
+    const [selectedDateRange, setSelectedDateRange] = useState("Today");
+
+    // State for Custom Range Picker
+    const [customStartDate, setCustomStartDate] = useState<Date>(new Date());
+    const [customEndDate, setCustomEndDate] = useState<Date>(new Date());
+
+    // State for Applied Filter
+    const [appliedStartDate, setAppliedStartDate] = useState<Date>(new Date());
+    const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
+
+    // Calendar view state (points to the 1st of the left/primary month)
+    const [viewDate, setViewDate] = useState(new Date());
+
+    // Selection step text helper
+    const [selectionStep, setSelectionStep] = useState<'start' | 'end'>('start');
+
+    // --- Data Filtering ---
+    const aggregatedStats = useMemo(() => {
+        const start = new Date(appliedStartDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(appliedEndDate);
+        end.setHours(23, 59, 59, 999);
+
+        // Filter data source
+        const filtered = MOCK_DATA.filter(item => item.date >= start && item.date <= end);
+
+        // Aggregate
+        return filtered.reduce((acc, curr) => ({
+            invoices: acc.invoices + curr.invoices,
+            customers: acc.customers + curr.customers,
+            amountDue: acc.amountDue + curr.amountDue,
+            quotations: acc.quotations + curr.quotations,
+            sales: acc.sales + curr.sales,
+            purchase: acc.purchase + curr.purchase,
+            expenses: acc.expenses + curr.expenses,
+            credits: acc.credits + curr.credits,
+            invoicedAmt: acc.invoicedAmt + curr.invoicedAmt,
+            receivedAmt: acc.receivedAmt + curr.receivedAmt,
+            outstandingAmt: acc.outstandingAmt + curr.outstandingAmt,
+            overdueAmt: acc.overdueAmt + curr.overdueAmt,
+            products: curr.products, // Take latest or average? Latest is fine for stock-like stats
+        }), {
+            invoices: 0, customers: 0, amountDue: 0, quotations: 0,
+            sales: 0, purchase: 0, expenses: 0, credits: 0,
+            invoicedAmt: 0, receivedAmt: 0, outstandingAmt: 0, overdueAmt: 0,
+            products: 0
+        });
+
+    }, [appliedStartDate, appliedEndDate]);
+
+    // --- Handlers ---
+
+    const handlePresetClick = (option: string) => {
+        setSelectedDateRange(option);
+        const today = new Date();
+        const start = new Date();
+        const end = new Date();
+
+        if (option === "Today") {
+            // default
+        } else if (option === "Yesterday") {
+            start.setDate(today.getDate() - 1);
+            end.setDate(today.getDate() - 1);
+        } else if (option === "Last 7 Days") {
+            start.setDate(today.getDate() - 6);
+        } else if (option === "Last 30 Days") {
+            start.setDate(today.getDate() - 29);
+        } else if (option === "This Month") {
+            start.setDate(1);
+        } else if (option === "Last Month") {
+            start.setMonth(today.getMonth() - 1);
+            start.setDate(1);
+            end.setDate(0); // Last day of last month
+        } else if (option === "Custom Range") {
+            // Don't apply immediately
+            setCustomStartDate(appliedStartDate); // Init with current
+            setCustomEndDate(appliedEndDate);
+            return;
+        }
+
+        if (option !== "Custom Range") {
+            setAppliedStartDate(start);
+            setAppliedEndDate(end);
+            // Also sync custom state so calendar shows it if opened later
+            setCustomStartDate(start);
+            setCustomEndDate(end);
+            setIsDateDropdownOpen(false);
+        }
     };
+
+    const handleMonthNav = (direction: 'prev' | 'next') => {
+        const newDate = new Date(viewDate);
+        if (direction === 'prev') {
+            newDate.setMonth(newDate.getMonth() - 1);
+        } else {
+            newDate.setMonth(newDate.getMonth() + 1);
+        }
+        setViewDate(newDate);
+    };
+
+    const onCalendarDateClick = (date: Date) => {
+        if (selectionStep === 'start') {
+            setCustomStartDate(date);
+            setCustomEndDate(date); // Reset selection
+            setSelectionStep('end');
+        } else {
+            // Step is end
+            if (date < customStartDate) {
+                // User clicked a date BEFORE start, so swap or reset
+                setCustomStartDate(date);
+                setCustomEndDate(customStartDate); // old start becomes end
+            } else {
+                setCustomEndDate(date);
+            }
+            setSelectionStep('start'); // Reset cycle
+        }
+    };
+
+    // Helper to format currency
+    const formatCurrency = (val: number) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+    };
+
+    const formatNumber = (val: number) => {
+        return new Intl.NumberFormat('en-US').format(val);
+    };
+
+    // --- Render Helpers ---
+    const renderCalendar = (monthOffset: number) => {
+        const targetDate = new Date(viewDate);
+        targetDate.setMonth(targetDate.getMonth() + monthOffset);
+
+        const year = targetDate.getFullYear();
+        const month = targetDate.getMonth();
+        const monthName = targetDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+        const days = getDaysInMonth(year, month);
+
+        return (
+            <div className="calendar-container">
+                <div className="calendar-header">
+                    {monthOffset === 0 && (
+                        <button className="nav-btn" onClick={(e) => { e.stopPropagation(); handleMonthNav('prev'); }}>
+                            <i className="fas fa-chevron-left"></i>
+                        </button>
+                    )}
+                    {monthOffset === 1 && <span />} {/* Spacer */}
+
+                    <span className="month-label">{monthName}</span>
+
+                    {monthOffset === 0 && <span />} {/* Spacer */}
+                    {monthOffset === 1 && (
+                        <button className="nav-btn" onClick={(e) => { e.stopPropagation(); handleMonthNav('next'); }}>
+                            <i className="fas fa-chevron-right"></i>
+                        </button>
+                    )}
+                </div>
+                <div className="calendar-grid">
+                    <div className="day-name">Su</div><div className="day-name">Mo</div><div className="day-name">Tu</div><div className="day-name">We</div><div className="day-name">Th</div><div className="day-name">Fr</div><div className="day-name">Sa</div>
+
+                    {days.map((d, idx) => {
+                        if (!d.day || !d.fullDate) {
+                            return <div key={idx} className="calendar-day empty"></div>;
+                        }
+
+                        const isStart = isSameDay(d.fullDate, customStartDate);
+                        const isEnd = isSameDay(d.fullDate, customEndDate);
+                        const isRange = d.fullDate > customStartDate && d.fullDate < customEndDate;
+
+                        let className = "calendar-day";
+                        if (isStart) className += " selected-start";
+                        if (isEnd) className += " selected-end";
+                        if (isRange) className += " in-range";
+
+                        return (
+                            <div
+                                key={idx}
+                                className={className}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onCalendarDateClick(d.fullDate!);
+                                }}
+                            >
+                                {d.day}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+
+    const dateOptions = [
+        "Today",
+        "Yesterday",
+        "Last 7 Days",
+        "Last 30 Days",
+        "This Month",
+        "Last Month",
+        "Custom Range"
+    ];
 
     return (
         <section className="admin-section active">
-            <div className="section-header">
-                <h2>
-                    <i className="fas fa-tachometer-alt"></i> Dashboard Overview
-                </h2>
-                <p>Real-time overview of your business performance</p>
-            </div>
+            <div className="dashboard-header-row">
+                <h1>Dashboard</h1>
+                <div className="date-filter-container">
+                    <button
+                        className="date-filter-btn"
+                        onClick={() => setIsDateDropdownOpen(!isDateDropdownOpen)}
+                    >
+                        <i className="far fa-calendar"></i>
+                        <span>{formatDate(appliedStartDate)} - {formatDate(appliedEndDate)}</span>
+                    </button>
 
-            <div className="dashboard-stats-grid">
-                <div className="dashboard-stat-card card-blue">
-                    <div className="stat-card-header">
-                        <div className="stat-icon-wrapper"><i className="fas fa-shopping-cart"></i></div>
-                        <div className="stat-badge">Orders</div>
-                    </div>
-                    <div className="stat-card-body">
-                        <h3 className="stat-number">{stats.totalOrders}</h3>
-                        <p className="stat-label">Total Orders This Month</p>
-                    </div>
-                    <div className="stat-card-footer">
-                        <button className="stat-action-btn" onClick={() => setActiveSection('orders')}>
-                            View Orders <i className="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
+                    {isDateDropdownOpen && (
+                        <div className={`date-dropdown-menu ${selectedDateRange === 'Custom Range' ? 'expanded' : ''}`}>
+                            <div className="date-picker-content">
+                                <div className="date-presets">
+                                    {dateOptions.map((option) => (
+                                        <div
+                                            key={option}
+                                            className={`date-dropdown-item ${selectedDateRange === option ? 'active' : ''}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlePresetClick(option);
+                                            }}
+                                        >
+                                            {option}
+                                        </div>
+                                    ))}
+                                </div>
 
-                <div className="dashboard-stat-card card-green">
-                    <div className="stat-card-header">
-                        <div className="stat-icon-wrapper"><i className="fas fa-wallet"></i></div>
-                        <div className="stat-badge">Revenue</div>
-                    </div>
-                    <div className="stat-card-body">
-                        <h3 className="stat-number">AED {stats.totalRevenue}</h3>
-                        <p className="stat-label">Total Revenue This Month</p>
-                    </div>
-                    <div className="stat-card-footer">
-                        <button className="stat-action-btn" onClick={() => setActiveSection('reports')}>
-                            View Reports <i className="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
+                                {selectedDateRange === 'Custom Range' && (
+                                    <div className="calendar-section" onClick={(e) => e.stopPropagation()}>
+                                        <div className="calendars-row">
+                                            {renderCalendar(0)}
+                                            {renderCalendar(1)}
+                                        </div>
 
-                <div className="dashboard-stat-card card-orange">
-                    <div className="stat-card-header">
-                        <div className="stat-icon-wrapper"><i className="fas fa-users"></i></div>
-                        <div className="stat-badge">Customers</div>
-                    </div>
-                    <div className="stat-card-body">
-                        <h3 className="stat-number">{stats.totalCustomers}</h3>
-                        <p className="stat-label">Active Customers</p>
-                    </div>
-                    <div className="stat-card-footer">
-                        <button className="stat-action-btn" onClick={() => setActiveSection('customers')}>
-                            View Customers <i className="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="dashboard-stat-card card-red">
-                    <div className="stat-card-header">
-                        <div className="stat-icon-wrapper"><i className="fas fa-exclamation-triangle"></i></div>
-                        <div className="stat-badge">Alerts</div>
-                    </div>
-                    <div className="stat-card-body">
-                        <h3 className="stat-number">{stats.lowStockItems}</h3>
-                        <p className="stat-label">Low Stock Items</p>
-                    </div>
-                    <div className="stat-card-footer">
-                        <button className="stat-action-btn" onClick={() => setActiveSection('products')}>
-                            Manage Inventory <i className="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
+                                        <div className="calendar-footer">
+                                            <span className="selected-range-text">
+                                                {formatDate(customStartDate)} - {formatDate(customEndDate)}
+                                            </span>
+                                            <div className="calendar-actions">
+                                                <button className="btn-cancel" onClick={() => setIsDateDropdownOpen(false)}>Cancel</button>
+                                                <button
+                                                    className="btn-apply"
+                                                    onClick={() => {
+                                                        setAppliedStartDate(customStartDate);
+                                                        setAppliedEndDate(customEndDate);
+                                                        setIsDateDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    Apply
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="dashboard-quick-actions">
-                <div className="section-title">
-                    <h3><i className="fas fa-bolt"></i> Quick Actions</h3>
-                    <p>Fast access to common tasks</p>
+            {/* Top Row Widgets */}
+            <div className="dashboard-widgets-grid">
+                {/* Overview Widget */}
+                <div className="dashboard-widget">
+                    <div className="widget-header">
+                        <i className="fas fa-th-large"></i>
+                        <h3>Overview</h3>
+                    </div>
+                    <div className="widget-content grid-2x2">
+                        <div className="widget-item">
+                            <div className="widget-icon purple"><i className="fas fa-file-invoice"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Invoices</span>
+                                <span className="value">{formatNumber(aggregatedStats.invoices)}</span>
+                            </div>
+                        </div>
+                        <div className="widget-item">
+                            <div className="widget-icon green"><i className="fas fa-users"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Customers</span>
+                                <span className="value">{formatNumber(aggregatedStats.customers)}</span>
+                            </div>
+                        </div>
+                        <div className="widget-item">
+                            <div className="widget-icon yellow"><i className="fas fa-cube"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Amount Due</span>
+                                <span className="value">{formatCurrency(aggregatedStats.amountDue)}</span>
+                            </div>
+                        </div>
+                        <div className="widget-item">
+                            <div className="widget-icon blue"><i className="fas fa-file-alt"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Quotations</span>
+                                <span className="value">{formatNumber(aggregatedStats.quotations)}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="quick-actions-grid">
-                    <button className="quick-action-card action-primary" onClick={() => setActiveSection('orders')}>
-                        <div className="action-icon"><i className="fas fa-plus-circle"></i></div>
-                        <div className="action-content">
-                            <h4>Create Order</h4>
-                            <p>Process a new sale</p>
+
+                {/* Sales Analytics Widget */}
+                <div className="dashboard-widget">
+                    <div className="widget-header">
+                        <i className="fas fa-chart-bar"></i>
+                        <h3>Sales Analytics</h3>
+                    </div>
+                    <div className="widget-content grid-2x2">
+                        <div className="widget-item">
+                            <div className="widget-icon purple"><i className="fas fa-arrow-right"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Total Sales</span>
+                                <span className="value">{formatCurrency(aggregatedStats.sales)}</span>
+                            </div>
                         </div>
-                    </button>
-                    <button className="quick-action-card action-success" onClick={() => setActiveSection('products')}>
-                        <div className="action-icon"><i className="fas fa-box"></i></div>
-                        <div className="action-content">
-                            <h4>Add Product</h4>
-                            <p>Add new inventory item</p>
+                        <div className="widget-item">
+                            <div className="widget-icon green"><i className="fas fa-code-branch"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Purchase</span>
+                                <span className="value">{formatCurrency(aggregatedStats.purchase)}</span>
+                            </div>
                         </div>
-                    </button>
-                    <button className="quick-action-card action-purple" onClick={() => setActiveSection('invoicing')}>
-                        <div className="action-icon"><i className="fas fa-file-invoice"></i></div>
-                        <div className="action-content">
-                            <h4>New Invoice</h4>
-                            <p>Generate customer invoice</p>
+                        <div className="widget-item">
+                            <div className="widget-icon yellow"><i className="fas fa-coins"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Expenses</span>
+                                <span className="value">{formatCurrency(aggregatedStats.expenses)}</span>
+                            </div>
                         </div>
-                    </button>
-                    <button className="quick-action-card action-info" onClick={() => setActiveSection('reports')}>
-                        <div className="action-icon"><i className="fas fa-download"></i></div>
-                        <div className="action-content">
-                            <h4>Export Report</h4>
-                            <p>Download monthly data</p>
+                        <div className="widget-item">
+                            <div className="widget-icon blue"><i className="fas fa-flag"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Credits</span>
+                                <span className="value">{formatCurrency(aggregatedStats.credits)}</span>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Invoice Statistics Widget */}
+                <div className="dashboard-widget">
+                    <div className="widget-header">
+                        <i className="fas fa-file-invoice-dollar"></i>
+                        <h3>Invoice Statistics</h3>
+                    </div>
+                    <div className="widget-content grid-2x2">
+                        <div className="widget-item">
+                            <div className="widget-icon purple"><i className="fas fa-check-circle"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Invoiced</span>
+                                <span className="value">{formatCurrency(aggregatedStats.invoicedAmt)}</span>
+                            </div>
+                        </div>
+                        <div className="widget-item">
+                            <div className="widget-icon green"><i className="fas fa-file-invoice"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Received</span>
+                                <span className="value">{formatCurrency(aggregatedStats.receivedAmt)}</span>
+                            </div>
+                        </div>
+                        <div className="widget-item">
+                            <div className="widget-icon yellow"><i className="fas fa-clock"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Outstanding</span>
+                                <span className="value">{formatCurrency(aggregatedStats.outstandingAmt)}</span>
+                            </div>
+                        </div>
+                        <div className="widget-item">
+                            <div className="widget-icon red"><i className="fas fa-thumbs-down"></i></div>
+                            <div className="widget-data">
+                                <span className="label">Overdue</span>
+                                <span className="value">{formatCurrency(aggregatedStats.overdueAmt)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Row Summary Cards */}
+            <div className="dashboard-summary-cards">
+                <div className="summary-card">
+                    <div className="card-top">
+                        <span className="card-title">Total Products</span>
+                        <div className="card-icon-wrapper"><i className="fas fa-box"></i></div>
+                    </div>
+                    <div className="card-main">
+                        <span className="card-value">{formatNumber(aggregatedStats.products)}</span>
+                        <span className="card-trend positive">+45 <i className="fas fa-caret-up"></i></span>
+                    </div>
+                    <div className="card-link" onClick={() => setActiveSection('products')}>
+                        View Inventory
+                    </div>
+                    <div className="corner-accent purple"></div>
+                </div>
+
+                <div className="summary-card">
+                    <div className="card-top">
+                        <span className="card-title">Total Sales</span>
+                        <div className="card-icon-wrapper"><i className="fas fa-chart-line"></i></div>
+                    </div>
+                    <div className="card-main">
+                        <span className="card-value">{formatNumber(Math.floor(aggregatedStats.sales / 100))}</span>
+                        <span className="card-trend positive">+45 <i className="fas fa-caret-up"></i></span>
+                    </div>
+                    <div className="card-link" onClick={() => setActiveSection('orders')}>
+                        View Invoices
+                    </div>
+                    <div className="corner-accent blue"></div>
+                </div>
+
+                <div className="summary-card">
+                    <div className="card-top">
+                        <span className="card-title">Total Quotations</span>
+                        <div className="card-icon-wrapper"><i className="fas fa-file-alt"></i></div>
+                    </div>
+                    <div className="card-main">
+                        <span className="card-value">{formatNumber(aggregatedStats.quotations)}</span>
+                        <span className="card-trend positive">+45 <i className="fas fa-caret-up"></i></span>
+                    </div>
+                    <div className="card-link" onClick={() => setActiveSection('orders')}>
+                        View All
+                    </div>
+                    <div className="corner-accent orange"></div>
+                </div>
+            </div>
+            {/* Recent Invoices Section */}
+            <div className="dashboard-invoices-section">
+                <div className="section-header-row">
+                    <h3>Invoices</h3>
+                    <button className="view-all-btn" onClick={() => setActiveSection('invoicing')}>
+                        View all Invoices
                     </button>
+                </div>
+
+                <div className="table-container">
+                    <table className="invoices-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Created On</th>
+                                <th>Amount</th>
+                                <th>Paid</th>
+                                <th>Payment Mode</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {[
+                                { id: "INV00025", name: "Emily Clark", date: "22 Feb 2025", amount: "$10,000", paid: "$5,000", mode: "Cash", due: "04 Mar 2025" },
+                                { id: "INV00024", name: "John Carter", date: "07 Feb 2025", amount: "$25,750", paid: "$5,000", mode: "Check", due: "20 Feb 2025" },
+                                { id: "INV00023", name: "Sophia White", date: "09 Dec 2024", amount: "$1,20,500", paid: "$60,000", mode: "Check", due: "12 Nov 2024" },
+                                { id: "INV00022", name: "Michael Johnson", date: "30 Nov 2024", amount: "$7,50,300", paid: "$60,000", mode: "Check", due: "25 Oct 2024" },
+                                { id: "INV00016", name: "Daniel Martinez", date: "12 Oct 2024", amount: "$9,99,999", paid: "$4,00,000", mode: "Cash", due: "18 Oct 2024" },
+                            ].map((invoice) => (
+                                <tr key={invoice.id}>
+                                    <td className="text-gray">{invoice.id}</td>
+                                    <td>
+                                        <div className="customer-cell">
+                                            <img
+                                                src={`https://ui-avatars.com/api/?name=${invoice.name}&background=random&color=fff&size=32`}
+                                                alt={invoice.name}
+                                                className="customer-avatar"
+                                            />
+                                            <span className="customer-name">{invoice.name}</span>
+                                        </div>
+                                    </td>
+                                    <td className="text-gray">{invoice.date}</td>
+                                    <td className="font-medium">{invoice.amount}</td>
+                                    <td className="text-gray">{invoice.paid}</td>
+                                    <td className="text-gray">{invoice.mode}</td>
+                                    <td className="text-gray">{invoice.due}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
