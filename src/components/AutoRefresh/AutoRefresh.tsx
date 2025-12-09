@@ -1,18 +1,18 @@
-// "use client";
+"use client";
 
-// import { useEffect } from "react";
+import { useEffect } from "react";
 
-// export default function AutoRefresh() {
-//     useEffect(() => {
-//         // Refresh the page every 15 seconds
-//         const interval = setInterval(() => {
-//             console.log("Auto-refreshing page...");
-//             window.location.reload();
-//         }, 30000);
+export default function AutoRefresh() {
+    useEffect(() => {
+        // Refresh the page every 30 seconds
+        const interval = setInterval(() => {
+            console.log("Auto-refreshing page...");
+            window.location.reload();
+        }, 3000000);
 
-//         // Cleanup interval on component unmount
-//         return () => clearInterval(interval);
-//     }, []);
+        // Cleanup interval on component unmount
+        return () => clearInterval(interval);
+    }, []);
 
-//     return null; // This component renders nothing
-// }
+    return null; // This component renders nothing
+}
