@@ -8,7 +8,7 @@ export default function AutoRefresh() {
         const interval = setInterval(() => {
             console.log("Auto-refreshing page...");
             window.location.reload();
-        }, 3000000);
+        }, 30000);
 
         // Cleanup interval on component unmount
         return () => clearInterval(interval);
