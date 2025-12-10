@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         }
 
         const users = await sql`
-            SELECT id, username, email, phone, role, status, approval_status, created_by, created_at 
+            SELECT id, username, email, phone, role, status, approval_status, avatar, created_by, created_at 
             FROM users 
             ORDER BY created_at DESC
         `;
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { username, password, email, phone, role, status } = body;
+        const { username, password, email, phone, role, status, avatar } = body;
 
         if (!username || !password || !role) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
                 role, 
                 status, 
                 approval_status, 
-                created_by
+                created_by,
+                avatar
             )
             VALUES (
                 ${username}, 
@@ -73,14 +74,24 @@ export async function POST(request: NextRequest) {
                 ${role}, 
                 ${status || 'active'}, 
                 'approved', 
-                'admin'
+                'admin',
+                ${avatar || null}
             )
         `;
 
         return NextResponse.json({ message: 'User created successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating user:', error);
-        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            hint: error.hint
+        });
+        return NextResponse.json({
+            error: 'Failed to create user',
+            details: error.message
+        }, { status: 500 });
     }
 }
 
@@ -91,7 +102,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, password, email, phone, role, status } = body;
+        const { id, password, email, phone, role, status, avatar } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -105,7 +116,8 @@ export async function PUT(request: NextRequest) {
                     email = ${email || null}, 
                     phone = ${phone || null}, 
                     role = ${role}, 
-                    status = ${status}, 
+                    status = ${status},
+                    avatar = ${avatar || null}, 
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ${id}
             `;
@@ -115,7 +127,8 @@ export async function PUT(request: NextRequest) {
                 SET email = ${email || null}, 
                     phone = ${phone || null}, 
                     role = ${role}, 
-                    status = ${status}, 
+                    status = ${status},
+                    avatar = ${avatar || null}, 
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ${id}
             `;

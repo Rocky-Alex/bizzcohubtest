@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminHeader from "./components/AdminHeader";
@@ -9,6 +9,7 @@ import LogoutModal from "./components/LogoutModal";
 import PlatformDashboard from "./components/PlatformDashboard";
 import AdminTable from "./components/AdminTable";
 import AdminForm from "./components/AdminForm";
+import UserManagement from "./components/UserManagement";
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
@@ -57,10 +58,7 @@ export default function AdminPage() {
         { id: "TRX-9989", type: "Expense", amount: "$450", category: "Utilities", date: "2024-12-06" },
     ];
 
-    const initialUsers = [
-        { id: "U001", name: "Admin User", role: "Administrator", email: "admin@bizzcohub.com", status: "Active" },
-        { id: "U002", name: "Sales Rep 1", role: "Sales", email: "sales1@bizzcohub.com", status: "Active" },
-    ];
+    const initialUsers: any[] = [];
 
     const [products, setProducts] = useState(initialProducts);
     const [orders, setOrders] = useState(initialOrders);
@@ -71,19 +69,94 @@ export default function AdminPage() {
     const [users, setUsers] = useState(initialUsers);
 
     // --- generic Handlers ---
-    const handleEdit = (item: any, type: string) => {
-        alert(`Edit ${type}: ${item.id || item.name} (Implementation Pending)`);
+    const handleEdit = async (item: any, type: string) => {
+        if (type === 'User') {
+            try {
+                let avatarUrl = item.avatar || null;
+
+                // If there's a new image file, try to upload it to ImageKit
+                if (item.image && item.image instanceof File) {
+                    try {
+                        const formData = new FormData();
+                        formData.append('file', item.image);
+                        formData.append('folder', 'User Profile');
+                        formData.append('fileName', item.name.replace(/\s+/g, '_'));
+
+                        const uploadResponse = await fetch('/api/imagekit/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (uploadResponse.ok) {
+                            const uploadData = await uploadResponse.json();
+                            avatarUrl = uploadData.url;
+                            console.log('Image uploaded successfully:', avatarUrl);
+                        } else {
+                            console.error('Failed to upload image, continuing with existing avatar');
+                            // Continue with existing avatar
+                        }
+                    } catch (uploadError) {
+                        console.error('Image upload error:', uploadError);
+                        // Continue with existing avatar
+                    }
+                }
+
+                const response = await fetch('/api/admin/users', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: item.id,
+                        email: item.email,
+                        phone: item.phone,
+                        role: item.role,
+                        status: item.status.toLowerCase(),
+                        avatar: avatarUrl,
+                        ...(item.password && { password: item.password })
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('User updated successfully');
+                    // Refresh users list
+                    fetchUsers();
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to update user: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alert('Failed to update user');
+            }
+        } else {
+            alert(`Edit ${type}: ${item.id || item.name} (Implementation Pending)`);
+        }
     };
 
-    const handleDelete = (item: any, type: string) => {
+    const handleDelete = async (item: any, type: string) => {
         if (confirm(`Are you sure you want to delete ${type}: ${item.id || item.name}?`)) {
-            if (type === 'Product') setProducts(prev => prev.filter(p => p.id !== item.id));
+            if (type === 'User') {
+                try {
+                    const response = await fetch(`/api/admin/users?id=${item.id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        // Refresh users list
+                        fetchUsers();
+                    } else {
+                        const error = await response.json();
+                        alert(`Failed to delete user: ${error.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    alert('Failed to delete user');
+                }
+            } else if (type === 'Product') setProducts(prev => prev.filter(p => p.id !== item.id));
             else if (type === 'Order') setOrders(prev => prev.filter(o => o.id !== item.id));
             else if (type === 'Customer') setCustomers(prev => prev.filter(c => c.id !== item.id));
             else if (type === 'Production') setProduction(prev => prev.filter(p => p.id !== item.id));
             else if (type === 'Invoice') setInvoices(prev => prev.filter(i => i.id !== item.id));
             else if (type === 'Transaction') setTransactions(prev => prev.filter(t => t.id !== item.id));
-            else if (type === 'User') setUsers(prev => prev.filter(u => u.id !== item.id));
         }
     };
 
@@ -108,26 +181,80 @@ export default function AdminPage() {
             setTransactions([...transactions, { id: `TRX-${Date.now()}`, ...data }]);
             setActiveSection('accounting-transactions');
         } else if (type === 'User') {
-            setUsers([...users, { id: `U${Date.now()}`, ...data, status: 'Active' }]);
+            setUsers([...users, { id: `U${Date.now()}`, phone: data.phone || '', ...data, status: 'Active' }]);
             setActiveSection('users-all');
         }
     };
+
+    // Fetch users from database - defined before useEffect
+    const fetchUsers = useCallback(async () => {
+        try {
+            console.log('Fetching users from API...');
+            const response = await fetch('/api/admin/users');
+            console.log('Response status:', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Fetched users data:', data);
+
+                // Transform database users to match the UI format
+                const transformedUsers = data.users.map((user: any) => ({
+                    id: user.id.toString(),
+                    name: user.username,
+                    phone: user.phone || '',
+                    email: user.email || '',
+                    role: user.role,
+                    status: user.status === 'active' ? 'Active' : 'Inactive',
+                    avatar: user.avatar || undefined
+                }));
+
+                console.log('Transformed users:', transformedUsers);
+                setUsers(transformedUsers);
+            } else {
+                console.error('Failed to fetch users, status:', response.status);
+                try {
+                    const errorData = await response.json();
+                    console.error('Error data:', errorData);
+                } catch (e) {
+                    console.error('Could not parse error response');
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    }, []);
 
 
     useEffect(() => {
         const checkAuth = async () => {
             try {
+                console.log('Checking authentication...');
                 const response = await fetch('/api/auth/session');
+                console.log('Auth response status:', response.status);
+
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Auth data:', data);
+                    console.log('User role:', data.role);
+
                     if (data.authenticated) {
                         setIsAuthenticated(true);
                         setUserRole(data.role || 'accountant');
                         setUsername(data.user?.name || 'Admin');
+
+                        // Fetch users from database if user is admin
+                        if (data.role === 'admin') {
+                            console.log('User is admin, fetching users...');
+                            fetchUsers();
+                        } else {
+                            console.log('User is not admin, role is:', data.role);
+                        }
                     } else {
+                        console.log('Not authenticated, redirecting to login');
                         router.push('/admin/login');
                     }
                 } else {
+                    console.log('Auth check failed, redirecting to login');
                     router.push('/admin/login');
                 }
             } catch (error) {
@@ -136,7 +263,7 @@ export default function AdminPage() {
             }
         };
         checkAuth();
-    }, [router]);
+    }, [router, fetchUsers]);
 
     const handleLogout = () => {
         setIsLogoutModalOpen(true);
@@ -324,13 +451,74 @@ export default function AdminPage() {
 
             // --- Users ---
             case "users-all":
-                return <AdminTable
-                    title="All Users"
-                    columns={["ID", "Name", "Role", "Email", "Status"]}
-                    data={users}
+                return <UserManagement
+                    users={users}
                     onEdit={(item: any) => handleEdit(item, 'User')}
                     onDelete={(item: any) => handleDelete(item, 'User')}
-                    onAdd={() => setActiveSection('users-roles')}
+                    onAdd={async (userData: any) => {
+                        try {
+                            console.log('Received userData:', userData);
+                            console.log('Avatar from userData:', userData.avatar);
+
+                            let avatarUrl = userData.avatar || null;
+
+                            // If there's a new image file, try to upload it to ImageKit
+                            if (userData.image && userData.image instanceof File) {
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('file', userData.image);
+                                    formData.append('folder', 'User Profile');
+                                    formData.append('fileName', userData.name.replace(/\s+/g, '_'));
+
+                                    const uploadResponse = await fetch('/api/imagekit/upload', {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+
+                                    if (uploadResponse.ok) {
+                                        const uploadData = await uploadResponse.json();
+                                        avatarUrl = uploadData.url;
+                                        console.log('Image uploaded successfully:', avatarUrl);
+                                    } else {
+                                        console.error('Failed to upload image, continuing without uploaded image');
+                                        // Continue without the uploaded image, use avatar URL if available
+                                    }
+                                } catch (uploadError) {
+                                    console.error('Image upload error:', uploadError);
+                                    // Continue without the uploaded image
+                                }
+                            }
+
+                            console.log('Creating user with avatar:', avatarUrl);
+
+                            const response = await fetch('/api/admin/users', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    username: userData.name,
+                                    password: userData.password || 'defaultPassword123',
+                                    email: userData.email,
+                                    phone: userData.phone,
+                                    role: userData.role.toLowerCase(),
+                                    status: userData.status.toLowerCase(),
+                                    avatar: avatarUrl
+                                })
+                            });
+
+                            if (response.ok) {
+                                console.log('User created successfully');
+                                // Refresh users list
+                                fetchUsers();
+                            } else {
+                                const error = await response.json();
+                                console.error('API Error:', error);
+                                alert(`Failed to add user: ${error.error}\n${error.details || ''}`);
+                            }
+                        } catch (error) {
+                            console.error('Error adding user:', error);
+                            alert('Failed to add user');
+                        }
+                    }}
                 />;
 
             // Fallback for sub-menus not yet implemented fully but having prefix

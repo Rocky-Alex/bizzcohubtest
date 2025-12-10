@@ -6,6 +6,39 @@ export const dynamic = 'force-dynamic';
 // POST /api/imagekit/upload - Upload image to ImageKit
 export async function POST(request: NextRequest) {
     try {
+        const contentType = request.headers.get('content-type') || '';
+
+        // Handle FormData uploads (for user avatars, file uploads)
+        if (contentType.includes('multipart/form-data')) {
+            const formData = await request.formData();
+            const file = formData.get('file') as File;
+            const folder = formData.get('folder') as string || 'uploads';
+            const fileName = formData.get('fileName') as string || file?.name;
+
+            if (!file) {
+                return NextResponse.json(
+                    { error: 'No file provided' },
+                    { status: 400 }
+                );
+            }
+
+            // Convert file to base64
+            const bytes = await file.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+            const base64 = buffer.toString('base64');
+            const base64String = `data:${file.type};base64,${base64}`;
+
+            console.log(`Uploading to ImageKit: ${fileName} to folder: ${folder}`);
+
+            // Upload using the existing helper function
+            const result = await uploadToImageKit(base64String, fileName, folder);
+
+            console.log('ImageKit upload successful:', result.url);
+
+            return NextResponse.json(result, { status: 200 });
+        }
+
+        // Handle JSON uploads (for products with base64 strings)
         const { file, fileName, folder, productType, brand, productName } = await request.json();
 
         if (!file || !fileName) {
@@ -38,8 +71,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(result, { status: 200 });
     } catch (error: any) {
         console.error('ImageKit upload error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
         return NextResponse.json(
-            { error: 'Failed to upload image', details: error.message },
+            {
+                error: 'Failed to upload image',
+                details: error.message,
+                hint: 'Check ImageKit credentials in .env file'
+            },
             { status: 500 }
         );
     }
