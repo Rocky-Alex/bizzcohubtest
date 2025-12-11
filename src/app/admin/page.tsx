@@ -243,7 +243,7 @@ export default function AdminPage() {
                         setUsername(data.user?.name || 'Admin');
 
                         // Fetch users from database if user is admin
-                        if (data.role === 'admin') {
+                        if (data.role?.toLowerCase() === 'admin') {
                             console.log('User is admin, fetching users...');
                             fetchUsers();
                         } else {

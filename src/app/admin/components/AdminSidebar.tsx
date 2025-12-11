@@ -196,7 +196,7 @@ export default function AdminSidebar({
         }
     };
 
-    const displayedItems = userRole === 'accountant'
+    const displayedItems = userRole?.toLowerCase() === 'accountant'
         ? menuItems.filter(item => ['dashboard', 'apps', 'orders', 'amazon', 'noon', 'invoicing', 'accounting'].includes(item.id))
         : menuItems;
 

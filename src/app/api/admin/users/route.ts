@@ -7,7 +7,7 @@ import { createHash } from 'crypto';
 // Helper to check if current user is admin
 function isAdmin() {
     const role = cookies().get('user_role')?.value;
-    return role === 'admin';
+    return role?.toLowerCase() === 'admin';
 }
 
 export async function GET(request: NextRequest) {
