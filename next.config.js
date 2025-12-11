@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
     // Disable Vercel Analytics in development to reduce console noise
     experimental: {
@@ -18,18 +19,23 @@ const nextConfig = {
 
     // Reduce preload warnings by optimizing webpack
     webpack: (config, { dev, isServer }) => {
-        if (dev && !isServer) {
-            // Reduce aggressive preloading in development
-            config.optimization = {
-                ...config.optimization,
-                splitChunks: {
-                    chunks: 'async',
-                    cacheGroups: {
-                        default: false,
-                    },
-                },
-            };
+
+
+        // Server-side specific overrides
+        if (isServer) {
+            config.externals.push('whatsapp-web.js');
+            config.externals.push('puppeteer');
         }
+        // Reduce aggressive preloading in development
+        config.optimization = {
+            ...config.optimization,
+            splitChunks: {
+                chunks: 'async',
+                cacheGroups: {
+                    default: false,
+                },
+            },
+        };
         return config;
     },
 };

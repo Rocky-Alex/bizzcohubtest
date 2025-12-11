@@ -12,9 +12,15 @@ function isAdmin() {
 
 export async function GET(request: NextRequest) {
     try {
+        console.log('[Users API] GET request received');
+        console.log('[Users API] Checking admin authorization...');
+
         if (!isAdmin()) {
+            console.log('[Users API] Authorization failed - not admin');
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
+
+        console.log('[Users API] Authorization passed, fetching users from database...');
 
         const users = await sql`
             SELECT id, username, email, phone, role, status, approval_status, avatar, created_by, created_at 
@@ -22,10 +28,24 @@ export async function GET(request: NextRequest) {
             ORDER BY created_at DESC
         `;
 
+        console.log('[Users API] Query executed successfully');
+        console.log('[Users API] Number of users fetched:', users.length);
+        console.log('[Users API] Sample user data:', users[0] || 'No users found');
+
         return NextResponse.json({ users });
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+    } catch (error: any) {
+        console.error('[Users API] Error fetching users:', error);
+        console.error('[Users API] Error details:', {
+            message: error.message,
+            code: error.code,
+            name: error.name,
+            stack: error.stack
+        });
+        return NextResponse.json({
+            error: 'Failed to fetch users',
+            details: error.message,
+            code: error.code
+        }, { status: 500 });
     }
 }
 

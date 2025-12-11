@@ -1,0 +1,10 @@
+{
+    "functions": {
+        "api/**/*.ts": {
+            "maxDuration": 10
+        }
+    },
+    "env": {
+        "POSTGRES_URL": "@postgres_url"
+    }
+}

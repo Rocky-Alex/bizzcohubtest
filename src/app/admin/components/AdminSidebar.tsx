@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import NoonIcon from "./icons/NoonIcon";
+import AutoRefreshSettings from "./AutoRefreshSettings";
 
 interface AdminSidebarProps {
     activeSection: string;
@@ -20,6 +21,7 @@ export default function AdminSidebar({
 }: AdminSidebarProps) {
     const menuItems = [
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
+
         {
             id: "orders",
             icon: "fa-shopping-cart",
@@ -122,10 +124,61 @@ export default function AdminSidebar({
                 { id: "users-roles", label: "Roles" }
             ]
         },
+        {
+            id: "auto-refresh",
+            icon: "fa-sync-alt",
+            label: "Auto Refresh"
+        },
     ];
 
-    const [isHovered, setIsHovered] = useState(false);
+
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isHovering, setIsHovering] = useState(false);
     const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+    const [showAutoRefreshSettings, setShowAutoRefreshSettings] = useState(false);
+
+    // Load collapsed state from localStorage on mount
+    React.useEffect(() => {
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState !== null) {
+            setIsCollapsed(savedState === 'true');
+        }
+    }, []);
+
+    // Save collapsed state to localStorage when it changes
+    const toggleSidebar = () => {
+        const newState = !isCollapsed;
+        setIsCollapsed(newState);
+        localStorage.setItem('sidebarCollapsed', newState.toString());
+        // Collapse all menus when sidebar is collapsed
+        if (newState) {
+            setExpandedMenus([]);
+        }
+    };
+
+    // Determine if sidebar should appear expanded
+    const isExpanded = !isCollapsed || (isCollapsed && isHovering);
+
+    const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    const handleMouseEnter = () => {
+        if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+            hoverTimeoutRef.current = null;
+        }
+        if (isCollapsed) {
+            setIsHovering(true);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (isCollapsed) {
+            hoverTimeoutRef.current = setTimeout(() => {
+                setIsHovering(false);
+                setExpandedMenus([]); // Collapse all sub-menus on hover leave
+            }, 300);
+        }
+    };
 
     const toggleMenu = (id: string) => {
         setExpandedMenus(prev =>
@@ -134,7 +187,9 @@ export default function AdminSidebar({
     };
 
     const handleItemClick = (item: any) => {
-        if (item.subItems) {
+        if (item.id === 'auto-refresh') {
+            setShowAutoRefreshSettings(true);
+        } else if (item.subItems) {
             toggleMenu(item.id);
         } else {
             setActiveSection(item.id);
@@ -142,24 +197,21 @@ export default function AdminSidebar({
     };
 
     const displayedItems = userRole === 'accountant'
-        ? menuItems.filter(item => ['dashboard', 'orders', 'amazon', 'noon', 'invoicing', 'accounting'].includes(item.id))
+        ? menuItems.filter(item => ['dashboard', 'apps', 'orders', 'amazon', 'noon', 'invoicing', 'accounting'].includes(item.id))
         : menuItems;
 
     return (
         <aside
-            className={`modern-sidebar ${!isHovered ? "collapsed" : ""}`}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => {
-                setIsHovered(false);
-                setExpandedMenus([]); // Option: collapse all on mouse leave
-            }}
+            className={`modern-sidebar ${!isExpanded ? "collapsed" : ""}`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             <div className="sidebar-header">
                 <div className="brand-wrapper">
                     <div className="brand-logo">
                         <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
-                    {isHovered && <span className="brand-text">Bizzcohub</span>}
+                    {isExpanded && <span className="brand-text">Bizzcohub</span>}
                 </div>
             </div>
 
@@ -203,6 +255,24 @@ export default function AdminSidebar({
                     );
                 })}
             </nav>
+
+            {/* Sidebar Footer with Toggle Button */}
+            <div className="sidebar-footer">
+                <button
+                    className="sidebar-toggle-btn"
+                    onClick={toggleSidebar}
+                    title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                >
+                    <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+                    {isExpanded && <span className="toggle-text">{isCollapsed ? 'Expand' : 'Collapse'}</span>}
+                </button>
+            </div>
+
+            {/* Auto Refresh Settings Modal */}
+            <AutoRefreshSettings
+                isOpen={showAutoRefreshSettings}
+                onClose={() => setShowAutoRefreshSettings(false)}
+            />
         </aside>
     );
 }
