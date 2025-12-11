@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 10; // Set max duration to 10 seconds for Vercel
 import { sql } from '@/lib/db';
 import { cookies } from 'next/headers';
 import { createHash } from 'crypto';
