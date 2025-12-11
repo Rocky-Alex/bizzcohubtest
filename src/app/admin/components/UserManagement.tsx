@@ -20,9 +20,10 @@ interface UserManagementProps {
     onEdit: (user: User) => void;
     onDelete: (user: User) => void;
     onAdd: (userData: any) => void;
+    availableRoles: string[];
 }
 
-export default function UserManagement({ users, onEdit, onDelete, onAdd }: UserManagementProps) {
+export default function UserManagement({ users, onEdit, onDelete, onAdd, availableRoles }: UserManagementProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
@@ -258,6 +259,7 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd }: UserM
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleAddUser}
+                roles={availableRoles}
             />
 
             {/* Edit User Modal */}
@@ -266,6 +268,7 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd }: UserM
                 onClose={() => setIsEditModalOpen(false)}
                 onSubmit={handleEditUser}
                 user={selectedUser}
+                roles={availableRoles}
             />
         </div>
     );

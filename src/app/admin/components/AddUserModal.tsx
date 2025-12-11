@@ -3,13 +3,25 @@
 import React, { useState } from "react";
 import "./AddUserModal.css";
 
+interface User {
+    id: string;
+    name: string;
+    role: string;
+    email: string;
+    phone: string;
+    status: string;
+    image: string | null;
+    avatar: string | null;
+}
+
 interface AddUserModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (userData: any) => void;
+    roles: string[];
 }
 
-export default function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModalProps) {
+export default function AddUserModal({ isOpen, onClose, onSubmit, roles }: AddUserModalProps) {
     const [formData, setFormData] = useState({
         name: "",
         role: "",
@@ -61,18 +73,8 @@ export default function AddUserModal({ isOpen, onClose, onSubmit }: AddUserModal
         ]
     };
 
-    const roles = [
-        "Admin",
-        "Manager",
-        "Salesman",
-        "Supervisor",
-        "Store Keeper",
-        "Purchaser",
-        "Delivery Biker",
-        "Maintenance",
-        "Quality Analyst",
-        "Accountant"
-    ];
+    // Roles now passed as prop
+    // const roles = ["Admin", "Salesman", "Accountant"]; (removed)
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

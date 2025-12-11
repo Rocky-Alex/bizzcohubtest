@@ -25,7 +25,7 @@ export default function AdminSidebar({
         {
             id: "orders",
             icon: "fa-shopping-cart",
-            label: "Order Mgmt",
+            label: "Orders Manage",
             subItems: [
                 { id: "orders-all", label: "All Orders" },
                 { id: "orders-create", label: "Create Order" },
@@ -73,7 +73,7 @@ export default function AdminSidebar({
         {
             id: "customers",
             icon: "fa-users",
-            label: "Customer Mgmt",
+            label: "Customer Manage",
             subItems: [
                 { id: "customers-all", label: "All Customers" },
                 { id: "customers-groups", label: "Groups" }
@@ -100,8 +100,9 @@ export default function AdminSidebar({
         {
             id: "invoicing",
             icon: "fa-file-invoice",
-            label: "Invoicing",
+            label: "Billing",
             subItems: [
+                { id: "invoicing-dashboard", label: "Dashboard" },
                 { id: "invoicing-all", label: "All Invoices" },
                 { id: "invoicing-new", label: "New Invoice" }
             ]
@@ -118,10 +119,10 @@ export default function AdminSidebar({
         {
             id: "users",
             icon: "fa-user-shield",
-            label: "User Mgmt",
+            label: "User Manage",
             subItems: [
                 { id: "users-all", label: "All Users" },
-                { id: "users-roles", label: "Roles" }
+                { id: "users-roles", label: "Roles and Permissions" }
             ]
         },
         {

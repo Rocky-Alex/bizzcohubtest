@@ -18,9 +18,10 @@ interface EditUserModalProps {
     onClose: () => void;
     onSubmit: (userData: any) => void;
     user: User | null;
+    roles: string[];
 }
 
-export default function EditUserModal({ isOpen, onClose, onSubmit, user }: EditUserModalProps) {
+export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }: EditUserModalProps) {
     const [formData, setFormData] = useState({
         name: "",
         role: "",
@@ -72,18 +73,8 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user }: EditU
         ]
     };
 
-    const roles = [
-        "Admin",
-        "Manager",
-        "Salesman",
-        "Supervisor",
-        "Store Keeper",
-        "Purchaser",
-        "Delivery Biker",
-        "Maintenance",
-        "Quality Analyst",
-        "Accountant"
-    ];
+    // Roles now passed as prop
+    // const roles = ["Admin", "Salesman", "Accountant"]; (removed)
 
     // Populate form when user changes
     useEffect(() => {

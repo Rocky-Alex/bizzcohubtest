@@ -196,48 +196,54 @@ export default function AutoRefreshSettings({ isOpen, onClose }: AutoRefreshSett
                     {/* Time Settings */}
                     <div className="time-settings">
                         <h3>Refresh Interval</h3>
-                        <div className="time-inputs">
-                            <div className="time-input-group">
-                                <label>Hours</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="23"
-                                    value={hours}
-                                    onChange={(e) => handleNumberInput(e.target.value, setHours, 23)}
-                                    disabled={!isEnabled}
-                                />
-                                <span className="unit">h</span>
+                        <div className="time-inputs-container">
+                            <div className="time-input-wrapper">
+                                <label className="input-label">HOURS</label>
+                                <div className="input-box">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="23"
+                                        value={hours}
+                                        onChange={(e) => handleNumberInput(e.target.value, setHours, 23)}
+                                        disabled={!isEnabled}
+                                    />
+                                </div>
+                                <span className="unit-label">h</span>
                             </div>
 
                             <div className="time-separator">:</div>
 
-                            <div className="time-input-group">
-                                <label>Minutes</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="59"
-                                    value={minutes}
-                                    onChange={(e) => handleNumberInput(e.target.value, setMinutes, 59)}
-                                    disabled={!isEnabled}
-                                />
-                                <span className="unit">m</span>
+                            <div className="time-input-wrapper">
+                                <label className="input-label">MINUTES</label>
+                                <div className="input-box">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={minutes}
+                                        onChange={(e) => handleNumberInput(e.target.value, setMinutes, 59)}
+                                        disabled={!isEnabled}
+                                    />
+                                </div>
+                                <span className="unit-label">m</span>
                             </div>
 
                             <div className="time-separator">:</div>
 
-                            <div className="time-input-group">
-                                <label>Seconds</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="59"
-                                    value={seconds}
-                                    onChange={(e) => handleNumberInput(e.target.value, setSeconds, 59)}
-                                    disabled={!isEnabled}
-                                />
-                                <span className="unit">s</span>
+                            <div className="time-input-wrapper">
+                                <label className="input-label">SECONDS</label>
+                                <div className="input-box">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={seconds}
+                                        onChange={(e) => handleNumberInput(e.target.value, setSeconds, 59)}
+                                        disabled={!isEnabled}
+                                    />
+                                </div>
+                                <span className="unit-label">s</span>
                             </div>
                         </div>
                     </div>

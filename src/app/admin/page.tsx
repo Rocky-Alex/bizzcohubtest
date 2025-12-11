@@ -10,6 +10,10 @@ import PlatformDashboard from "./components/PlatformDashboard";
 import AdminTable from "./components/AdminTable";
 import AdminForm from "./components/AdminForm";
 import UserManagement from "./components/UserManagement";
+import RolesAndPermissions from "./components/RolesAndPermissions";
+import InvoicingDashboard from "./components/InvoicingDashboard";
+import CustomerList from "./components/CustomerList";
+import ComingSoon from "./components/ComingSoon";
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
@@ -60,6 +64,9 @@ export default function AdminPage() {
 
     const initialUsers: any[] = [];
 
+    // Roles state initialized empty, will fetch from API
+    const [roles, setRoles] = useState<any[]>([]);
+
     const [products, setProducts] = useState(initialProducts);
     const [orders, setOrders] = useState(initialOrders);
     const [customers, setCustomers] = useState(initialCustomers);
@@ -69,6 +76,42 @@ export default function AdminPage() {
     const [users, setUsers] = useState(initialUsers);
 
     // --- generic Handlers ---
+    const fetchRoles = useCallback(async () => {
+        try {
+            const response = await fetch('/api/admin/roles');
+            if (response.ok) {
+                const data = await response.json();
+                // Transform if needed to match Role interface { id, name, createOn }
+                const formattedRoles = data.roles.map((r: any) => ({
+                    id: r.id.toString(),
+                    name: r.name,
+                    createOn: new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                }));
+                setRoles(formattedRoles);
+            }
+        } catch (error) {
+            console.error('Error fetching roles:', error);
+        }
+    }, []);
+
+    const handleAddRole = async (roleName: string) => {
+        try {
+            const response = await fetch('/api/admin/roles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: roleName })
+            });
+
+            if (response.ok) {
+                fetchRoles(); // Refresh list
+            } else {
+                alert('Failed to create role');
+            }
+        } catch (error) {
+            console.error('Error creating role:', error);
+            alert('Error creating role');
+        }
+    };
     const handleEdit = async (item: any, type: string) => {
         if (type === 'User') {
             try {
@@ -242,10 +285,10 @@ export default function AdminPage() {
                         setUserRole(data.role || 'accountant');
                         setUsername(data.user?.name || 'Admin');
 
-                        // Fetch users from database if user is admin
                         if (data.role?.toLowerCase() === 'admin') {
-                            console.log('User is admin, fetching users...');
+                            console.log('User is admin, fetching users and roles...');
                             fetchUsers();
+                            fetchRoles();
                         } else {
                             console.log('User is not admin, role is:', data.role);
                         }
@@ -263,7 +306,7 @@ export default function AdminPage() {
             }
         };
         checkAuth();
-    }, [router, fetchUsers]);
+    }, [router, fetchUsers, fetchRoles]);
 
     const handleLogout = () => {
         setIsLogoutModalOpen(true);
@@ -295,127 +338,46 @@ export default function AdminPage() {
     );
 
     const renderContent = () => {
-        // Handle sub-menu routing by checking major prefixes
+        // --- Under Construction Sections ---
         if (activeSection.startsWith("amazon")) {
-            if (activeSection === "amazon-listings") return <AdminTable
-                title="Amazon Listings"
-                columns={["ASIN", "Title", "Price", "Status"]}
-                data={[]} // Pending real data
-                onEdit={() => { }}
-                onDelete={() => { }}
-                addLabel="Link Listing"
-            />;
-            return <PlatformDashboard platformName="Amazon" />;
+            return <ComingSoon title="Amazon Integration" description="Amazon seller integration functionalities are coming soon." />;
         }
         if (activeSection.startsWith("noon")) {
-            if (activeSection === "noon-listings") return <AdminTable
-                title="Noon Listings"
-                columns={["SKU", "Title", "Price", "Stock"]}
-                data={[]}
-                onEdit={() => { }}
-                onDelete={() => { }}
-                addLabel="Add to Noon"
-            />;
-            return <PlatformDashboard platformName="Noon" />;
+            return <ComingSoon title="Noon Integration" description="Noon seller integration functionalities are coming soon." />;
+        }
+        if (activeSection.startsWith("orders")) {
+            return <ComingSoon title="Order Management" description="Advanced order processing and tracking features will be available here." />;
+        }
+        if (activeSection.startsWith("products")) {
+            return <ComingSoon title="Product Management" description="Centralized product catalog and inventory management is under development." />;
+        }
+        if (activeSection.startsWith("accessories")) {
+            return <ComingSoon title="Accessories" description="Management for accessories inventory and sales is coming soon." />;
+        }
+        if (activeSection.startsWith("production")) {
+            return <ComingSoon title="Production" description="Manufacturing pipeline and assembly tracking will be implemented here." />;
+        }
+        if (activeSection.startsWith("reports")) {
+            return <ComingSoon title="Reports & Analytics" description="Comprehensive data analytics and reporting features are coming soon." />;
+        }
+        if (activeSection.startsWith("accounting")) {
+            return <ComingSoon title="Accounting" description="Financial transactions and ledger management features are in progress." />;
         }
 
+        // --- Active Sections ---
         switch (activeSection) {
             case "dashboard":
                 return <DashboardOverview setActiveSection={setActiveSection} laptops={laptops} />;
 
-            // --- Orders ---
-            case "orders-all":
-                return <AdminTable
-                    title="All Orders"
-                    columns={["ID", "Customer", "Total", "Status", "Date"]}
-                    data={orders}
-                    onEdit={(item: any) => handleEdit(item, 'Order')}
-                    onDelete={(item: any) => handleDelete(item, 'Order')}
-                    onAdd={() => setActiveSection('orders-create')}
-                    addLabel="Create Order"
-                />;
-            case "orders-create":
-                return <AdminForm
-                    title="Create New Order"
-                    fields={[
-                        { name: "customer", label: "Customer Name", type: "text" },
-                        { name: "total", label: "Total Amount", type: "number" },
-                        { name: "status", label: "Status", type: "select", options: ["Pending", "Processing", "Shipped", "Delivered"] }
-                    ]}
-                    onSubmit={(data) => handleAddSubmit(data, 'Order')}
-                    onCancel={() => setActiveSection('orders-all')}
-                />;
-
-            // --- Products ---
-            case "products-list":
-                return <AdminTable
-                    title="Product List"
-                    columns={["ID", "Name", "Category", "Stock", "Price"]}
-                    data={products}
-                    onEdit={(item: any) => handleEdit(item, 'Product')}
-                    onDelete={(item: any) => handleDelete(item, 'Product')}
-                    onAdd={() => setActiveSection('products-add')}
-                    addLabel="Add Product"
-                />;
-            case "products-add":
-                return <AdminForm
-                    title="Add New Product"
-                    fields={[
-                        { name: "name", label: "Product Name", type: "text" },
-                        { name: "category", label: "Category", type: "select", options: ["Laptop", "Desktop", "Accessory", "Component"] },
-                        { name: "price", label: "Price ($)", type: "number" },
-                        { name: "stock", label: "Initial Stock", type: "number" },
-                        { name: "description", label: "Description", type: "textarea" }
-                    ]}
-                    onSubmit={(data) => handleAddSubmit(data, 'Product')}
-                    onCancel={() => setActiveSection('products-list')}
-                />;
-
-            // --- Accessories ---
-            case "accessories-list":
-                return <AdminTable
-                    title="Accessories List"
-                    columns={["ID", "Name", "Category", "Stock", "Price"]}
-                    data={products.filter(p => p.category === 'Accessory')}
-                    onEdit={(item: any) => handleEdit(item, 'Accessory')}
-                    onDelete={(item: any) => handleDelete(item, 'Accessory')}
-                    onAdd={() => setActiveSection('accessories-add')}
-                />;
-            case "accessories-add":
-                return <AdminForm
-                    title="Add Accessory"
-                    fields={[
-                        { name: "name", label: "Accessory Name", type: "text" },
-                        { name: "category", label: "Type", type: "text" },
-                        { name: "price", label: "Price", type: "number" }
-                    ]}
-                    onSubmit={(data) => handleAddSubmit({ ...data, category: 'Accessory' }, 'Product')}
-                    onCancel={() => setActiveSection('accessories-list')}
-                />;
-
             // --- Customers ---
             case "customers-all":
-                return <AdminTable
-                    title="All Customers"
-                    columns={["ID", "Name", "Email", "Group", "Orders"]}
-                    data={customers}
-                    onEdit={(item: any) => handleEdit(item, 'Customer')}
-                    onDelete={(item: any) => handleDelete(item, 'Customer')}
-                    onAdd={() => setActiveSection('customers-groups')} // Assuming groups is where we might add? keeping simple for now
+                return <CustomerList
+                    onAdd={() => setActiveSection('customers-groups')}
                 />;
 
-            // --- Production ---
-            case "production-pipeline":
-                return <AdminTable
-                    title="Production Pipeline"
-                    columns={["ID", "Item", "Stage", "Deadline", "Priority"]}
-                    data={production}
-                    onEdit={(item: any) => handleEdit(item, 'Production')}
-                    onDelete={(item: any) => handleDelete(item, 'Production')}
-                    onAdd={() => setActiveSection('production-history')} // Placeholder transition
-                />;
-
-            // --- Invoicing ---
+            // --- Invoicing (Billing) ---
+            case "invoicing-dashboard":
+                return <InvoicingDashboard />;
             case "invoicing-all":
                 return <AdminTable
                     title="All Invoices"
@@ -436,17 +398,6 @@ export default function AdminPage() {
                     ]}
                     onSubmit={(data) => handleAddSubmit(data, 'Invoice')}
                     onCancel={() => setActiveSection('invoicing-all')}
-                />;
-
-            // --- Accounting ---
-            case "accounting-transactions":
-                return <AdminTable
-                    title="Transactions"
-                    columns={["ID", "Type", "Amount", "Category", "Date"]}
-                    data={transactions}
-                    onEdit={(item: any) => handleEdit(item, 'Transaction')}
-                    onDelete={(item: any) => handleDelete(item, 'Transaction')}
-                    onAdd={() => setActiveSection('accounting-overview')}
                 />;
 
             // --- Users ---
@@ -519,20 +470,18 @@ export default function AdminPage() {
                             alert('Failed to add user');
                         }
                     }}
+                    availableRoles={roles.map(r => r.name)}
                 />;
 
-            // Fallback for sub-menus not yet implemented fully but having prefix
-            default:
-                if (activeSection.startsWith("orders")) return renderPlaceholder("Order Management", "fa-shopping-cart", "Manage orders");
-                if (activeSection.startsWith("products")) return renderPlaceholder("Product Management", "fa-laptop", "Manage products");
-                if (activeSection.startsWith("customers")) return renderPlaceholder("Customer Management", "fa-users", "Manage customers");
-                if (activeSection.startsWith("production")) return renderPlaceholder("Production", "fa-industry", "Manage production");
-                if (activeSection.startsWith("reports")) return renderPlaceholder("Reports", "fa-chart-line", "View daily, weekly, monthly and yearly reports");
-                if (activeSection.startsWith("invoicing")) return renderPlaceholder("Invoicing", "fa-file-invoice", "Manage invoices");
-                if (activeSection.startsWith("accounting")) return renderPlaceholder("Accounting", "fa-coins", "Accounting module");
-                if (activeSection.startsWith("users")) return renderPlaceholder("User Management", "fa-user-shield", "Manage various users and access levels");
+            case "users-roles":
+                return <RolesAndPermissions
+                    roles={roles}
+                    onAddRole={handleAddRole}
+                />;
 
-                return <div>Section not found: {activeSection}</div>;
+            default:
+                // Fallback for any other specific cases
+                return <ComingSoon title={activeSection.replace('-', ' ').toUpperCase()} />;
         }
     };
 
