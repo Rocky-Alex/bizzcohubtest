@@ -13,6 +13,7 @@ import UserManagement from "./components/UserManagement";
 import RolesAndPermissions from "./components/RolesAndPermissions";
 import InvoicingDashboard from "./components/InvoicingDashboard";
 import CustomerList from "./components/CustomerList";
+import AddCustomerForm from "./components/AddCustomerForm";
 import ComingSoon from "./components/ComingSoon";
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
@@ -31,37 +32,12 @@ export default function AdminPage() {
     const [laptops, setLaptops] = useState<any[]>([]);
 
     // --- Mock Data for Tables ---
-    const initialProducts = [
-        { id: "P001", name: "MacBook Pro M3", category: "Laptop", stock: 12, price: "$1299" },
-        { id: "P002", name: "Dell XPS 15", category: "Laptop", stock: 8, price: "$1199" },
-        { id: "P003", name: "Logitech MX Master 3", category: "Accessory", stock: 45, price: "$99" },
-    ];
-
-    const initialOrders = [
-        { id: "ORD-7829", customer: "John Doe", total: "$1299", status: "Processing", date: "2024-11-20" },
-        { id: "ORD-7830", customer: "Jane Smith", total: "$99", status: "Shipped", date: "2024-11-21" },
-    ];
-
-    const initialCustomers = [
-        { id: "C001", name: "John Doe", email: "john@example.com", group: "Retail", orders: 5 },
-        { id: "C002", name: "Jane Smith", email: "jane@example.com", group: "Wholesale", orders: 12 },
-    ];
-
-    const initialProduction = [
-        { id: "PRD-001", item: "Custom PC Build", stage: "Assembly", deadline: "2024-12-15", priority: "High" },
-        { id: "PRD-002", item: "Laptop Refurbishment", stage: "Testing", deadline: "2024-12-10", priority: "Medium" },
-    ];
-
-    const initialInvoices = [
-        { id: "INV-2024-001", customer: "John Doe", amount: "$1299", status: "Paid", dueDate: "2024-12-01" },
-        { id: "INV-2024-002", customer: "Tech Corp", amount: "$5000", status: "Pending", dueDate: "2024-12-15" },
-    ];
-
-    const initialTransactions = [
-        { id: "TRX-9988", type: "Income", amount: "$1299", category: "Sales", date: "2024-12-05" },
-        { id: "TRX-9989", type: "Expense", amount: "$450", category: "Utilities", date: "2024-12-06" },
-    ];
-
+    const initialProducts: any[] = [];
+    const initialOrders: any[] = [];
+    const initialCustomers: any[] = [];
+    const initialProduction: any[] = [];
+    const initialInvoices: any[] = [];
+    const initialTransactions: any[] = [];
     const initialUsers: any[] = [];
 
     // Roles state initialized empty, will fetch from API
@@ -372,7 +348,32 @@ export default function AdminPage() {
             // --- Customers ---
             case "customers-all":
                 return <CustomerList
-                    onAdd={() => setActiveSection('customers-groups')}
+                    onAdd={() => setActiveSection('customers-add')}
+                />;
+            case "customers-add":
+                return <AddCustomerForm
+                    onCancel={() => setActiveSection('customers-all')}
+                    onSubmit={async (data) => {
+                        try {
+                            console.log('Submitting Customer Data:', data);
+                            const response = await fetch('/api/admin/customers', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+
+                            if (response.ok) {
+                                alert('Customer created successfully!');
+                                setActiveSection('customers-all');
+                            } else {
+                                const err = await response.json();
+                                alert('Failed to create customer: ' + (err.error || 'Unknown error'));
+                            }
+                        } catch (error) {
+                            console.error('Error creating customer:', error);
+                            alert('An error occurred while creating the customer.');
+                        }
+                    }}
                 />;
 
             // --- Invoicing (Billing) ---

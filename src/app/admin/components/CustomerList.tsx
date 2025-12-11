@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './CustomerList.css';
+import CustomerLedgerModal from './CustomerLedgerModal';
 
 interface Customer {
     id: number;
@@ -14,23 +15,33 @@ interface Customer {
     status: 'Active' | 'Inactive';
 }
 
-const MOCK_CUSTOMERS: Customer[] = [
-    { id: 1, name: "Emily Clark", avatar: "https://i.pravatar.cc/150?u=1", phone: "+1 202-555-0198", country: "USA", countryCode: "🇺🇸", balance: "$10,000", totalInvoice: 12, createdOn: "22 Feb 2025", status: "Active" },
-    { id: 2, name: "John Carter", avatar: "https://i.pravatar.cc/150?u=2", phone: "+1 305-456-7821", country: "Canada", countryCode: "🇨🇦", balance: "$25,750", totalInvoice: 6, createdOn: "07 Feb 2025", status: "Inactive" },
-    { id: 3, name: "Sophia White", avatar: "https://i.pravatar.cc/150?u=3", phone: "+44 415-678-1234", country: "UK", countryCode: "🇬🇧", balance: "$50,125", totalInvoice: 3, createdOn: "30 Jan 2025", status: "Active" },
-    { id: 4, name: "Michael Johnson", avatar: "https://i.pravatar.cc/150?u=4", phone: "+49 718-987-6543", country: "Germany", countryCode: "🇩🇪", balance: "$75,900", totalInvoice: 10, createdOn: "17 Jan 2025", status: "Inactive" },
-    { id: 5, name: "Olivia Harris", avatar: "https://i.pravatar.cc/150?u=5", phone: "+33 909-234-5678", country: "France", countryCode: "🇫🇷", balance: "$99,999", totalInvoice: 9, createdOn: "04 Jan 2025", status: "Active" },
-    { id: 6, name: "David Anderson", avatar: "https://i.pravatar.cc/150?u=6", phone: "+54 602-789-3456", country: "Argentina", countryCode: "🇦🇷", balance: "$1,20,500", totalInvoice: 12, createdOn: "09 Dec 2024", status: "Inactive" },
-    { id: 7, name: "Emma Lewis", avatar: "https://i.pravatar.cc/150?u=7", phone: "+91 812-456-9087", country: "India", countryCode: "🇮🇳", balance: "$2,50,000", totalInvoice: 8, createdOn: "02 Dec 2024", status: "Active" },
-    { id: 8, name: "Robert Thomas", avatar: "https://i.pravatar.cc/150?u=8", phone: "+39 214-123-4567", country: "Italy", countryCode: "🇮🇹", balance: "$5,00,750", totalInvoice: 15, createdOn: "15 Nov 2024", status: "Inactive" },
-    { id: 9, name: "Isabella Scott", avatar: "https://i.pravatar.cc/150?u=9", phone: "+64 646-789-1230", country: "New Zealand", countryCode: "🇳🇿", balance: "$7,50,300", totalInvoice: 21, createdOn: "30 Nov 2024", status: "Active" },
-    { id: 10, name: "Daniel Martinez", avatar: "https://i.pravatar.cc/150?u=10", phone: "+61 901-678-4321", country: "Australia", countryCode: "🇦🇺", balance: "$9,99,999", totalInvoice: 14, createdOn: "12 Oct 2024", status: "Inactive" },
-];
+const MOCK_CUSTOMERS: Customer[] = [];
 
 export default function CustomerList({ onAdd }: { onAdd?: () => void }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [selectedCustomerForLedger, setSelectedCustomerForLedger] = useState<Customer | null>(null);
+    const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setActiveDropdown(null);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    const toggleDropdown = (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setActiveDropdown(activeDropdown === id ? null : id);
+    };
 
     // Basic filtering logic
     const filteredCustomers = MOCK_CUSTOMERS.filter(c =>
@@ -135,15 +146,39 @@ export default function CustomerList({ onAdd }: { onAdd?: () => void }) {
                                 <td>
                                     <div className="action-buttons">
                                         <button className="btn-action-outline">
-                                            <i className="fas fa-file-invoice"></i> Invoice
+                                            <i className="fas fa-plus-circle"></i> Invoice
                                         </button>
-                                        <button className="btn-action-outline">
+                                        <button
+                                            className="btn-action-outline"
+                                            onClick={() => setSelectedCustomerForLedger(customer)}
+                                        >
                                             <i className="fas fa-book"></i> Ledger
                                         </button>
                                     </div>
                                 </td>
                                 <td>
-                                    <i className="fas fa-ellipsis-h menu-dots"></i>
+                                    <div className="menu-cell">
+                                        <i
+                                            className={`fas fa-ellipsis-h menu-dots ${activeDropdown === customer.id ? 'active' : ''}`}
+                                            onClick={(e) => toggleDropdown(customer.id, e)}
+                                        ></i>
+                                        {activeDropdown === customer.id && (
+                                            <div className="action-menu-dropdown" ref={dropdownRef}>
+                                                <div className="menu-item" onClick={() => setActiveDropdown(null)}>
+                                                    <i className="far fa-eye"></i> View
+                                                </div>
+                                                <div className="menu-item" onClick={() => setActiveDropdown(null)}>
+                                                    <i className="far fa-edit"></i> Edit
+                                                </div>
+                                                <div className="menu-item" onClick={() => setActiveDropdown(null)}>
+                                                    <i className="fas fa-archive"></i> Archive
+                                                </div>
+                                                <div className="menu-item" onClick={() => setActiveDropdown(null)} style={{ color: '#ef4444' }}>
+                                                    <i className="far fa-trash-alt"></i> Delete
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -180,6 +215,17 @@ export default function CustomerList({ onAdd }: { onAdd?: () => void }) {
                     </button>
                 </div>
             </div>
+            {/* Ledger Modal */}
+            <CustomerLedgerModal
+                isOpen={!!selectedCustomerForLedger}
+                onClose={() => setSelectedCustomerForLedger(null)}
+                customer={selectedCustomerForLedger ? {
+                    name: selectedCustomerForLedger.name,
+                    email: "johnson@example.com", // Mock email for now since it wasn't in list view
+                    avatar: selectedCustomerForLedger.avatar,
+                    balance: selectedCustomerForLedger.balance
+                } : null}
+            />
         </div>
     );
 }

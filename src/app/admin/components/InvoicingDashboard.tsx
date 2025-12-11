@@ -14,13 +14,13 @@ export default function InvoicingDashboard() {
                         <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
                             <i className="fas fa-wallet"></i>
                         </div>
-                        <div className="stat-trend positive">
-                            <i className="fas fa-trend-up"></i> 12.5%
+                        <div className="stat-trend neutral">
+                            <i className="fas fa-minus"></i> 0%
                         </div>
                     </div>
                     <div className="stat-content">
                         <h3>Total Received</h3>
-                        <p className="stat-value">$124,500.00</p>
+                        <p className="stat-value">$0.00</p>
                     </div>
                 </div>
 
@@ -31,12 +31,12 @@ export default function InvoicingDashboard() {
                             <i className="fas fa-hourglass-start"></i>
                         </div>
                         <div className="stat-trend neutral">
-                            <i className="fas fa-minus"></i> 0.8%
+                            <i className="fas fa-minus"></i> 0%
                         </div>
                     </div>
                     <div className="stat-content">
                         <h3>Pending Amount</h3>
-                        <p className="stat-value">$32,050.00</p>
+                        <p className="stat-value">$0.00</p>
                     </div>
                 </div>
 
@@ -46,13 +46,13 @@ export default function InvoicingDashboard() {
                         <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
                             <i className="fas fa-exclamation-triangle"></i>
                         </div>
-                        <div className="stat-trend negative">
-                            <i className="fas fa-arrow-up"></i> 4.2%
+                        <div className="stat-trend neutral">
+                            <i className="fas fa-minus"></i> 0%
                         </div>
                     </div>
                     <div className="stat-content">
                         <h3>Overdue Details</h3>
-                        <p className="stat-value">$4,200.00</p>
+                        <p className="stat-value">$0.00</p>
                     </div>
                 </div>
 
@@ -62,13 +62,13 @@ export default function InvoicingDashboard() {
                         <div className="stat-icon" style={{ backgroundColor: '#f5f3ff', color: '#8b5cf6' }}>
                             <i className="fas fa-file-invoice"></i>
                         </div>
-                        <div className="stat-trend positive">
-                            <i className="fas fa-plus"></i> 24
+                        <div className="stat-trend neutral">
+                            <i className="fas fa-minus"></i> 0
                         </div>
                     </div>
                     <div className="stat-content">
                         <h3>Total Invoices</h3>
-                        <p className="stat-value">1,482</p>
+                        <p className="stat-value">0</p>
                     </div>
                 </div>
             </div>
@@ -94,42 +94,7 @@ export default function InvoicingDashboard() {
                         <h3>Recent Transactions</h3>
                     </div>
                     <ul className="activity-list">
-                        <li className="activity-item">
-                            <div className="activity-icon invoice">
-                                <i className="fas fa-file-invoice-dollar"></i>
-                            </div>
-                            <div className="activity-content">
-                                <p className="activity-title">Invoice <strong>#INV-2029</strong> Created</p>
-                                <span className="activity-time">Just now</span>
-                            </div>
-                        </li>
-                        <li className="activity-item">
-                            <div className="activity-icon payment">
-                                <i className="fas fa-check"></i>
-                            </div>
-                            <div className="activity-content">
-                                <p className="activity-title">Payment from <strong>Acme Corp</strong></p>
-                                <span className="activity-time">2 hours ago</span>
-                            </div>
-                        </li>
-                        <li className="activity-item">
-                            <div className="activity-icon alert">
-                                <i className="fas fa-bell"></i>
-                            </div>
-                            <div className="activity-content">
-                                <p className="activity-title">Overdue Alert: <strong>John Doe</strong></p>
-                                <span className="activity-time">5 hours ago</span>
-                            </div>
-                        </li>
-                        <li className="activity-item">
-                            <div className="activity-icon payment">
-                                <i className="fas fa-check"></i>
-                            </div>
-                            <div className="activity-content">
-                                <p className="activity-title">Payment from <strong>Global Tech</strong></p>
-                                <span className="activity-time">1 day ago</span>
-                            </div>
-                        </li>
+                        {/* No recent activity */}
                     </ul>
                 </div>
             </div>
