@@ -1,37 +1,11 @@
 import React, { useState } from 'react';
 import './AddCustomerForm.css';
+import { Country, State, City } from 'country-state-city';
 
 interface AddCustomerFormProps {
     onCancel: () => void;
     onSubmit: (data: any) => void;
 }
-
-const COUNTRIES = [
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
-    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
-    "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia (Czech Republic)",
-    "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
-    "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini (fmr. 'Swaziland')", "Ethiopia",
-    "Fiji", "Finland", "France",
-    "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
-    "Haiti", "Holy See", "Honduras", "Hungary",
-    "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
-    "Jamaica", "Japan", "Jordan",
-    "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
-    "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
-    "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (formerly Burma)",
-    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
-    "Oman",
-    "Pakistan", "Palau", "Palestine State", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
-    "Qatar",
-    "Romania", "Russia", "Rwanda",
-    "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
-    "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
-    "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States of America", "Uruguay", "Uzbekistan",
-    "Vanuatu", "Venezuela", "Vietnam",
-    "Yemen",
-    "Zambia", "Zimbabwe"
-];
 
 export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormProps) {
     const [formData, setFormData] = useState({
@@ -56,10 +30,47 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
         shippingCity: ''
     });
 
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => {
+            const newData = { ...prev, [name]: value };
+
+            // Reset dependent fields
+            if (name === 'billingCountry') {
+                newData.billingState = '';
+                newData.billingCity = '';
+            } else if (name === 'billingState') {
+                newData.billingCity = '';
+            } else if (name === 'shippingCountry') {
+                newData.shippingState = '';
+                newData.shippingCity = '';
+            } else if (name === 'shippingState') {
+                newData.shippingCity = '';
+            }
+
+            return newData;
+        });
     };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    // Derived state for dropdowns
+    const billingCountries = Country.getAllCountries();
+    const billingStates = formData.billingCountry ? State.getStatesOfCountry(formData.billingCountry) : [];
+    const billingCities = formData.billingState ? City.getCitiesOfState(formData.billingCountry, formData.billingState) : [];
+
+    const shippingCountries = Country.getAllCountries();
+    const shippingStates = formData.shippingCountry ? State.getStatesOfCountry(formData.shippingCountry) : [];
+    const shippingCities = formData.shippingState ? City.getCitiesOfState(formData.shippingCountry, formData.shippingState) : [];
 
     return (
         <div className="add-customer-container">
@@ -74,12 +85,22 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
                 <div className="image-upload-area">
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <div className="image-preview-box">
-                            <i className="far fa-image"></i>
+                            {imagePreview ? (
+                                <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <i className="far fa-image"></i>
+                            )}
                         </div>
                         <div className="upload-btn-wrapper">
-                            <button className="btn-upload">
+                            <label className="btn-upload" style={{ cursor: 'pointer', display: 'inline-block' }}>
                                 <i className="fas fa-file-upload"></i> Upload Image
-                            </button>
+                                <input
+                                    type="file"
+                                    accept="image/png, image/jpeg"
+                                    onChange={handleImageChange}
+                                    style={{ display: 'none' }}
+                                />
+                            </label>
                             <span className="upload-help-text">JPG or PNG format, not exceeding 5MB.</span>
                         </div>
                     </div>
@@ -130,22 +151,24 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
                         <div>
                             <label className="input-label">Country</label>
                             <select name="billingCountry" className="select-field" value={formData.billingCountry} onChange={handleChange}>
-                                <option value="">Select</option>
-                                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                <option value="">Select Country</option>
+                                {billingCountries.map(c => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="input-label">State</label>
-                            <select name="billingState" className="select-field" value={formData.billingState} onChange={handleChange}>
-                                <option value="">Select</option>
+                            <select name="billingState" className="select-field" value={formData.billingState} onChange={handleChange} disabled={!formData.billingCountry}>
+                                <option value="">Select State</option>
+                                {billingStates.map(s => <option key={s.isoCode} value={s.isoCode}>{s.name}</option>)}
                             </select>
                         </div>
                     </div>
                     <div className="form-grid-2">
                         <div>
                             <label className="input-label">City</label>
-                            <select name="billingCity" className="select-field" value={formData.billingCity} onChange={handleChange}>
-                                <option value="">Select</option>
+                            <select name="billingCity" className="select-field" value={formData.billingCity} onChange={handleChange} disabled={!formData.billingState}>
+                                <option value="">Select City</option>
+                                {billingCities.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                             </select>
                         </div>
                     </div>
@@ -169,22 +192,24 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
                         <div>
                             <label className="input-label">Country</label>
                             <select name="shippingCountry" className="select-field" value={formData.shippingCountry} onChange={handleChange}>
-                                <option value="">Select</option>
-                                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                <option value="">Select Country</option>
+                                {shippingCountries.map(c => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="input-label">State</label>
-                            <select name="shippingState" className="select-field" value={formData.shippingState} onChange={handleChange}>
-                                <option value="">Select</option>
+                            <select name="shippingState" className="select-field" value={formData.shippingState} onChange={handleChange} disabled={!formData.shippingCountry}>
+                                <option value="">Select State</option>
+                                {shippingStates.map(s => <option key={s.isoCode} value={s.isoCode}>{s.name}</option>)}
                             </select>
                         </div>
                     </div>
                     <div className="form-grid-2">
                         <div>
                             <label className="input-label">City</label>
-                            <select name="shippingCity" className="select-field" value={formData.shippingCity} onChange={handleChange}>
-                                <option value="">Select</option>
+                            <select name="shippingCity" className="select-field" value={formData.shippingCity} onChange={handleChange} disabled={!formData.shippingState}>
+                                <option value="">Select City</option>
+                                {shippingCities.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                             </select>
                         </div>
                     </div>
@@ -193,7 +218,7 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
 
             <div className="form-footer">
                 <button className="btn-cancel-form" onClick={onCancel}>Cancel</button>
-                <button className="btn-create-submit" onClick={() => onSubmit(formData)}>Create New</button>
+                <button className="btn-create-submit" onClick={() => onSubmit({ ...formData, image: imageFile })}>Create New</button>
             </div>
         </div>
     );

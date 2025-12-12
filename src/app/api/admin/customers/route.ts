@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
                 
                 -- Shipping
                 shipping_name VARCHAR(255),
-                shipping_address VARCHAR(255),
+                shipping_address_1 VARCHAR(255),
                 shipping_country VARCHAR(100),
                 shipping_state VARCHAR(100),
                 shipping_city VARCHAR(100),
@@ -32,6 +32,20 @@ export async function GET(request: NextRequest) {
                 status VARCHAR(20) DEFAULT 'Active',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        `;
+
+        // Migration: Ensure new columns exist if table already existed check
+        // This is safe to run repeatedly (IF NOT EXISTS)
+        await sql`
+            ALTER TABLE customers 
+            ADD COLUMN IF NOT EXISTS billing_address_1 VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS billing_country VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS billing_state VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS billing_city VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS shipping_address_1 VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS shipping_country VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(100);
         `;
 
         const customers = await sql`SELECT * FROM customers ORDER BY created_at DESC`;
@@ -52,6 +66,42 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 });
         }
 
+        // Migration: Ensure new columns exist (idempotent)
+        await sql`
+            CREATE TABLE IF NOT EXISTS customers (
+                id SERIAL PRIMARY KEY,
+                image_url TEXT,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255),
+                phone VARCHAR(50),
+                currency VARCHAR(10),
+                billing_name VARCHAR(255),
+                billing_address_1 VARCHAR(255),
+                billing_country VARCHAR(100),
+                billing_state VARCHAR(100),
+                billing_city VARCHAR(100),
+                shipping_name VARCHAR(255),
+                shipping_address_1 VARCHAR(255),
+                shipping_country VARCHAR(100),
+                shipping_state VARCHAR(100),
+                shipping_city VARCHAR(100),
+                status VARCHAR(20) DEFAULT 'Active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
+        await sql`
+            ALTER TABLE customers 
+            ADD COLUMN IF NOT EXISTS billing_address_1 VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS billing_country VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS billing_state VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS billing_city VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS shipping_address_1 VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS shipping_country VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(100);
+        `;
+
         // Insert into database
         const newCustomer = await sql`
             INSERT INTO customers (
@@ -68,7 +118,7 @@ export async function POST(request: NextRequest) {
                 billing_city, 
                 
                 shipping_name, 
-                shipping_address, 
+                shipping_address_1, 
                 shipping_country, 
                 shipping_state, 
                 shipping_city, 

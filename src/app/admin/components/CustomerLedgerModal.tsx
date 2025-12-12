@@ -105,11 +105,16 @@ export default function CustomerLedgerModal({ isOpen, onClose, customer }: Custo
                                 ))}
                             </tbody>
                         </table>
-                        <div className="ledger-footer-row">
-                            <div>Closing Balance as on 22 Feb 2025</div>
-                            <div className="footer-amounts">
-                                <div>$5,00,750</div>
-                                <div>$2,50,000</div>
+                        <div className="ledger-footer-row" style={{ justifyContent: 'flex-end', gap: '3rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                <span style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.2rem' }}>Total Amount</span>
+                                <span>
+                                    {MOCK_TRANSACTIONS.reduce((sum, tx) => sum + (Number(tx.amount.replace(/[^0-9.-]+/g, "")) || 0), 0) || 0}
+                                </span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: '3rem' }}>
+                                <span style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.2rem' }}>Closing Balance</span>
+                                <span>{customer.balance || 0}</span>
                             </div>
                         </div>
                     </div>

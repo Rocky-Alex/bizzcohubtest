@@ -1,27 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './CustomerList.css';
+import { Country } from 'country-state-city';
 import CustomerLedgerModal from './CustomerLedgerModal';
 
-interface Customer {
-    id: number;
-    name: string;
-    avatar: string;
-    phone: string;
-    country: string;
-    countryCode: string;
-    balance: string;
-    totalInvoice: number;
-    createdOn: string;
-    status: 'Active' | 'Inactive';
-}
+// interface Customer {
+//     id: number;
+//     name: string;
+//     avatar: string;
+//     phone: string;
+//     country: string;
+//     countryCode: string;
+//     balance: string;
+//     totalInvoice: number;
+//     createdOn: string;
+//     status: 'Active' | 'Inactive';
+// }
 
-const MOCK_CUSTOMERS: Customer[] = [];
+// MOCK_CUSTOMERS removed in favor of real data
+// const MOCK_CUSTOMERS: Customer[] = [];
 
-export default function CustomerList({ onAdd }: { onAdd?: () => void }) {
+export default function CustomerList({ onAdd, customers = [] }: { onAdd?: () => void, customers?: any[] }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [selectedCustomerForLedger, setSelectedCustomerForLedger] = useState<Customer | null>(null);
+    const [selectedCustomerForLedger, setSelectedCustomerForLedger] = useState<any | null>(null);
     const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -44,9 +46,10 @@ export default function CustomerList({ onAdd }: { onAdd?: () => void }) {
     };
 
     // Basic filtering logic
-    const filteredCustomers = MOCK_CUSTOMERS.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.country.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredCustomers = customers.filter((c: any) =>
+        (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (c.billing_country && c.billing_country.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (c.country && c.country.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const totalPages = Math.ceil(filteredCustomers.length / rowsPerPage);
@@ -121,26 +124,31 @@ export default function CustomerList({ onAdd }: { onAdd?: () => void }) {
                                 </td>
                                 <td>
                                     <div className="customer-cell">
-                                        <img src={customer.avatar} alt={customer.name} className="customer-avatar" />
+                                        <img src={customer.image_url || "/default-avatar.png"} alt={customer.name} className="customer-avatar" />
                                         <div className="customer-info">
                                             <span>{customer.name}</span>
+                                            <span style={{ fontSize: '0.8em', color: '#666' }}>{customer.email}</span>
                                         </div>
                                     </div>
                                 </td>
                                 <td>{customer.phone}</td>
                                 <td>
                                     <div className="country-cell">
-                                        <span className="flag-icon">{customer.countryCode}</span>
-                                        {customer.country}
+                                        {/* <span className="flag-icon">{customer.countryCode}</span> */}
+                                        {(() => {
+                                            const code = customer.billing_country || customer.country;
+                                            const country = Country.getCountryByCode(code);
+                                            return country ? country.name : code;
+                                        })()}
                                     </div>
                                 </td>
-                                <td>{customer.balance}</td>
-                                <td>{customer.totalInvoice}</td>
-                                <td>{customer.createdOn}</td>
+                                <td>{customer.currency} 0.00</td>
+                                <td>0</td>
+                                <td>{new Date(customer.created_at).toLocaleDateString()}</td>
                                 <td>
-                                    <span className={`status-badge ${customer.status.toLowerCase()}`}>
-                                        {customer.status}
-                                        {customer.status === 'Active' ? <i className="fas fa-check-circle"></i> : <i className="fas fa-times-circle"></i>}
+                                    <span className={`status-badge ${(customer.status || 'active').toLowerCase()}`}>
+                                        {customer.status || 'Active'}
+                                        {(customer.status || 'Active') === 'Active' ? <i className="fas fa-check-circle"></i> : <i className="fas fa-times-circle"></i>}
                                     </span>
                                 </td>
                                 <td>

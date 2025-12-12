@@ -52,6 +52,18 @@ export default function AdminPage() {
     const [users, setUsers] = useState(initialUsers);
 
     // --- generic Handlers ---
+    const fetchCustomers = useCallback(async () => {
+        try {
+            const response = await fetch('/api/admin/customers');
+            if (response.ok) {
+                const data = await response.json();
+                setCustomers(data.customers || []);
+            }
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+        }
+    }, []);
+
     const fetchRoles = useCallback(async () => {
         try {
             const response = await fetch('/api/admin/roles');
@@ -265,6 +277,7 @@ export default function AdminPage() {
                             console.log('User is admin, fetching users and roles...');
                             fetchUsers();
                             fetchRoles();
+                            fetchCustomers();
                         } else {
                             console.log('User is not admin, role is:', data.role);
                         }
@@ -348,6 +361,7 @@ export default function AdminPage() {
             // --- Customers ---
             case "customers-all":
                 return <CustomerList
+                    customers={customers}
                     onAdd={() => setActiveSection('customers-add')}
                 />;
             case "customers-add":
@@ -356,14 +370,46 @@ export default function AdminPage() {
                     onSubmit={async (data) => {
                         try {
                             console.log('Submitting Customer Data:', data);
+
+                            let avatarUrl = null;
+
+                            // If there's an image file, upload it to ImageKit
+                            if (data.image && data.image instanceof File) {
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('file', data.image);
+                                    formData.append('folder', 'Customer'); // Folder name
+                                    formData.append('fileName', data.name.replace(/\s+/g, '_'));
+
+                                    const uploadResponse = await fetch('/api/imagekit/upload', {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+
+                                    if (uploadResponse.ok) {
+                                        const uploadData = await uploadResponse.json();
+                                        avatarUrl = uploadData.url;
+                                        console.log('Image uploaded successfully:', avatarUrl);
+                                    } else {
+                                        console.error('Failed to upload image', await uploadResponse.text());
+                                    }
+                                } catch (uploadError) {
+                                    console.error('Image upload error:', uploadError);
+                                }
+                            }
+
+                            const payload = { ...data, avatar: avatarUrl };
+                            delete payload.image; // Do not send File object to JSON API
+
                             const response = await fetch('/api/admin/customers', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(data)
+                                body: JSON.stringify(payload)
                             });
 
                             if (response.ok) {
                                 alert('Customer created successfully!');
+                                fetchCustomers();
                                 setActiveSection('customers-all');
                             } else {
                                 const err = await response.json();
