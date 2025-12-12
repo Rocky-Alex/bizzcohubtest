@@ -566,3 +566,68 @@
 .btn-apply:hover {
     background: #6d28d9;
 }
+
+/* Quick Actions Styles */
+.quick-actions-section {
+    margin-bottom: 2rem;
+}
+
+.quick-actions-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.quick-action-card {
+    background: white;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.quick-action-card:hover {
+    border-color: #7c3aed;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.quick-action-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.quick-action-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-action-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.2rem;
+}
+
+.quick-action-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+}

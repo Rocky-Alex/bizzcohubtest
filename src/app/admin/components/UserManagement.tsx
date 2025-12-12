@@ -8,6 +8,9 @@ import "./UserManagement.css";
 interface User {
     id: string;
     name: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
     phone: string;
     email: string;
     role: string;

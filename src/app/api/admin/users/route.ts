@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         console.log('[Users API] Authorization passed, fetching users from database...');
 
         const users = await sql`
-            SELECT id, username, email, phone, role, status, approval_status, avatar, created_by, created_at 
+            SELECT id, username, first_name, last_name, email, phone, role, status, approval_status, avatar, created_by, created_at 
             FROM users 
             ORDER BY created_at DESC
         `;
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { username, password, email, phone, role, status, avatar } = body;
+        const { username, first_name, last_name, password, email, phone, role, status, avatar } = body;
 
         if (!username || !password || !role) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -78,6 +78,8 @@ export async function POST(request: NextRequest) {
         await sql`
             INSERT INTO users (
                 username, 
+                first_name,
+                last_name,
                 password_hash, 
                 email, 
                 phone, 
@@ -89,6 +91,8 @@ export async function POST(request: NextRequest) {
             )
             VALUES (
                 ${username}, 
+                ${first_name || null},
+                ${last_name || null},
                 ${passwordHash}, 
                 ${email || null}, 
                 ${phone || null}, 
@@ -123,7 +127,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, password, email, phone, role, status, avatar } = body;
+        const { id, password, first_name, last_name, email, phone, role, status, avatar } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -134,6 +138,8 @@ export async function PUT(request: NextRequest) {
             await sql`
                 UPDATE users 
                 SET password_hash = ${passwordHash}, 
+                    first_name = ${first_name || null},
+                    last_name = ${last_name || null},
                     email = ${email || null}, 
                     phone = ${phone || null}, 
                     role = ${role}, 
@@ -146,6 +152,8 @@ export async function PUT(request: NextRequest) {
             await sql`
                 UPDATE users 
                 SET email = ${email || null}, 
+                    first_name = ${first_name || null},
+                    last_name = ${last_name || null},
                     phone = ${phone || null}, 
                     role = ${role}, 
                     status = ${status},

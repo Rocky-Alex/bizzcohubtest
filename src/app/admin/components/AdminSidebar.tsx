@@ -103,7 +103,6 @@ export default function AdminSidebar({
             label: "Billing",
             subItems: [
                 { id: "invoicing-dashboard", label: "Dashboard" },
-                { id: "invoicing-all", label: "All Invoices" },
                 { id: "invoicing-new", label: "New Invoice" }
             ]
         },

@@ -1,7 +1,11 @@
 import React from 'react';
 import './InvoicingDashboard.css';
 
-export default function InvoicingDashboard() {
+interface InvoicingDashboardProps {
+    setActiveSection: (section: string) => void;
+}
+
+export default function InvoicingDashboard({ setActiveSection }: InvoicingDashboardProps) {
     return (
         <div className="billing-dashboard-container">
             {/* Header / Title could go here if not handled by parent */}
@@ -100,42 +104,59 @@ export default function InvoicingDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '1rem' }}>Quick Actions</h3>
-            <div className="quick-actions-grid">
-                <div className="action-card">
-                    <div className="action-icon">
-                        <i className="fas fa-plus"></i>
+            <div className="quick-actions-section">
+                <h3 className="quick-actions-header">Quick Actions</h3>
+                <div className="quick-actions-grid">
+                    <div className="quick-action-card" onClick={() => setActiveSection('invoicing-new')}>
+                        <div className="quick-action-icon" style={{ background: '#f3e8ff', color: '#9333ea' }}>
+                            <i className="fas fa-plus"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">Create Invoice</span>
+                            <span className="quick-action-desc">New invoice for customer</span>
+                        </div>
                     </div>
-                    <div className="action-info">
-                        <h4>Create Invoice</h4>
-                        <p>New invoice for customer</p>
+
+                    <div className="quick-action-card" onClick={() => setActiveSection('invoicing-all')}>
+                        <div className="quick-action-icon" style={{ background: '#dcfce7', color: '#16a34a' }}>
+                            <i className="fas fa-file-signature"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">Edit Invoice</span>
+                            <span className="quick-action-desc">Modify existing invoices</span>
+                        </div>
                     </div>
-                </div>
-                <div className="action-card">
-                    <div className="action-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
-                        <i className="fas fa-file-export"></i>
+
+                    <div className="quick-action-card" onClick={() => setActiveSection('quotations-new')}>
+                        <div className="quick-action-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
+                            <i className="fas fa-file-alt"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">Create Quotation</span>
+                            <span className="quick-action-desc">Draft a new proposal</span>
+                        </div>
                     </div>
-                    <div className="action-info">
-                        <h4>Export Report</h4>
-                        <p>Download CSV/PDF</p>
+
+                    <div className="quick-action-card" onClick={() => setActiveSection('quotations-all')}>
+                        <div className="quick-action-icon" style={{ background: '#ffedd5', color: '#c2410c' }}>
+                            <i className="fas fa-pen-fancy"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">Edit Quotation</span>
+                            <span className="quick-action-desc">Modify existing quotes</span>
+                        </div>
                     </div>
-                </div>
-                <div className="action-card">
-                    <div className="action-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
-                        <i className="fas fa-envelope-open-text"></i>
-                    </div>
-                    <div className="action-info">
-                        <h4>Send Reminders</h4>
-                        <p>Email overdue clients</p>
-                    </div>
-                </div>
-                <div className="action-card">
-                    <div className="action-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
-                        <i className="fas fa-user-plus"></i>
-                    </div>
-                    <div className="action-info">
-                        <h4>Add Customer</h4>
-                        <p>Register new client</p>
+
+
+
+                    <div className="quick-action-card" onClick={() => setActiveSection('reminders')}>
+                        <div className="quick-action-icon" style={{ background: '#fee2e2', color: '#dc2626' }}>
+                            <i className="fas fa-envelope"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">Send Reminders</span>
+                            <span className="quick-action-desc">Email overdue clients</span>
+                        </div>
                     </div>
                 </div>
             </div>

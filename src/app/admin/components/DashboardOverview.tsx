@@ -524,11 +524,13 @@ export default function DashboardOverview({
                     <div className="corner-accent orange"></div>
                 </div>
             </div>
+
+
             {/* Recent Invoices Section */}
             <div className="dashboard-invoices-section">
                 <div className="section-header-row">
                     <h3>Invoices</h3>
-                    <button className="view-all-btn" onClick={() => setActiveSection('invoicing')}>
+                    <button className="view-all-btn" onClick={() => setActiveSection('invoicing-dashboard')}>
                         View all Invoices
                     </button>
                 </div>

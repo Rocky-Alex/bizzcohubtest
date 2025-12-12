@@ -7,14 +7,14 @@ import AdminHeader from "./components/AdminHeader";
 import DashboardOverview from "./components/DashboardOverview";
 import LogoutModal from "./components/LogoutModal";
 import PlatformDashboard from "./components/PlatformDashboard";
-import AdminTable from "./components/AdminTable";
-import AdminForm from "./components/AdminForm";
+
 import UserManagement from "./components/UserManagement";
 import RolesAndPermissions from "./components/RolesAndPermissions";
 import InvoicingDashboard from "./components/InvoicingDashboard";
 import CustomerList from "./components/CustomerList";
 import AddCustomerForm from "./components/AddCustomerForm";
 import ComingSoon from "./components/ComingSoon";
+import CreateInvoice from "./components/CreateInvoice";
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
@@ -36,7 +36,7 @@ export default function AdminPage() {
     const initialOrders: any[] = [];
     const initialCustomers: any[] = [];
     const initialProduction: any[] = [];
-    const initialInvoices: any[] = [];
+
     const initialTransactions: any[] = [];
     const initialUsers: any[] = [];
 
@@ -47,7 +47,7 @@ export default function AdminPage() {
     const [orders, setOrders] = useState(initialOrders);
     const [customers, setCustomers] = useState(initialCustomers);
     const [production, setProduction] = useState(initialProduction);
-    const [invoices, setInvoices] = useState(initialInvoices);
+
     const [transactions, setTransactions] = useState(initialTransactions);
     const [users, setUsers] = useState(initialUsers);
 
@@ -137,6 +137,8 @@ export default function AdminPage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         id: item.id,
+                        first_name: item.firstName,
+                        last_name: item.lastName,
                         email: item.email,
                         phone: item.phone,
                         role: item.role,
@@ -186,7 +188,6 @@ export default function AdminPage() {
             else if (type === 'Order') setOrders(prev => prev.filter(o => o.id !== item.id));
             else if (type === 'Customer') setCustomers(prev => prev.filter(c => c.id !== item.id));
             else if (type === 'Production') setProduction(prev => prev.filter(p => p.id !== item.id));
-            else if (type === 'Invoice') setInvoices(prev => prev.filter(i => i.id !== item.id));
             else if (type === 'Transaction') setTransactions(prev => prev.filter(t => t.id !== item.id));
         }
     };
@@ -205,9 +206,6 @@ export default function AdminPage() {
         } else if (type === 'Production') {
             setProduction([...production, { id: `PRD-${Date.now()}`, ...data }]);
             setActiveSection('production-pipeline');
-        } else if (type === 'Invoice') {
-            setInvoices([...invoices, { id: `INV-${Date.now()}`, ...data, status: 'Pending' }]);
-            setActiveSection('invoicing-all');
         } else if (type === 'Transaction') {
             setTransactions([...transactions, { id: `TRX-${Date.now()}`, ...data }]);
             setActiveSection('accounting-transactions');
@@ -231,7 +229,10 @@ export default function AdminPage() {
                 // Transform database users to match the UI format
                 const transformedUsers = data.users.map((user: any) => ({
                     id: user.id.toString(),
-                    name: user.username,
+                    name: user.username, // Display the username handle in table as requested
+                    username: user.username, // Keep original username/handle
+                    firstName: user.first_name,
+                    lastName: user.last_name,
                     phone: user.phone || '',
                     email: user.email || '',
                     role: user.role,
@@ -424,28 +425,9 @@ export default function AdminPage() {
 
             // --- Invoicing (Billing) ---
             case "invoicing-dashboard":
-                return <InvoicingDashboard />;
-            case "invoicing-all":
-                return <AdminTable
-                    title="All Invoices"
-                    columns={["ID", "Customer", "Amount", "Status", "DueDate"]}
-                    data={invoices}
-                    onEdit={(item: any) => handleEdit(item, 'Invoice')}
-                    onDelete={(item: any) => handleDelete(item, 'Invoice')}
-                    onAdd={() => setActiveSection('invoicing-new')}
-                    addLabel="Create Invoice"
-                />;
+                return <InvoicingDashboard setActiveSection={setActiveSection} />;
             case "invoicing-new":
-                return <AdminForm
-                    title="Create Invoice"
-                    fields={[
-                        { name: "customer", label: "Customer", type: "text" },
-                        { name: "amount", label: "Amount ($)", type: "number" },
-                        { name: "dueDate", label: "Due Date", type: "date" }
-                    ]}
-                    onSubmit={(data) => handleAddSubmit(data, 'Invoice')}
-                    onCancel={() => setActiveSection('invoicing-all')}
-                />;
+                return <CreateInvoice setActiveSection={setActiveSection} customers={customers} />;
 
             // --- Users ---
             case "users-all":
@@ -466,7 +448,7 @@ export default function AdminPage() {
                                     const formData = new FormData();
                                     formData.append('file', userData.image);
                                     formData.append('folder', 'User Profile');
-                                    formData.append('fileName', userData.name.replace(/\s+/g, '_'));
+                                    formData.append('fileName', userData.userName ? userData.userName.replace(/\s+/g, '_') : 'user_avatar');
 
                                     const uploadResponse = await fetch('/api/imagekit/upload', {
                                         method: 'POST',
@@ -493,7 +475,9 @@ export default function AdminPage() {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    username: userData.name,
+                                    username: userData.userName || userData.name, // Handle or Name
+                                    first_name: userData.firstName,
+                                    last_name: userData.lastName,
                                     password: userData.password || 'defaultPassword123',
                                     email: userData.email,
                                     phone: userData.phone,
