@@ -20,7 +20,13 @@ export default function AdminSidebar({
     username = 'Admin'
 }: AdminSidebarProps) {
     const menuItems = [
+        { id: "quick-actions", icon: "fa-rocket", label: "Quick Actions" },
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
+        {
+            id: "inventory-dashboard",
+            icon: "fa-boxes",
+            label: "Inventory"
+        },
 
         {
             id: "orders",
@@ -52,24 +58,7 @@ export default function AdminSidebar({
                 { id: "noon-listings", label: "Listings" }
             ]
         },
-        {
-            id: "products",
-            icon: "fa-laptop",
-            label: "Products",
-            subItems: [
-                { id: "products-list", label: "Product List" },
-                { id: "products-add", label: "Add Product" }
-            ]
-        },
-        {
-            id: "accessories",
-            icon: "fa-keyboard",
-            label: "Accessories",
-            subItems: [
-                { id: "accessories-list", label: "Accessory List" },
-                { id: "accessories-add", label: "Add Accessory" }
-            ]
-        },
+
         {
             id: "customers",
             icon: "fa-users",
@@ -93,8 +82,7 @@ export default function AdminSidebar({
             icon: "fa-chart-line",
             label: "Reports",
             subItems: [
-                { id: "reports-sales", label: "Sales Report" },
-                { id: "reports-inventory", label: "Inventory Report" }
+                { id: "reports-sales", label: "Sales Report" }
             ]
         },
         {
@@ -103,6 +91,7 @@ export default function AdminSidebar({
             label: "Billing",
             subItems: [
                 { id: "invoicing-dashboard", label: "Dashboard" },
+                { id: "invoicing-all", label: "All Invoice" },
                 { id: "invoicing-new", label: "New Invoice" }
             ]
         },

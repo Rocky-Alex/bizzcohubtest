@@ -20,6 +20,8 @@ interface Product {
     description?: string;
     features?: string;
     specifications?: Record<string, string>;
+    ramVariants?: { size: string; type: string; price: number }[];
+    storageVariants?: { size: string; type: string; price: number }[];
 }
 
 interface ConfigOption {
@@ -65,28 +67,13 @@ export default function ProductDetailPage() {
         }
     }, [params.id, params.type]);
 
-    const parseConfigOptions = (configString: string): ConfigOption[] => {
-        if (!configString) return [];
-
-        try {
-            // Try to parse as JSON first (new format)
-            if (configString.trim().startsWith('[')) {
-                const parsed = JSON.parse(configString);
-                return Array.isArray(parsed) ? parsed : [];
-            }
-        } catch (e) {
-            console.warn('Failed to parse config as JSON:', e);
-        }
-
-        // Fallback: return empty array for non-JSON strings
-        return [];
-    };
+    // Helpers skipped (parseConfigOptions, etc.) as we are using new logic
 
     const parseColorOptions = (colorString: string): ColorOption[] => {
         if (!colorString) return [];
 
         try {
-            // Try to parse as JSON first (new format with color codes)
+            // Try to parse as JSON first
             if (colorString.trim().startsWith('[')) {
                 const parsed = JSON.parse(colorString);
                 return Array.isArray(parsed) ? parsed : [];
@@ -95,7 +82,7 @@ export default function ProductDetailPage() {
             console.warn('Failed to parse colors as JSON:', e);
         }
 
-        // Fallback: parse as comma-separated list (legacy format)
+        // Fallback: parse as comma-separated list
         return colorString.split(',').map((color, index) => ({
             label: color.trim(),
             code: ['#C0C0C0', '#4A4A4A', '#D4AF37', '#191970'][index % 4] // Default colors
@@ -115,15 +102,37 @@ export default function ProductDetailPage() {
 
                 // Parse and set configuration options from database
                 if (foundProduct.type === 'laptop') {
-                    const processors = parseConfigOptions(foundProduct.specifications?.Processor || '');
-                    const rams = parseConfigOptions(foundProduct.specifications?.RAM || '');
-                    const storages = parseConfigOptions(foundProduct.specifications?.Storage || '');
-                    const colors = parseColorOptions(foundProduct.specifications?.colors || '');
+                    // Processor (Usually standard or legacy JSON)
+                    // For now keeping simple default if not explicit variants
+                    setProcessorOptions([{ label: foundProduct.specifications?.Processor || 'Standard Processor', price: 0 }]);
 
-                    setProcessorOptions(processors.length > 0 ? processors : [{ label: foundProduct.specifications?.Processor || 'Standard Processor', price: 0 }]);
-                    setRamOptions(rams.length > 0 ? rams : [{ label: foundProduct.specifications?.RAM || '8GB RAM', price: 0 }]);
-                    setStorageOptions(storages.length > 0 ? storages : [{ label: foundProduct.specifications?.Storage || '256GB SSD', price: 0 }]);
-                    setColorOptions(colors.length > 0 ? colors : [{ label: 'Silver', code: '#C0C0C0' }]);
+                    // RAM Options: Base + Variants
+                    const baseRam = { label: (foundProduct.specifications?.RAM || '8GB') + ' (Included)', price: 0 };
+                    let ramOpts: ConfigOption[] = [baseRam];
+                    if (foundProduct.ramVariants && Array.isArray(foundProduct.ramVariants)) {
+                        const variantOpts = foundProduct.ramVariants.map((v: any) => ({
+                            label: `${v.size} ${v.type || ''}`.trim(),
+                            price: v.price
+                        }));
+                        ramOpts = [...ramOpts, ...variantOpts];
+                    }
+                    setRamOptions(ramOpts);
+
+                    // Storage Options: Base + Variants
+                    const baseStorage = { label: (foundProduct.specifications?.Storage || '256GB') + ' (Included)', price: 0 };
+                    let storageOpts: ConfigOption[] = [baseStorage];
+                    if (foundProduct.storageVariants && Array.isArray(foundProduct.storageVariants)) {
+                        const variantOpts = foundProduct.storageVariants.map((v: any) => ({
+                            label: `${v.size} ${v.type || ''}`.trim(),
+                            price: v.price
+                        }));
+                        storageOpts = [...storageOpts, ...variantOpts];
+                    }
+                    setStorageOptions(storageOpts);
+
+                    // Colors
+                    const colors = parseColorOptions(foundProduct.specifications?.colors || '');
+                    setColorOptions(colors.length > 0 ? colors : [{ label: 'Standard', code: '#C0C0C0' }]);
                 }
 
                 const related = data.products

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-invoice.css';
 
 interface CreateInvoiceProps {
@@ -20,11 +20,24 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
     const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
-
-
     const [customerSearch, setCustomerSearch] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+
+    const searchRef = useRef<HTMLDivElement>(null);
+
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     useEffect(() => {
         if (customers) {
@@ -116,10 +129,53 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
         }
     };
 
-    const handleSave = () => {
-        // Logic to save invoice would go here
-        alert("Invoice Saved! (Simulation)");
-        setActiveSection('invoicing-dashboard');
+    const handleSave = async () => {
+        try {
+            const customer = filteredCustomers.find(c => c.name === toDetails.name);
+            const payload = {
+                invoiceNo,
+                customerId: customer ? customer.id : null,
+                customerName: toDetails.name,
+                customerAddress: toDetails.address,
+                customerEmail: toDetails.email,
+                customerPhone: toDetails.phone,
+                createdDate,
+                dueDate,
+                subTotal: calculatedSubTotal,
+                discountTotal: totalDiscount,
+                taxRate: taxRate,
+                taxAmount: vatAmount,
+                totalAmount: finalTotal,
+                paymentType: paymentType,
+                status: 'Pending',
+                isTaxable,
+                isDiscountable,
+                items: items.map(item => ({
+                    description: item.description,
+                    qty: item.qty,
+                    cost: item.cost,
+                    discount: item.discount,
+                    total: calculateRowTotal(item)
+                }))
+            };
+
+            const response = await fetch('/api/admin/invoices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert('Invoice created successfully!');
+                setActiveSection('invoicing-dashboard');
+            } else {
+                const error = await response.json();
+                alert('Failed to save invoice: ' + error.error);
+            }
+        } catch (error) {
+            console.error('Error saving invoice:', error);
+            alert('An error occurred while saving the invoice.');
+        }
     };
 
     return (
@@ -140,23 +196,24 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                         <p style={{ color: '#0c86eaff' }}>Professional Solutions for Modern Business</p>
                     </div>
 
-                    <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '60px' }}>
-                        <p style={{ color: '#0c86eaff', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
+                    {isTaxable && (
+                        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '60px' }}>
+                            <p style={{ color: '#0c86eaff', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
+                        </div>
+                    )}
+
+                    <div className="invoice-right-header">
+                        <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#0c86eaff', letterSpacing: '2px' }}>INVOICE</h1>
                     </div>
 
-                    <div className="invoice-meta">
-                        <div>Invoice No <strong style={{ color: '#0c86eaff' }}>#{invoiceNo}</strong></div>
-                        <div>Created Date : <input type="date" value={createdDate} onChange={e => setCreatedDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block' }} /></div>
-                        <div>Due Date : <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block' }} /></div>
-                    </div>
                 </div>
 
                 {/* Addresses */}
                 <div className="invoice-addresses">
 
 
-                    <div className="address-content">
-                        <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                    <div className="address-content" style={{ width: '400px' }}>
+                        <div ref={searchRef} style={{ position: 'relative', marginBottom: '1rem' }}>
                             <label style={{ display: 'block', fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>Customer Name</label>
                             <div style={{ position: 'relative' }}>
                                 <input
@@ -297,6 +354,12 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                         </div>
                     </div>
 
+                    <div className="invoice-meta" style={{ textAlign: 'right' }}>
+                        <div style={{ marginBottom: '0.5rem' }}>Invoice No <strong style={{ color: '#0c86eaff' }}>#{invoiceNo}</strong></div>
+                        <div style={{ marginBottom: '0.5rem' }}>Created Date : <input type="date" value={createdDate} onChange={e => setCreatedDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
+                        <div>Due Date : <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
+                    </div>
+
 
 
                 </div>
@@ -401,18 +464,24 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                                 Taxable
                             </label>
                         </div>
-                        <div className="total-row">
-                            <span>Sub Total</span>
-                            <span>${calculatedSubTotal.toFixed(0)}</span>
-                        </div>
-                        <div className="total-row">
-                            <span>Discount (0%)</span>
-                            <span>$0</span>
-                        </div>
-                        <div className="total-row">
-                            <span>VAT ({taxRate}%)</span>
-                            <span>${vatAmount.toFixed(0)}</span>
-                        </div>
+                        {(isDiscountable || isTaxable) && (
+                            <div className="total-row">
+                                <span>Sub Total</span>
+                                <span>${calculatedSubTotal.toFixed(0)}</span>
+                            </div>
+                        )}
+                        {isDiscountable && (
+                            <div className="total-row">
+                                <span>Discount (0%)</span>
+                                <span>$0</span>
+                            </div>
+                        )}
+                        {isTaxable && (
+                            <div className="total-row">
+                                <span>VAT ({taxRate}%)</span>
+                                <span>${vatAmount.toFixed(0)}</span>
+                            </div>
+                        )}
                         <div className="total-row final">
                             <span>Total Amount</span>
                             <span style={{ color: '#ea580c' }}>${finalTotal.toFixed(0)}</span>

@@ -35,9 +35,9 @@ export async function uploadToImageKit(
             url: result.url,
             fileId: result.fileId,
         };
-    } catch (error) {
-        console.error('ImageKit upload error:', error);
-        throw new Error('Failed to upload image to ImageKit');
+    } catch (error: any) {
+        console.error('ImageKit upload error internal:', error);
+        throw new Error(`Failed to upload image to ImageKit: ${error.message || JSON.stringify(error)}`);
     }
 }
 

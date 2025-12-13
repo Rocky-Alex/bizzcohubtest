@@ -15,6 +15,12 @@ import CustomerList from "./components/CustomerList";
 import AddCustomerForm from "./components/AddCustomerForm";
 import ComingSoon from "./components/ComingSoon";
 import CreateInvoice from "./components/CreateInvoice";
+import InvoiceList from "./components/InvoiceList";
+import InventoryDashboard from "./components/InventoryDashboard";
+import ProductList from "./components/ProductList";
+import AddProduct from "./components/AddProduct";
+import ImportProducts from './components/ImportProducts';
+import QuickActions from './components/QuickActions';
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
@@ -338,7 +344,7 @@ export default function AdminPage() {
         if (activeSection.startsWith("orders")) {
             return <ComingSoon title="Order Management" description="Advanced order processing and tracking features will be available here." />;
         }
-        if (activeSection.startsWith("products")) {
+        if (activeSection.startsWith("products") && !['products-add', 'products-import', 'products-list'].includes(activeSection)) {
             return <ComingSoon title="Product Management" description="Centralized product catalog and inventory management is under development." />;
         }
         if (activeSection.startsWith("accessories")) {
@@ -364,6 +370,7 @@ export default function AdminPage() {
                 return <CustomerList
                     customers={customers}
                     onAdd={() => setActiveSection('customers-add')}
+                    onNavigateToNewInvoice={() => setActiveSection('invoicing-new')}
                 />;
             case "customers-add":
                 return <AddCustomerForm
@@ -423,9 +430,31 @@ export default function AdminPage() {
                     }}
                 />;
 
+            // --- Quick Actions ---
+            case "quick-actions":
+                return <QuickActions setActiveSection={setActiveSection} />;
+
+            // --- Inventory ---
+            case "inventory-dashboard":
+                return <InventoryDashboard setActiveSection={setActiveSection} />;
+            case "products-add":
+                return <AddProduct
+                    onCancel={() => setActiveSection('inventory-dashboard')}
+                    onSuccess={() => setActiveSection('inventory-dashboard')}
+                />;
+            case "products-list":
+                return <ProductList setActiveSection={setActiveSection} />;
+            case "products-import":
+                return <ImportProducts
+                    onCancel={() => setActiveSection('inventory-dashboard')}
+                    onSuccess={() => setActiveSection('inventory-dashboard')}
+                />;
+
             // --- Invoicing (Billing) ---
             case "invoicing-dashboard":
                 return <InvoicingDashboard setActiveSection={setActiveSection} />;
+            case "invoicing-all":
+                return <InvoiceList setActiveSection={setActiveSection} />;
             case "invoicing-new":
                 return <CreateInvoice setActiveSection={setActiveSection} customers={customers} />;
 

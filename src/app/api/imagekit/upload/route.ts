@@ -8,6 +8,11 @@ export async function POST(request: NextRequest) {
     try {
         const contentType = request.headers.get('content-type') || '';
 
+        if (!process.env.IMAGEKIT_PRIVATE_KEY) {
+            console.error('IMAGEKIT_PRIVATE_KEY is missing');
+            return NextResponse.json({ error: 'Server configuration error: ImageKit key missing' }, { status: 500 });
+        }
+
         // Handle FormData uploads (for user avatars, file uploads)
         if (contentType.includes('multipart/form-data')) {
             const formData = await request.formData();

@@ -19,7 +19,7 @@ import CustomerLedgerModal from './CustomerLedgerModal';
 // MOCK_CUSTOMERS removed in favor of real data
 // const MOCK_CUSTOMERS: Customer[] = [];
 
-export default function CustomerList({ onAdd, customers = [] }: { onAdd?: () => void, customers?: any[] }) {
+export default function CustomerList({ onAdd, customers = [], onNavigateToNewInvoice }: { onAdd?: () => void, customers?: any[], onNavigateToNewInvoice?: () => void }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -153,7 +153,7 @@ export default function CustomerList({ onAdd, customers = [] }: { onAdd?: () => 
                                 </td>
                                 <td>
                                     <div className="action-buttons">
-                                        <button className="btn-action-outline">
+                                        <button className="btn-action-outline" onClick={onNavigateToNewInvoice}>
                                             <i className="fas fa-plus-circle"></i> Invoice
                                         </button>
                                         <button

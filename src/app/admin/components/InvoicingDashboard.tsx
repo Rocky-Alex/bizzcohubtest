@@ -6,6 +6,52 @@ interface InvoicingDashboardProps {
 }
 
 export default function InvoicingDashboard({ setActiveSection }: InvoicingDashboardProps) {
+    const [stats, setStats] = React.useState({
+        totalInvoices: 0,
+        totalReceived: 0,
+        pendingAmount: 0,
+        overdueAmount: 0,
+        trends: {
+            invoices: 0,
+            received: 0,
+            pending: 0,
+            overdue: 0
+        }
+    });
+
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch('/api/admin/invoices/stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    setStats(data);
+                }
+            } catch (error) {
+                console.error('Error fetching invoice stats:', error);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    const renderTrend = (value: number) => {
+        if (!value) return (
+            <div className="stat-trend neutral">
+                <i className="fas fa-minus"></i> 0%
+            </div>
+        );
+        if (value > 0) return (
+            <div className="stat-trend positive" style={{ color: '#16a34a', background: '#dcfce7' }}>
+                <i className="fas fa-arrow-up"></i> {value.toFixed(1)}%
+            </div>
+        );
+        return (
+            <div className="stat-trend negative" style={{ color: '#dc2626', background: '#fee2e2' }}>
+                <i className="fas fa-arrow-down"></i> {Math.abs(value).toFixed(1)}%
+            </div>
+        );
+    };
+
     return (
         <div className="billing-dashboard-container">
             {/* Header / Title could go here if not handled by parent */}
@@ -18,13 +64,11 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
                             <i className="fas fa-wallet"></i>
                         </div>
-                        <div className="stat-trend neutral">
-                            <i className="fas fa-minus"></i> 0%
-                        </div>
+                        {renderTrend(stats.trends?.received)}
                     </div>
                     <div className="stat-content">
                         <h3>Total Received</h3>
-                        <p className="stat-value">$0.00</p>
+                        <p className="stat-value">${stats.totalReceived.toFixed(2)}</p>
                     </div>
                 </div>
 
@@ -34,13 +78,11 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
                             <i className="fas fa-hourglass-start"></i>
                         </div>
-                        <div className="stat-trend neutral">
-                            <i className="fas fa-minus"></i> 0%
-                        </div>
+                        {renderTrend(stats.trends?.pending)}
                     </div>
                     <div className="stat-content">
                         <h3>Pending Amount</h3>
-                        <p className="stat-value">$0.00</p>
+                        <p className="stat-value">${stats.pendingAmount.toFixed(2)}</p>
                     </div>
                 </div>
 
@@ -50,13 +92,11 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
                             <i className="fas fa-exclamation-triangle"></i>
                         </div>
-                        <div className="stat-trend neutral">
-                            <i className="fas fa-minus"></i> 0%
-                        </div>
+                        {renderTrend(stats.trends?.overdue)}
                     </div>
                     <div className="stat-content">
                         <h3>Overdue Details</h3>
-                        <p className="stat-value">$0.00</p>
+                        <p className="stat-value">${stats.overdueAmount.toFixed(2)}</p>
                     </div>
                 </div>
 
@@ -66,13 +106,11 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         <div className="stat-icon" style={{ backgroundColor: '#f5f3ff', color: '#8b5cf6' }}>
                             <i className="fas fa-file-invoice"></i>
                         </div>
-                        <div className="stat-trend neutral">
-                            <i className="fas fa-minus"></i> 0
-                        </div>
+                        {renderTrend(stats.trends?.invoices)}
                     </div>
                     <div className="stat-content">
                         <h3>Total Invoices</h3>
-                        <p className="stat-value">0</p>
+                        <p className="stat-value">{stats.totalInvoices}</p>
                     </div>
                 </div>
             </div>
