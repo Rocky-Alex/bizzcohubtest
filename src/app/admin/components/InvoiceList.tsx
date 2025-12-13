@@ -20,6 +20,8 @@ export default function InvoiceList({ setActiveSection }: { setActiveSection: (s
         };
 
         fetchInvoices();
+        const interval = setInterval(fetchInvoices, 600000); // 10 minutes
+        return () => clearInterval(interval);
     }, []);
 
     const [confirmationModal, setConfirmationModal] = useState<{ show: boolean; id: number | null; newStatus: string | null }>({

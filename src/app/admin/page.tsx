@@ -304,6 +304,23 @@ export default function AdminPage() {
         checkAuth();
     }, [router, fetchUsers, fetchRoles]);
 
+    // Auto-refresh for Users and Customers every 10 minutes
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+
+        if (isAuthenticated && userRole?.toLowerCase() === 'admin') {
+            interval = setInterval(() => {
+                console.log('Auto-refreshing Users and Customers...');
+                fetchUsers();
+                fetchCustomers();
+            }, 600000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isAuthenticated, userRole, fetchUsers, fetchCustomers]);
+
     const handleLogout = () => {
         setIsLogoutModalOpen(true);
     };

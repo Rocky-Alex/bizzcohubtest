@@ -32,6 +32,9 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
             }
         };
         fetchStats();
+
+        const interval = setInterval(fetchStats, 600000); // 10 minutes
+        return () => clearInterval(interval);
     }, []);
 
     const renderTrend = (value: number) => {

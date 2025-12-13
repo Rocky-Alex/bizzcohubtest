@@ -32,6 +32,9 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
             }
         };
         fetchStats();
+
+        const interval = setInterval(fetchStats, 600000); // 10 minutes
+        return () => clearInterval(interval);
     }, []);
 
     const renderTrend = (value: number) => {
@@ -108,7 +111,7 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
                     </div>
                     <div className="stat-content">
                         <h3>Est. Value</h3>
-                        <p className="stat-value">${stats.totalValue.toLocaleString()}</p>
+                        <p className="stat-value">AED {stats.totalValue.toLocaleString()}</p>
                     </div>
                 </div>
             </div>

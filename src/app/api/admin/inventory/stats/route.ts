@@ -14,69 +14,68 @@ export async function GET() {
     try {
         const sql = getSql();
 
-        // Ensure tables exist? No, assuming products table exists now with new schema.
-        // We do NOT create tables here anymore to avoid overwriting schema.
+        // Check if products table exists
+        try {
+            await sql`SELECT 1 FROM products LIMIT 1`;
+        } catch (e) {
+            // If table doesn't exist, return empty stats
+            return NextResponse.json({
+                totalProducts: 0,
+                totalAccessories: 0,
+                lowStockItems: 0,
+                totalValue: 0,
+                trends: { products: 0, accessories: 0, stock: 0, value: 0 }
+            });
+        }
 
-        // Fetch Stats
-        // Parallel queries
-        const [productStats, accessoryStats, productTrends, accessoryTrends] = await Promise.all([
-            // 1. Current Product Stats
-            // Updated columns: stock_quantity, base_price
-            sql`SELECT COUNT(*) as count, SUM(stock_quantity * base_price) as value, SUM(CASE WHEN stock_quantity < 10 THEN 1 ELSE 0 END) as low_stock FROM products`,
+        // Define categories
+        const accessoryCategories = ['Accessories', 'Monitor', 'Component'];
+        // All others count as "Products" (Systems)
 
-            // 2. Current Accessory Stats (Assuming accessories table still uses old schema or needs update? 
-            // Let's assume accessories uses 'quantity' and 'price' if it wasn't migrated, 
-            // OR checks if table exists. For now, wrap in try/catch or assume it might fail if table missing)
-            // Ideally we check if table exists first.
-            sql`SELECT COUNT(*) as count, SUM(quantity * price) as value, SUM(CASE WHEN quantity < 10 THEN 1 ELSE 0 END) as low_stock FROM accessories`, // Keep old for accessories for now unless migrated
+        const stats = await sql`
+            SELECT 
+                -- Total Products (Systems)
+                COUNT(CASE WHEN category != ALL(${accessoryCategories}) THEN 1 END) as total_products,
+                
+                -- Total Accessories
+                COUNT(CASE WHEN category = ANY(${accessoryCategories}) THEN 1 END) as total_accessories,
+                
+                -- Low Stock (Global)
+                COUNT(CASE WHEN stock_quantity < 10 THEN 1 END) as low_stock,
+                
+                -- Total Value (Global: base_price * stock_quantity)
+                SUM(base_price * stock_quantity) as total_value,
 
-            // 3. Product Trends (vs last month)
-            // Updated column: date_added
-            sql`
-                SELECT 
-                    COUNT(*) as count,
-                    SUM(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) THEN 1 ELSE 0 END) as current_month_count,
-                    SUM(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') 
-                        AND date_added < date_trunc('month', CURRENT_DATE) THEN 1 ELSE 0 END) as prev_month_count
-                FROM products
-            `,
-            // 4. Accessory Trends
-            sql`
-                SELECT 
-                    COUNT(*) as count,
-                    SUM(CASE WHEN created_at >= date_trunc('month', CURRENT_DATE) THEN 1 ELSE 0 END) as current_month_count,
-                    SUM(CASE WHEN created_at >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') 
-                        AND created_at < date_trunc('month', CURRENT_DATE) THEN 1 ELSE 0 END) as prev_month_count
-                FROM accessories
-            `
-        ]);
+                -- Trends (Current Month vs Previous Month for creation)
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND category != ALL(${accessoryCategories}) THEN 1 END) as products_curr_month,
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND category != ALL(${accessoryCategories}) THEN 1 END) as products_prev_month,
+                
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND category = ANY(${accessoryCategories}) THEN 1 END) as accessories_curr_month,
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND category = ANY(${accessoryCategories}) THEN 1 END) as accessories_prev_month
 
-        const pStats = productStats[0];
-        const aStats = accessoryStats[0] || { count: 0, value: 0, low_stock: 0 }; // Handle missing table gracefully
-        const pTrends = productTrends[0];
-        const aTrends = accessoryTrends[0] || { current_month_count: 0, prev_month_count: 0 };
+            FROM products
+        `;
 
-        const totalProducts = Number(pStats.count) || 0;
-        const totalAccessories = Number(aStats.count) || 0;
-        const lowStockItems = (Number(pStats.low_stock) || 0) + (Number(aStats.low_stock) || 0);
-        const totalValue = (Number(pStats.value) || 0) + (Number(aStats.value) || 0);
+        const s = stats[0];
 
-        // Calculate Trends (Growth %)
+        // Helper for percentage growth
         const calcTrend = (curr: number, prev: number) => {
+            curr = Number(curr || 0);
+            prev = Number(prev || 0);
             if (prev === 0) return curr > 0 ? 100 : 0;
             return ((curr - prev) / prev) * 100;
         };
 
         const result = {
-            totalProducts,
-            totalAccessories,
-            lowStockItems,
-            totalValue,
+            totalProducts: Number(s.total_products || 0),
+            totalAccessories: Number(s.total_accessories || 0),
+            lowStockItems: Number(s.low_stock || 0),
+            totalValue: Number(s.total_value || 0),
             trends: {
-                products: calcTrend(Number(pTrends.current_month_count), Number(pTrends.prev_month_count)),
-                accessories: calcTrend(Number(aTrends.current_month_count), Number(aTrends.prev_month_count)),
-                stock: 0,
-                value: 0
+                products: calcTrend(s.products_curr_month, s.products_prev_month),
+                accessories: calcTrend(s.accessories_curr_month, s.accessories_prev_month),
+                stock: 0, // Placeholder
+                value: 0  // Placeholder
             }
         };
 
@@ -84,7 +83,6 @@ export async function GET() {
 
     } catch (error: any) {
         console.error('Error fetching inventory stats:', error);
-        // Return 0 stats on error instead of 500 to prevent dashboard crash
         return NextResponse.json({
             totalProducts: 0,
             totalAccessories: 0,

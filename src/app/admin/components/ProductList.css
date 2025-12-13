@@ -128,3 +128,36 @@
     background-color: #f3f4f6;
     color: #111827;
 }
+
+/* List Type Toggle Styles */
+.list-type-toggle {
+    display: flex;
+    background: #f3f4f6;
+    padding: 0.25rem;
+    border-radius: 8px;
+    gap: 0.5rem;
+}
+
+.list-toggle-btn {
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.list-toggle-btn:hover {
+    color: #4b5563;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.list-toggle-btn.active {
+    background: white;
+    color: #4f46e5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+}
