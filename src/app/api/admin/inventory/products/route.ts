@@ -234,6 +234,27 @@ export async function PUT(req: Request) {
         const ramVariantsJson = ramVariants ? JSON.stringify(ramVariants) : null;
         const storageVariantsJson = storageVariants ? JSON.stringify(storageVariants) : null;
 
+        // Ensure new columns exist (Simple auto-migration) - Same as POST
+        try {
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS type TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS ram_variants JSONB`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS storage_variants JSONB`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS model TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS series TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS processor_gen TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS processor_speed TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS ram_type TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS storage_type TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS graphics_card_type TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS screen_resolution TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS screen_resolution_pixel TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS wireless_type TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS operating_system TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS optical_drive TEXT`;
+        } catch (e) {
+            console.log('Migration note in PUT:', e);
+        }
+
         // Perform Update
         const result = await sql`
             UPDATE products SET

@@ -245,6 +245,37 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         initialData?.storage_variants || []
     );
 
+    // Color Variants State
+    const [colorVariants, setColorVariants] = useState<{ label: string; code: string }[]>(() => {
+        const initialColors = initialData?.colors || '';
+        try {
+            if (initialColors && initialColors.trim().startsWith('[')) {
+                return JSON.parse(initialColors);
+            }
+        } catch (e) { console.error('Error parsing colors JSON:', e); }
+
+        // Fallback for simple string
+        return initialColors ? initialColors.split(',').map((c: string, idx: number) => ({
+            label: c.trim(),
+            code: ['#C0C0C0', '#4A4A4A', '#000000', '#FFFFFF'][idx % 4] // Defaults
+        })) : [];
+    });
+
+    // Color Variant Handlers
+    const addColorVariant = () => {
+        setColorVariants([...colorVariants, { label: '', code: '#000000' }]);
+    };
+
+    const updateColorVariant = (index: number, field: 'label' | 'code', value: string) => {
+        const newVariants = [...colorVariants];
+        newVariants[index][field] = value;
+        setColorVariants(newVariants);
+    };
+
+    const removeColorVariant = (index: number) => {
+        setColorVariants(colorVariants.filter((_, i) => i !== index));
+    };
+
     // RAM Variant Handlers
     const addRamVariant = () => {
         setRamVariants([...ramVariants, { size: '', type: '', price: 0 }]);
@@ -421,6 +452,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                 id: initialData?.id,
                 ramVariants,
                 storageVariants,
+                colors: JSON.stringify(colorVariants), // Save colors as JSON
                 type: productType,
                 primaryImageUrl: finalUrls.length > 0 ? finalUrls[0] : formData.primaryImageUrl,
                 allImagesUrls: finalUrls
@@ -944,16 +976,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                         placeholder="Select Condition/Grade"
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label>Color</label>
-                                    <input
-                                        type="text"
-                                        name="colors"
-                                        value={formData.colors}
-                                        onChange={handleChange}
-                                        placeholder="e.g. Silver, Space Grey"
-                                    />
-                                </div>
+
                                 <div className="form-group">
                                     <label>Optical Drive Type</label>
                                     <SearchableDropdown
@@ -1110,6 +1133,63 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                 <button type="button" className="add-variant-btn" onClick={addStorageVariant}>
                                     <i className="fas fa-plus"></i>
                                     {storageVariants.length > 0 ? "Add Another Storage Variant" : "Add Storage Variant"}
+                                </button>
+                            </div>
+
+                            {/* Color Variants */}
+                            <div className="variant-group">
+                                <h4>Color Variants</h4>
+
+                                {colorVariants.map((variant, idx) => (
+                                    <div key={idx} className="variant-input-row relative">
+                                        <div className="form-group">
+                                            <label>Color Name</label>
+                                            <input
+                                                type="text"
+                                                value={variant.label}
+                                                onChange={(e) => updateColorVariant(idx, 'label', e.target.value)}
+                                                placeholder="e.g. Space Grey"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Color Code</label>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <input
+                                                    type="color"
+                                                    value={variant.code}
+                                                    onChange={(e) => updateColorVariant(idx, 'code', e.target.value)}
+                                                    style={{ width: '42px', height: '42px', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={variant.code}
+                                                    onChange={(e) => updateColorVariant(idx, 'code', e.target.value)}
+                                                    placeholder="#000000"
+                                                    style={{ flex: 1 }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-group" style={{ opacity: 0 }}>
+                                            <label>Placeholder</label>
+                                            <input disabled />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>&nbsp;</label>
+                                            <button
+                                                type="button"
+                                                className="variant-remove-btn"
+                                                title="Remove Variant"
+                                                onClick={() => removeColorVariant(idx)}
+                                            >
+                                                <i className="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <button type="button" className="add-variant-btn" onClick={addColorVariant}>
+                                    <i className="fas fa-plus"></i>
+                                    {colorVariants.length > 0 ? "Add Another Color" : "Add Color Variant"}
                                 </button>
                             </div>
                         </div>

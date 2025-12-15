@@ -363,7 +363,7 @@ export default function AdminPage() {
         if (activeSection.startsWith("orders")) {
             return <ComingSoon title="Order Management" description="Advanced order processing and tracking features will be available here." />;
         }
-        if (activeSection.startsWith("products") && !['products-add', 'products-import', 'products-list'].includes(activeSection)) {
+        if (activeSection.startsWith("products") && !['products-add', 'products-import', 'products-list', 'products-edit'].includes(activeSection)) {
             return <ComingSoon title="Product Management" description="Centralized product catalog and inventory management is under development." />;
         }
         if (activeSection.startsWith("accessories")) {
