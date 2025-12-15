@@ -269,6 +269,20 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
     const updateColorVariant = (index: number, field: 'label' | 'code', value: string) => {
         const newVariants = [...colorVariants];
         newVariants[index][field] = value;
+
+        // Auto-populate hex code for known colors
+        const colorMap: Record<string, string> = {
+            'Space Grey': '#535150', 'Silver': '#C0C0C0', 'Black': '#000000', 'White': '#FFFFFF',
+            'Gold': '#FFD700', 'Rose Gold': '#B76E79', 'Midnight': '#191970', 'Starlight': '#F0EAD6',
+            'Blue': '#0000FF', 'Red': '#FF0000', 'Green': '#008000', 'Purple': '#800080',
+            'Yellow': '#FFFF00', 'Orange': '#FFA500', 'Pink': '#FFC0CB', 'Graphite': '#41424C',
+            'Sierra Blue': '#9AB5CE', 'Alpine Green': '#505E44'
+        };
+
+        if (field === 'label' && colorMap[value]) {
+            newVariants[index].code = colorMap[value];
+        }
+
         setColorVariants(newVariants);
     };
 
@@ -315,6 +329,23 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
             : (initialData?.primary_image_url ? [initialData.primary_image_url] : [])
     );
     const [isUploading, setIsUploading] = useState(false);
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    // Unified Status Modal State
+    const [statusModal, setStatusModal] = useState<{
+        isOpen: boolean;
+        type: 'success' | 'error';
+        title: string;
+        message: string;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        type: 'success',
+        title: '',
+        message: ''
+    });
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -373,18 +404,25 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                     uploadedUrls.push(data.url);
                 } else {
                     console.error('Failed to upload image:', file.name);
-                    alert(`Failed to upload ${file.name}`);
+                    setStatusModal({
+                        isOpen: true,
+                        type: 'error',
+                        title: 'Upload Failed',
+                        message: `Failed to upload ${file.name}`
+                    });
                 }
             } catch (error) {
                 console.error('Error uploading image:', error);
-                alert(`Error uploading ${file.name}`);
+                setStatusModal({
+                    isOpen: true,
+                    type: 'error',
+                    title: 'Upload Error',
+                    message: `Error uploading ${file.name}`
+                });
             }
         }
         return uploadedUrls;
     };
-
-    const [showClearConfirm, setShowClearConfirm] = useState(false);
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const executeClear = () => {
         setFormData({
@@ -468,18 +506,33 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
 
             if (response.ok) {
                 if (initialData) {
-                    alert('Product updated successfully!');
-                    onSuccess();
+                    setStatusModal({
+                        isOpen: true,
+                        type: 'success',
+                        title: 'Success!',
+                        message: 'Product updated successfully!',
+                        onConfirm: () => onSuccess()
+                    });
                 } else {
                     setShowSuccessModal(true);
                 }
             } else {
                 const error = await response.json();
-                alert(`Failed to ${initialData ? 'update' : 'create'} product: ` + error.error);
+                setStatusModal({
+                    isOpen: true,
+                    type: 'error',
+                    title: 'Error',
+                    message: `Failed to ${initialData ? 'update' : 'create'} product: ${error.error}`
+                });
             }
         } catch (error) {
             console.error('Error saving product:', error);
-            alert('An error occurred while saving the product.');
+            setStatusModal({
+                isOpen: true,
+                type: 'error',
+                title: 'Error',
+                message: 'An error occurred while saving the product.'
+            });
         } finally {
             setIsUploading(false);
         }
@@ -1144,11 +1197,17 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                     <div key={idx} className="variant-input-row relative">
                                         <div className="form-group">
                                             <label>Color Name</label>
-                                            <input
-                                                type="text"
+
+                                            <SearchableDropdown
+                                                name={`colorLabel-${idx}`}
                                                 value={variant.label}
                                                 onChange={(e) => updateColorVariant(idx, 'label', e.target.value)}
-                                                placeholder="e.g. Space Grey"
+                                                options={[
+                                                    'Space Grey', 'Silver', 'Black', 'White', 'Gold', 'Rose Gold',
+                                                    'Midnight', 'Starlight', 'Blue', 'Red', 'Green', 'Purple',
+                                                    'Yellow', 'Orange', 'Pink', 'Graphite', 'Sierra Blue', 'Alpine Green'
+                                                ]}
+                                                placeholder="Select or Type Color"
                                             />
                                         </div>
                                         <div className="form-group">
@@ -1270,6 +1329,35 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                         }}
                                     >
                                         OK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Unified Status Modal (Error / Custom Success) */}
+                {
+                    statusModal.isOpen && (
+                        <div className="modal-overlay" onClick={() => !statusModal.type.includes('error') && setStatusModal(prev => ({ ...prev, isOpen: false }))}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <div className={`modal-icon ${statusModal.type === 'success' ? 'success' : ''}`}
+                                    style={statusModal.type === 'error' ? { background: '#fee2e2', color: '#ef4444' } : {}}>
+                                    <i className={`fas ${statusModal.type === 'success' ? 'fa-check' : 'fa-times'}`}></i>
+                                </div>
+                                <h3 className="modal-title">{statusModal.title}</h3>
+                                <p className="modal-message">
+                                    {statusModal.message}
+                                </p>
+                                <div className="modal-actions">
+                                    <button
+                                        className={statusModal.type === 'success' ? "btn-confirm-success" : "btn-confirm-danger"}
+                                        onClick={() => {
+                                            setStatusModal(prev => ({ ...prev, isOpen: false }));
+                                            if (statusModal.onConfirm) statusModal.onConfirm();
+                                        }}
+                                    >
+                                        {statusModal.type === 'success' ? 'OK' : 'Close'}
                                     </button>
                                 </div>
                             </div>
