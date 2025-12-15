@@ -61,16 +61,19 @@
     flex-direction: column;
     gap: 0.5rem;
     min-width: 140px;
-    /* Increased width to ensure space for scrollbar + gap + thumbs */
-    height: 535px;
-    /* Fixed height to match main image */
+
+    /* Exact height for 5 items (100px * 5 + 0.5rem * 4 gaps) */
+    height: 532px !important;
+    max-height: 532px !important;
+
+    /* Prevent flex expansion */
+    flex: 0 0 532px;
+
     overflow-y: scroll;
-    /* Force scrollbar to always appear */
     padding-left: 10px;
-    /* Space for scrollbar */
     padding-right: 10px;
     direction: rtl;
-    /* Move scrollbar to left */
+    /* Scrollbar on left */
 
     /* Firefox */
     scrollbar-width: thin;
