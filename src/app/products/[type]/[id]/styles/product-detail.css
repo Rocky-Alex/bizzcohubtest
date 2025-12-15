@@ -60,19 +60,21 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    min-width: 140px;
 
-    /* Height for 5 items (approx 535px to safe-guard borders/gaps) */
-    max-height: 535px;
-    height: auto;
+    /* Strict dimensions as requested: 531px height */
+    height: 531px !important;
+    max-height: 531px !important;
 
-    /* Prevent shrinking */
+    /* Width sufficient for items + scrollbar */
+    min-width: 130px;
+
+    /* Prevent container shrinking */
     flex-shrink: 0;
 
     overflow-y: auto;
-    /* Scroll only if needed */
-    padding-left: 10px;
-    padding-right: 10px;
+    /* Scroller if > 5-6 items */
+    padding-left: 5px;
+    padding-right: 5px;
     direction: rtl;
     /* Scrollbar on left */
 
@@ -89,25 +91,20 @@
 /* Custom Scrollbar - Webkit */
 .thumbnail-strip::-webkit-scrollbar {
     width: 20px;
-    /* Wider to match design */
     background: transparent;
 }
 
 .thumbnail-strip::-webkit-scrollbar-track {
     background: #ffffff;
     border: 1px solid #777;
-    /* Visible border like the image */
     border-radius: 10px;
-    /* Fully rounded ends */
     margin: 20px 0;
-    /* Space for buttons */
 }
 
 .thumbnail-strip::-webkit-scrollbar-thumb {
     background-color: #cccccc;
     border-radius: 10px;
     border: 4px solid #ffffff;
-    /* Padding effect */
     min-height: 40px;
 }
 
@@ -138,8 +135,13 @@
 }
 
 .thumbnail-item {
+    /* Fixed Size standard */
     width: 100px;
     height: 100px;
+
+    /* IMPORTANT: Do not shrink */
+    flex-shrink: 0;
+
     border: 1px solid #e5e7eb;
     /* Visible outline */
     border-radius: 8px;
@@ -166,8 +168,10 @@
     /* Added outline */
     border-radius: 12px;
     overflow: hidden;
-    height: 535px;
-    /* Reduced height */
+    /* Fixed height as requested */
+    height: 531px;
+    min-height: 531px;
+    max-height: 531px;
     display: flex;
     align-items: center;
     justify-content: center;
