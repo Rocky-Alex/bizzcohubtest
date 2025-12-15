@@ -61,13 +61,16 @@
     flex-direction: column;
     gap: 0.5rem;
     min-width: 100px;
-    /* Adjusted to match item width */
     max-height: 535px;
-    /* Fits approx 5 images */
+    /* Ensures scroll after ~5 images */
     overflow-y: auto;
-    /* Enable vertical scroll */
     padding-right: 5px;
-    /* Avoid scrollbar overlap */
+
+    /* Ensure scrollbar visibility logic matches user request */
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: #888 #f1f1f1;
+    /* Firefox */
 }
 
 /* Custom Scrollbar for thumbnails */
@@ -81,12 +84,12 @@
 }
 
 .thumbnail-strip::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: #888;
     border-radius: 4px;
 }
 
 .thumbnail-strip::-webkit-scrollbar-thumb:hover {
-    background: #888;
+    background: #555;
 }
 
 .thumbnail-item {
