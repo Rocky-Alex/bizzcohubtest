@@ -1,7 +1,299 @@
 .product-list-container {
     padding: 2rem;
-    background-color: #f9fafb;
+    background-color: #f8fafc;
+    /* Lighter, cooler gray */
     min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.product-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.product-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+}
+
+.product-header .header-actions {
+    display: flex;
+    gap: 1rem;
+    justify-self: end;
+}
+
+.product-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 1rem;
+    border-radius: 16px;
+    /* softer text-lg radius */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.product-table-wrapper {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    /* For rounded corners */
+}
+
+/* Custom Scrollbar for the table wrapper */
+.product-table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.product-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.product-table-wrapper::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: separate;
+    /* Allows border-radius on rows if needed, but we use it for spacing */
+    border-spacing: 0;
+}
+
+.product-table th {
+    text-align: left;
+    padding: 1.25rem 1.5rem;
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.product-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.875rem;
+    vertical-align: middle;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+    /* Prevent wrapping */
+}
+
+.product-table tr:last-child td {
+    border-bottom: none;
+}
+
+.product-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Image & Name */
+.product-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.product-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+.product-name h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.product-name span {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-family: monospace;
+    /* For SKU */
+}
+
+/* Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.status-badge.in-stock {
+    background-color: #dcfce7;
+    color: #15803d;
+    /* Green-700 */
+}
+
+.status-badge.low-stock {
+    background-color: #fef9c3;
+    color: #a16207;
+    /* Yellow-700 */
+}
+
+.status-badge.out-of-stock {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    /* Red-700 */
+}
+
+/* Feature Badges (New, Best Seller) */
+.feature-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.feature-badge.best-seller {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.feature-badge.new {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #0369a1;
+    border: 1px solid #7dd3fc;
+}
+
+.feature-badge.standard {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Pricing Cell Styling */
+.price-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.price-current {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.price-original {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+.discount-tag {
+    display: inline-flex;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #ef4444;
+    background: #fef2f2;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    align-self: flex-start;
+}
+
+/* Action Buttons */
+.action-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.action-btn.delete:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+/* List Type Toggle Styles */
+.list-type-toggle {
+    display: flex;
+    background: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: 10px;
+    gap: 0.25rem;
+}
+
+.list-toggle-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.list-toggle-btn:hover {
+    color: #334155;
+}
+
+.list-toggle-btn.active {
+    background: white;
+    color: #4f46e5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-row-anim {
+    animation: fadeIn 0.4s ease-out forwards;
 }
 
 .product-header {
@@ -12,9 +304,10 @@
 }
 
 .product-header h2 {
-    font-size: 1.8rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    color: #111827;
+    color: #0f172a;
+    letter-spacing: -0.025em;
 }
 
 .product-header .header-actions {
@@ -28,8 +321,10 @@
     align-items: center;
     background: white;
     padding: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    /* softer text-lg radius */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
@@ -37,34 +332,65 @@
 
 .product-table-wrapper {
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+    border: 1px solid #f1f5f9;
     overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    /* For rounded corners */
+}
+
+/* Custom Scrollbar for the table wrapper */
+.product-table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.product-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.product-table-wrapper::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
 }
 
 .product-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    /* Allows border-radius on rows if needed, but we use it for spacing */
+    border-spacing: 0;
 }
 
 .product-table th {
     text-align: left;
-    padding: 1rem 1.5rem;
-    background-color: #f9fafb;
-    color: #4b5563;
+    padding: 1.25rem 1.5rem;
+    background-color: #f8fafc;
+    color: #64748b;
     font-weight: 600;
-    font-size: 0.875rem;
-    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
 }
 
 .product-table td {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    color: #1f2937;
-    font-size: 0.9rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.875rem;
     vertical-align: middle;
+    transition: background-color 0.15s ease;
 }
 
+.product-table tr:last-child td {
+    border-bottom: none;
+}
+
+.product-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Image & Name */
 .product-info {
     display: flex;
     align-items: center;
@@ -72,92 +398,187 @@
 }
 
 .product-thumb {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
     object-fit: cover;
-    background-color: #f3f4f6;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
 }
 
 .product-name h4 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
-    color: #111827;
+    color: #0f172a;
 }
 
 .product-name span {
-    font-size: 0.8rem;
-    color: #6b7280;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-family: monospace;
+    /* For SKU */
 }
 
+/* Badges */
 .status-badge {
+    display: inline-flex;
+    align-items: center;
     padding: 0.25rem 0.75rem;
-    border-radius: 999px;
+    border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
+    line-height: 1;
 }
 
 .status-badge.in-stock {
     background-color: #dcfce7;
-    color: #166534;
+    color: #15803d;
+    /* Green-700 */
 }
 
 .status-badge.low-stock {
     background-color: #fef9c3;
-    color: #854d0e;
+    color: #a16207;
+    /* Yellow-700 */
 }
 
 .status-badge.out-of-stock {
     background-color: #fee2e2;
-    color: #991b1b;
+    color: #b91c1c;
+    /* Red-700 */
 }
 
-.action-btn {
-    background: none;
-    border: none;
-    color: #6b7280;
-    cursor: pointer;
-    font-size: 1.1rem;
-    padding: 0.5rem;
+/* Feature Badges (New, Best Seller) */
+.feature-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
     border-radius: 6px;
-    transition: all 0.2s;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.feature-badge.best-seller {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.feature-badge.new {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #0369a1;
+    border: 1px solid #7dd3fc;
+}
+
+.feature-badge.standard {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Pricing Cell Styling */
+.price-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.price-current {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.price-original {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+.discount-tag {
+    display: inline-flex;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #ef4444;
+    background: #fef2f2;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    align-self: flex-start;
+}
+
+/* Action Buttons */
+.action-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .action-btn:hover {
-    background-color: #f3f4f6;
-    color: #111827;
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.action-btn.delete:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
 }
 
 /* List Type Toggle Styles */
 .list-type-toggle {
     display: flex;
-    background: #f3f4f6;
+    background: #f1f5f9;
     padding: 0.25rem;
-    border-radius: 8px;
-    gap: 0.5rem;
+    border-radius: 10px;
+    gap: 0.25rem;
 }
 
 .list-toggle-btn {
-    padding: 0.4rem 1rem;
-    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     border: none;
     background: transparent;
-    color: #6b7280;
+    color: #64748b;
     transition: all 0.2s ease;
 }
 
 .list-toggle-btn:hover {
-    color: #4b5563;
-    background: rgba(0, 0, 0, 0.03);
+    color: #334155;
 }
 
 .list-toggle-btn.active {
     background: white;
     color: #4f46e5;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-row-anim {
+    animation: fadeIn 0.4s ease-out forwards;
 }

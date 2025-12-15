@@ -57,6 +57,8 @@ export default function AdminPage() {
     const [transactions, setTransactions] = useState(initialTransactions);
     const [users, setUsers] = useState(initialUsers);
 
+    const [productToEdit, setProductToEdit] = useState<any>(null);
+
     // --- generic Handlers ---
     const fetchCustomers = useCallback(async () => {
         try {
@@ -459,8 +461,26 @@ export default function AdminPage() {
                     onCancel={() => setActiveSection('inventory-dashboard')}
                     onSuccess={() => setActiveSection('inventory-dashboard')}
                 />;
+            case "products-edit":
+                return <AddProduct
+                    initialData={productToEdit}
+                    onCancel={() => {
+                        setProductToEdit(null);
+                        setActiveSection('products-list');
+                    }}
+                    onSuccess={() => {
+                        setProductToEdit(null);
+                        setActiveSection('products-list');
+                    }}
+                />;
             case "products-list":
-                return <ProductList setActiveSection={setActiveSection} />;
+                return <ProductList
+                    setActiveSection={setActiveSection}
+                    onEdit={(product: any) => {
+                        setProductToEdit(product);
+                        setActiveSection('products-edit');
+                    }}
+                />;
             case "products-import":
                 return <ImportProducts
                     onCancel={() => setActiveSection('inventory-dashboard')}

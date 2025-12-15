@@ -3,6 +3,7 @@ import './ProductList.css';
 
 interface ProductListProps {
     setActiveSection: (section: string) => void;
+    onEdit?: (product: Product) => void;
 }
 
 interface Product {
@@ -30,7 +31,7 @@ interface Product {
     storage_variants?: any[]; // JSON array
 }
 
-export default function ProductList({ setActiveSection }: ProductListProps) {
+export default function ProductList({ setActiveSection, onEdit }: ProductListProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -60,6 +61,26 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
         }
     };
 
+    const handleDelete = async (productId: string) => {
+        if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+            try {
+                const response = await fetch(`/api/admin/inventory/products?id=${productId}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    setProducts(prev => prev.filter(p => p.id !== productId));
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to delete product: ${error.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                alert('An error occurred while deleting the product.');
+            }
+        }
+    };
+
     const getStockStatus = (qty: number) => {
         if (qty <= 0) return <span className="status-badge out-of-stock">Out of Stock</span>;
         if (qty < 10) return <span className="status-badge low-stock">Low Stock</span>;
@@ -85,22 +106,22 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
     return (
         <div className="product-list-container">
             <div className="product-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                <div>
                     <h2>Product List</h2>
-                    <div className="list-type-toggle">
-                        <button
-                            className={`list-toggle-btn ${viewMode === 'mini' ? 'active' : ''}`}
-                            onClick={() => setViewMode('mini')}
-                        >
-                            Mini View
-                        </button>
-                        <button
-                            className={`list-toggle-btn ${viewMode === 'detailed' ? 'active' : ''}`}
-                            onClick={() => setViewMode('detailed')}
-                        >
-                            Detailed View
-                        </button>
-                    </div>
+                </div>
+                <div className="list-type-toggle">
+                    <button
+                        className={`list-toggle-btn ${viewMode === 'mini' ? 'active' : ''}`}
+                        onClick={() => setViewMode('mini')}
+                    >
+                        Mini View
+                    </button>
+                    <button
+                        className={`list-toggle-btn ${viewMode === 'detailed' ? 'active' : ''}`}
+                        onClick={() => setViewMode('detailed')}
+                    >
+                        Detailed View
+                    </button>
                 </div>
                 <div className="header-actions">
                     <button className="btn-primary" onClick={() => setActiveSection('products-add')}>
@@ -110,51 +131,50 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
             </div>
 
             <div className="product-toolbar">
-                <div className="search-box-wrapper" style={{ display: 'flex', alignItems: 'center', background: '#f3f4f6', padding: '0.5rem 1rem', borderRadius: '8px', minWidth: '300px' }}>
-                    <i className="fas fa-search" style={{ color: '#9ca3af', marginRight: '0.5rem' }}></i>
+                <div className="search-box-wrapper" style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '0.6rem 1rem', borderRadius: '10px', minWidth: '320px', border: '1px solid #e2e8f0' }}>
+                    <i className="fas fa-search" style={{ color: '#94a3b8', marginRight: '0.75rem' }}></i>
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder="Search products by name, code..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem' }}
+                        style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.95rem', color: '#334155' }}
                     />
                 </div>
-                <button className="btn btn-secondary" onClick={fetchProducts}>
+                <button className="btn btn-secondary" onClick={fetchProducts} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500 }}>
                     <i className="fas fa-sync-alt"></i> Refresh
                 </button>
             </div>
 
             <div className="product-table-wrapper" style={{ overflowX: 'auto', maxWidth: '100%' }}>
                 {isLoading ? (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                    <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
                         <i className="fas fa-spinner fa-spin fa-2x"></i>
-                        <p style={{ marginTop: '1rem' }}>Loading products...</p>
+                        <p style={{ marginTop: '1rem', fontWeight: 500 }}>Loading inventory data...</p>
                     </div>
                 ) : (
-                    <table className="product-table" style={viewMode === 'detailed' ? { minWidth: '2500px' } : {}}>
+                    <table className="product-table" style={viewMode === 'detailed' ? { minWidth: '2200px' } : {}}>
                         <thead>
                             {viewMode === 'mini' ? (
                                 <tr>
-                                    <th>Product</th>
+                                    <th style={{ width: '300px' }}>Product</th>
                                     <th>Category</th>
-                                    <th>Price</th>
+                                    <th>Pricing</th>
                                     <th>Stock</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <th style={{ textAlign: 'right' }}>Actions</th>
                                 </tr>
                             ) : (
                                 <tr>
                                     {/* 1-5 */}
-                                    <th style={{ width: '80px' }}>Image</th>
-                                    <th>Product Name</th>
+                                    <th style={{ width: '70px', textAlign: 'center' }}>Img</th>
+                                    <th style={{ minWidth: '200px' }}>Product Name</th>
                                     <th>SKU</th>
                                     <th>Brand</th>
                                     <th>Category</th>
 
                                     {/* 6-9 */}
-                                    {/* 6-9 */}
-                                    <th>Pricing</th>
+                                    <th style={{ minWidth: '150px' }}>Pricing</th>
                                     <th>Stock</th>
 
                                     {/* 10-11 */}
@@ -163,8 +183,8 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
 
                                     {/* 12-14 (Core) */}
                                     <th>Processor</th>
-                                    <th>RAM (Incl)</th>
-                                    <th>Storage (Incl)</th>
+                                    <th>RAM</th>
+                                    <th>Storage</th>
 
                                     {/* 15-18 (Display/Gfx) */}
                                     <th>Graphics</th>
@@ -173,23 +193,23 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
                                     <th>Colors</th>
 
                                     {/* 19-21 (RAM Variants) */}
-                                    <th>RAM Var. (Size & Type)</th>
-                                    <th>RAM Var. Price</th>
+                                    <th>RAM Var.</th>
+                                    <th>RAM Price</th>
 
                                     {/* 22-24 (Storage Variants) */}
-                                    <th>Sto. Var. (Size & Type)</th>
-                                    <th>Sto. Var. Price</th>
+                                    <th>Sto. Var.</th>
+                                    <th>Sto. Price</th>
 
                                     {/* 25 */}
-                                    <th style={{ minWidth: '200px' }}>Key Features</th>
-                                    <th style={{ position: 'sticky', right: 0, background: '#f9fafb', zIndex: 10 }}>Actions</th>
+                                    <th style={{ minWidth: '200px' }}>Features</th>
+                                    <th style={{ position: 'sticky', right: 0, background: '#f8fafc', zIndex: 10, textAlign: 'center', borderLeft: '1px solid #e2e8f0', boxShadow: '-4px 0 8px -4px rgba(0,0,0,0.05)' }}>Actions</th>
                                 </tr>
                             )}
                         </thead>
                         <tbody>
                             {filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
-                                    <tr key={product.id}>
+                                filteredProducts.map((product, index) => (
+                                    <tr key={product.id} className="product-row-anim" style={{ animationDelay: `${index * 0.05}s` }}>
                                         {viewMode === 'mini' ? (
                                             <>
                                                 <td>
@@ -198,7 +218,7 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
                                                             src={product.primary_image_url || '/placeholder.png'}
                                                             alt={product.product_name}
                                                             className="product-thumb"
-                                                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40'; }}
+                                                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48?text=Img'; }}
                                                         />
                                                         <div className="product-name">
                                                             <h4>{product.product_name}</h4>
@@ -206,71 +226,99 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>{product.category}</td>
-                                                <td>AED {product.offer_price || product.base_price}</td>
-                                                <td>{product.stock_quantity}</td>
-                                                <td>{getStockStatus(product.stock_quantity)}</td>
+                                                <td><span style={{ fontWeight: 500, color: '#475569' }}>{product.category}</span></td>
                                                 <td>
-                                                    <button className="action-btn" title="Edit">
-                                                        <i className="fas fa-edit"></i>
-                                                    </button>
-                                                    <button className="action-btn" style={{ color: '#ef4444' }} title="Delete">
-                                                        <i className="fas fa-trash-alt"></i>
-                                                    </button>
+                                                    <div className="price-cell">
+                                                        <span className="price-current">AED {Number(product.offer_price || product.base_price).toLocaleString()}</span>
+                                                        {product.offer_price && Number(product.offer_price) < Number(product.base_price) && (
+                                                            <span className="price-original">AED {Number(product.base_price).toLocaleString()}</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td><span style={{ fontWeight: 600, color: '#334155' }}>{product.stock_quantity}</span></td>
+                                                <td>{getStockStatus(product.stock_quantity)}</td>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                        <button className="action-btn" title="Edit" onClick={() => onEdit && onEdit(product)}>
+                                                            <i className="fas fa-pencil-alt"></i>
+                                                        </button>
+                                                        <button className="action-btn delete" title="Delete" onClick={() => handleDelete(product.id)}>
+                                                            <i className="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </>
                                         ) : (
                                             <>
                                                 {/* 1. Image */}
-                                                <td>
+                                                <td style={{ textAlign: 'center' }}>
                                                     <img
                                                         src={product.primary_image_url || '/placeholder.png'}
                                                         alt="Img"
                                                         className="product-thumb"
-                                                        style={{ width: '50px', height: '50px' }}
-                                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40'; }}
+                                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48?text=Img'; }}
                                                     />
                                                 </td>
                                                 {/* 2. Name */}
-                                                <td><span style={{ fontWeight: 600 }}>{product.product_name}</span></td>
+                                                <td>
+                                                    <div className="product-name">
+                                                        <h4>{product.product_name}</h4>
+                                                    </div>
+                                                </td>
                                                 {/* 3. SKU */}
-                                                <td style={{ fontSize: '0.85rem', color: '#6b7280' }}>{product.product_code}</td>
+                                                <td><span style={{ fontFamily: 'monospace', color: '#64748b', fontSize: '0.8rem' }}>{product.product_code}</span></td>
                                                 {/* 4. Brand */}
-                                                <td>{product.brand}</td>
+                                                <td><span style={{ fontWeight: 500 }}>{product.brand}</span></td>
                                                 {/* 5. Category */}
                                                 <td>{product.category}</td>
 
                                                 {/* 6. Pricing Merged */}
                                                 <td>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', gap: '2px' }}>
-                                                        <div>Base Price: {product.base_price} AED</div>
-                                                        <div style={{ color: '#16a34a', fontWeight: 600 }}>offer price : {product.offer_price} AED</div>
-                                                        <div style={{ color: '#ef4444', fontWeight: 600 }}>discount :{product.discount_percent}%</div>
+                                                    <div className="price-cell">
+                                                        <span className="price-current">AED {Number(product.offer_price || product.base_price).toLocaleString()}</span>
+                                                        {product.offer_price && Number(product.offer_price) < Number(product.base_price) && (
+                                                            <>
+                                                                <span className="price-original">AED {Number(product.base_price).toLocaleString()}</span>
+                                                                <span className="discount-tag">-{product.discount_percent}%</span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 {/* 9. Stock */}
-                                                <td>{product.stock_quantity}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        <span style={{ fontWeight: 600 }}>{product.stock_quantity}</span>
+                                                        {getStockStatus(product.stock_quantity)}
+                                                    </div>
+                                                </td>
 
                                                 {/* 10. Badge */}
-                                                <td>{product.badge || '-'}</td>
+                                                <td>
+                                                    {product.badge ? (
+                                                        <span className={`feature-badge ${product.badge.toLowerCase().replace(' ', '-') === 'best-seller' ? 'best-seller' : 'standard'}`}>
+                                                            {product.badge}
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{ color: '#cbd5e1' }}>-</span>
+                                                    )}
+                                                </td>
                                                 {/* 11. Condition */}
-                                                <td>{product.condition_status}</td>
+                                                <td>
+                                                    {product.condition_status === 'New' ? (
+                                                        <span className="feature-badge new">New</span>
+                                                    ) : (
+                                                        <span className="feature-badge standard">{product.condition_status}</span>
+                                                    )}
+                                                </td>
 
-                                                {/* 12. Processor */}
-                                                <td>{product.processor || '-'}</td>
-                                                {/* 13. RAM */}
-                                                <td>{product.ram || '-'}</td>
-                                                {/* 14. Storage */}
-                                                <td>{product.storage || '-'}</td>
-
-                                                {/* 15. Graphics */}
-                                                <td>{product.graphics_card || '-'}</td>
-                                                {/* 16. VRAM */}
-                                                <td>{product.graphics_storage || '-'}</td>
-                                                {/* 17. Screen */}
-                                                <td>{product.screen_size || '-'}</td>
-                                                {/* 18. Colors */}
-                                                <td>{product.colors || '-'}</td>
+                                                {/* 12-18 Specs */}
+                                                <td style={{ color: '#475569' }}>{product.processor || '-'}</td>
+                                                <td style={{ color: '#475569' }}>{product.ram || '-'}</td>
+                                                <td style={{ color: '#475569' }}>{product.storage || '-'}</td>
+                                                <td style={{ color: '#475569' }}>{product.graphics_card || '-'}</td>
+                                                <td style={{ color: '#475569' }}>{product.graphics_storage || '-'}</td>
+                                                <td style={{ color: '#475569' }}>{product.screen_size || '-'}</td>
+                                                <td style={{ color: '#475569' }}>{product.colors || '-'}</td>
 
                                                 {/* 19-21 RAM Variants */}
                                                 <td>{formatVariantList(product.ram_variants || [], 'size', 'type')}</td>
@@ -282,17 +330,17 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
 
                                                 {/* 25 Key Features */}
                                                 <td>
-                                                    <div style={{ maxHeight: '80px', overflowY: 'auto', fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>
-                                                        {product.features ? product.features.substring(0, 100) + (product.features.length > 100 ? '...' : '') : '-'}
+                                                    <div style={{ height: '40px', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.8rem', color: '#64748b', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }} title={product.features}>
+                                                        {product.features || '-'}
                                                     </div>
                                                 </td>
 
-                                                <td style={{ position: 'sticky', right: 0, background: 'white', borderLeft: '1px solid #e5e7eb' }}>
-                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                        <button className="action-btn" title="Edit">
-                                                            <i className="fas fa-edit"></i>
+                                                <td style={{ position: 'sticky', right: 0, background: 'white', borderLeft: '1px solid #f1f5f9', zIndex: 5, boxShadow: '-5px 0 10px -5px rgba(0,0,0,0.05)' }}>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                        <button className="action-btn" title="Edit" onClick={() => onEdit && onEdit(product)}>
+                                                            <i className="fas fa-pencil-alt"></i>
                                                         </button>
-                                                        <button className="action-btn" style={{ color: '#ef4444' }} title="Delete">
+                                                        <button className="action-btn delete" title="Delete" onClick={() => handleDelete(product.id)}>
                                                             <i className="fas fa-trash-alt"></i>
                                                         </button>
                                                     </div>
@@ -303,8 +351,11 @@ export default function ProductList({ setActiveSection }: ProductListProps) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={viewMode === 'mini' ? 6 : 21} style={{ textAlign: 'center', padding: '2rem' }}>
-                                        No products found.
+                                    <td colSpan={viewMode === 'mini' ? 6 : 25} style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                                            <i className="fas fa-box-open fa-3x" style={{ color: '#e2e8f0' }}></i>
+                                            <p>No products found matching your search.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}

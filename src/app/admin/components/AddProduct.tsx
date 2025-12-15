@@ -4,9 +4,16 @@ import './AddProduct.css';
 interface AddProductProps {
     onCancel: () => void;
     onSuccess: () => void;
+    initialData?: any; // Product to edit
 }
 
-// Helper Component for Searchable Dropdown
+// ... existing helper components ...
+
+
+
+
+
+
 const SearchableDropdown = ({
     name,
     value,
@@ -78,37 +85,165 @@ const SearchableDropdown = ({
     );
 };
 
-export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
-    const [productType, setProductType] = useState<'system' | 'accessory'>('system');
+// Helper Component for Multi-Select Dropdown
+const MultiSelectDropdown = ({
+    name,
+    value,
+    onChange,
+    options,
+    placeholder
+}: {
+    name: string;
+    value: string;
+    onChange: (e: { target: { name: string; value: string } }) => void;
+    options: string[];
+    placeholder?: string;
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+    React.useEffect(() => {
+        if (value) {
+            setSelectedItems(value.split(',').map(item => item.trim()).filter(Boolean));
+        } else {
+            setSelectedItems([]);
+        }
+    }, [value]);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const toggleItem = (option: string) => {
+        let newItems;
+        if (selectedItems.includes(option)) {
+            newItems = selectedItems.filter(item => item !== option);
+        } else {
+            newItems = [...selectedItems, option];
+        }
+        setSelectedItems(newItems);
+        onChange({ target: { name, value: newItems.join(', ') } });
+    };
+
+    return (
+        <div className="custom-combobox" ref={wrapperRef}>
+            <div
+                className="form-group input"
+                style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '0.75rem 1rem',
+                    minHeight: '42px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem',
+                    backgroundColor: '#fff'
+                }}
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                {selectedItems.length > 0 ? (
+                    selectedItems.map((item, idx) => (
+                        <span key={idx} style={{
+                            background: '#e0e7ff',
+                            color: '#4f46e5',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '0.85rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                        }}>
+                            {item}
+                            <i
+                                className="fas fa-times"
+                                style={{ cursor: 'pointer', fontSize: '0.8em' }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleItem(item);
+                                }}
+                            ></i>
+                        </span>
+                    ))
+                ) : (
+                    <span style={{ color: '#9ca3af' }}>{placeholder || 'Select items...'}</span>
+                )}
+            </div>
+            {isOpen && (
+                <ul className="combobox-dropdown" style={{ display: 'block' }}>
+                    {options.map((option, idx) => (
+                        <li
+                            key={idx}
+                            className={`combobox-item ${selectedItems.includes(option) ? 'active' : ''}`}
+                            onClick={() => toggleItem(option)}
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                        >
+                            {option}
+                            {selectedItems.includes(option) && <i className="fas fa-check"></i>}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+};
+
+export default function AddProduct({ onCancel, onSuccess, initialData }: AddProductProps) {
+    const [productType, setProductType] = useState<'system' | 'accessory'>(
+        initialData?.type === 'accessory' ? 'accessory' : 'system'
+    );
 
     // Form State
     const [formData, setFormData] = useState({
         // ...
         // (Retaining existing state and logic, just replacing the return block structure for Brand/Processor)
 
-        productName: '',
-        productCode: '',
-        brand: '',
-        category: '',
-        badge: '',
-        conditionStatus: 'New',
-        basePrice: 0.00,
-        offerPrice: 0.00,
-        stockQuantity: 0,
-        processor: '',
-        ram: '',
-        storage: '',
-        graphicsCard: '',
-        graphicsStorage: '',
-        screenSize: '',
-        colors: '',
-        features: '',
-        primaryImageUrl: ''
+        productName: initialData?.product_name || '',
+        productCode: initialData?.product_code || '',
+        brand: initialData?.brand || '',
+        model: initialData?.model || '',
+        series: initialData?.series || '',
+        category: initialData?.category || '',
+        badge: initialData?.badge || '',
+        conditionStatus: initialData?.condition_status || 'New',
+        basePrice: initialData?.base_price || 0.00,
+        offerPrice: initialData?.offer_price || 0.00,
+        stockQuantity: initialData?.stock_quantity || 0,
+        processorName: initialData?.processor || '',
+        processorGen: initialData?.processor_gen || '',
+        processorSpeed: initialData?.processor_speed || '',
+        ram: initialData?.ram || '',
+        ramType: initialData?.ram_type || '',
+        storage: initialData?.storage || '',
+        storageType: initialData?.storage_type || '',
+        graphicsCard: initialData?.graphics_card || '',
+        graphicsType: initialData?.graphics_card_type || '',
+        graphicsStorage: initialData?.graphics_storage || '',
+        screenSize: initialData?.screen_size || '',
+        screenResolution: initialData?.screen_resolution || '',
+        screenResolutionPixel: initialData?.screen_resolution_pixel || '',
+        wirelessType: initialData?.wireless_type || '',
+        operatingSystem: initialData?.operating_system || '',
+        opticalDrive: initialData?.optical_drive || '',
+        colors: initialData?.colors || '',
+        features: initialData?.features || '',
+        primaryImageUrl: initialData?.primary_image_url || ''
     });
 
     // Variants State
-    const [ramVariants, setRamVariants] = useState<{ size: string; type: string; price: number }[]>([]);
-    const [storageVariants, setStorageVariants] = useState<{ size: string; type: string; price: number }[]>([]);
+    const [ramVariants, setRamVariants] = useState<{ size: string; type: string; price: number }[]>(
+        initialData?.ram_variants || []
+    );
+    const [storageVariants, setStorageVariants] = useState<{ size: string; type: string; price: number }[]>(
+        initialData?.storage_variants || []
+    );
 
     // RAM Variant Handlers
     const addRamVariant = () => {
@@ -143,7 +278,11 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
     };
 
     const [files, setFiles] = useState<File[]>([]);
-    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>(
+        initialData?.all_images_urls
+            ? (Array.isArray(initialData.all_images_urls) ? initialData.all_images_urls : initialData.all_images_urls.split(','))
+            : (initialData?.primary_image_url ? [initialData.primary_image_url] : [])
+    );
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -166,10 +305,19 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
     };
 
     const removeFile = (index: number) => {
-        setFiles(prev => prev.filter((_, i) => i !== index));
+        const targetUrl = previewUrls[index];
+        const isNewFile = targetUrl && targetUrl.startsWith('blob:');
+
+        if (isNewFile) {
+            let blobIndex = 0;
+            for (let i = 0; i < index; i++) {
+                if (previewUrls[i].startsWith('blob:')) blobIndex++;
+            }
+            setFiles(prev => prev.filter((_, i) => i !== blobIndex));
+        }
+
         setPreviewUrls(prev => {
-            // Revoke object URL to avoid memory leaks
-            URL.revokeObjectURL(prev[index]);
+            if (isNewFile) URL.revokeObjectURL(prev[index]);
             return prev.filter((_, i) => i !== index);
         });
     };
@@ -212,18 +360,30 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
             productName: '',
             productCode: '',
             brand: '',
+            model: '',
+            series: '',
             category: '',
             badge: '',
             conditionStatus: 'New',
             basePrice: 0.00,
             offerPrice: 0.00,
             stockQuantity: 0,
-            processor: '',
+            processorName: '',
+            processorGen: '',
+            processorSpeed: '',
             ram: '',
+            ramType: '',
             storage: '',
+            storageType: '',
             graphicsCard: '',
+            graphicsType: '',
             graphicsStorage: '',
             screenSize: '',
+            screenResolution: '',
+            screenResolutionPixel: '',
+            wirelessType: '',
+            operatingSystem: '',
+            opticalDrive: '',
             colors: '',
             features: '',
             primaryImageUrl: ''
@@ -248,42 +408,46 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
         setIsUploading(true);
 
         try {
-            // 1. Upload Images First
-            const uploadedImageUrls = await uploadImages();
+            // 1. Upload Images (Only new ones)
+            const newUploadedUrls = await uploadImages();
 
-            // If user selected files but upload failed completely, warn them
-            if (files.length > 0 && uploadedImageUrls.length === 0) {
-                setIsUploading(false);
-                alert('Failed to upload images. Please try again.');
-                return;
-            }
+            // 2. Combine with existing images
+            const existingUrls = previewUrls.filter(u => !u.startsWith('blob:'));
+            const finalUrls = [...existingUrls, ...newUploadedUrls];
 
-            // 2. Prepare Payload
+            // 3. Prepare Payload
             const payload = {
                 ...formData,
+                id: initialData?.id,
                 ramVariants,
                 storageVariants,
-                primaryImageUrl: uploadedImageUrls.length > 0 ? uploadedImageUrls[0] : formData.primaryImageUrl,
-                allImagesUrls: uploadedImageUrls // Send all URLs to API
+                type: productType,
+                primaryImageUrl: finalUrls.length > 0 ? finalUrls[0] : formData.primaryImageUrl,
+                allImagesUrls: finalUrls
             };
 
-            // 3. Save Product
+            // 4. Save Product (POST or PUT)
+            const method = initialData ? 'PUT' : 'POST';
             const response = await fetch('/api/admin/inventory/products', {
-                method: 'POST',
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
             if (response.ok) {
-                setShowSuccessModal(true);
-                // onSuccess will be called when user closes modal
+                if (initialData) {
+                    alert('Product updated successfully!');
+                    onSuccess();
+                } else {
+                    setShowSuccessModal(true);
+                }
             } else {
                 const error = await response.json();
-                alert('Failed to create product: ' + error.error);
+                alert(`Failed to ${initialData ? 'update' : 'create'} product: ` + error.error);
             }
         } catch (error) {
-            console.error('Error creating product:', error);
-            alert('An error occurred while creating the product.');
+            console.error('Error saving product:', error);
+            alert('An error occurred while saving the product.');
         } finally {
             setIsUploading(false);
         }
@@ -301,7 +465,7 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
             <div className="add-product-header">
                 <h2>
                     <i className={productType === 'system' ? "fas fa-laptop" : "fas fa-headphones"}></i>
-                    {productType === 'system' ? 'Add New Laptop' : 'Add New Accessory'}
+                    {initialData ? 'Edit' : 'Add New'} {productType === 'system' ? 'Laptop' : 'Accessory'}
                 </h2>
                 <div className="product-type-toggle">
                     <button
@@ -325,6 +489,51 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
             </div>
 
             <form onSubmit={handleSubmit}>
+
+                {/* Product Images */}
+                <div className="form-section">
+                    <h3 className="form-section-title">
+                        <i className="fas fa-images"></i> Product Images
+                    </h3>
+
+                    <div className="form-group">
+                        <label>Product Images (First Image is Primary)</label>
+                        <div
+                            className="image-upload-area"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <i className="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload images</p>
+                            <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Supports .jpg, .png, .webp</span>
+                        </div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            multiple
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                        />
+
+                        {previewUrls.length > 0 && (
+                            <div className="image-previews">
+                                {previewUrls.map((url, index) => (
+                                    <div key={index} className="image-preview-card">
+                                        <img src={url} alt={`Preview ${index}`} />
+                                        {index === 0 && <span className="absolute top-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-br-md z-10 font-medium">Main</span>}
+                                        <button
+                                            type="button"
+                                            className="remove-btn"
+                                            onClick={() => removeFile(index)}
+                                        >
+                                            <i className="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 {/* Basic Info */}
                 <div className="form-section">
@@ -352,6 +561,26 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
                                 onChange={handleChange as any}
                                 options={['Apple', 'Dell', 'HP', 'Lenovo', 'Asus', 'Acer', 'Microsoft', 'Razer', 'MSI', 'Samsung', 'Sony']}
                                 placeholder="e.g. Dell, HP, Apple"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Model</label>
+                            <input
+                                type="text"
+                                name="model"
+                                value={formData.model}
+                                onChange={handleChange}
+                                placeholder="e.g. XPS 9510"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Series</label>
+                            <input
+                                type="text"
+                                name="series"
+                                value={formData.series}
+                                onChange={handleChange}
+                                placeholder="e.g. XPS, Latitude, Legion"
                             />
                         </div>
                         <div className="form-group">
@@ -421,16 +650,6 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Condition</label>
-                            <SearchableDropdown
-                                name="conditionStatus"
-                                value={formData.conditionStatus}
-                                onChange={handleChange as any}
-                                options={['New', 'Refurbished', 'Used']}
-                                placeholder="Select Condition"
-                            />
-                        </div>
-                        <div className="form-group">
                             <label>Badge</label>
                             <SearchableDropdown
                                 name="badge"
@@ -443,281 +662,461 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
                     </div>
                 </div>
 
-                {/* Specs - Only for Systems */}
-                {productType === 'system' && (
-                    <div className="form-section">
-                        <h3 className="form-section-title">
-                            <i className="fas fa-microchip"></i> Tech Specifications
-                        </h3>
-                        <div className="form-grid">
-                            <div className="form-group">
-                                <label>Processor</label>
-                                <SearchableDropdown
-                                    name="processor"
-                                    value={formData.processor}
-                                    onChange={handleChange as any}
-                                    options={[
-                                        'Intel Core i3', 'Intel Core i5', 'Intel Core i7', 'Intel Core i9',
-                                        'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'AMD Ryzen 9',
-                                        'Apple M1', 'Apple M2', 'Apple M3', 'Apple M1 Pro', 'Apple M1 Max',
-                                        'Apple M2 Pro', 'Apple M2 Max', 'Apple M3 Pro', 'Apple M3 Max'
-                                    ]}
-                                    placeholder="e.g. Intel Core i7"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>RAM (Included)</label>
-                                <SearchableDropdown
-                                    name="ram"
-                                    value={formData.ram}
-                                    onChange={handleChange as any}
-                                    options={['4GB', '8GB', '16GB', '32GB', '64GB', '128GB']}
-                                    placeholder="Select RAM"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Storage (Included)</label>
-                                <SearchableDropdown
-                                    name="storage"
-                                    value={formData.storage}
-                                    onChange={handleChange as any}
-                                    options={['256GB SSD', '512GB SSD', '1TB SSD', '2TB SSD', '4TB SSD', '1TB HDD']}
-                                    placeholder="Select Storage"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Graphics Card Name (Optional)</label>
-                                <SearchableDropdown
-                                    name="graphicsCard"
-                                    value={formData.graphicsCard}
-                                    onChange={handleChange as any}
-                                    options={[
-                                        'Integrated Graphics',
-                                        'Shared Graphics',
-                                        'Intel Iris Xe Graphics',
-                                        'Intel UHD Graphics',
-                                        'NVIDIA GeForce RTX 2050',
-                                        'NVIDIA GeForce RTX 3050',
-                                        'NVIDIA GeForce RTX 3060',
-                                        'NVIDIA GeForce RTX 4050',
-                                        'NVIDIA GeForce RTX 4060',
-                                        'NVIDIA GeForce RTX 4070',
-                                        'NVIDIA GeForce RTX 4080',
-                                        'NVIDIA GeForce RTX 4090'
-                                    ]}
-                                    placeholder="e.g. NVIDIA RTX 3050"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Graphics Memory (Optional)</label>
-                                <SearchableDropdown
-                                    name="graphicsStorage"
-                                    value={formData.graphicsStorage}
-                                    onChange={handleChange as any}
-                                    options={['2GB', '4GB', '6GB', '8GB', '10GB', '12GB', '16GB', '24GB']}
-                                    placeholder="Select VRAM"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Screen Size</label>
-                                <SearchableDropdown
-                                    name="screenSize"
-                                    value={formData.screenSize}
-                                    onChange={handleChange as any}
-                                    options={['13-inch', '14-inch', '15.6-inch', '16-inch', '17.3-inch', '24-inch (All-in-One)', '27-inch (All-in-One)']}
-                                    placeholder="Select Screen Size"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Colors</label>
-                                <input
-                                    type="text"
-                                    name="colors"
-                                    value={formData.colors}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Silver, Space Grey"
-                                />
+                {/* Processor Section - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-microchip"></i> Processor
+                            </h3>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Processor Name</label>
+                                    <SearchableDropdown
+                                        name="processorName"
+                                        value={formData.processorName}
+                                        onChange={handleChange as any}
+                                        options={[
+                                            'Intel Core i3', 'Intel Core i5', 'Intel Core i7', 'Intel Core i9',
+                                            'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'AMD Ryzen 9',
+                                            'Apple M1', 'Apple M2', 'Apple M3', 'Apple M1 Pro', 'Apple M1 Max',
+                                            'Apple M2 Pro', 'Apple M2 Max', 'Apple M3 Pro', 'Apple M3 Max'
+                                        ]}
+                                        placeholder="e.g. Intel Core i7"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Processor Generation</label>
+                                    <input
+                                        type="text"
+                                        name="processorGen"
+                                        value={formData.processorGen}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 12th Gen, 13th Gen"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Processor Speed</label>
+                                    <input
+                                        type="text"
+                                        name="processorSpeed"
+                                        value={formData.processorSpeed}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 3.5 GHz"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
+
+                {/* Memory Section - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-memory"></i> Memory (Included)
+                            </h3>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Memory Size</label>
+                                    <SearchableDropdown
+                                        name="ram"
+                                        value={formData.ram}
+                                        onChange={handleChange as any}
+                                        options={['4GB', '8GB', '16GB', '32GB', '64GB', '128GB']}
+                                        placeholder="Select RAM Size"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Memory Technology</label>
+                                    <SearchableDropdown
+                                        name="ramType"
+                                        value={formData.ramType as string}
+                                        onChange={handleChange as any}
+                                        options={['DDR4', 'DDR5', 'LPDDR4', 'LPDDR5', 'Unified Memory']}
+                                        placeholder="Select Technology"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Storage Section - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-hdd"></i> Storage (Included)
+                            </h3>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Storage Size</label>
+                                    <SearchableDropdown
+                                        name="storage"
+                                        value={formData.storage}
+                                        onChange={handleChange as any}
+                                        options={['256GB', '512GB', '1TB', '2TB', '4TB', '8TB']}
+                                        placeholder="Select Storage Size"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Storage Technology</label>
+                                    <SearchableDropdown
+                                        name="storageType"
+                                        value={formData.storageType as string}
+                                        onChange={handleChange as any}
+                                        options={['SSD', 'HDD', 'NVMe SSD', 'PCIe SSD', 'SATA SSD']}
+                                        placeholder="Select Technology"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Graphics Section - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-gamepad"></i> Graphics (GPU)
+                            </h3>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Graphics Chipset</label>
+                                    <SearchableDropdown
+                                        name="graphicsCard"
+                                        value={formData.graphicsCard}
+                                        onChange={handleChange as any}
+                                        options={[
+                                            'Integrated Graphics',
+                                            'Shared Graphics',
+                                            'Intel Iris Xe Graphics',
+                                            'Intel UHD Graphics',
+                                            'NVIDIA GeForce RTX 2050',
+                                            'NVIDIA GeForce RTX 3050',
+                                            'NVIDIA GeForce RTX 3060',
+                                            'NVIDIA GeForce RTX 4050',
+                                            'NVIDIA GeForce RTX 4060',
+                                            'NVIDIA GeForce RTX 4070',
+                                            'NVIDIA GeForce RTX 4080',
+                                            'NVIDIA GeForce RTX 4090'
+                                        ]}
+                                        placeholder="e.g. NVIDIA RTX 3050"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Graphics Card Type</label>
+                                    <SearchableDropdown
+                                        name="graphicsType"
+                                        value={formData.graphicsType as string}
+                                        onChange={handleChange as any}
+                                        options={['Integrated', 'Dedicated']}
+                                        placeholder="e.g. Dedicated"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Graphics Card Ram Size</label>
+                                    <SearchableDropdown
+                                        name="graphicsStorage"
+                                        value={formData.graphicsStorage}
+                                        onChange={handleChange as any}
+                                        options={['2GB', '4GB', '6GB', '8GB', '10GB', '12GB', '16GB', '24GB']}
+                                        placeholder="Select VRAM"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Display Section - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-desktop"></i> Display
+                            </h3>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Display Size</label>
+                                    <SearchableDropdown
+                                        name="screenSize"
+                                        value={formData.screenSize}
+                                        onChange={handleChange as any}
+                                        options={['13-inch', '14-inch', '15.6-inch', '16-inch', '17.3-inch', '24-inch (All-in-One)', '27-inch (All-in-One)']}
+                                        placeholder="Select Screen Size"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Screen Resolution</label>
+                                    <SearchableDropdown
+                                        name="screenResolution"
+                                        value={formData.screenResolution}
+                                        onChange={handleChange as any}
+                                        options={['HD (1366 x 768)', 'FHD (1920 x 1080)', 'QHD (2560 x 1440)', '4K UHD (3840 x 2160)', 'Retina', 'Liquid Retina', 'OLED']}
+                                        placeholder="Select Resolution"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Resolution Pixel</label>
+                                    <input
+                                        type="text"
+                                        name="screenResolutionPixel"
+                                        value={formData.screenResolutionPixel}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 1920 x 1080"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+
+
+                {/* Connectivity & OS Section - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="grid grid-cols-2 gap-6 mb-10">
+                            {/* Connectivity */}
+                            <div className="form-section" style={{ marginBottom: 0 }}>
+                                <h3 className="form-section-title">
+                                    <i className="fas fa-wifi"></i> Connectivity
+                                </h3>
+                                <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
+                                    <div className="form-group">
+                                        <label>Wireless Type</label>
+                                        <MultiSelectDropdown
+                                            name="wirelessType"
+                                            value={formData.wirelessType}
+                                            onChange={handleChange as any}
+                                            options={[
+                                                'Wi-Fi 7', 'Wi-Fi 6E', 'Wi-Fi 6', 'Wi-Fi 5',
+                                                'Bluetooth 5.4', 'Bluetooth 5.3', 'Bluetooth 5.2', 'Bluetooth 5.1', 'Bluetooth 5.0',
+                                                'NFC', '5G', '4G LTE', 'Ethernet (RJ-45)'
+                                            ]}
+                                            placeholder="Select Wireless Types"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Operating System */}
+                            <div className="form-section" style={{ marginBottom: 0 }}>
+                                <h3 className="form-section-title">
+                                    <i className="fab fa-windows"></i> Operating System
+                                </h3>
+                                <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
+                                    <div className="form-group">
+                                        <label>Operating System</label>
+                                        <SearchableDropdown
+                                            name="operatingSystem"
+                                            value={formData.operatingSystem}
+                                            onChange={handleChange as any}
+                                            options={['Windows 11 Home', 'Windows 11 Pro', 'Windows 10 Home', 'Windows 10 Pro', 'macOS', 'Chrome OS', 'Linux', 'Ubuntu', 'DOS']}
+                                            placeholder="Select OS"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Others Information Section - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-list"></i> Others Information
+                            </h3>
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>Condition / Grade</label>
+                                    <SearchableDropdown
+                                        name="conditionStatus"
+                                        value={formData.conditionStatus}
+                                        onChange={handleChange as any}
+                                        options={['New', 'Open Box', 'Refurbished (Grade A)', 'Refurbished (Grade B)', 'Refurbished (Grade C)', 'Used']}
+                                        placeholder="Select Condition/Grade"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Color</label>
+                                    <input
+                                        type="text"
+                                        name="colors"
+                                        value={formData.colors}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Silver, Space Grey"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Optical Drive Type</label>
+                                    <SearchableDropdown
+                                        name="opticalDrive"
+                                        value={formData.opticalDrive as string} // Assuming new field string
+                                        onChange={handleChange as any}
+                                        options={['None', 'DVD-RW', 'Blu-ray', 'CD-ROM']}
+                                        placeholder="Select Drive Type"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Specs - Only for Systems */}
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-microchip"></i> Tech Specifications
+                            </h3>
+                            <div className="form-grid">
+                                {/* Processor, Memory, Storage, Graphics, Display, Colors moved to their own sections */}
+                                <div className="form-group">
+                                    <label>Other Features</label>
+                                    <textarea
+                                        name="features"
+                                        value={formData.features}
+                                        onChange={handleChange}
+                                        placeholder="Enter other features or specifications..."
+                                        rows={4}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
 
                 {/* Variants - Only for Systems */}
-                {productType === 'system' && (
-                    <div className="form-section">
-                        <h3 className="form-section-title">
-                            <i className="fas fa-layer-group"></i> Configuration Variants
-                        </h3>
+                {
+                    productType === 'system' && (
+                        <div className="form-section">
+                            <h3 className="form-section-title">
+                                <i className="fas fa-layer-group"></i> Configuration Variants
+                            </h3>
 
-                        {/* RAM Variants */}
-                        <div className="variant-group">
-                            <h4>RAM Variants</h4>
+                            {/* RAM Variants */}
+                            <div className="variant-group">
+                                <h4>RAM Variants</h4>
 
-                            {ramVariants.map((variant, idx) => (
-                                <div key={idx} className="variant-input-row relative">
-                                    <div className="form-group">
-                                        <label>RAM Size</label>
-                                        <SearchableDropdown
-                                            name={`ramSize-${idx}`}
-                                            value={variant.size}
-                                            onChange={(e) => updateRamVariant(idx, 'size', e.target.value)}
-                                            options={['4GB', '8GB', '16GB', '32GB', '64GB', '128GB']}
-                                            placeholder="Size"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>RAM Type</label>
-                                        <SearchableDropdown
-                                            name={`ramType-${idx}`}
-                                            value={variant.type}
-                                            onChange={(e) => updateRamVariant(idx, 'type', e.target.value)}
-                                            options={['DDR4', 'DDR5', 'LPDDR4', 'LPDDR4X', 'LPDDR5', 'LPDDR5X', 'Unified Memory']}
-                                            placeholder="Type"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Variant Price (AED)</label>
-                                        <input
-                                            type="number"
-                                            value={variant.price || ''}
-                                            onChange={(e) => updateRamVariant(idx, 'price', parseFloat(e.target.value))}
-                                            placeholder="Price"
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>&nbsp;</label>
-                                        <button
-                                            type="button"
-                                            className="variant-remove-btn"
-                                            title="Remove Variant"
-                                            onClick={() => removeRamVariant(idx)}
-                                        >
-                                            <i className="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-
-                            <button type="button" className="add-variant-btn" onClick={addRamVariant}>
-                                <i className="fas fa-plus"></i>
-                                {ramVariants.length > 0 ? "Add Another RAM Variant" : "Add RAM Variant"}
-                            </button>
-                        </div>
-
-                        {/* Storage Variants */}
-                        <div className="variant-group">
-                            <h4>Storage Variants</h4>
-
-                            {storageVariants.map((variant, idx) => (
-                                <div key={idx} className="variant-input-row relative">
-                                    <div className="form-group">
-                                        <label>Storage Size</label>
-                                        <SearchableDropdown
-                                            name={`storageSize-${idx}`}
-                                            value={variant.size}
-                                            onChange={(e) => updateStorageVariant(idx, 'size', e.target.value)}
-                                            options={['256GB', '512GB', '1TB', '2TB', '4TB', '8TB']}
-                                            placeholder="Size"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Storage Type</label>
-                                        <SearchableDropdown
-                                            name={`storageType-${idx}`}
-                                            value={variant.type}
-                                            onChange={(e) => updateStorageVariant(idx, 'type', e.target.value)}
-                                            options={['SSD', 'HDD', 'NVMe SSD', 'M.2 SSD', 'SATA SSD']}
-                                            placeholder="Type"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Variant Price (AED)</label>
-                                        <input
-                                            type="number"
-                                            value={variant.price || ''}
-                                            onChange={(e) => updateStorageVariant(idx, 'price', parseFloat(e.target.value))}
-                                            placeholder="Price"
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>&nbsp;</label>
-                                        <button
-                                            type="button"
-                                            className="variant-remove-btn"
-                                            title="Remove Variant"
-                                            onClick={() => removeStorageVariant(idx)}
-                                        >
-                                            <i className="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-
-                            <button type="button" className="add-variant-btn" onClick={addStorageVariant}>
-                                <i className="fas fa-plus"></i>
-                                {storageVariants.length > 0 ? "Add Another Storage Variant" : "Add Storage Variant"}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Media Upload */}
-                <div className="form-section">
-                    <h3 className="form-section-title">
-                        <i className="fas fa-images"></i> Media & Details
-                    </h3>
-
-                    <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                        <label>Product Images (First Image is Primary)</label>
-                        <div
-                            className="image-upload-area"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <i className="fas fa-cloud-upload-alt"></i>
-                            <p>Click to upload images</p>
-                            <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Supports .jpg, .png, .webp</span>
-                        </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            multiple
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                        />
-
-                        {previewUrls.length > 0 && (
-                            <div className="image-previews">
-                                {previewUrls.map((url, index) => (
-                                    <div key={index} className="image-preview-card">
-                                        <img src={url} alt={`Preview ${index}`} />
-                                        {index === 0 && <span className="absolute top-0 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-br-md z-10 font-medium">Main</span>}
-                                        <button
-                                            type="button"
-                                            className="remove-btn"
-                                            onClick={() => removeFile(index)}
-                                        >
-                                            <i className="fas fa-times"></i>
-                                        </button>
+                                {ramVariants.map((variant, idx) => (
+                                    <div key={idx} className="variant-input-row relative">
+                                        <div className="form-group">
+                                            <label>RAM Size</label>
+                                            <SearchableDropdown
+                                                name={`ramSize-${idx}`}
+                                                value={variant.size}
+                                                onChange={(e) => updateRamVariant(idx, 'size', e.target.value)}
+                                                options={['4GB', '8GB', '16GB', '32GB', '64GB', '128GB']}
+                                                placeholder="Size"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>RAM Type</label>
+                                            <SearchableDropdown
+                                                name={`ramType-${idx}`}
+                                                value={variant.type}
+                                                onChange={(e) => updateRamVariant(idx, 'type', e.target.value)}
+                                                options={['DDR4', 'DDR5', 'LPDDR4', 'LPDDR4X', 'LPDDR5', 'LPDDR5X', 'Unified Memory']}
+                                                placeholder="Type"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Variant Price (AED)</label>
+                                            <input
+                                                type="number"
+                                                value={variant.price || ''}
+                                                onChange={(e) => updateRamVariant(idx, 'price', parseFloat(e.target.value))}
+                                                placeholder="Price"
+                                                min="0"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>&nbsp;</label>
+                                            <button
+                                                type="button"
+                                                className="variant-remove-btn"
+                                                title="Remove Variant"
+                                                onClick={() => removeRamVariant(idx)}
+                                            >
+                                                <i className="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
-                            </div>
-                        )}
-                    </div>
 
-                    <div className="form-group">
-                        <label>Key Features / Description</label>
-                        <textarea
-                            name="features"
-                            value={formData.features}
-                            onChange={handleChange}
-                            rows={4}
-                            placeholder="Detailed description of the product..."
-                        />
-                    </div>
-                </div>
+                                <button type="button" className="add-variant-btn" onClick={addRamVariant}>
+                                    <i className="fas fa-plus"></i>
+                                    {ramVariants.length > 0 ? "Add Another RAM Variant" : "Add RAM Variant"}
+                                </button>
+                            </div>
+
+                            {/* Storage Variants */}
+                            <div className="variant-group">
+                                <h4>Storage Variants</h4>
+
+                                {storageVariants.map((variant, idx) => (
+                                    <div key={idx} className="variant-input-row relative">
+                                        <div className="form-group">
+                                            <label>Storage Size</label>
+                                            <SearchableDropdown
+                                                name={`storageSize-${idx}`}
+                                                value={variant.size}
+                                                onChange={(e) => updateStorageVariant(idx, 'size', e.target.value)}
+                                                options={['256GB', '512GB', '1TB', '2TB', '4TB', '8TB']}
+                                                placeholder="Size"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Storage Type</label>
+                                            <SearchableDropdown
+                                                name={`storageType-${idx}`}
+                                                value={variant.type}
+                                                onChange={(e) => updateStorageVariant(idx, 'type', e.target.value)}
+                                                options={['SSD', 'HDD', 'NVMe SSD', 'M.2 SSD', 'SATA SSD']}
+                                                placeholder="Type"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Variant Price (AED)</label>
+                                            <input
+                                                type="number"
+                                                value={variant.price || ''}
+                                                onChange={(e) => updateStorageVariant(idx, 'price', parseFloat(e.target.value))}
+                                                placeholder="Price"
+                                                min="0"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>&nbsp;</label>
+                                            <button
+                                                type="button"
+                                                className="variant-remove-btn"
+                                                title="Remove Variant"
+                                                onClick={() => removeStorageVariant(idx)}
+                                            >
+                                                <i className="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <button type="button" className="add-variant-btn" onClick={addStorageVariant}>
+                                    <i className="fas fa-plus"></i>
+                                    {storageVariants.length > 0 ? "Add Another Storage Variant" : "Add Storage Variant"}
+                                </button>
+                            </div>
+                        </div>
+                    )
+                }
+
+
 
                 <div className="form-actions">
                     <button type="button" className="btn btn-clear" onClick={requestClear}>
@@ -740,60 +1139,64 @@ export default function AddProduct({ onCancel, onSuccess }: AddProductProps) {
                 </div>
 
                 {/* Custom Confirmation Modal */}
-                {showClearConfirm && (
-                    <div className="modal-overlay" onClick={() => setShowClearConfirm(false)}>
-                        <div className="modal-content" onClick={e => e.stopPropagation()}>
-                            <div className="modal-icon">
-                                <i className="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <h3 className="modal-title">Clear Form?</h3>
-                            <p className="modal-message">
-                                Are you sure you want to clear all data? This action cannot be undone.
-                            </p>
-                            <div className="modal-actions">
-                                <button
-                                    className="btn-cancel-modal"
-                                    onClick={() => setShowClearConfirm(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className="btn-confirm-danger"
-                                    onClick={executeClear}
-                                >
-                                    Yes, Clear All
-                                </button>
+                {
+                    showClearConfirm && (
+                        <div className="modal-overlay" onClick={() => setShowClearConfirm(false)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="modal-icon">
+                                    <i className="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <h3 className="modal-title">Clear Form?</h3>
+                                <p className="modal-message">
+                                    Are you sure you want to clear all data? This action cannot be undone.
+                                </p>
+                                <div className="modal-actions">
+                                    <button
+                                        className="btn-cancel-modal"
+                                        onClick={() => setShowClearConfirm(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        className="btn-confirm-danger"
+                                        onClick={executeClear}
+                                    >
+                                        Yes, Clear All
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* Success Modal */}
-                {showSuccessModal && (
-                    <div className="modal-overlay">
-                        <div className="modal-content" onClick={e => e.stopPropagation()}>
-                            <div className="modal-icon success">
-                                <i className="fas fa-check"></i>
-                            </div>
-                            <h3 className="modal-title">Success!</h3>
-                            <p className="modal-message">
-                                Product has been created successfully.
-                            </p>
-                            <div className="modal-actions">
-                                <button
-                                    className="btn-confirm-success"
-                                    onClick={() => {
-                                        setShowSuccessModal(false);
-                                        onSuccess();
-                                    }}
-                                >
-                                    OK
-                                </button>
+                {
+                    showSuccessModal && (
+                        <div className="modal-overlay">
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="modal-icon success">
+                                    <i className="fas fa-check"></i>
+                                </div>
+                                <h3 className="modal-title">Success!</h3>
+                                <p className="modal-message">
+                                    Product has been created successfully.
+                                </p>
+                                <div className="modal-actions">
+                                    <button
+                                        className="btn-confirm-success"
+                                        onClick={() => {
+                                            setShowSuccessModal(false);
+                                            onSuccess();
+                                        }}
+                                    >
+                                        OK
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </form>
-        </div>
+                    )
+                }
+            </form >
+        </div >
     );
 }

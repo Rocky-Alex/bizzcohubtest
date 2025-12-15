@@ -5,54 +5,6 @@ interface DashboardOverviewProps {
     laptops?: any[];
 }
 
-// --- Mock Data Generator ---
-// Helper to create consistent random data for dates
-const seedRandom = (seed: number) => {
-    const x = Math.sin(seed++) * 10000;
-    return x - Math.floor(x);
-};
-
-const generateMockData = () => {
-    const data = [];
-    const today = new Date();
-    // Generate data for the last 2 years (approx) to cover enough range
-    const start = new Date(today.getFullYear() - 1, 0, 1);
-    const end = new Date(today.getFullYear() + 1, 11, 31);
-    let seed = 1;
-
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        // Use seeded random so data is stable across re-renders if needed, 
-        // though strictly 'Math.random' inside component would jitter. 
-        // We do this outside component or memoized.
-
-        const r = () => {
-            const val = seedRandom(seed++);
-            return val;
-        };
-
-        data.push({
-            date: new Date(d),
-            invoices: Math.floor(r() * 20),
-            customers: Math.floor(r() * 5),
-            amountDue: Math.floor(r() * 1000),
-            quotations: Math.floor(r() * 10),
-            sales: Math.floor(r() * 5000),
-            purchase: Math.floor(r() * 3000),
-            expenses: Math.floor(r() * 500),
-            credits: Math.floor(r() * 600),
-            invoicedAmt: Math.floor(r() * 2000),
-            receivedAmt: Math.floor(r() * 1500),
-            outstandingAmt: Math.floor(r() * 800),
-            overdueAmt: Math.floor(r() * 200),
-            products: 897 + Math.floor(r() * 10) - 5,
-        });
-    }
-    return data;
-};
-
-// Generate once
-const MOCK_DATA = generateMockData();
-
 // --- Date Helper Functions ---
 const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
@@ -86,11 +38,28 @@ const getDaysInMonth = (year: number, month: number) => {
     return days;
 };
 
-
 export default function DashboardOverview({
     setActiveSection,
     laptops = []
 }: DashboardOverviewProps) {
+    // --- Data State ---
+    const [aggregatedStats, setAggregatedStats] = useState({
+        invoices: 0,
+        customers: 0,
+        amountDue: 0,
+        quotations: 0,
+        sales: 0,
+        purchase: 0,
+        expenses: 0,
+        credits: 0,
+        invoicedAmt: 0,
+        receivedAmt: 0,
+        outstandingAmt: 0,
+        overdueAmt: 0,
+        products: 0,
+    });
+    const [loading, setLoading] = useState(false);
+
     // --- State ---
     const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
     const [selectedDateRange, setSelectedDateRange] = useState("Today");
@@ -109,38 +78,30 @@ export default function DashboardOverview({
     // Selection step text helper
     const [selectionStep, setSelectionStep] = useState<'start' | 'end'>('start');
 
-    // --- Data Filtering ---
-    const aggregatedStats = useMemo(() => {
-        const start = new Date(appliedStartDate);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(appliedEndDate);
-        end.setHours(23, 59, 59, 999);
+    // --- Fetch Real Data ---
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            setLoading(true);
+            try {
+                // Ensure dates are valid
+                const from = appliedStartDate.toISOString();
+                const to = appliedEndDate.toISOString();
 
-        // Filter data source
-        const filtered = MOCK_DATA.filter(item => item.date >= start && item.date <= end);
+                const res = await fetch(`/api/admin/dashboard/stats?from=${from}&to=${to}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setAggregatedStats(prev => ({ ...prev, ...data }));
+                } else {
+                    console.error("Failed to fetch dashboard stats");
+                }
+            } catch (error) {
+                console.error("Error fetching dashboard stats:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-        // Aggregate
-        return filtered.reduce((acc, curr) => ({
-            invoices: acc.invoices + curr.invoices,
-            customers: acc.customers + curr.customers,
-            amountDue: acc.amountDue + curr.amountDue,
-            quotations: acc.quotations + curr.quotations,
-            sales: acc.sales + curr.sales,
-            purchase: acc.purchase + curr.purchase,
-            expenses: acc.expenses + curr.expenses,
-            credits: acc.credits + curr.credits,
-            invoicedAmt: acc.invoicedAmt + curr.invoicedAmt,
-            receivedAmt: acc.receivedAmt + curr.receivedAmt,
-            outstandingAmt: acc.outstandingAmt + curr.outstandingAmt,
-            overdueAmt: acc.overdueAmt + curr.overdueAmt,
-            products: curr.products, // Take latest or average? Latest is fine for stock-like stats
-        }), {
-            invoices: 0, customers: 0, amountDue: 0, quotations: 0,
-            sales: 0, purchase: 0, expenses: 0, credits: 0,
-            invoicedAmt: 0, receivedAmt: 0, outstandingAmt: 0, overdueAmt: 0,
-            products: 0
-        });
-
+        fetchStats();
     }, [appliedStartDate, appliedEndDate]);
 
     // --- Handlers ---
