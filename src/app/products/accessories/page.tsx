@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ProductCard from "../components/ProductCard";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 export default function AccessoriesPage() {
     const [accessories, setAccessories] = useState<any[]>([]);
@@ -129,9 +130,8 @@ export default function AccessoriesPage() {
                     {/* Product Grid */}
                     <div className="products-grid">
                         {isLoading ? (
-                            <div className="loading-state" style={{ gridColumn: "1 / -1", textAlign: "center", padding: "3rem" }}>
-                                <i className="fas fa-spinner fa-spin" style={{ fontSize: "3rem", color: "var(--primary-color)" }}></i>
-                                <p style={{ marginTop: "1rem" }}>Loading accessories...</p>
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <LoadingSpinner fullScreen />
                             </div>
                         ) : error ? (
                             <div className="error-state" style={{ gridColumn: "1 / -1", textAlign: "center", padding: "3rem", color: "var(--danger-color)" }}>

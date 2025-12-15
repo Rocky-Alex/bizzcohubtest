@@ -344,9 +344,11 @@ export default function ContactPage() {
                         </div>
                         <div className="story-image">
                             <div className="image-wrapper">
-                                <div className="placeholder-image">
-                                    <i className="fas fa-history"></i>
-                                </div>
+                                <img
+                                    src="https://ik.imagekit.io/kxci2a0h5/Bizz%20Co%20Hub%20Logo%20AI.png"
+                                    alt="Our Story"
+                                    style={{ width: '100%', height: '400px', objectFit: 'contain', background: 'white' }}
+                                />
                             </div>
                         </div>
                     </div>
@@ -358,15 +360,15 @@ export default function ContactPage() {
                 <div className="container">
                     <div className="stats-grid">
                         <div className="stat-item">
-                            <span className="stat-number">5000+</span>
+                            <span className="stat-number">100+</span>
                             <span className="stat-label">Happy Customers</span>
                         </div>
                         <div className="stat-item">
-                            <span className="stat-number">10k+</span>
+                            <span className="stat-number">1000+</span>
                             <span className="stat-label">Devices Refurbished</span>
                         </div>
                         <div className="stat-item">
-                            <span className="stat-number">50+</span>
+                            <span className="stat-number">10+</span>
                             <span className="stat-label">Expert Team Members</span>
                         </div>
                         <div className="stat-item">

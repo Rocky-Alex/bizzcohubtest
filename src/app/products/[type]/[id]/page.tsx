@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { addToCart } from "@/utils/cart";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 import "./styles/product-detail.css";
 
 interface Product {
@@ -210,7 +211,7 @@ export default function ProductDetailPage() {
     const totalPrice = calculateTotalPrice();
 
     if (loading || !product) {
-        return <div className="loading-container"><i className="fas fa-spinner fa-spin"></i></div>;
+        return <LoadingSpinner fullScreen={true} />;
     }
 
     return (
@@ -520,7 +521,12 @@ export default function ProductDetailPage() {
                                     </div>
                                     <div className="spec-table-row">
                                         <span className="spec-key">Color</span>
-                                        <span className="spec-val">{product.specifications?.colors || colorOptions[selectedColor]?.label || 'N/A'}</span>
+                                        <span className="spec-val">
+                                            {product?.specifications?.colors
+                                                ? parseColorOptions(product.specifications.colors).map(c => c.label).join(', ')
+                                                : (colorOptions[selectedColor]?.label || 'N/A')
+                                            }
+                                        </span>
                                     </div>
                                     <div className="spec-table-row">
                                         <span className="spec-key">Optical Drive Type</span>

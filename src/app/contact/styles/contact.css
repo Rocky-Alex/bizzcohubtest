@@ -27,7 +27,7 @@
 
 /* Contact Section */
 .contact-section {
-    padding: 80px 0;
+    padding: 40px 0;
     background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
 }
 
@@ -262,7 +262,7 @@
 /* Hero Section */
 .about-hero {
     position: relative;
-    padding: 120px 0 100px;
+    padding: 60px 0;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     overflow: hidden;
     text-align: center;
@@ -302,7 +302,7 @@
 
 /* Mission & Vision */
 .mission-vision-section {
-    padding: 80px 0;
+    padding: 60px 0;
     background: #fff;
 }
 
@@ -354,7 +354,7 @@
 
 /* Story Section */
 .story-section {
-    padding: 100px 0;
+    padding: 60px 0;
     background: #f8f9fa;
 }
 
@@ -411,7 +411,7 @@
 
 /* Stats Section */
 .stats-section {
-    padding: 80px 0;
+    padding: 60px 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
@@ -497,7 +497,7 @@
 
 /* Contact Section */
 .contact-section {
-    padding: 80px 0;
+    padding: 40px 0;
     background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
 }
 

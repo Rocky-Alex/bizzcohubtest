@@ -298,7 +298,7 @@ body {
 }
 
 .header-container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 1rem 2rem;
     display: flex;
@@ -454,8 +454,8 @@ body {
     position: absolute;
     top: -50%;
     right: -20%;
-    width: 1200px;
-    height: 1200px;
+    width: 1600px;
+    height: 1600px;
     background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
     border-radius: 50%;
     animation: float 20s ease-in-out infinite;
@@ -477,7 +477,7 @@ body {
 }
 
 .hero-container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -838,7 +838,7 @@ body {
 }
 
 .features-container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -966,7 +966,7 @@ body {
 }
 
 .categories-grid-v3 {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1121,7 +1121,8 @@ body {
     justify-content: space-between;
     align-items: flex-end;
     text-align: left;
-    margin-bottom: 3rem;
+    margin: 0 auto 3rem;
+    max-width: 1600px;
 }
 
 .view-all-btn {
@@ -1146,7 +1147,7 @@ body {
 }
 
 .products-grid-v3 {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

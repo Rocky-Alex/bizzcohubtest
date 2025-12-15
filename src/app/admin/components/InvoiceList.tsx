@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function InvoiceList({ setActiveSection }: { setActiveSection: (section: string) => void }) {
     const [invoices, setInvoices] = useState<any[]>([]);
@@ -64,7 +65,7 @@ export default function InvoiceList({ setActiveSection }: { setActiveSection: (s
     };
 
     if (loading) {
-        return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading invoices...</div>;
+        return <LoadingSpinner fullScreen />;
     }
 
     return (

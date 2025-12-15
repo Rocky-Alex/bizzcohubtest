@@ -11,14 +11,14 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     const isAdmin = pathname?.startsWith('/admin');
 
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <AutoRefresh />
             <AutoRefreshCountdown />
             {!isAdmin && <Header />}
-            <main className={isAdmin ? '' : 'landing-page'}>
+            <main className={isAdmin ? '' : 'landing-page'} style={{ flex: 1 }}>
                 {children}
             </main>
             {!isAdmin && <Footer />}
-        </>
+        </div>
     );
 }

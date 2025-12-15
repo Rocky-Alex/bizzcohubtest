@@ -1,0 +1,143 @@
+/* ============================================
+   NEW CATEGORIES SECTION
+   ============================================ */
+.new-categories-section {
+    padding: 80px 0;
+    position: relative;
+    background: white;
+}
+
+.new-categories-header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding: 0 20px;
+}
+
+.new-categories-header .pill {
+    display: inline-block;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #030303;
+    border-radius: 50px;
+    color: #667eea;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.new-categories-header h2 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.new-categories-header h2 .text-purple {
+    color: #0099ff;
+}
+
+.new-categories-header p {
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+.new-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 30px;
+}
+
+.new-category-card {
+    display: block;
+    /* Ensure Link acts as block */
+    position: relative;
+    height: 450px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #f3f4f6;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    /* Remove underline */
+}
+
+.new-category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+    border-color: rgba(36, 60, 168, 0.2);
+}
+
+.new-category-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.new-category-card:hover img {
+    transform: scale(1.05);
+}
+
+.new-category-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 30px;
+    z-index: 2;
+    /* Dark gradient for dark themed cards */
+    background: linear-gradient(to top, rgba(46, 46, 46, 0.9) 0%, rgba(0, 0, 0, 0.5) 60%, transparent 100%);
+}
+
+.new-category-card.light-theme .new-category-content {
+    /* Making gradient dark for light theme as well to support white text */
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+}
+
+.new-category-content h3 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.new-category-card.light-theme .new-category-content h3 {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.new-category-content p {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #ffffff;
+    /* User requested white text */
+}
+
+.new-category-card.light-theme .new-category-content p {
+    color: #ffffff;
+    /* User requested white text */
+}
+
+.new-category-content .explore-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: gap 0.3s ease;
+}
+
+.new-category-content .explore-btn:hover {
+    gap: 12px;
+}

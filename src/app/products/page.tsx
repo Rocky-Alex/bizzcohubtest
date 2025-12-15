@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 interface Product {
     id: string;
@@ -11,6 +12,7 @@ interface Product {
     price: number;
     originalPrice?: number;
     type: 'laptop' | 'accessory';
+    category?: string;
     images: string[];
     createdAt: string;
     stock: number;
@@ -23,6 +25,7 @@ export default function ProductsPage() {
 
     // Filter states
     const [selectedType, setSelectedType] = useState<string>('all');
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedBrand, setSelectedBrand] = useState<string>('all');
     const [priceRange, setPriceRange] = useState<string>('all');
     const [sortBy, setSortBy] = useState<string>('newest');
@@ -39,7 +42,7 @@ export default function ProductsPage() {
 
     useEffect(() => {
         applyFilters();
-    }, [products, selectedType, selectedBrand, priceRange, sortBy]);
+    }, [products, selectedType, selectedCategory, selectedBrand, priceRange, sortBy]);
 
     const fetchProducts = async () => {
         try {
@@ -76,6 +79,11 @@ export default function ProductsPage() {
         // Filter by type
         if (selectedType !== 'all') {
             filtered = filtered.filter(p => p.type === selectedType);
+        }
+
+        // Filter by category
+        if (selectedCategory !== 'all') {
+            filtered = filtered.filter(p => p.category === selectedCategory);
         }
 
         // Filter by brand
@@ -117,6 +125,7 @@ export default function ProductsPage() {
 
     const resetFilters = () => {
         setSelectedType('all');
+        setSelectedCategory('all');
         setSelectedBrand('all');
         setPriceRange('all');
         setSortBy('newest');
@@ -135,29 +144,74 @@ export default function ProductsPage() {
 
             {/* Filters and Products Section */}
             <section style={{
-                padding: '60px 20px',
+                padding: '40px 20px',
                 background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
                 minHeight: '60vh'
             }}>
                 <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                     {/* Toggle Filter Button */}
-                    <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+                    <div style={{ marginBottom: '20px', marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+                        {/* Quick Categories */}
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            {[
+                                { label: 'Renewed Laptops', type: 'laptop', category: 'Renewed Laptops', brand: 'all' },
+                                { label: 'MacBook', type: 'laptop', category: 'MacBook', brand: 'Apple' },
+                                { label: 'Accessories', type: 'accessory', category: 'Accessories', brand: 'all' },
+                                { label: 'Gaming Laptop', type: 'laptop', category: 'Gaming Laptop', brand: 'all' }
+                            ].map((btn, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => {
+                                        setSelectedType(btn.type);
+                                        setSelectedCategory(btn.category);
+                                        setSelectedBrand(btn.brand);
+                                    }}
+                                    style={{
+                                        padding: '10px 24px',
+                                        borderRadius: '30px',
+                                        border: (selectedCategory === btn.category) ? '2px solid #007bff' : '1px solid #e5e7eb',
+                                        background: (selectedCategory === btn.category) ? '#f0f9ff' : 'white',
+                                        color: (selectedCategory === btn.category) ? '#007bff' : '#4b5563',
+                                        cursor: 'pointer',
+                                        fontWeight: '600',
+                                        fontSize: '0.95rem',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        if (!(selectedCategory === btn.category)) {
+                                            e.currentTarget.style.borderColor = '#007bff';
+                                            e.currentTarget.style.color = '#007bff';
+                                        }
+                                    }}
+                                    onMouseOut={(e) => {
+                                        if (!(selectedCategory === btn.category)) {
+                                            e.currentTarget.style.borderColor = '#e5e7eb';
+                                            e.currentTarget.style.color = '#4b5563';
+                                        }
+                                    }}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                        </div>
+
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             style={{
-                                padding: '15px 30px',
+                                padding: '10px 24px',
                                 background: showFilters ? '#007bff' : 'white',
                                 color: showFilters ? 'white' : '#007bff',
                                 border: '2px solid #007bff',
-                                borderRadius: '12px',
+                                borderRadius: '8px',
                                 cursor: 'pointer',
-                                fontWeight: '700',
-                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                fontSize: '1rem',
                                 transition: 'all 0.3s ease',
-                                boxShadow: '0 4px 15px rgba(0, 123, 255, 0.2)',
+                                boxShadow: '0 4px 6px rgba(0, 123, 255, 0.15)',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '10px'
+                                gap: '8px'
                             }}
                             onMouseOver={(e) => {
                                 if (!showFilters) {
@@ -359,12 +413,8 @@ export default function ProductsPage() {
                         </div>
                     )}
 
-                    {/* Products Grid */}
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                            <i className="fas fa-spinner fa-spin" style={{ fontSize: '3rem', color: '#007bff' }}></i>
-                            <p style={{ marginTop: '20px', fontSize: '1.2rem', color: '#666' }}>Loading products...</p>
-                        </div>
+                        <LoadingSpinner fullScreen />
                     ) : filteredProducts.length === 0 ? (
                         <div style={{
                             textAlign: 'center',

@@ -7,6 +7,7 @@ import Stack from "./components/Stack";
 
 import "./styles/landing-page.css";
 import "./styles/home-styles.css";
+import "./styles/landing-page-extra.css";
 
 export default function LandingPage() {
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -39,7 +40,7 @@ export default function LandingPage() {
         <div className="landing-page">
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
                 <Particles
-                    particleColors={['#667EEA', '#764BA2', '#F093FB', '#111827']}
+                    particleColors={['#667EEA', '#4b78a2ff', '#93fbb6ff', '#13503dff']}
                     particleCount={800}
                     particleSpread={10}
                     speed={0.1}
@@ -57,7 +58,7 @@ export default function LandingPage() {
                     <div className="hero-content fade-in-up">
                         <div className="hero-tag glow-effect">
                             <span className="tag-dot pulse-dot"></span>
-                            <span className="tag-text">New Collection 2024</span>
+                            <span className="tag-text">New Collection 2026</span>
                             <div className="tag-shine"></div>
                         </div>
 
@@ -152,95 +153,68 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Categories Section */}
-            <section className="categories-section-v3">
-                <div className="section-header-v3 scroll-reveal">
-                    <div className="section-tag glow-effect">
-                        <span>Collections</span>
-                        <div className="tag-shine"></div>
-                    </div>
-                    <h2 className="section-title-v3">
-                        <span className="title-word">Shop</span>
-                        <span className="title-word delay-1">by</span>
-                        <span className="title-word delay-2 gradient-text-animated">Category</span>
-                    </h2>
-                    <p className="section-subtitle-v3">Explore our curated selection of premium tech products</p>
+            {/* New Shop by Category Section */}
+            <section className="new-categories-section">
+                <div className="new-categories-header">
+                    <span className="pill">COLLECTIONS</span>
+                    <h2>Shop by <span className="text-purple">Category</span></h2>
+                    <p>Explore our curated selection of premium tech products</p>
                 </div>
 
-                <div className="categories-grid-v3">
-                    <Link href="/products/laptops" className="category-card-v3 hover-scale">
-                        <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg?updatedAt=1765186346540" alt="Laptops" />
-                            <div className="category-overlay gradient-overlay"></div>
-                        </div>
-                        <div className="category-content-v3">
+                <div className="new-categories-grid">
+                    {/* Renewed Laptops - Light Theme */}
+                    <Link href="/products/laptops" className="new-category-card light-theme">
+                        <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg?updatedAt=1765186346540" alt="Renewed Laptops" />
+                        <div className="new-category-content">
                             <h3>Renewed Laptops</h3>
                             <p>High-performance computing</p>
-                            <div className="category-cta">
-                                <span>Explore</span>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
+                            <span className="explore-btn">
+                                Explore <i className="fas fa-arrow-right"></i>
+                            </span>
                         </div>
-                        <div className="card-shine-effect"></div>
                     </Link>
 
-                    <Link href="/products/laptops" className="category-card-v3 hover-scale">
-                        <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-macbook.jpg?updatedAt=1765254808557" alt="MacBook" style={{ transform: "scale(1.15)" }} />
-                            <div className="category-overlay gradient-overlay"></div>
+                    {/* MacBook - Light Theme */}
+                    <Link href="/products/laptops" className="new-category-card light-theme">
+                        <div style={{ width: '100%', height: '100%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-macbook.jpg?updatedAt=1765254808557" alt="MacBook" style={{ width: '90%', height: 'auto', objectFit: 'contain' }} />
                         </div>
-                        <div className="category-content-v3">
+                        <div className="new-category-content">
                             <h3>MacBook</h3>
                             <p>Power & Performance</p>
-                            <div className="category-cta">
-                                <span>Explore</span>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
+                            <span className="explore-btn">
+                                Explore <i className="fas fa-arrow-right"></i>
+                            </span>
                         </div>
-                        <div className="card-shine-effect"></div>
                     </Link>
 
-                    <Link href="/products/accessories" className="category-card-v3 hover-scale">
-                        <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories.jpg?updatedAt=1765254764848" alt="Accessories" />
-                            <div className="category-overlay gradient-overlay"></div>
-                        </div>
-                        <div className="category-content-v3">
+                    {/* Accessories - Light Theme */}
+                    <Link href="/products/accessories" className="new-category-card light-theme">
+                        <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories.jpg?updatedAt=1765254764848" alt="Accessories" />
+                        <div className="new-category-content">
                             <h3>Accessories</h3>
                             <p>Complete your setup</p>
-                            <div className="category-cta">
-                                <span>Explore</span>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
+                            <span className="explore-btn">
+                                Explore <i className="fas fa-arrow-right"></i>
+                            </span>
                         </div>
-                        <div className="card-shine-effect"></div>
                     </Link>
 
-                    <Link href="/products/laptops" className="category-card-v3 hover-scale">
-                        <div className="category-image-v3">
-                            <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop.png?updatedAt=1765254743460" alt="Gaming Laptops" />
-                            <div className="category-overlay gradient-overlay"></div>
-                        </div>
-                        <div className="category-content-v3">
+                    {/* Gaming Laptops - Dark Theme */}
+                    <Link href="/products/laptops" className="new-category-card">
+                        <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop.png?updatedAt=1765254743460" alt="Gaming Laptops" />
+                        <div className="new-category-content">
                             <h3>Gaming Laptops</h3>
                             <p>Dominate the Game</p>
-                            <div className="category-cta">
-                                <span>Explore</span>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </div>
+                            <span className="explore-btn">
+                                Explore <i className="fas fa-arrow-right"></i>
+                            </span>
                         </div>
-                        <div className="card-shine-effect"></div>
                     </Link>
                 </div>
             </section>
+
+
 
             {/* Products Section */}
             <section className="products-section-v3">

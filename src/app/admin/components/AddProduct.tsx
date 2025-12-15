@@ -674,7 +674,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                 name="category"
                                 value={formData.category}
                                 onChange={handleChange as any}
-                                options={['Laptop', 'Mac', 'Gaming Laptop', 'Accessories', 'Monitor', 'Component']}
+                                options={['Renewed Laptops', 'MacBook', 'Accessories', 'Gaming Laptop']}
                                 placeholder="Select Category"
                             />
                         </div>

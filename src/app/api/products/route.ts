@@ -104,8 +104,10 @@ export async function GET(request: NextRequest) {
         } else if (categoryFilter) {
             query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY date_added DESC`;
         } else if (type === 'laptop') {
-            // If "type" parameter is used for category filtering
-            query = await sql`SELECT * FROM products WHERE category = 'Laptops' OR category = 'Computers' ORDER BY date_added DESC`;
+            // Include 'system', 'laptop', and associated categories
+            query = await sql`SELECT * FROM products WHERE type = 'system' OR type = 'laptop' OR category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook' ORDER BY date_added DESC`;
+        } else if (type === 'accessory') {
+            query = await sql`SELECT * FROM products WHERE type = 'accessory' OR category = 'Accessories' OR category = 'Monitor' OR category = 'Component' ORDER BY date_added DESC`;
         } else {
             query = await sql`SELECT * FROM products ORDER BY date_added DESC`;
         }

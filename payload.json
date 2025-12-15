@@ -1,8 +1,0 @@
-{
-    "products": [
-        {
-            "name": "Connectivity Test",
-            "description": "Test via curl"
-        }
-    ]
-}

@@ -311,6 +311,25 @@
 .variant-pill.selected {
     border-width: 2px;
     font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.variant-pill.selected.type-ram {
+    background: #60a5fa;
+    /* Even Lighter blue */
+    color: white;
+    border-color: #3b82f6;
+}
+
+.variant-pill.selected.type-storage {
+    background: #34d399;
+    /* Even Lighter green */
+    color: white;
+    border-color: #10b981;
+}
+
+.variant-pill.selected .pill-price {
+    color: rgba(255, 255, 255, 1);
 }
 
 .pill-label {

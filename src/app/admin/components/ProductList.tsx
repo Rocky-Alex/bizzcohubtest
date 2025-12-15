@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ProductList.css';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface ProductListProps {
     setActiveSection: (section: string) => void;
@@ -148,10 +149,7 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
 
             <div className="product-table-wrapper" style={{ overflowX: 'auto', maxWidth: '100%' }}>
                 {isLoading ? (
-                    <div style={{ padding: '4rem', textAlign: 'center', color: '#64748b' }}>
-                        <i className="fas fa-spinner fa-spin fa-2x"></i>
-                        <p style={{ marginTop: '1rem', fontWeight: 500 }}>Loading inventory data...</p>
-                    </div>
+                    <LoadingSpinner fullScreen />
                 ) : (
                     <table className="product-table" style={viewMode === 'detailed' ? { minWidth: '2200px' } : {}}>
                         <thead>

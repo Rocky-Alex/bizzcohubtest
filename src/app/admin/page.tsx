@@ -58,9 +58,12 @@ export default function AdminPage() {
     const [users, setUsers] = useState(initialUsers);
 
     const [productToEdit, setProductToEdit] = useState<any>(null);
+    const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+    const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
     // --- generic Handlers ---
     const fetchCustomers = useCallback(async () => {
+        setIsLoadingCustomers(true);
         try {
             const response = await fetch('/api/admin/customers');
             if (response.ok) {
@@ -69,6 +72,8 @@ export default function AdminPage() {
             }
         } catch (error) {
             console.error('Error fetching customers:', error);
+        } finally {
+            setIsLoadingCustomers(false);
         }
     }, []);
 
@@ -225,6 +230,7 @@ export default function AdminPage() {
 
     // Fetch users from database - defined before useEffect
     const fetchUsers = useCallback(async () => {
+        setIsLoadingUsers(true);
         try {
             console.log('Fetching users from API...');
             const response = await fetch('/api/admin/users');
@@ -261,6 +267,8 @@ export default function AdminPage() {
             }
         } catch (error) {
             console.error('Error fetching users:', error);
+        } finally {
+            setIsLoadingUsers(false);
         }
     }, []);
 
@@ -388,6 +396,7 @@ export default function AdminPage() {
             case "customers-all":
                 return <CustomerList
                     customers={customers}
+                    loading={isLoadingCustomers}
                     onAdd={() => setActiveSection('customers-add')}
                     onNavigateToNewInvoice={() => setActiveSection('invoicing-new')}
                 />;
@@ -499,6 +508,7 @@ export default function AdminPage() {
             case "users-all":
                 return <UserManagement
                     users={users}
+                    loading={isLoadingUsers}
                     onEdit={(item: any) => handleEdit(item, 'User')}
                     onDelete={(item: any) => handleDelete(item, 'User')}
                     onAdd={async (userData: any) => {

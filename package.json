@@ -11,6 +11,7 @@
     "dependencies": {
         "@neondatabase/serverless": "^1.0.2",
         "@types/qrcode": "^1.5.6",
+        "@types/styled-components": "^5.1.36",
         "buffer": "^6.0.3",
         "country-state-city": "^3.2.1",
         "dotenv": "^17.2.3",
@@ -22,6 +23,7 @@
         "ogl": "^1.0.11",
         "react": "^18",
         "react-dom": "^18",
+        "styled-components": "^6.1.19",
         "xlsx": "^0.18.5"
     },
     "devDependencies": {

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import AddUserModal from "./AddUserModal";
 import EditUserModal from "./EditUserModal";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import "./UserManagement.css";
 
 interface User {
@@ -24,9 +25,10 @@ interface UserManagementProps {
     onDelete: (user: User) => void;
     onAdd: (userData: any) => void;
     availableRoles: string[];
+    loading?: boolean;
 }
 
-export default function UserManagement({ users, onEdit, onDelete, onAdd, availableRoles }: UserManagementProps) {
+export default function UserManagement({ users, onEdit, onDelete, onAdd, availableRoles, loading = false }: UserManagementProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
     const [currentPage, setCurrentPage] = useState(1);
@@ -142,95 +144,100 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd, availab
 
             {/* Table */}
             <div className="user-table-wrapper">
-                <table className="user-table">
-                    <thead>
-                        <tr>
-                            <th>User Name</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th className="actions-header">
-                                <button className="settings-icon">
-                                    <i className="fas fa-cog"></i>
-                                </button>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginatedUsers.length > 0 ? (
-                            paginatedUsers.map((user) => (
-                                <tr key={user.id}>
-                                    <td>
-                                        <div className="user-name-cell">
-                                            <div
-                                                className="user-avatar"
-                                                style={{
-                                                    backgroundColor: user.avatar ? 'transparent' : getAvatarColor(user.name),
-                                                    padding: user.avatar ? '0' : undefined
-                                                }}
-                                            >
-                                                {user.avatar ? (
-                                                    <img
-                                                        src={user.avatar}
-                                                        alt={user.name}
-                                                        style={{
-                                                            width: '100%',
-                                                            height: '100%',
-                                                            objectFit: 'cover',
-                                                            borderRadius: '50%'
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    getInitials(user.name)
-                                                )}
+                {loading ? (
+                    <LoadingSpinner fullScreen />
+                ) : (
+                    <table className="user-table">
+                        <thead>
+                            <tr>
+                                <th>User Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th className="actions-header">
+                                    <button className="settings-icon">
+                                        <i className="fas fa-cog"></i>
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paginatedUsers.length > 0 ? (
+                                paginatedUsers.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>
+                                            <div className="user-name-cell">
+                                                <div
+                                                    className="user-avatar"
+                                                    style={{
+                                                        backgroundColor: user.avatar ? 'transparent' : getAvatarColor(user.name),
+                                                        padding: user.avatar ? '0' : undefined
+                                                    }}
+                                                >
+                                                    {user.avatar ? (
+                                                        <img
+                                                            src={user.avatar}
+                                                            alt={user.name}
+                                                            style={{
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                objectFit: 'cover',
+                                                                borderRadius: '50%'
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        getInitials(user.name)
+                                                    )}
+                                                </div>
+                                                <span>{user.name}</span>
                                             </div>
-                                            <span>{user.name}</span>
-                                        </div>
-                                    </td>
-                                    <td>{user.phone}</td>
-                                    <td>{user.email}</td>
-                                    <td>{user.role}</td>
-                                    <td>
-                                        <span className={`status-badge ${user.status.toLowerCase()}`}>
-                                            {user.status}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button
-                                                className="action-btn view-btn"
-                                                title="View"
-                                            >
-                                                <i className="fas fa-eye"></i>
-                                            </button>
-                                            <button
-                                                className="action-btn edit-btn"
-                                                onClick={() => openEditModal(user)}
-                                                title="Edit"
-                                            >
-                                                <i className="fas fa-edit"></i>
-                                            </button>
-                                            <button
-                                                className="action-btn delete-btn"
-                                                onClick={() => onDelete(user)}
-                                                title="Delete"
-                                            >
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </div>
+                                        </td>
+                                        <td>{user.phone}</td>
+                                        <td>{user.email}</td>
+                                        <td>{user.role}</td>
+                                        <td>
+                                            <span className={`status-badge ${user.status.toLowerCase()}`}>
+                                                {user.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="action-buttons">
+                                                <button
+                                                    className="action-btn view-btn"
+                                                    title="View"
+                                                >
+                                                    <i className="fas fa-eye"></i>
+                                                </button>
+                                                <button
+                                                    className="action-btn edit-btn"
+                                                    onClick={() => openEditModal(user)}
+                                                    title="Edit"
+                                                >
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button
+                                                    className="action-btn delete-btn"
+                                                    onClick={() => onDelete(user)}
+                                                    title="Delete"
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="no-data">
+                                        No users found
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={6} className="no-data">
-                                    No users found
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            )}
+                        </tbody>
+
+                    </table>
+                )}
             </div>
 
             {/* Pagination */}
@@ -273,6 +280,6 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd, availab
                 user={selectedUser}
                 roles={availableRoles}
             />
-        </div>
+        </div >
     );
 }
