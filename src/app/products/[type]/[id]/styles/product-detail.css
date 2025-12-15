@@ -62,16 +62,15 @@
     gap: 0.5rem;
     min-width: 140px;
 
-    /* Exact height for 5 items (100px * 5 + 0.5rem * 4 gaps = 500 + 32 = 532px) */
-    height: 532px;
-    max-height: 532px;
-    /* Enforce limits */
+    /* Height for 5 items (approx 535px to safe-guard borders/gaps) */
+    max-height: 535px;
+    height: auto;
 
-    /* Prevent shrinking/growing */
-    flex: 0 0 auto;
+    /* Prevent shrinking */
+    flex-shrink: 0;
 
     overflow-y: auto;
-    /* Active only when > 5 items */
+    /* Scroll only if needed */
     padding-left: 10px;
     padding-right: 10px;
     direction: rtl;
@@ -622,12 +621,22 @@
     .thumbnail-strip {
         flex-direction: row;
         overflow-x: auto;
+        overflow-y: hidden;
+        /* Disable vertical scroll on mobile */
+        height: auto !important;
+        /* Reset fixed height */
+        max-height: none !important;
+        min-width: 0;
+        width: 100%;
+        gap: 1rem;
+        padding: 1rem 0;
     }
 
     .thumbnail-item {
         min-width: 70px;
         width: 70px;
         height: 70px;
+        flex-shrink: 0;
     }
 
     .specs-table-layout {
