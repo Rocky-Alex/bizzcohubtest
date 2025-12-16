@@ -229,6 +229,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         screenSize: initialData?.screen_size || '',
         screenResolution: initialData?.screen_resolution || '',
         screenResolutionPixel: initialData?.screen_resolution_pixel || '',
+        displayType: initialData?.display_type || '',
         wirelessType: initialData?.wireless_type || '',
         operatingSystem: initialData?.operating_system || '',
         opticalDrive: initialData?.optical_drive || '',
@@ -450,6 +451,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
             screenSize: '',
             screenResolution: '',
             screenResolutionPixel: '',
+            displayType: '',
             wirelessType: '',
             operatingSystem: '',
             opticalDrive: '',
@@ -649,16 +651,6 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                             />
                         </div>
                         <div className="form-group">
-                            <label>Model</label>
-                            <input
-                                type="text"
-                                name="model"
-                                value={formData.model}
-                                onChange={handleChange}
-                                placeholder="e.g. XPS 9510"
-                            />
-                        </div>
-                        <div className="form-group">
                             <label>Series</label>
                             <input
                                 type="text"
@@ -666,6 +658,16 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                 value={formData.series}
                                 onChange={handleChange}
                                 placeholder="e.g. XPS, Latitude, Legion"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Model</label>
+                            <input
+                                type="text"
+                                name="model"
+                                value={formData.model}
+                                onChange={handleChange}
+                                placeholder="e.g. XPS 9510"
                             />
                         </div>
                         <div className="form-group">
@@ -953,6 +955,16 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                         value={formData.screenResolutionPixel}
                                         onChange={handleChange}
                                         placeholder="e.g. 1920 x 1080"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Display Type</label>
+                                    <SearchableDropdown
+                                        name="displayType"
+                                        value={formData.displayType}
+                                        onChange={handleChange as any}
+                                        options={['Touch', 'Non-Touch', 'Bazel Touch', 'Glass Touch']}
+                                        placeholder="Select Display Type"
                                     />
                                 </div>
                             </div>

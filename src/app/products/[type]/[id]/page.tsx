@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { addToCart } from "@/utils/cart";
 import LoadingSpinner from "../../../components/LoadingSpinner";
+import { useToast } from "@/context/ToastContext";
 import "./styles/product-detail.css";
 
 interface Product {
@@ -182,6 +183,8 @@ export default function ProductDetailPage() {
         };
     };
 
+    const { showToast } = useToast();
+
     const addToCartAction = () => {
         if (!product) return;
         addToCart({
@@ -192,6 +195,7 @@ export default function ProductDetailPage() {
             quantity: quantity,
             options: getSelectedOptions(),
         });
+        showToast(`${product.name} added to cart!`, 'success');
     };
 
     const handleBuyNow = () => {
@@ -494,6 +498,10 @@ export default function ProductDetailPage() {
                                     <div className="spec-table-row">
                                         <span className="spec-key">Resolution Pixel</span>
                                         <span className="spec-val">{product.specifications?.['Resolution Pixel'] || 'N/A'}</span>
+                                    </div>
+                                    <div className="spec-table-row">
+                                        <span className="spec-key">Display Type</span>
+                                        <span className="spec-val">{product.specifications?.['Display Type'] || 'N/A'}</span>
                                     </div>
                                 </div>
 

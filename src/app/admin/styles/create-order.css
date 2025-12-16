@@ -1,0 +1,503 @@
+/* ==========================================
+   CREATE ORDER - NEW LAYOUT
+   ========================================== */
+
+.co-page-container {
+    padding: 2rem;
+    max-width: 1400px;
+    /* Wider for table */
+    margin: 0 auto;
+    background: #fff;
+    min-height: 80vh;
+}
+
+/* --- Header --- */
+.co-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.co-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 0.5rem 0;
+}
+
+.co-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+.so-number-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.so-number-group label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.co-input {
+    border: 1px solid #ccc;
+    /* Grey border as in mock */
+    border-radius: 8px;
+    /* Rounded corners */
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #fff;
+}
+
+.co-input:focus {
+    border-color: #3b82f6;
+}
+
+.so-input {
+    width: 150px;
+    text-align: right;
+    font-weight: 600;
+}
+
+/* --- Top Controls (Customer & Date) --- */
+.co-top-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    /* Align inputs to bottom */
+    gap: 4rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.co-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.co-control-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.customer-group {
+    flex: 1;
+    min-width: 300px;
+}
+
+.input-with-button {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.input-with-button .co-input {
+    flex: 1;
+}
+
+.btn-add-customer {
+    background: #3b82f6;
+    /* Blue */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.co-dates-row {
+    display: flex;
+    gap: 2rem;
+}
+
+/* --- Table --- */
+.co-table-container {
+    margin-bottom: 3rem;
+}
+
+.co-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.co-table th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+    font-weight: 600;
+    color: #444;
+    font-size: 0.9rem;
+}
+
+.co-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+/* Item Cell */
+.co-item-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.co-item-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #eee;
+}
+
+.co-item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.co-item-info .name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.co-item-info .price {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Qty Control */
+.co-qty-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f9f9f9;
+    padding: 0.25rem;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+.co-qty-control button {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.co-qty-control span {
+    min-width: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.co-action-btn.delete {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.co-action-btn.delete:hover {
+    background: #fee2e2;
+    /* Light red */
+    transform: scale(1.1);
+}
+
+/* Add Trigger & Dropdown */
+.co-add-row-trigger {
+    margin-top: 0.5rem;
+    text-align: right;
+    position: relative;
+    padding-right: 2.5rem;
+    /* Better alignment with the action column */
+}
+
+.btn-add-item {
+    background: white;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-add-item:hover {
+    background: #eff6ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.15);
+}
+
+/* --- Modal Styles --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.add-item-modal {
+    background: white;
+    width: 800px;
+    max-width: 90%;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #eee;
+    background: #fcfcfc;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #111;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.ai-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.ai-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ai-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.ai-group input {
+    width: 100%;
+    /* Ensure full width */
+}
+
+/* Specific styling for the modal inputs to match image */
+.ai-group .co-input {
+    border-radius: 6px;
+    padding: 0.7rem;
+    font-size: 0.9rem;
+    border: 1px solid #d1d5db;
+}
+
+.ai-group .co-input:focus {
+    border-color: #000;
+    box-shadow: 0 0 0 1px #000;
+}
+
+.ai-footer-row {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f3f4f6;
+    align-items: flex-end;
+}
+
+.modal-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.btn-cancel {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #f9fafb;
+    color: #111;
+}
+
+.btn-confirm {
+    padding: 0.75rem 2rem;
+    background: #111827;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
+
+.btn-confirm:hover {
+    background: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .ai-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+/* --- Footer (Totals) --- */
+.co-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+}
+
+.co-totals {
+    display: flex;
+    gap: 4rem;
+    width: 100%;
+    justify-content: flex-end;
+    /* Actually usually totals are Right aligned. The submit button is also right or left. 
+       Let's put totals on right. Submit below totals. */
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.totals-box {
+    width: 300px;
+}
+
+.t-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.t-row.grand {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #000;
+}
+
+.co-actions-bar {
+    margin-top: 2rem;
+}
+
+.btn-submit-order {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-submit-order:hover {
+    opacity: 0.9;
+}
+
+.btn-submit-order:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

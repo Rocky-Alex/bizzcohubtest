@@ -21,6 +21,9 @@ import ProductList from "./components/ProductList";
 import AddProduct from "./components/AddProduct";
 import ImportProducts from './components/ImportProducts';
 import QuickActions from './components/QuickActions';
+import OrderList from './components/OrderList';
+import CreateOrder from './components/CreateOrder';
+import ConfirmModal from './components/ConfirmModal';
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
@@ -60,6 +63,18 @@ export default function AdminPage() {
     const [productToEdit, setProductToEdit] = useState<any>(null);
     const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+    const [orderToEdit, setOrderToEdit] = useState<any>(null);
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'danger' as 'danger' | 'info' | 'success',
+        singleButton: false,
+        onConfirm: () => { }
+    });
 
     // --- generic Handlers ---
     const fetchCustomers = useCallback(async () => {
@@ -74,6 +89,21 @@ export default function AdminPage() {
             console.error('Error fetching customers:', error);
         } finally {
             setIsLoadingCustomers(false);
+        }
+    }, []);
+
+    const fetchOrders = useCallback(async () => {
+        setIsLoadingOrders(true);
+        try {
+            const response = await fetch('/api/admin/orders');
+            if (response.ok) {
+                const data = await response.json();
+                setOrders(data.orders || []);
+            }
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        } finally {
+            setIsLoadingOrders(false);
         }
     }, []);
 
@@ -106,11 +136,25 @@ export default function AdminPage() {
             if (response.ok) {
                 fetchRoles(); // Refresh list
             } else {
-                alert('Failed to create role');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to create role',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (error) {
             console.error('Error creating role:', error);
-            alert('Error creating role');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error creating role',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
     const handleEdit = async (item: any, type: string) => {
@@ -167,42 +211,105 @@ export default function AdminPage() {
                     fetchUsers();
                 } else {
                     const error = await response.json();
-                    alert(`Failed to update user: ${error.error}`);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: `Failed to update user: ${error.error}`,
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
                 }
             } catch (error) {
                 console.error('Error updating user:', error);
-                alert('Failed to update user');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to update user',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } else {
-            alert(`Edit ${type}: ${item.id || item.name} (Implementation Pending)`);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Info',
+                message: `Edit ${type}: ${item.id || item.name} (Implementation Pending)`,
+                type: 'info',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
     const handleDelete = async (item: any, type: string) => {
-        if (confirm(`Are you sure you want to delete ${type}: ${item.id || item.name}?`)) {
-            if (type === 'User') {
+        setConfirmModal({
+            isOpen: true,
+            title: `Delete ${type}`,
+            message: `Are you sure you want to delete ${type}: ${item.id || item.name || item.order_number}? This action cannot be undone.`,
+            type: 'danger',
+            singleButton: false,
+            onConfirm: async () => {
                 try {
-                    const response = await fetch(`/api/admin/users?id=${item.id}`, {
-                        method: 'DELETE'
-                    });
+                    if (type === 'User') {
+                        const response = await fetch(`/api/admin/users?id=${item.id}`, { method: 'DELETE' });
+                        if (response.ok) fetchUsers();
+                        else {
+                            const error = await response.json();
+                            setConfirmModal(prev => ({
+                                ...prev, // Keep existing modal open but switch to single button error? No, close and reopen or just update
+                                isOpen: true,
+                                title: 'Error',
+                                message: `Failed to delete user: ${error.error}`,
+                                type: 'danger',
+                                singleButton: true,
+                                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                            }));
+                            return; // Don't close modal via logic below
+                        }
+                    } else if (type === 'Order') {
+                        try {
+                            const res = await fetch(`/api/admin/orders?id=${item.id}`, { method: 'DELETE' });
+                            if (res.ok) {
+                                fetchOrders();
+                            } else {
+                                const error = await res.json();
+                                setConfirmModal(prev => ({
+                                    ...prev,
+                                    isOpen: true,
+                                    title: 'Error',
+                                    message: `Failed to delete order: ${error.error}`,
+                                    type: 'danger',
+                                    singleButton: true,
+                                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                                }));
+                                return;
+                            }
+                        } catch (err) {
+                            console.error('Error deleting order:', err);
+                            setConfirmModal(prev => ({
+                                ...prev,
+                                isOpen: true,
+                                title: 'Error',
+                                message: 'Error deleting order',
+                                type: 'danger',
+                                singleButton: true,
+                                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                            }));
+                            return;
+                        }
+                    } else if (type === 'Product') setProducts(prev => prev.filter(p => p.id !== item.id));
+                    else if (type === 'Customer') setCustomers(prev => prev.filter(c => c.id !== item.id));
+                    else if (type === 'Production') setProduction(prev => prev.filter(p => p.id !== item.id));
+                    else if (type === 'Transaction') setTransactions(prev => prev.filter(t => t.id !== item.id));
 
-                    if (response.ok) {
-                        // Refresh users list
-                        fetchUsers();
-                    } else {
-                        const error = await response.json();
-                        alert(`Failed to delete user: ${error.error}`);
-                    }
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 } catch (error) {
-                    console.error('Error deleting user:', error);
-                    alert('Failed to delete user');
+                    console.error(`Error deleting ${type}:`, error);
                 }
-            } else if (type === 'Product') setProducts(prev => prev.filter(p => p.id !== item.id));
-            else if (type === 'Order') setOrders(prev => prev.filter(o => o.id !== item.id));
-            else if (type === 'Customer') setCustomers(prev => prev.filter(c => c.id !== item.id));
-            else if (type === 'Production') setProduction(prev => prev.filter(p => p.id !== item.id));
-            else if (type === 'Transaction') setTransactions(prev => prev.filter(t => t.id !== item.id));
-        }
+            }
+        });
     };
 
     const handleAddSubmit = (data: any, type: string) => {
@@ -295,6 +402,7 @@ export default function AdminPage() {
                             fetchUsers();
                             fetchRoles();
                             fetchCustomers();
+                            fetchOrders();
                         } else {
                             console.log('User is not admin, role is:', data.role);
                         }
@@ -323,6 +431,7 @@ export default function AdminPage() {
                 console.log('Auto-refreshing Users and Customers...');
                 fetchUsers();
                 fetchCustomers();
+                fetchOrders();
             }, 600000);
         }
 
@@ -368,7 +477,7 @@ export default function AdminPage() {
         if (activeSection.startsWith("noon")) {
             return <ComingSoon title="Noon Integration" description="Noon seller integration functionalities are coming soon." />;
         }
-        if (activeSection.startsWith("orders")) {
+        if (activeSection.startsWith("orders") && !['orders-all', 'orders-create'].includes(activeSection)) {
             return <ComingSoon title="Order Management" description="Advanced order processing and tracking features will be available here." />;
         }
         if (activeSection.startsWith("products") && !['products-add', 'products-import', 'products-list', 'products-edit'].includes(activeSection)) {
@@ -393,6 +502,31 @@ export default function AdminPage() {
                 return <DashboardOverview setActiveSection={setActiveSection} laptops={laptops} />;
 
             // --- Customers ---
+
+
+            // --- Orders ---
+
+            // In renderContent switch:
+            case "orders-all":
+                return <OrderList
+                    orders={orders}
+                    loading={isLoadingOrders}
+                    onRefresh={fetchOrders}
+                    onEdit={(order) => {
+                        setOrderToEdit(order);
+                        setActiveSection('orders-create');
+                    }}
+                    onDelete={(order) => handleDelete(order, 'Order')}
+                />;
+            case "orders-create":
+                return <CreateOrder
+                    initialData={orderToEdit}
+                    onOrderCreated={() => {
+                        fetchOrders();
+                        setOrderToEdit(null); // Reset after create/update
+                        // Optionally navigate to list: setActiveSection('orders-all');
+                    }}
+                />;
             case "customers-all":
                 return <CustomerList
                     customers={customers}
@@ -444,16 +578,37 @@ export default function AdminPage() {
                             });
 
                             if (response.ok) {
-                                alert('Customer created successfully!');
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'Success',
+                                    message: 'Customer created successfully!',
+                                    type: 'success',
+                                    singleButton: true,
+                                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                                });
                                 fetchCustomers();
                                 setActiveSection('customers-all');
                             } else {
                                 const err = await response.json();
-                                alert('Failed to create customer: ' + (err.error || 'Unknown error'));
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'Error',
+                                    message: 'Failed to create customer: ' + (err.error || 'Unknown error'),
+                                    type: 'danger',
+                                    singleButton: true,
+                                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                                });
                             }
                         } catch (error) {
                             console.error('Error creating customer:', error);
-                            alert('An error occurred while creating the customer.');
+                            setConfirmModal({
+                                isOpen: true,
+                                title: 'Error',
+                                message: 'An error occurred while creating the customer.',
+                                type: 'danger',
+                                singleButton: true,
+                                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                            });
                         }
                     }}
                 />;
@@ -570,11 +725,25 @@ export default function AdminPage() {
                             } else {
                                 const error = await response.json();
                                 console.error('API Error:', error);
-                                alert(`Failed to add user: ${error.error}\n${error.details || ''}`);
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'Error',
+                                    message: `Failed to add user: ${error.error}\n${error.details || ''}`,
+                                    type: 'danger',
+                                    singleButton: true,
+                                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                                });
                             }
                         } catch (error) {
                             console.error('Error adding user:', error);
-                            alert('Failed to add user');
+                            setConfirmModal({
+                                isOpen: true,
+                                title: 'Error',
+                                message: 'Failed to add user',
+                                type: 'danger',
+                                singleButton: true,
+                                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                            });
                         }
                     }}
                     availableRoles={roles.map(r => r.name)}
@@ -614,6 +783,15 @@ export default function AdminPage() {
                 isOpen={isLogoutModalOpen}
                 onClose={() => setIsLogoutModalOpen(false)}
                 onConfirm={confirmLogout}
+            />
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
             />
         </div>
     );

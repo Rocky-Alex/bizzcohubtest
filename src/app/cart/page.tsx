@@ -164,26 +164,26 @@ export default function CartPage() {
 
                             <div className="summary-row">
                                 <span>Subtotal ({cartItems.reduce((acc, item) => acc + item.quantity, 0)} items)</span>
-                                <span>${subtotal.toFixed(2)}</span>
+                                <span>AED {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
 
                             <div className="summary-row">
-                                <span>Tax (8%)</span>
-                                <span>${tax.toFixed(2)}</span>
+                                <span>Tax (5%)</span>
+                                <span>AED {tax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="summary-row">
                                 <span>Shipping</span>
-                                <span>${shipping.toFixed(2)}</span>
+                                <span>AED {shipping.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
 
                             <div className="summary-row total">
                                 <span>Total</span>
-                                <span>${total.toFixed(2)}</span>
+                                <span>AED {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
 
-                            <button className="checkout-btn">
+                            <Link href="/checkout" className="checkout-btn" style={{ textDecoration: 'none' }}>
                                 <i className="fas fa-lock"></i> Proceed to Checkout
-                            </button>
+                            </Link>
 
                             {/* Trust Badges */}
                             <div className="trust-badges">

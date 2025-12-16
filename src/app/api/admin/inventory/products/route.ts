@@ -61,7 +61,8 @@ export async function POST(req: Request) {
             allImagesUrls,
             ramVariants,
             storageVariants,
-            type // Added type
+            type,
+            displayType // Added displayType
         } = body;
 
         // Ensure new columns exist for variants (Simple auto-migration)
@@ -78,6 +79,7 @@ export async function POST(req: Request) {
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS graphics_card_type TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS screen_resolution TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS screen_resolution_pixel TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS display_type TEXT`; // Added display_type
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS wireless_type TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS operating_system TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS optical_drive TEXT`;
@@ -134,14 +136,14 @@ export async function POST(req: Request) {
             INSERT INTO products (
                 product_code, product_name, type, brand, model, series, category, badge, condition_status,
                 base_price, offer_price, discount_percent, stock_quantity,
-                processor, processor_gen, processor_speed, ram, ram_type, storage, storage_type, graphics_card, graphics_card_type, graphics_storage, screen_size, screen_resolution, screen_resolution_pixel, wireless_type, operating_system, optical_drive, colors,
+                processor, processor_gen, processor_speed, ram, ram_type, storage, storage_type, graphics_card, graphics_card_type, graphics_storage, screen_size, screen_resolution, screen_resolution_pixel, display_type, wireless_type, operating_system, optical_drive, colors,
                 features, primary_image_url, all_images_urls,
                 ram_variants, storage_variants
             )
             VALUES (
                 ${finalProductCode}, ${productName}, ${type}, ${brand}, ${model}, ${series}, ${category}, ${badge}, ${conditionStatus},
                 ${basePrice}, ${offerPrice}, ${discountPercent}, ${stockQuantity},
-                ${processorName}, ${processorGen}, ${processorSpeed}, ${ram}, ${ramType}, ${storage}, ${storageType}, ${graphicsCard}, ${graphicsType}, ${graphicsStorage || null}, ${screenSize}, ${screenResolution}, ${screenResolutionPixel}, ${wirelessType}, ${operatingSystem}, ${opticalDrive}, ${colors},
+                ${processorName}, ${processorGen}, ${processorSpeed}, ${ram}, ${ramType}, ${storage}, ${storageType}, ${graphicsCard}, ${graphicsType}, ${graphicsStorage || null}, ${screenSize}, ${screenResolution}, ${screenResolutionPixel}, ${displayType}, ${wirelessType}, ${operatingSystem}, ${opticalDrive}, ${colors},
                 ${features}, ${primaryImageUrl}, ${allImagesString},
                 ${ramVariantsJson}::jsonb, ${storageVariantsJson}::jsonb
             )
@@ -222,7 +224,8 @@ export async function PUT(req: Request) {
             allImagesUrls,
             ramVariants,
             storageVariants,
-            type
+            type,
+            displayType // Added displayType
         } = body;
 
         if (!id) {
@@ -248,6 +251,7 @@ export async function PUT(req: Request) {
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS graphics_card_type TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS screen_resolution TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS screen_resolution_pixel TEXT`;
+            await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS display_type TEXT`; // Added display_type
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS wireless_type TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS operating_system TEXT`;
             await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS optical_drive TEXT`;
@@ -283,6 +287,7 @@ export async function PUT(req: Request) {
                 screen_size = ${screenSize},
                 screen_resolution = ${screenResolution},
                 screen_resolution_pixel = ${screenResolutionPixel},
+                display_type = ${displayType},
                 wireless_type = ${wirelessType},
                 operating_system = ${operatingSystem},
                 optical_drive = ${opticalDrive},

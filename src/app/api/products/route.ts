@@ -55,6 +55,7 @@ function transformProduct(dbProduct: any) {
             Screen: dbProduct.screen_size || dbProduct.screen || '',
             'Screen Resolution': dbProduct.screen_resolution || '',
             'Resolution Pixel': dbProduct.screen_resolution_pixel || '',
+            'Display Type': dbProduct.display_type || '', // Added Display Type mapping
             Graphics: dbProduct.graphics_card || dbProduct.graphics || '',
             'Graphics Type': dbProduct.graphics_card_type || '',
             'Graphics Storage': dbProduct.graphics_storage || '',

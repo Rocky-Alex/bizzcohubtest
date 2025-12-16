@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { addToCart } from "@/utils/cart";
+import { useToast } from "@/context/ToastContext";
 import Particles from "./components/Particles";
 import Stack from "./components/Stack";
 
@@ -11,6 +13,19 @@ import "./styles/landing-page-extra.css";
 
 export default function LandingPage() {
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+    const { showToast } = useToast();
+
+    const handleAddToCart = (product: any) => {
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: product.offer_price || product.price,
+            image: product.images?.[0] || product.image || '/placeholder.png',
+            quantity: 1,
+            options: {}, // Default options
+        });
+        showToast(`${product.name} added to cart!`, 'success');
+    };
 
     const getBadgeClass = (badge: string) => {
         if (!badge) return '';
@@ -293,7 +308,10 @@ export default function LandingPage() {
                                         </>
                                     )}
                                 </div>
-                                <button className="add-to-cart-btn magnetic-btn">
+                                <button
+                                    className="add-to-cart-btn magnetic-btn"
+                                    onClick={() => handleAddToCart(product)}
+                                >
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <circle cx="9" cy="21" r="1"></circle>
                                         <circle cx="20" cy="21" r="1"></circle>
