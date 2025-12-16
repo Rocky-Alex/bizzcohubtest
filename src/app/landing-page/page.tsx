@@ -12,6 +12,15 @@ import "./styles/landing-page-extra.css";
 export default function LandingPage() {
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
 
+    const getBadgeClass = (badge: string) => {
+        if (!badge) return '';
+        const lower = badge.toLowerCase();
+        if (lower.includes('new')) return 'new';
+        if (lower.includes('sale') || lower.includes('offer')) return 'sale';
+        if (lower.includes('best') || lower.includes('hot')) return 'hot';
+        return 'new';
+    };
+
     // Removed old particles state logic as we are using the new component
 
     useEffect(() => {
@@ -163,7 +172,7 @@ export default function LandingPage() {
 
                 <div className="new-categories-grid">
                     {/* Renewed Laptops - Light Theme */}
-                    <Link href="/products/laptops" className="new-category-card light-theme">
+                    <Link href="/products?category=Renewed%20Laptops" className="new-category-card light-theme">
                         <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg?updatedAt=1765186346540" alt="Renewed Laptops" />
                         <div className="new-category-content">
                             <h3>Renewed Laptops</h3>
@@ -175,7 +184,7 @@ export default function LandingPage() {
                     </Link>
 
                     {/* MacBook - Light Theme */}
-                    <Link href="/products/laptops" className="new-category-card light-theme">
+                    <Link href="/products?category=MacBook" className="new-category-card light-theme">
                         <div style={{ width: '100%', height: '100%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-macbook.jpg?updatedAt=1765254808557" alt="MacBook" style={{ width: '90%', height: 'auto', objectFit: 'contain' }} />
                         </div>
@@ -189,7 +198,7 @@ export default function LandingPage() {
                     </Link>
 
                     {/* Accessories - Light Theme */}
-                    <Link href="/products/accessories" className="new-category-card light-theme">
+                    <Link href="/products?category=Accessories" className="new-category-card light-theme">
                         <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories.jpg?updatedAt=1765254764848" alt="Accessories" />
                         <div className="new-category-content">
                             <h3>Accessories</h3>
@@ -201,7 +210,7 @@ export default function LandingPage() {
                     </Link>
 
                     {/* Gaming Laptops - Dark Theme */}
-                    <Link href="/products/laptops" className="new-category-card">
+                    <Link href="/products?category=Gaming%20Laptop" className="new-category-card">
                         <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop.png?updatedAt=1765254743460" alt="Gaming Laptops" />
                         <div className="new-category-content">
                             <h3>Gaming Laptops</h3>
@@ -241,7 +250,7 @@ export default function LandingPage() {
                     {featuredProducts.map((product, index) => (
                         <div key={index} className="product-card-v3 hover-lift">
                             {product.badge && (
-                                <div className={`product-badge-v3 ${product.badge} pulse-animation`}>
+                                <div className={`product-badge-v3 ${getBadgeClass(product.badge)} pulse-animation`}>
                                     {product.badge}
                                 </div>
                             )}

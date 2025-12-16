@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -19,6 +20,7 @@ interface Product {
 }
 
 export default function ProductsPage() {
+    const searchParams = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -39,6 +41,17 @@ export default function ProductsPage() {
     useEffect(() => {
         fetchProducts();
     }, []);
+
+    // Sync URL params to state
+    useEffect(() => {
+        const typeParam = searchParams.get('type');
+        const categoryParam = searchParams.get('category');
+        const brandParam = searchParams.get('brand');
+
+        if (typeParam) setSelectedType(typeParam);
+        if (categoryParam) setSelectedCategory(categoryParam);
+        if (brandParam) setSelectedBrand(brandParam);
+    }, [searchParams]);
 
     useEffect(() => {
         applyFilters();
@@ -162,9 +175,30 @@ export default function ProductsPage() {
                                 <button
                                     key={idx}
                                     onClick={() => {
-                                        setSelectedType(btn.type);
-                                        setSelectedCategory(btn.category);
-                                        setSelectedBrand(btn.brand);
+                                        const isSelected = selectedCategory === btn.category;
+                                        if (isSelected) {
+                                            // Deselect
+                                            setSelectedType('all');
+                                            setSelectedCategory('all');
+                                            setSelectedBrand('all');
+                                            // Optional: Update URL to remove params
+                                            const newUrl = new URL(window.location.href);
+                                            newUrl.searchParams.delete('type');
+                                            newUrl.searchParams.delete('category');
+                                            newUrl.searchParams.delete('brand');
+                                            window.history.pushState({}, '', newUrl.toString());
+                                        } else {
+                                            // Select
+                                            setSelectedType(btn.type);
+                                            setSelectedCategory(btn.category);
+                                            setSelectedBrand(btn.brand);
+                                            // Optional: Update URL with new params
+                                            const newUrl = new URL(window.location.href);
+                                            newUrl.searchParams.set('type', btn.type);
+                                            newUrl.searchParams.set('category', btn.category);
+                                            newUrl.searchParams.set('brand', btn.brand);
+                                            window.history.pushState({}, '', newUrl.toString());
+                                        }
                                     }}
                                     style={{
                                         padding: '10px 24px',
@@ -489,12 +523,18 @@ export default function ProductsPage() {
                                                     position: 'absolute',
                                                     top: '15px',
                                                     left: '15px',
+                                                    width: '85px',
+                                                    height: '33px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
                                                     background: '#ef4444',
                                                     color: 'white',
-                                                    padding: '6px 12px',
                                                     borderRadius: '20px',
                                                     fontWeight: '600',
-                                                    fontSize: '0.85rem'
+                                                    fontSize: '0.85rem',
+                                                    zIndex: 10,
+                                                    whiteSpace: 'nowrap'
                                                 }}>
                                                     {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                                                 </div>
@@ -504,12 +544,18 @@ export default function ProductsPage() {
                                                     position: 'absolute',
                                                     top: '15px',
                                                     right: '15px',
+                                                    width: '85px',
+                                                    height: '33px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
                                                     background: '#f59e0b',
                                                     color: 'white',
-                                                    padding: '6px 12px',
                                                     borderRadius: '20px',
                                                     fontWeight: '600',
-                                                    fontSize: '0.85rem'
+                                                    fontSize: '0.85rem',
+                                                    zIndex: 10,
+                                                    whiteSpace: 'nowrap'
                                                 }}>
                                                     Only {product.stock} left
                                                 </div>

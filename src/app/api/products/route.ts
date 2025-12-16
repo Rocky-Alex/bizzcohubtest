@@ -35,7 +35,7 @@ function transformProduct(dbProduct: any) {
         brand: dbProduct.brand || dbProduct.category,
         price: parseFloat(dbProduct.offer_price || dbProduct.base_price || dbProduct.price || 0),
         originalPrice: parseFloat(dbProduct.base_price || dbProduct.price || 0),
-        type: dbProduct.type || 'product', // Default
+        type: (dbProduct.type === 'system' ? 'laptop' : dbProduct.type) || 'laptop',
         images: images,
         createdAt: dbProduct.date_added || dbProduct.created_at,
         stock: parseInt(dbProduct.stock_quantity || dbProduct.stock || dbProduct.quantity || 0),

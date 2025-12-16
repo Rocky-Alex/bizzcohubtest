@@ -28,7 +28,7 @@
 
 .page-hero h1 i {
     margin-right: 1rem;
-    color: #2997ff;
+    color: #4079ff;
 }
 
 .page-hero p {
@@ -57,13 +57,13 @@
 .service-detail-icon {
     width: 100px;
     height: 100px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4079ff 0%, #40ffaa 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 2rem;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(64, 121, 255, 0.3);
 }
 
 .service-detail-icon i {
@@ -132,7 +132,7 @@
 .step-number {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4079ff 0%, #40ffaa 100%);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -152,7 +152,7 @@
 
 .step-content h4 i {
     margin-right: 0.5rem;
-    color: #667eea;
+    color: #4079ff;
 }
 
 .step-content p {
@@ -210,7 +210,7 @@
 
 .feature-box i {
     font-size: 3rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4079ff 0%, #40ffaa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -259,17 +259,17 @@
 
 .tech-badge i {
     font-size: 1.25rem;
-    color: #667eea;
+    color: #4079ff;
 }
 
 /* CTA Box */
 .cta-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4079ff 0%, #40ffaa 100%);
     padding: 3rem 2rem;
     border-radius: 20px;
     text-align: center;
     margin: 4rem 0;
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 20px 60px rgba(64, 121, 255, 0.3);
 }
 
 .cta-box h3 {
@@ -286,7 +286,7 @@
 
 .cta-box .btn {
     background: white;
-    color: #667eea;
+    color: #4079ff;
     padding: 1rem 2.5rem;
     border-radius: 50px;
     font-size: 1.125rem;
@@ -352,7 +352,7 @@
 .service-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4079ff 0%, #40ffaa 100%);
     border-radius: 20px;
     display: flex;
     align-items: center;
@@ -380,7 +380,7 @@
 }
 
 .service-link {
-    color: #667eea;
+    color: #4079ff;
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
