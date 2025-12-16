@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 interface Product {
@@ -19,7 +19,7 @@ interface Product {
     stock: number;
 }
 
-export default function ProductsPage() {
+function ProductsContent() {
     const searchParams = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -679,5 +679,13 @@ export default function ProductsPage() {
                 }
             `}</style>
         </>
+    );
+}
+
+export default function ProductsPage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <ProductsContent />
+        </Suspense>
     );
 }
