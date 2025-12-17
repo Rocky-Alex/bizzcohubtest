@@ -42,24 +42,10 @@ const SECTIONS = [
         ]
     },
     {
-        title: "Accounting",
-        modules: [
-            { id: "accounting_overview", name: "Overview" },
-            { id: "accounting_transactions", name: "Transactions" }
-        ]
-    },
-    {
         title: "Reports",
         modules: [
             { id: "reports_sales", name: "Sales Report" },
             { id: "reports_inventory", name: "Inventory Report" }
-        ]
-    },
-    {
-        title: "Production",
-        modules: [
-            { id: "production_pipeline", name: "Pipeline" },
-            { id: "production_history", name: "History" }
         ]
     },
     {
@@ -81,22 +67,6 @@ const SECTIONS = [
         modules: [
             { id: "products_list", name: "Product List" },
             { id: "products_add", name: "Add Product" }
-        ]
-    },
-    {
-        title: "Noon",
-        modules: [
-            { id: "noon_dashboard", name: "Dashboard" },
-            { id: "noon_orders", name: "Orders" },
-            { id: "noon_listings", name: "Listings" }
-        ]
-    },
-    {
-        title: "Amazon",
-        modules: [
-            { id: "amazon_dashboard", name: "Dashboard" },
-            { id: "amazon_orders", name: "Orders" },
-            { id: "amazon_listings", name: "Listings" }
         ]
     }
 ];

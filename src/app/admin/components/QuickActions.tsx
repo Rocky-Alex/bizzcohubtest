@@ -18,9 +18,7 @@ export default function QuickActions({ setActiveSection }: QuickActionsProps) {
             actions: [
                 { id: "inventory-dashboard", label: "Inv. Dashboard", icon: "fa-boxes", color: "#10b981" },
                 { id: "products-add", label: "Add Product", icon: "fa-plus-circle", color: "#3b82f6" },
-                { id: "products-import", label: "Import Products", icon: "fa-file-import", color: "#8b5cf6" },
-                { id: "production-pipeline", label: "Production Pipe", icon: "fa-industry", color: "#f97316" },
-                { id: "production-history", label: "Prod. History", icon: "fa-history", color: "#ea580c" }
+                { id: "products-import", label: "Import Products", icon: "fa-file-import", color: "#8b5cf6" }
             ]
         },
         {
@@ -38,20 +36,7 @@ export default function QuickActions({ setActiveSection }: QuickActionsProps) {
                 { id: "customers-groups", label: "Cust. Groups", icon: "fa-layer-group", color: "#0d9488" },
                 { id: "invoicing-dashboard", label: "Billing Dash", icon: "fa-file-invoice", color: "#6366f1" },
                 { id: "invoicing-all", label: "All Invoices", icon: "fa-file-alt", color: "#4f46e5" },
-                { id: "invoicing-new", label: "New Invoice", icon: "fa-plus-square", color: "#8b5cf6" },
-                { id: "accounting-overview", label: "Accounting", icon: "fa-coins", color: "#d97706" },
-                { id: "accounting-transactions", label: "Transactions", icon: "fa-exchange-alt", color: "#b45309" }
-            ]
-        },
-        {
-            title: "Marketplace Integration",
-            actions: [
-                { id: "amazon-dashboard", label: "Amazon Dash", icon: "fab fa-amazon", color: "#ff9900" },
-                { id: "amazon-orders", label: "Amazon Orders", icon: "fa-shipping-fast", color: "#ff9900" },
-                { id: "amazon-listings", label: "Amazon Listings", icon: "fa-list", color: "#ff9900" },
-                { id: "noon-dashboard", label: "Noon Dash", icon: "fa-store", color: "#feee00", textColor: '#000' }, // Noon yellow
-                { id: "noon-orders", label: "Noon Orders", icon: "fa-box-open", color: "#feee00", textColor: '#000' },
-                { id: "noon-listings", label: "Noon Listings", icon: "fa-clipboard-list", color: "#feee00", textColor: '#000' }
+                { id: "invoicing-new", label: "New Invoice", icon: "fa-plus-square", color: "#8b5cf6" }
             ]
         },
         {
@@ -125,15 +110,15 @@ export default function QuickActions({ setActiveSection }: QuickActionsProps) {
                                 <div style={{
                                     fontSize: '1.75rem',
                                     marginBottom: '0.75rem',
-                                    color: action.textColor || action.color,
-                                    background: action.color === '#feee00' ? '#feee00' : `${action.color}15`, // Handle yellow specifically
+                                    color: action.color,
+                                    background: `${action.color}15`,
                                     width: '50px',
                                     height: '50px',
                                     borderRadius: '12px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    boxShadow: action.color === '#feee00' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+                                    boxShadow: 'none'
                                 }}>
                                     <i className={`${action.icon.startsWith('fab') ? action.icon : 'fas ' + action.icon}`}></i>
                                 </div>

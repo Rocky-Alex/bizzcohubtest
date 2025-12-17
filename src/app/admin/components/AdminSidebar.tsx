@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import NoonIcon from "./icons/NoonIcon";
 import AutoRefreshSettings from "./AutoRefreshSettings";
 
 interface AdminSidebarProps {
@@ -27,7 +26,6 @@ export default function AdminSidebar({
             icon: "fa-boxes",
             label: "Inventory"
         },
-
         {
             id: "orders",
             icon: "fa-shopping-cart",
@@ -39,42 +37,12 @@ export default function AdminSidebar({
             ]
         },
         {
-            id: "amazon",
-            icon: "fab fa-amazon",
-            label: "Amazon",
-            subItems: [
-                { id: "amazon-dashboard", label: "Dashboard" },
-                { id: "amazon-orders", label: "Orders" },
-                { id: "amazon-listings", label: "Listings" }
-            ]
-        },
-        {
-            id: "noon",
-            icon: "fa-store",
-            label: "Noon",
-            subItems: [
-                { id: "noon-dashboard", label: "Dashboard" },
-                { id: "noon-orders", label: "Orders" },
-                { id: "noon-listings", label: "Listings" }
-            ]
-        },
-
-        {
             id: "customers",
             icon: "fa-users",
             label: "Customer Manage",
             subItems: [
                 { id: "customers-all", label: "All Customers" },
                 { id: "customers-groups", label: "Groups" }
-            ]
-        },
-        {
-            id: "production",
-            icon: "fa-industry",
-            label: "Production",
-            subItems: [
-                { id: "production-pipeline", label: "Pipeline" },
-                { id: "production-history", label: "History" }
             ]
         },
         {
@@ -96,15 +64,6 @@ export default function AdminSidebar({
             ]
         },
         {
-            id: "accounting",
-            icon: "fa-coins",
-            label: "Accounting",
-            subItems: [
-                { id: "accounting-overview", label: "Overview" },
-                { id: "accounting-transactions", label: "Transactions" }
-            ]
-        },
-        {
             id: "users",
             icon: "fa-user-shield",
             label: "User Manage",
@@ -119,7 +78,6 @@ export default function AdminSidebar({
             label: "Auto Refresh"
         },
     ];
-
 
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
@@ -186,7 +144,7 @@ export default function AdminSidebar({
     };
 
     const displayedItems = userRole?.toLowerCase() === 'accountant'
-        ? menuItems.filter(item => ['dashboard', 'apps', 'orders', 'amazon', 'noon', 'invoicing', 'accounting'].includes(item.id))
+        ? menuItems.filter(item => ['dashboard', 'orders', 'invoicing'].includes(item.id))
         : menuItems;
 
     return (
@@ -216,11 +174,7 @@ export default function AdminSidebar({
                                 className={`nav-item ${isActive ? "active" : ""}`}
                                 onClick={() => handleItemClick(item)}
                             >
-                                {item.id === 'noon' ? (
-                                    <NoonIcon className="sidebar-icon-custom" />
-                                ) : (
-                                    <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
-                                )}
+                                <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
                                 <span className="nav-text">{item.label}</span>
                                 {item.subItems && (
                                     <i className={`fas fa-chevron-right dropdown-arrow ${isExpanded ? 'rotated' : ''}`}></i>

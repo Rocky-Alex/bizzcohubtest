@@ -6,7 +6,6 @@ import AdminSidebar from "./components/AdminSidebar";
 import AdminHeader from "./components/AdminHeader";
 import DashboardOverview from "./components/DashboardOverview";
 import LogoutModal from "./components/LogoutModal";
-import PlatformDashboard from "./components/PlatformDashboard";
 
 import UserManagement from "./components/UserManagement";
 import RolesAndPermissions from "./components/RolesAndPermissions";
@@ -44,9 +43,6 @@ export default function AdminPage() {
     const initialProducts: any[] = [];
     const initialOrders: any[] = [];
     const initialCustomers: any[] = [];
-    const initialProduction: any[] = [];
-
-    const initialTransactions: any[] = [];
     const initialUsers: any[] = [];
 
     // Roles state initialized empty, will fetch from API
@@ -55,9 +51,7 @@ export default function AdminPage() {
     const [products, setProducts] = useState(initialProducts);
     const [orders, setOrders] = useState(initialOrders);
     const [customers, setCustomers] = useState(initialCustomers);
-    const [production, setProduction] = useState(initialProduction);
 
-    const [transactions, setTransactions] = useState(initialTransactions);
     const [users, setUsers] = useState(initialUsers);
 
     const [productToEdit, setProductToEdit] = useState<any>(null);
@@ -301,8 +295,6 @@ export default function AdminPage() {
                         }
                     } else if (type === 'Product') setProducts(prev => prev.filter(p => p.id !== item.id));
                     else if (type === 'Customer') setCustomers(prev => prev.filter(c => c.id !== item.id));
-                    else if (type === 'Production') setProduction(prev => prev.filter(p => p.id !== item.id));
-                    else if (type === 'Transaction') setTransactions(prev => prev.filter(t => t.id !== item.id));
 
                     setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 } catch (error) {
@@ -323,12 +315,6 @@ export default function AdminPage() {
         } else if (type === 'Customer') {
             setCustomers([...customers, { id: `C${Date.now()}`, ...data }]);
             setActiveSection('customers-all');
-        } else if (type === 'Production') {
-            setProduction([...production, { id: `PRD-${Date.now()}`, ...data }]);
-            setActiveSection('production-pipeline');
-        } else if (type === 'Transaction') {
-            setTransactions([...transactions, { id: `TRX-${Date.now()}`, ...data }]);
-            setActiveSection('accounting-transactions');
         } else if (type === 'User') {
             setUsers([...users, { id: `U${Date.now()}`, phone: data.phone || '', ...data, status: 'Active' }]);
             setActiveSection('users-all');
@@ -471,12 +457,6 @@ export default function AdminPage() {
 
     const renderContent = () => {
         // --- Under Construction Sections ---
-        if (activeSection.startsWith("amazon")) {
-            return <ComingSoon title="Amazon Integration" description="Amazon seller integration functionalities are coming soon." />;
-        }
-        if (activeSection.startsWith("noon")) {
-            return <ComingSoon title="Noon Integration" description="Noon seller integration functionalities are coming soon." />;
-        }
         if (activeSection.startsWith("orders") && !['orders-all', 'orders-create'].includes(activeSection)) {
             return <ComingSoon title="Order Management" description="Advanced order processing and tracking features will be available here." />;
         }
@@ -486,14 +466,8 @@ export default function AdminPage() {
         if (activeSection.startsWith("accessories")) {
             return <ComingSoon title="Accessories" description="Management for accessories inventory and sales is coming soon." />;
         }
-        if (activeSection.startsWith("production")) {
-            return <ComingSoon title="Production" description="Manufacturing pipeline and assembly tracking will be implemented here." />;
-        }
         if (activeSection.startsWith("reports")) {
             return <ComingSoon title="Reports & Analytics" description="Comprehensive data analytics and reporting features are coming soon." />;
-        }
-        if (activeSection.startsWith("accounting")) {
-            return <ComingSoon title="Accounting" description="Financial transactions and ledger management features are in progress." />;
         }
 
         // --- Active Sections ---
