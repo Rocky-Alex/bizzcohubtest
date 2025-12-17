@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         const to = endDate.toISOString();
 
         // Parallel queries
-        const [invoiceStats, customerStats, productStats] = await Promise.all([
+        const [invoiceStats, customerStats, productStats, recentInvoicesRaw] = await Promise.all([
             // 1. Invoice Stats (Status based sums within date range)
             sql`
                 SELECT 
@@ -43,12 +43,22 @@ export async function GET(request: Request) {
             `,
             // 3. Product Stats (Total current products - snapshot)
             // Note: History of products count is harder without a history table, so we just return current total
-            sql`SELECT COUNT(*) as count FROM products`
+            // 4. Recent Invoices
+            sql`SELECT COUNT(*) as count FROM products`,
+            sql`
+                SELECT id, customer_name, created_date, total_amount, 
+                       CASE WHEN status = 'Paid' THEN total_amount ELSE 0 END as paid_amount, 
+                       payment_type, status, due_date 
+                FROM invoices 
+                ORDER BY created_date DESC 
+                LIMIT 5
+            `
         ]);
 
         const inv = invoiceStats[0];
         const cust = customerStats[0];
         const prod = productStats[0];
+        const recentInvoices = recentInvoicesRaw; // The 4th result form Promise.all
 
         const data = {
             invoices: Number(inv.count || 0),
@@ -63,7 +73,8 @@ export async function GET(request: Request) {
             receivedAmt: Number(inv.received || 0),
             outstandingAmt: Number(inv.outstanding || 0),
             overdueAmt: Number(inv.overdue || 0),
-            products: Number(prod.count || 0)
+            products: Number(prod.count || 0),
+            recentInvoices: recentInvoices || []
         };
 
         return NextResponse.json(data);

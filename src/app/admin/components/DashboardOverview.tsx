@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import "./DashboardOverview.css";
 
 interface DashboardOverviewProps {
     setActiveSection: (section: string) => void;
@@ -43,7 +44,22 @@ export default function DashboardOverview({
     laptops = []
 }: DashboardOverviewProps) {
     // --- Data State ---
-    const [aggregatedStats, setAggregatedStats] = useState({
+    const [aggregatedStats, setAggregatedStats] = useState<{
+        invoices: number;
+        customers: number;
+        amountDue: number;
+        quotations: number;
+        sales: number;
+        purchase: number;
+        expenses: number;
+        credits: number;
+        invoicedAmt: number;
+        receivedAmt: number;
+        outstandingAmt: number;
+        overdueAmt: number;
+        products: number;
+        recentInvoices: any[];
+    }>({
         invoices: 0,
         customers: 0,
         amountDue: 0,
@@ -57,19 +73,24 @@ export default function DashboardOverview({
         outstandingAmt: 0,
         overdueAmt: 0,
         products: 0,
+        recentInvoices: []
     });
     const [loading, setLoading] = useState(false);
 
     // --- State ---
     const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
-    const [selectedDateRange, setSelectedDateRange] = useState("Today");
+    const [selectedDateRange, setSelectedDateRange] = useState("This Month");
 
     // State for Custom Range Picker
     const [customStartDate, setCustomStartDate] = useState<Date>(new Date());
     const [customEndDate, setCustomEndDate] = useState<Date>(new Date());
 
-    // State for Applied Filter
-    const [appliedStartDate, setAppliedStartDate] = useState<Date>(new Date());
+    // State for Applied Filter - Default to This Month
+    const [appliedStartDate, setAppliedStartDate] = useState<Date>(() => {
+        const d = new Date();
+        d.setDate(1);
+        return d;
+    });
     const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
 
     // Calendar view state (points to the 1st of the left/primary month)
@@ -78,31 +99,72 @@ export default function DashboardOverview({
     // Selection step text helper
     const [selectionStep, setSelectionStep] = useState<'start' | 'end'>('start');
 
-    // --- Fetch Real Data ---
-    React.useEffect(() => {
-        const fetchStats = async () => {
-            setLoading(true);
-            try {
-                // Ensure dates are valid
-                const from = appliedStartDate.toISOString();
-                const to = appliedEndDate.toISOString();
+    // --- Fetch Data Function ---
+    const fetchStats = useCallback(async () => {
+        // Don't set loading true for auto-refresh to assume smoother UI, or handle differently
+        // But for manual filters, we might want it. For now, let's keep it subtle.
+        try {
+            // Ensure dates are valid
+            const from = appliedStartDate.toISOString();
+            const to = appliedEndDate.toISOString();
 
-                const res = await fetch(`/api/admin/dashboard/stats?from=${from}&to=${to}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setAggregatedStats(prev => ({ ...prev, ...data }));
-                } else {
-                    console.error("Failed to fetch dashboard stats");
-                }
-            } catch (error) {
-                console.error("Error fetching dashboard stats:", error);
-            } finally {
-                setLoading(false);
+            const res = await fetch(`/api/admin/dashboard/stats?from=${from}&to=${to}`);
+            if (res.ok) {
+                const data = await res.json();
+                setAggregatedStats(prev => ({ ...prev, ...data }));
+            } else {
+                console.error("Failed to fetch dashboard stats");
+            }
+        } catch (error) {
+            console.error("Error fetching dashboard stats:", error);
+        }
+    }, [appliedStartDate, appliedEndDate]);
+
+    // Initial Fetch & Date Change
+    useEffect(() => {
+        setLoading(true);
+        fetchStats().finally(() => setLoading(false));
+    }, [fetchStats]);
+
+    // --- Auto Refresh Logic ---
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
+        const setupAutoRefresh = () => {
+            const enabled = localStorage.getItem('autoRefreshEnabled') === 'true';
+            if (!enabled) {
+                if (intervalId) clearInterval(intervalId);
+                return;
+            }
+
+            const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
+            const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
+            const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
+            const totalMs = (h * 3600 + m * 60 + s) * 1000;
+
+            if (totalMs > 0) {
+                if (intervalId) clearInterval(intervalId);
+                intervalId = setInterval(() => {
+                    fetchStats();
+                    // Update timestamp so settings component knows
+                    localStorage.setItem('lastAutoRefresh', Date.now().toString());
+                }, totalMs);
             }
         };
 
-        fetchStats();
-    }, [appliedStartDate, appliedEndDate]);
+        setupAutoRefresh();
+
+        const handleSettingsChange = () => {
+            setupAutoRefresh();
+        };
+
+        window.addEventListener('autoRefreshSettingsChanged', handleSettingsChange);
+        return () => {
+            window.removeEventListener('autoRefreshSettingsChanged', handleSettingsChange);
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [fetchStats]);
+
 
     // --- Handlers ---
 
@@ -181,6 +243,10 @@ export default function DashboardOverview({
         return new Intl.NumberFormat('en-US').format(val);
     };
 
+    const getAvatarUrl = (name: string) => {
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=32`;
+    };
+
     // --- Render Helpers ---
     const renderCalendar = (monthOffset: number) => {
         const targetDate = new Date(viewDate);
@@ -246,7 +312,6 @@ export default function DashboardOverview({
         );
     };
 
-
     const dateOptions = [
         "Today",
         "Yesterday",
@@ -258,7 +323,7 @@ export default function DashboardOverview({
     ];
 
     return (
-        <section className="admin-section active">
+        <section className="dashboard-overview-container">
             <div className="dashboard-header-row">
                 <h1>Dashboard</h1>
                 <div className="date-filter-container">
@@ -321,183 +386,181 @@ export default function DashboardOverview({
                 </div>
             </div>
 
-            {/* Top Row Widgets */}
-            <div className="dashboard-widgets-grid">
-                {/* Overview Widget */}
-                <div className="dashboard-widget">
-                    <div className="widget-header">
+            {/* Top Row: 3 Main Cards */}
+            <div className="dashboard-top-row">
+                {/* 1. Overview */}
+                <div className="stats-card">
+                    <div className="stats-card-header">
                         <i className="fas fa-th-large"></i>
                         <h3>Overview</h3>
                     </div>
-                    <div className="widget-content grid-2x2">
-                        <div className="widget-item">
-                            <div className="widget-icon purple"><i className="fas fa-file-invoice"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Invoices</span>
-                                <span className="value">{formatNumber(aggregatedStats.invoices)}</span>
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <div className="stat-icon purple"><i className="fas fa-file-invoice"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Invoices</span>
+                                <span className="stat-value">{formatNumber(aggregatedStats.invoices)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon green"><i className="fas fa-users"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Customers</span>
-                                <span className="value">{formatNumber(aggregatedStats.customers)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon green"><i className="fas fa-users"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Customers</span>
+                                <span className="stat-value">{formatNumber(aggregatedStats.customers)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon yellow"><i className="fas fa-cube"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Amount Due</span>
-                                <span className="value">{formatCurrency(aggregatedStats.amountDue)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon yellow"><i className="fas fa-box"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Amount Due</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.amountDue)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon blue"><i className="fas fa-file-alt"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Quotations</span>
-                                <span className="value">{formatNumber(aggregatedStats.quotations)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon blue"><i className="fas fa-file-alt"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Quotations</span>
+                                <span className="stat-value">{formatNumber(aggregatedStats.quotations)}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Sales Analytics Widget */}
-                <div className="dashboard-widget">
-                    <div className="widget-header">
+                {/* 2. Sales Analytics */}
+                <div className="stats-card">
+                    <div className="stats-card-header">
                         <i className="fas fa-chart-bar"></i>
                         <h3>Sales Analytics</h3>
                     </div>
-                    <div className="widget-content grid-2x2">
-                        <div className="widget-item">
-                            <div className="widget-icon purple"><i className="fas fa-arrow-right"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Total Sales</span>
-                                <span className="value">{formatCurrency(aggregatedStats.sales)}</span>
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <div className="stat-icon purple"><i className="fas fa-arrow-right"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Total Sales</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.sales)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon green"><i className="fas fa-code-branch"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Purchase</span>
-                                <span className="value">{formatCurrency(aggregatedStats.purchase)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon green"><i className="fas fa-shopping-cart"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Purchase</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.purchase)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon yellow"><i className="fas fa-coins"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Expenses</span>
-                                <span className="value">{formatCurrency(aggregatedStats.expenses)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon yellow"><i className="fas fa-coins"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Expenses</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.expenses)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon blue"><i className="fas fa-flag"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Credits</span>
-                                <span className="value">{formatCurrency(aggregatedStats.credits)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon blue"><i className="fas fa-percentage"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Credits</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.credits)}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Invoice Statistics Widget */}
-                <div className="dashboard-widget">
-                    <div className="widget-header">
+                {/* 3. Invoice Statistics */}
+                <div className="stats-card">
+                    <div className="stats-card-header">
                         <i className="fas fa-file-invoice-dollar"></i>
                         <h3>Invoice Statistics</h3>
                     </div>
-                    <div className="widget-content grid-2x2">
-                        <div className="widget-item">
-                            <div className="widget-icon purple"><i className="fas fa-check-circle"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Invoiced</span>
-                                <span className="value">{formatCurrency(aggregatedStats.invoicedAmt)}</span>
+                    <div className="stats-grid">
+                        <div className="stat-item">
+                            <div className="stat-icon purple"><i className="fas fa-check-circle"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Invoiced</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.invoicedAmt)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon green"><i className="fas fa-file-invoice"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Received</span>
-                                <span className="value">{formatCurrency(aggregatedStats.receivedAmt)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon green"><i className="fas fa-hand-holding-usd"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Received</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.receivedAmt)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon yellow"><i className="fas fa-clock"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Outstanding</span>
-                                <span className="value">{formatCurrency(aggregatedStats.outstandingAmt)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon yellow"><i className="fas fa-clock"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Outstanding</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.outstandingAmt)}</span>
                             </div>
                         </div>
-                        <div className="widget-item">
-                            <div className="widget-icon red"><i className="fas fa-thumbs-down"></i></div>
-                            <div className="widget-data">
-                                <span className="label">Overdue</span>
-                                <span className="value">{formatCurrency(aggregatedStats.overdueAmt)}</span>
+                        <div className="stat-item">
+                            <div className="stat-icon red"><i className="fas fa-exclamation-circle"></i></div>
+                            <div className="stat-info">
+                                <span className="stat-label">Overdue</span>
+                                <span className="stat-value">{formatCurrency(aggregatedStats.overdueAmt)}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Bottom Row Summary Cards */}
-            <div className="dashboard-summary-cards">
-                <div className="summary-card">
-                    <div className="card-top">
-                        <span className="card-title">Total Products</span>
-                        <div className="card-icon-wrapper"><i className="fas fa-box"></i></div>
+            {/* Middle Row: Summary Cards */}
+            <div className="dashboard-middle-row">
+                <div className="summary-data-card">
+                    <div className="summary-card-header">
+                        <span className="summary-card-title">Total Products</span>
+                        <i className="fas fa-box summary-card-icon"></i>
                     </div>
-                    <div className="card-main">
-                        <span className="card-value">{formatNumber(aggregatedStats.products)}</span>
-                        <span className="card-trend positive">+45 <i className="fas fa-caret-up"></i></span>
+                    <div className="summary-card-main">
+                        <span className="summary-main-value">{formatNumber(aggregatedStats.products)}</span>
+                        <span className="summary-badge">+45% <i className="fas fa-arrow-up" style={{ fontSize: '0.7em' }}></i></span>
                     </div>
-                    <div className="card-link" onClick={() => setActiveSection('products')}>
+                    <div className="summary-card-footer" onClick={() => setActiveSection('products-list')}>
                         View Inventory
                     </div>
-                    <div className="corner-accent purple"></div>
+                    <div className="corner-decoration purple"></div>
                 </div>
 
-                <div className="summary-card">
-                    <div className="card-top">
-                        <span className="card-title">Total Sales</span>
-                        <div className="card-icon-wrapper"><i className="fas fa-chart-line"></i></div>
+                <div className="summary-data-card">
+                    <div className="summary-card-header">
+                        <span className="summary-card-title">Total Sales</span>
+                        <i className="fas fa-chart-line summary-card-icon"></i>
                     </div>
-                    <div className="card-main">
-                        <span className="card-value">{formatNumber(Math.floor(aggregatedStats.sales / 100))}</span>
-                        <span className="card-trend positive">+45 <i className="fas fa-caret-up"></i></span>
+                    <div className="summary-card-main">
+                        <span className="summary-main-value">{formatNumber(aggregatedStats.sales > 1000 ? Math.floor(aggregatedStats.sales / 1000) : aggregatedStats.sales)}K</span>
+                        <span className="summary-badge">+45% <i className="fas fa-arrow-up" style={{ fontSize: '0.7em' }}></i></span>
                     </div>
-                    <div className="card-link" onClick={() => setActiveSection('orders')}>
+                    <div className="summary-card-footer" onClick={() => setActiveSection('orders-all')}>
                         View Invoices
                     </div>
-                    <div className="corner-accent blue"></div>
+                    <div className="corner-decoration blue"></div>
                 </div>
 
-                <div className="summary-card">
-                    <div className="card-top">
-                        <span className="card-title">Total Quotations</span>
-                        <div className="card-icon-wrapper"><i className="fas fa-file-alt"></i></div>
+                <div className="summary-data-card">
+                    <div className="summary-card-header">
+                        <span className="summary-card-title">Total Quotations</span>
+                        <i className="fas fa-file-alt summary-card-icon"></i>
                     </div>
-                    <div className="card-main">
-                        <span className="card-value">{formatNumber(aggregatedStats.quotations)}</span>
-                        <span className="card-trend positive">+45 <i className="fas fa-caret-up"></i></span>
+                    <div className="summary-card-main">
+                        <span className="summary-main-value">{formatNumber(aggregatedStats.quotations)}</span>
+                        <span className="summary-badge">+45% <i className="fas fa-arrow-up" style={{ fontSize: '0.7em' }}></i></span>
                     </div>
-                    <div className="card-link" onClick={() => setActiveSection('orders')}>
+                    <div className="summary-card-footer" onClick={() => setActiveSection('orders-all')}>
                         View All
                     </div>
-                    <div className="corner-accent orange"></div>
+                    <div className="corner-decoration orange"></div>
                 </div>
             </div>
 
-
-            {/* Recent Invoices Section */}
-            <div className="dashboard-invoices-section">
-                <div className="section-header-row">
+            {/* Bottom Row: Invoices Table */}
+            <div className="invoices-section">
+                <div className="invoices-header">
                     <h3>Invoices</h3>
-                    <button className="view-all-btn" onClick={() => setActiveSection('invoicing-dashboard')}>
+                    <button className="btn-view-all" onClick={() => setActiveSection('invoicing-all')}>
                         View all Invoices
                     </button>
                 </div>
-
-                <div className="table-container">
-                    <table className="invoices-table">
+                <div className="table-wrapper">
+                    <table className="dashboard-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -510,32 +573,42 @@ export default function DashboardOverview({
                             </tr>
                         </thead>
                         <tbody>
-                            {[
-                                { id: "INV00025", name: "Emily Clark", date: "22 Feb 2025", amount: "$10,000", paid: "$5,000", mode: "Cash", due: "04 Mar 2025" },
-                                { id: "INV00024", name: "John Carter", date: "07 Feb 2025", amount: "$25,750", paid: "$5,000", mode: "Check", due: "20 Feb 2025" },
-                                { id: "INV00023", name: "Sophia White", date: "09 Dec 2024", amount: "$1,20,500", paid: "$60,000", mode: "Check", due: "12 Nov 2024" },
-                                { id: "INV00022", name: "Michael Johnson", date: "30 Nov 2024", amount: "$7,50,300", paid: "$60,000", mode: "Check", due: "25 Oct 2024" },
-                                { id: "INV00016", name: "Daniel Martinez", date: "12 Oct 2024", amount: "$9,99,999", paid: "$4,00,000", mode: "Cash", due: "18 Oct 2024" },
-                            ].map((invoice) => (
-                                <tr key={invoice.id}>
-                                    <td className="text-gray">{invoice.id}</td>
-                                    <td>
-                                        <div className="customer-cell">
-                                            <img
-                                                src={`https://ui-avatars.com/api/?name=${invoice.name}&background=random&color=fff&size=32`}
-                                                alt={invoice.name}
-                                                className="customer-avatar"
-                                            />
-                                            <span className="customer-name">{invoice.name}</span>
-                                        </div>
+                            {aggregatedStats.recentInvoices.length > 0 ? (
+                                aggregatedStats.recentInvoices.map((inv: any) => (
+                                    <tr key={inv.id}>
+                                        <td style={{ color: '#6b7280' }}>{inv.id}</td>
+                                        <td>
+                                            <div className="customer-info">
+                                                <img
+                                                    src={getAvatarUrl(inv.customer_name)}
+                                                    alt={inv.customer_name}
+                                                    className="avatar"
+                                                />
+                                                <span style={{ fontWeight: 500 }}>{inv.customer_name}</span>
+                                            </div>
+                                        </td>
+                                        <td style={{ color: '#6b7280' }}>
+                                            {new Date(inv.created_date).toLocaleDateString()}
+                                        </td>
+                                        <td style={{ fontWeight: 600 }}>{formatCurrency(inv.total_amount)}</td>
+                                        <td style={{ color: '#6b7280' }}>{formatCurrency(inv.paid_amount || 0)}</td>
+                                        <td>
+                                            <span className="payment-mode-pill">
+                                                {inv.payment_type || 'N/A'}
+                                            </span>
+                                        </td>
+                                        <td style={{ color: '#6b7280' }}>
+                                            {inv.due_date ? new Date(inv.due_date).toLocaleDateString() : '-'}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                                        No recent invoices found.
                                     </td>
-                                    <td className="text-gray">{invoice.date}</td>
-                                    <td className="font-medium">{invoice.amount}</td>
-                                    <td className="text-gray">{invoice.paid}</td>
-                                    <td className="text-gray">{invoice.mode}</td>
-                                    <td className="text-gray">{invoice.due}</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
