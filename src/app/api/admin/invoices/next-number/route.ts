@@ -1,46 +1,40 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
-        // Ensure table exists
-        await sql`
-            CREATE TABLE IF NOT EXISTS invoices (
-                id SERIAL PRIMARY KEY,
-                invoice_no VARCHAR(50) UNIQUE NOT NULL
-            )
-        `;
-
-        // Find the last invoice number that follows the INV format (inclusive)
+        // Query to find the latest invoice number
+        // We look for invoice_no starting with 'INV' and sort them to find the max
         const result = await sql`
             SELECT invoice_no 
             FROM invoices 
-            WHERE invoice_no ~* 'INV.*[0-9]+'
-            ORDER BY CAST(REGEXP_REPLACE(invoice_no, '\D', '', 'g') AS INTEGER) DESC
+            WHERE invoice_no LIKE 'INV%' 
+            ORDER BY LENGTH(invoice_no) DESC, invoice_no DESC 
             LIMIT 1
         `;
 
-        let lastInvoiceNo = null;
-        let nextNum = 1;
+        let nextNumber = 1;
 
         if (result.length > 0) {
-            lastInvoiceNo = result[0].invoice_no;
-            // Remove non-digits
-            const numPart = lastInvoiceNo.replace(/\D/g, '');
-            const parsed = parseInt(numPart, 10);
-            if (!isNaN(parsed)) {
-                nextNum = parsed + 1;
+            const lastInvoiceNo = result[0].invoice_no;
+            // Expecting format INV0001
+            const match = lastInvoiceNo.match(/^INV(\d+)$/);
+            if (match && match[1]) {
+                const currentNum = parseInt(match[1], 10);
+                if (!isNaN(currentNum)) {
+                    nextNumber = currentNum + 1;
+                }
             }
         }
 
-        // Format as INV000X
-        const nextInvoiceNo = `INV${nextNum.toString().padStart(4, '0')}`;
+        // Format as INVXXXX (4 digits)
+        const nextInvoiceNo = `INV${nextNumber.toString().padStart(4, '0')}`;
 
-        return NextResponse.json({ nextInvoiceNo, lastInvoiceNo });
-
+        return NextResponse.json({ nextInvoiceNo });
     } catch (error: any) {
-        console.error('Error generating invoice number:', error);
-        // Fallback
-        return NextResponse.json({ nextInvoiceNo: 'INV0001' });
+        console.error('Error fetching next invoice number:', error);
+        return NextResponse.json({ error: 'Failed to fetch next invoice number' }, { status: 500 });
     }
 }

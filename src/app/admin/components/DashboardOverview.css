@@ -52,7 +52,7 @@
     background: white;
     padding: 1.25rem;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid #f3f4f6;
 }
 
@@ -98,12 +98,35 @@
     font-size: 0.9rem;
 }
 
-.stat-icon.purple { background: #f3e8ff; color: #9333ea; }
-.stat-icon.green { background: #dcfce7; color: #16a34a; }
-.stat-icon.yellow { background: #fef9c3; color: #ca8a04; }
-.stat-icon.blue { background: #dbeafe; color: #2563eb; }
-.stat-icon.red { background: #fee2e2; color: #dc2626; }
-.stat-icon.orange { background: #ffedd5; color: #ea580c; }
+.stat-icon.purple {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+.stat-icon.green {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.stat-icon.yellow {
+    background: #fef9c3;
+    color: #ca8a04;
+}
+
+.stat-icon.blue {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-icon.red {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.stat-icon.orange {
+    background: #ffedd5;
+    color: #ea580c;
+}
 
 .stat-info {
     display: flex;
@@ -134,7 +157,7 @@
     background: white;
     padding: 1.5rem;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid #f3f4f6;
     position: relative;
     overflow: hidden;
@@ -201,15 +224,23 @@
     opacity: 0.2;
 }
 
-.corner-decoration.purple { background: #a855f7; }
-.corner-decoration.blue { background: #3b82f6; }
-.corner-decoration.orange { background: #f97316; }
+.corner-decoration.purple {
+    background: #a855f7;
+}
+
+.corner-decoration.blue {
+    background: #3b82f6;
+}
+
+.corner-decoration.orange {
+    background: #f97316;
+}
 
 /* Invoices Table Section */
 .invoices-section {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid #f3f4f6;
     padding: 1.5rem;
 }

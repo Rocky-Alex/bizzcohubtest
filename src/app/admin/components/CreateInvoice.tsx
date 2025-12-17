@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-invoice.css';
-import ConfirmModal from './ConfirmModal';
 
 interface CreateInvoiceProps {
     setActiveSection: (section: string) => void;
     customers?: any[]; // Allow passing customers prop
+    initialData?: any; // For editing
 }
 
 interface InvoiceItem {
@@ -15,32 +15,88 @@ interface InvoiceItem {
     discount: number;
 }
 
-export default function CreateInvoice({ setActiveSection, customers = [] }: CreateInvoiceProps) {
+export default function CreateInvoice({ setActiveSection, customers = [], initialData }: CreateInvoiceProps) {
     // --- State ---
+    const [isEditing, setIsEditing] = useState(false);
+    const [originalId, setOriginalId] = useState<number | null>(null);
+
     const [invoiceNo, setInvoiceNo] = useState("INV0001");
-    const [lastInvoiceNo, setLastInvoiceNo] = useState<string | null>(null);
     const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
+    // Initialize/Fetch Data
     useEffect(() => {
-        const fetchNextInvoiceNo = async () => {
-            try {
-                const res = await fetch('/api/admin/invoices/next-number');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.nextInvoiceNo) {
-                        setInvoiceNo(data.nextInvoiceNo);
+        const loadData = async () => {
+            if (initialData) {
+                setIsEditing(true);
+                setOriginalId(initialData.id);
+                setInvoiceNo(initialData.invoice_no);
+                setCreatedDate(new Date(initialData.created_date).toISOString().split('T')[0]);
+                setDueDate(new Date(initialData.due_date).toISOString().split('T')[0]);
+                // Set other basic fields provided they exist in initialData
+                // But generally, we should fetch the latest full data to be safe and get items
+
+                try {
+                    const res = await fetch(`/api/admin/invoices/${initialData.id}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const inv = data.invoice;
+                        const itemsData = data.items;
+
+                        setInvoiceNo(inv.invoice_no);
+                        setCreatedDate(new Date(inv.created_date).toISOString().split('T')[0]);
+                        setDueDate(new Date(inv.due_date).toISOString().split('T')[0]);
+
+                        setToDetails({
+                            name: inv.customer_name || '',
+                            address: inv.customer_address || '',
+                            email: inv.customer_email || '',
+                            phone: inv.customer_phone || ''
+                        });
+                        setCustomerSearch(inv.customer_name || '');
+
+                        setPaymentType(inv.payment_type || 'Cash');
+                        setAdvanceReceived(Number(inv.advance_received) || 0);
+                        setTaxRate(Number(inv.tax_rate) || 0);
+                        setIsTaxable(inv.is_taxable);
+                        setIsDiscountable(inv.is_discountable);
+
+                        // Map items
+                        const mappedItems = itemsData.map((d: any) => ({
+                            id: d.id, // Keep DB id? Or mapped id? 
+                            // If I keep DB id, I need to handle new items having local IDs (numbers) vs DB ids.
+                            // For simplicity, I'll map them to the shape InvoiceItem requires. 
+                            // InvoiceItem.id is number.
+                            description: d.description,
+                            qty: Number(d.quantity),
+                            cost: Number(d.unit_price),
+                            discount: Number(d.discount)
+                        }));
+                        setItems(mappedItems.length > 0 ? mappedItems : [{ id: 1, description: "", qty: 0, cost: 0, discount: 0 }]);
                     }
-                    if (data.lastInvoiceNo) {
-                        setLastInvoiceNo(data.lastInvoiceNo);
-                    }
+                } catch (err) {
+                    console.error("Error fetching invoice details for edit", err);
                 }
-            } catch (error) {
-                console.error("Failed to fetch next invoice number", error);
+            } else {
+                // New Invoice Logic
+                const fetchNextInvoiceNo = async () => {
+                    try {
+                        const response = await fetch('/api/admin/invoices/next-number');
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.nextInvoiceNo) {
+                                setInvoiceNo(data.nextInvoiceNo);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch next invoice number:', error);
+                    }
+                };
+                fetchNextInvoiceNo();
             }
         };
-        fetchNextInvoiceNo();
-    }, []);
+        loadData();
+    }, [initialData]);
 
     const [customerSearch, setCustomerSearch] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -94,6 +150,7 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
     });
 
     const [paymentType, setPaymentType] = useState("Cash");
+    const [advanceReceived, setAdvanceReceived] = useState(0);
 
     const [items, setItems] = useState<InvoiceItem[]>([
         { id: 1, description: "", qty: 0, cost: 0, discount: 0 }
@@ -117,7 +174,8 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
 
     const calculatedSubTotal = calculateSubTotal();
     const vatAmount = isTaxable ? (calculatedSubTotal * taxRate) / 100 : 0;
-    const finalTotal = calculatedSubTotal + vatAmount; // Discount is already applied in row totals?
+    const finalTotal = calculatedSubTotal + vatAmount;
+    const balanceDue = finalTotal - advanceReceived;
     // Or is "Discount" adjacent to SubTotal a global discount?
     // Image has a "Discount: [0%]" line below Sub Total.
     // Let's assume the column "Discount" is line-item discount, and there's also a global one.
@@ -151,14 +209,6 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
         }
     };
 
-    const [statusModal, setStatusModal] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        type: 'success' | 'error' | 'confirm';
-        onConfirm?: () => void;
-    }>({ isOpen: false, title: '', message: '', type: 'success' });
-
     const handleSave = async () => {
         try {
             const customer = filteredCustomers.find(c => c.name === toDetails.name);
@@ -180,6 +230,7 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                 status: 'Pending',
                 isTaxable,
                 isDiscountable,
+                advanceReceived,
                 items: items.map(item => ({
                     description: item.description,
                     qty: item.qty,
@@ -189,47 +240,33 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                 }))
             };
 
-            const response = await fetch('/api/admin/invoices', {
-                method: 'POST',
+            const url = isEditing && originalId ? `/api/admin/invoices/${originalId}` : '/api/admin/invoices';
+            const method = isEditing && originalId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
             if (response.ok) {
-                setStatusModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Invoice created successfully!',
-                    type: 'success',
-                    onConfirm: () => setActiveSection('invoicing-dashboard')
-                });
+                alert(isEditing ? 'Invoice updated successfully!' : 'Invoice created successfully!');
+                setActiveSection('invoicing-dashboard');
             } else {
                 const error = await response.json();
-                setStatusModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to save invoice: ' + error.error,
-                    type: 'error'
-                });
+                alert(`Failed to ${isEditing ? 'update' : 'save'} invoice: ` + error.error);
             }
         } catch (error) {
             console.error('Error saving invoice:', error);
-            setStatusModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'An error occurred while saving the invoice.',
-                type: 'error'
-            });
+            alert('An error occurred while saving the invoice.');
         }
     };
-
-
 
     return (
         <div className="invoice-wrapper" style={{ padding: '2rem', background: '#f3f4f6', minHeight: '100vh' }}>
             <div className="actions-bar">
                 <button className="btn-secondary" onClick={() => setActiveSection('invoicing-dashboard')}>Cancel</button>
-                <button className="btn-primary" onClick={handleSave}>Save Invoice</button>
+                <button className="btn-primary" onClick={handleSave}>{isEditing ? 'Update Invoice' : 'Save Invoice'}</button>
             </div>
 
             <div className="invoice-container">
@@ -357,7 +394,7 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                                     border: '1px solid #e5e7eb',
                                     borderRadius: '6px',
                                     backgroundColor: 'white',
-                                    minHeight: '40px',
+                                    minHeight: '40px', // Reduced height as per request earlier but now keeping it flexible
                                     resize: 'vertical',
                                     fontSize: '0.9rem',
                                     fontFamily: 'inherit'
@@ -403,13 +440,21 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
 
                     <div className="invoice-meta" style={{ textAlign: 'right' }}>
                         <div style={{ marginBottom: '0.5rem' }}>Invoice No <strong style={{ color: '#0c86eaff' }}>#{invoiceNo}</strong></div>
-                        {lastInvoiceNo && (
-                            <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
-                                (Last: {lastInvoiceNo})
-                            </div>
-                        )}
                         <div style={{ marginBottom: '0.5rem' }}>Created Date : <input type="date" value={createdDate} onChange={e => setCreatedDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
                         <div>Due Date : <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
+                        <div style={{ marginTop: '0.5rem' }}>
+                            Payment Type :
+                            <select
+                                value={paymentType}
+                                onChange={e => setPaymentType(e.target.value)}
+                                className="editable-field"
+                                style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem', marginLeft: '0.5rem' }}
+                            >
+                                <option value="Cash">Cash</option>
+                                <option value="Bank">Bank</option>
+                                <option value="Credit">Credit</option>
+                            </select>
+                        </div>
                     </div>
 
 
@@ -500,15 +545,6 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#4b5563', cursor: 'pointer' }}>
                                 <input
                                     type="checkbox"
-                                    checked={isDiscountable}
-                                    onChange={e => setIsDiscountable(e.target.checked)}
-                                    style={{ width: '16px', height: '16px', accentColor: '#ea580c' }}
-                                />
-                                Discountable
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#4b5563', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
                                     checked={isTaxable}
                                     onChange={e => setIsTaxable(e.target.checked)}
                                     style={{ width: '16px', height: '16px', accentColor: '#ea580c' }}
@@ -522,12 +558,6 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                                 <span>${calculatedSubTotal.toFixed(0)}</span>
                             </div>
                         )}
-                        {isDiscountable && (
-                            <div className="total-row">
-                                <span>Discount (0%)</span>
-                                <span>$0</span>
-                            </div>
-                        )}
                         {isTaxable && (
                             <div className="total-row">
                                 <span>VAT ({taxRate}%)</span>
@@ -538,6 +568,23 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                             <span>Total Amount</span>
                             <span style={{ color: '#ea580c' }}>${finalTotal.toFixed(0)}</span>
                         </div>
+
+                        <div className="total-row">
+                            <span>Advance Received</span>
+                            <input
+                                type="number"
+                                value={advanceReceived}
+                                onChange={e => setAdvanceReceived(parseFloat(e.target.value) || 0)}
+                                className="editable-field"
+                                style={{ width: '100px', textAlign: 'right', border: '1px solid #e5e7eb' }}
+                            />
+                        </div>
+
+                        <div className="total-row" style={{ fontWeight: 600, color: '#dc2626', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                            <span>Balance Due</span>
+                            <span>${balanceDue.toFixed(0)}</span>
+                        </div>
+
                         <div className="amount-in-words">
                             Amount in Words : Dollar {finalTotal} Only
                         </div>
@@ -565,18 +612,6 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                     </div>
                 </div>
             </div>
-
-            <ConfirmModal
-                isOpen={statusModal.isOpen}
-                title={statusModal.title}
-                message={statusModal.message}
-                onConfirm={() => {
-                    if (statusModal.onConfirm) statusModal.onConfirm();
-                    setStatusModal(prev => ({ ...prev, isOpen: false }));
-                }}
-                onCancel={() => setStatusModal(prev => ({ ...prev, isOpen: false }))}
-                type={statusModal.type as any} // Cast to any or matching type if needed
-            />
-        </div >
+        </div>
     );
 }

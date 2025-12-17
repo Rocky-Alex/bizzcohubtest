@@ -59,6 +59,7 @@ export default function AdminPage() {
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
     const [isLoadingOrders, setIsLoadingOrders] = useState(false);
     const [orderToEdit, setOrderToEdit] = useState<any>(null);
+    const [invoiceToEdit, setInvoiceToEdit] = useState<any>(null);
 
     // Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -629,9 +630,21 @@ export default function AdminPage() {
             case "invoicing-dashboard":
                 return <InvoicingDashboard setActiveSection={setActiveSection} />;
             case "invoicing-all":
-                return <InvoiceList setActiveSection={setActiveSection} />;
+                return <InvoiceList
+                    setActiveSection={setActiveSection}
+                    onEdit={(invoice) => {
+                        setInvoiceToEdit(invoice);
+                        setActiveSection('invoicing-edit');
+                    }}
+                />;
             case "invoicing-new":
                 return <CreateInvoice setActiveSection={setActiveSection} customers={customers} />;
+            case "invoicing-edit":
+                return <CreateInvoice
+                    setActiveSection={setActiveSection}
+                    customers={customers}
+                    initialData={invoiceToEdit}
+                />;
 
             // --- Users ---
             case "users-all":

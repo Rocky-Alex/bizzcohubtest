@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         // Ensure tables exist
@@ -51,7 +53,6 @@ export async function GET() {
     }
 }
 
-
 export async function POST(req: Request) {
     try {
         const body = await req.json();
@@ -73,7 +74,8 @@ export async function POST(req: Request) {
             status,
             isTaxable,
             isDiscountable,
-            items
+            items,
+            advanceReceived // New field
         } = body;
 
         // Validation
@@ -102,8 +104,14 @@ export async function POST(req: Request) {
                 status VARCHAR(50) DEFAULT 'Pending',
                 is_taxable BOOLEAN DEFAULT TRUE,
                 is_discountable BOOLEAN DEFAULT TRUE,
+                advance_received NUMERIC(15, 2) DEFAULT 0,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             )
+        `;
+
+        // Ensure column exists (migration for existing table)
+        await sql`
+            ALTER TABLE invoices ADD COLUMN IF NOT EXISTS advance_received NUMERIC(15, 2) DEFAULT 0
         `;
 
         await sql`
@@ -118,75 +126,22 @@ export async function POST(req: Request) {
             )
         `;
 
-        let finalInvoiceNo = invoiceNo;
-        let invoiceId = null;
-        let attempt = 0;
-        const maxRetries = 3;
+        // Insert Invoice
+        const invoiceResult = await sql`
+            INSERT INTO invoices (
+                invoice_no, customer_id, customer_name, customer_address, 
+                customer_email, customer_phone, created_date, due_date, 
+                sub_total, discount_total, tax_rate, tax_amount, total_amount, 
+                payment_type, status, is_taxable, is_discountable, advance_received
+            ) VALUES (
+                ${invoiceNo}, ${customerId || null}, ${customerName}, ${customerAddress}, 
+                ${customerEmail}, ${customerPhone}, ${createdDate}, ${dueDate}, 
+                ${subTotal}, ${discountTotal}, ${taxRate}, ${taxAmount}, ${totalAmount}, 
+                ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}, ${advanceReceived || 0}
+            ) RETURNING id
+        `;
 
-        while (attempt < maxRetries && !invoiceId) {
-            try {
-                // Insert Invoice
-                const invoiceResult = await sql`
-                    INSERT INTO invoices (
-                        invoice_no, customer_id, customer_name, customer_address, 
-                        customer_email, customer_phone, created_date, due_date, 
-                        sub_total, discount_total, tax_rate, tax_amount, total_amount, 
-                        payment_type, status, is_taxable, is_discountable
-                    ) VALUES (
-                        ${finalInvoiceNo}, ${customerId || null}, ${customerName}, ${customerAddress}, 
-                        ${customerEmail}, ${customerPhone}, ${createdDate}, ${dueDate}, 
-                        ${subTotal}, ${discountTotal}, ${taxRate}, ${taxAmount}, ${totalAmount}, 
-                        ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}
-                    ) RETURNING id
-                `;
-                invoiceId = invoiceResult[0].id;
-
-            } catch (error: any) {
-                if (error.code === '23505') { // Unique violation
-                    console.log(`Invoice number ${finalInvoiceNo} exists, generating next...`);
-
-                    // Find max existing number
-                    const lastRes = await sql`
-                        SELECT invoice_no 
-                        FROM invoices 
-                        WHERE invoice_no ~ '^#?INV\d+$'
-                        ORDER BY CAST(REGEXP_REPLACE(invoice_no, '^#?INV', '') AS INTEGER) DESC
-                        LIMIT 1
-                    `;
-
-                    let nextNum = 1;
-                    if (lastRes.length > 0) {
-                        const lastNo = lastRes[0].invoice_no;
-                        const numPart = lastNo.replace(/\D/g, '');
-                        const parsed = parseInt(numPart, 10);
-                        if (!isNaN(parsed)) nextNum = parsed + 1;
-                    }
-
-                    // Increment if logic returned same (edge case) or just use nextNum
-                    // Note: If multiple requests hit at once, they might calculate same.
-                    // But standard retry should clear it up.
-                    // We also ensure we don't accidentally reuse the *same* failed number if logic flaw.
-                    const candidate = `INV${nextNum.toString().padStart(4, '0')}`;
-
-                    if (candidate === finalInvoiceNo) {
-                        // Should not happen if DB has it, but if race condition, maybe.
-                        // Force increment
-                        nextNum++;
-                        finalInvoiceNo = `INV${nextNum.toString().padStart(4, '0')}`;
-                    } else {
-                        finalInvoiceNo = candidate;
-                    }
-
-                    attempt++;
-                    continue;
-                }
-                throw error; // Throw non-duplicate errors
-            }
-        }
-
-        if (!invoiceId) {
-            return NextResponse.json({ error: 'Failed to generate unique invoice number after retries' }, { status: 409 });
-        }
+        const invoiceId = invoiceResult[0].id;
 
         // Insert Items
         for (const item of items) {
@@ -199,14 +154,13 @@ export async function POST(req: Request) {
             `;
         }
 
-        return NextResponse.json({
-            message: 'Invoice created successfully',
-            invoiceId,
-            invoiceNo: finalInvoiceNo
-        }, { status: 201 });
+        return NextResponse.json({ message: 'Invoice created successfully', invoiceId }, { status: 201 });
 
     } catch (error: any) {
         console.error('Error creating invoice:', error);
+        if (error.code === '23505') {
+            return NextResponse.json({ error: 'Invoice number already exists' }, { status: 409 });
+        }
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }
