@@ -20,6 +20,23 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
     const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
+    useEffect(() => {
+        const fetchNextInvoiceNo = async () => {
+            try {
+                const res = await fetch('/api/admin/invoices/next-number');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.nextInvoiceNo) {
+                        setInvoiceNo(data.nextInvoiceNo);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch next invoice number", error);
+            }
+        };
+        fetchNextInvoiceNo();
+    }, []);
+
     const [customerSearch, setCustomerSearch] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
