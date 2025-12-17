@@ -238,6 +238,54 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         primaryImageUrl: initialData?.primary_image_url || ''
     });
 
+    // Auto-generate Product Name
+    React.useEffect(() => {
+        if (productType === 'system') {
+            const {
+                brand,
+                series,
+                model,
+                processorName,
+                processorGen,
+                ram,
+                storage,
+                operatingSystem
+            } = formData;
+
+            // Helper to clean and trim strings
+            const clean = (str: string) => (str || '').trim();
+
+            // Construct the parts
+            // Format: Brand Series Model - Processor - Gen - RAM - Storage - OS
+            const mainPart = [clean(brand), clean(series), clean(model)].filter(Boolean).join(' ');
+
+            const specsPart = [
+                clean(processorName),
+                clean(processorGen),
+                clean(ram),
+                clean(storage),
+                clean(operatingSystem)
+            ].filter(Boolean).join(' - ');
+
+            const newName = [mainPart, specsPart].filter(Boolean).join(' - ');
+
+            // Only update if the name is different and we have at least some info
+            if (newName && formData.productName !== newName) {
+                setFormData(prev => ({ ...prev, productName: newName }));
+            }
+        }
+    }, [
+        formData.brand,
+        formData.series,
+        formData.model,
+        formData.processorName,
+        formData.processorGen,
+        formData.ram,
+        formData.storage,
+        formData.operatingSystem,
+        productType
+    ]);
+
     // Variants State
     const [ramVariants, setRamVariants] = useState<{ size: string; type: string; price: number }[]>(
         initialData?.ram_variants || []
@@ -405,11 +453,22 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                     uploadedUrls.push(data.url);
                 } else {
                     console.error('Failed to upload image:', file.name);
+                    let errorMessage = `Failed to upload ${file.name}`;
+                    try {
+                        const errorData = await response.json();
+                        if (errorData.error) {
+                            errorMessage = errorData.error;
+                            if (errorData.details) errorMessage += `: ${errorData.details}`;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                    }
+
                     setStatusModal({
                         isOpen: true,
                         type: 'error',
                         title: 'Upload Failed',
-                        message: `Failed to upload ${file.name}`
+                        message: errorMessage
                     });
                 }
             } catch (error) {
@@ -774,21 +833,30 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                 </div>
                                 <div className="form-group">
                                     <label>Processor Generation</label>
-                                    <input
-                                        type="text"
+                                    <SearchableDropdown
                                         name="processorGen"
                                         value={formData.processorGen}
-                                        onChange={handleChange}
+                                        onChange={handleChange as any}
+                                        options={[
+                                            '14th Gen', '13th Gen', '12th Gen', '11th Gen', '10th Gen',
+                                            '9th Gen', '8th Gen', '7th Gen', '6th Gen',
+                                            'Ryzen 8000 Series', 'Ryzen 7000 Series', 'Ryzen 6000 Series', 'Ryzen 5000 Series',
+                                            'M1', 'M2', 'M3', 'M3 Pro', 'M3 Max'
+                                        ]}
                                         placeholder="e.g. 12th Gen, 13th Gen"
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label>Processor Speed</label>
-                                    <input
-                                        type="text"
+                                    <SearchableDropdown
                                         name="processorSpeed"
                                         value={formData.processorSpeed}
-                                        onChange={handleChange}
+                                        onChange={handleChange as any}
+                                        options={[
+                                            '1.1 GHz', '1.6 GHz', '1.8 GHz', '2.0 GHz', '2.2 GHz',
+                                            '2.4 GHz', '2.6 GHz', '2.8 GHz', '3.0 GHz', '3.2 GHz',
+                                            '3.5 GHz', '3.8 GHz', '4.0 GHz', '4.2 GHz', '5.0 GHz'
+                                        ]}
                                         placeholder="e.g. 3.5 GHz"
                                     />
                                 </div>
@@ -949,11 +1017,16 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                 </div>
                                 <div className="form-group">
                                     <label>Resolution Pixel</label>
-                                    <input
-                                        type="text"
+                                    <SearchableDropdown
                                         name="screenResolutionPixel"
                                         value={formData.screenResolutionPixel}
-                                        onChange={handleChange}
+                                        onChange={handleChange as any}
+                                        options={[
+                                            '1366 x 768', '1920 x 1080', '1920 x 1200',
+                                            '2560 x 1440', '2560 x 1600', '2880 x 1800',
+                                            '3000 x 2000', '3200 x 1800', '3456 x 2160',
+                                            '3840 x 2160', '3840 x 2400', '5120 x 2880'
+                                        ]}
                                         placeholder="e.g. 1920 x 1080"
                                     />
                                 </div>

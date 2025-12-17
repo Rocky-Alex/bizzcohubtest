@@ -209,7 +209,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdateStat
                                             <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                                     <img
-                                                        src={item.image || '/placeholder.png'}
+                                                        src={item.image || '/placeholder.svg'}
                                                         alt={productName}
                                                         style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }}
                                                     />

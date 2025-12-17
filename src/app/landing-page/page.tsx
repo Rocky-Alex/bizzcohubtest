@@ -20,7 +20,7 @@ export default function LandingPage() {
             id: product.id,
             name: product.name,
             price: product.offer_price || product.price,
-            image: product.images?.[0] || product.image || '/placeholder.png',
+            image: product.images?.[0] || product.image || '/placeholder.svg',
             quantity: 1,
             options: {}, // Default options
         });

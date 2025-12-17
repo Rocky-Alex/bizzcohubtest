@@ -1,9 +1,9 @@
 import ImageKit from 'imagekit';
 
 // Initialize ImageKit with safety check for build time
-const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY;
-const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
+const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_g42DWEqY1R/8z+j7SFlv6KNuLdo=";
+const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || "private_9ALMbOBNb1sNMnb5lt5Pdy1e/WA=";
+const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/kxci2a0h5";
 
 export const imagekit = (publicKey && privateKey && urlEndpoint)
     ? new ImageKit({

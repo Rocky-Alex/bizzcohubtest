@@ -303,7 +303,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
             name: fullName,
             description: '',
             price: newItem.price,
-            image: '/placeholder.png',
+            image: '/placeholder.svg',
             quantity: Number(newItem.quantity) || 1,
             brand: newItem.brand,
             series: newItem.series,
@@ -419,7 +419,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                 id: Date.now(),
                 name: product.name,
                 price: product.price,
-                image: product.images && product.images.length > 0 ? product.images[0] : '/placeholder.png',
+                image: product.images && product.images.length > 0 ? product.images[0] : '/placeholder.svg',
                 description: product.description || '',
                 stock: product.stock,
                 quantity: 1,
@@ -692,7 +692,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                                     <td>{String(index + 1).padStart(2, '0')}</td>
                                     <td>
                                         <div className="co-item-cell">
-                                            <img src={item.image || '/placeholder.png'} alt="" className="co-item-thumb" />
+                                            <img src={item.image || '/placeholder.svg'} alt="" className="co-item-thumb" />
                                             <div className="co-item-info">
                                                 <span className="name">{item.brand} {item.series} {item.model}</span>
                                             </div>

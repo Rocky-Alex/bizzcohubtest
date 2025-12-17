@@ -61,7 +61,7 @@ export default function CartPage() {
                                 {cartItems.map((item, idx) => (
                                     <div key={`${item.id}-${idx}`} className="cart-item">
                                         <div className="item-image">
-                                            <img src={item.image || '/placeholder.png'} alt={item.name} />
+                                            <img src={item.image || '/placeholder.svg'} alt={item.name} />
                                         </div>
 
                                         <div className="item-details-col">

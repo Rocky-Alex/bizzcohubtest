@@ -191,7 +191,7 @@ export default function ProductDetailPage() {
             id: product.id,
             name: product.name,
             price: calculateTotalPrice(),
-            image: product.images[0] || '/placeholder.png',
+            image: product.images[0] || '/placeholder.svg',
             quantity: quantity,
             options: getSelectedOptions(),
         });
@@ -242,7 +242,7 @@ export default function ProductDetailPage() {
                     </div>
                     <div className="main-product-image">
                         <img
-                            src={product.images[selectedImage] || '/uploads/placeholder.jpg'}
+                            src={product.images[selectedImage] || '/placeholder.svg'}
                             alt={product.name}
                         />
                     </div>

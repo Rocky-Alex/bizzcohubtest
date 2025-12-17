@@ -241,7 +241,7 @@ export default function CheckoutPage() {
                             <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1.5rem' }}>
                                 {cartItems.map((item, idx) => (
                                     <div key={`${item.id}-${idx}`} className="order-summary-item">
-                                        <img src={item.image || '/placeholder.png'} alt={item.name} className="summary-img" />
+                                        <img src={item.image || '/placeholder.svg'} alt={item.name} className="summary-img" />
                                         <div className="summary-details">
                                             <span className="summary-name">{item.name}</span>
                                             <span className="summary-qty">Qty: {item.quantity}</span>

@@ -213,10 +213,10 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
                                                 <td>
                                                     <div className="product-info">
                                                         <img
-                                                            src={product.primary_image_url || '/placeholder.png'}
+                                                            src={product.primary_image_url || '/placeholder.svg'}
                                                             alt={product.product_name}
                                                             className="product-thumb"
-                                                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48?text=Img'; }}
+                                                            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                                                         />
                                                         <div className="product-name">
                                                             <h4>{product.product_name}</h4>
@@ -251,10 +251,10 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
                                                 {/* 1. Image */}
                                                 <td style={{ textAlign: 'center' }}>
                                                     <img
-                                                        src={product.primary_image_url || '/placeholder.png'}
+                                                        src={product.primary_image_url || '/placeholder.svg'}
                                                         alt="Img"
                                                         className="product-thumb"
-                                                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48?text=Img'; }}
+                                                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                                                     />
                                                 </td>
                                                 {/* 2. Name */}

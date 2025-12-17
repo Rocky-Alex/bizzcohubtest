@@ -69,7 +69,7 @@ export default function ProductCard({ product, type }: ProductCardProps) {
         <div className={`product-card ${inStock ? "in-stock" : "out-of-stock"}`}>
             <div className="product-image">
                 <img
-                    src={product.images?.[0] || product.image || '/uploads/placeholder.jpg'}
+                    src={product.images?.[0] || product.image || '/placeholder.svg'}
                     alt={product.name}
                     loading="lazy"
                 />
