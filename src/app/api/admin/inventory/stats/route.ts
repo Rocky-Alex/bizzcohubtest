@@ -34,11 +34,11 @@ export async function GET() {
 
         const stats = await sql`
             SELECT 
-                -- Total Products (Systems)
-                COUNT(CASE WHEN category != ALL(${accessoryCategories}) THEN 1 END) as total_products,
+                -- Total Products (Systems: type='system' or 'laptop')
+                COUNT(CASE WHEN type = 'system' OR type = 'laptop' OR (type IS NULL AND category != ALL(${accessoryCategories})) THEN 1 END) as total_products,
                 
-                -- Total Accessories
-                COUNT(CASE WHEN category = ANY(${accessoryCategories}) THEN 1 END) as total_accessories,
+                -- Total Accessories (type='accessory' or category match)
+                COUNT(CASE WHEN type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories})) THEN 1 END) as total_accessories,
                 
                 -- Low Stock (Global)
                 COUNT(CASE WHEN stock_quantity < 10 THEN 1 END) as low_stock,
@@ -47,11 +47,13 @@ export async function GET() {
                 SUM(base_price * stock_quantity) as total_value,
 
                 -- Trends (Current Month vs Previous Month for creation)
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND category != ALL(${accessoryCategories}) THEN 1 END) as products_curr_month,
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND category != ALL(${accessoryCategories}) THEN 1 END) as products_prev_month,
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND (type = 'system' OR type = 'laptop' OR (type IS NULL AND category != ALL(${accessoryCategories}))) THEN 1 END) as products_curr_month,
                 
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND category = ANY(${accessoryCategories}) THEN 1 END) as accessories_curr_month,
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND category = ANY(${accessoryCategories}) THEN 1 END) as accessories_prev_month
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND (type = 'system' OR type = 'laptop' OR (type IS NULL AND category != ALL(${accessoryCategories}))) THEN 1 END) as products_prev_month,
+                
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND (type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories}))) THEN 1 END) as accessories_curr_month,
+                
+                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND (type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories}))) THEN 1 END) as accessories_prev_month
 
             FROM products
         `;

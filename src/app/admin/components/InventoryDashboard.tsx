@@ -19,23 +19,61 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
         }
     });
 
+    const fetchStats = React.useCallback(async () => {
+        try {
+            const response = await fetch('/api/admin/inventory/stats');
+            if (response.ok) {
+                const data = await response.json();
+                setStats(data);
+            }
+        } catch (error) {
+            console.error('Error fetching inventory stats:', error);
+        }
+    }, []);
+
+    // Initial Fetch
     React.useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const response = await fetch('/api/admin/inventory/stats');
-                if (response.ok) {
-                    const data = await response.json();
-                    setStats(data);
-                }
-            } catch (error) {
-                console.error('Error fetching inventory stats:', error);
+        fetchStats();
+    }, [fetchStats]);
+
+    // Auto Refresh Logic
+    React.useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
+        const setupAutoRefresh = () => {
+            const enabled = localStorage.getItem('autoRefreshEnabled') === 'true';
+            if (!enabled) {
+                if (intervalId) clearInterval(intervalId);
+                return;
+            }
+
+            const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
+            const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
+            const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
+            const totalMs = (h * 3600 + m * 60 + s) * 1000;
+
+            if (totalMs > 0) {
+                if (intervalId) clearInterval(intervalId);
+                intervalId = setInterval(() => {
+                    fetchStats();
+                    // Update timestamp so settings component knows
+                    localStorage.setItem('lastAutoRefresh', Date.now().toString());
+                }, totalMs);
             }
         };
-        fetchStats();
 
-        const interval = setInterval(fetchStats, 600000); // 10 minutes
-        return () => clearInterval(interval);
-    }, []);
+        setupAutoRefresh();
+
+        const handleSettingsChange = () => {
+            setupAutoRefresh();
+        };
+
+        window.addEventListener('autoRefreshSettingsChanged', handleSettingsChange);
+        return () => {
+            window.removeEventListener('autoRefreshSettingsChanged', handleSettingsChange);
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [fetchStats]);
 
     const renderTrend = (value: number) => {
         if (!value) return (

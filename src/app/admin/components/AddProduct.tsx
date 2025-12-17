@@ -238,6 +238,45 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         primaryImageUrl: initialData?.primary_image_url || ''
     });
 
+    // Auto-generate Product Code
+    const generateProductCode = React.useCallback(async () => {
+        if (initialData) return; // Don't change code when editing
+
+        let prefix = 'LP';
+        const catLower = (formData.category || '').toLowerCase();
+        if (productType === 'accessory' || catLower.includes('monitor') || catLower.includes('component') || catLower.includes('accessory')) {
+            prefix = 'AC';
+        }
+
+        try {
+            const res = await fetch(`/api/admin/inventory/products/next-code?prefix=${prefix}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.code) {
+                    setFormData(prev => {
+                        // Only update if currently empty or looks like an auto-generated code (starts with BCH)
+                        if (!prev.productCode || prev.productCode.startsWith('BCH-')) {
+                            return { ...prev, productCode: data.code };
+                        }
+                        return prev;
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Failed to generate product code', error);
+        }
+    }, [productType, formData.category, initialData]);
+
+    // Trigger code generation on relevant changes
+    React.useEffect(() => {
+        if (!initialData) {
+            const timer = setTimeout(() => {
+                generateProductCode();
+            }, 500); // Debounce slightly
+            return () => clearTimeout(timer);
+        }
+    }, [generateProductCode, productType, formData.category]); // Re-run if type or category changes
+
     // Auto-generate Product Name
     React.useEffect(() => {
         if (productType === 'system') {

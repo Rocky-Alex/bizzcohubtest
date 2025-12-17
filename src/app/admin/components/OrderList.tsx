@@ -37,6 +37,44 @@ const OrderList = ({
     onEdit?: (order: Order) => void,
     onDelete?: (order: Order) => void
 }) => {
+    // --- Auto Refresh Logic ---
+    React.useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
+        const setupAutoRefresh = () => {
+            const enabled = localStorage.getItem('autoRefreshEnabled') === 'true';
+            if (!enabled) {
+                if (intervalId) clearInterval(intervalId);
+                return;
+            }
+
+            const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
+            const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
+            const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
+            const totalMs = (h * 3600 + m * 60 + s) * 1000;
+
+            if (totalMs > 0) {
+                if (intervalId) clearInterval(intervalId);
+                intervalId = setInterval(() => {
+                    onRefresh();
+                    localStorage.setItem('lastAutoRefresh', Date.now().toString());
+                }, totalMs);
+            }
+        };
+
+        setupAutoRefresh();
+
+        const handleSettingsChange = () => {
+            setupAutoRefresh();
+        };
+
+        window.addEventListener('autoRefreshSettingsChanged', handleSettingsChange);
+        return () => {
+            window.removeEventListener('autoRefreshSettingsChanged', handleSettingsChange);
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [onRefresh]);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
