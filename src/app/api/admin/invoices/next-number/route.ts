@@ -11,30 +11,32 @@ export async function GET() {
             )
         `;
 
-        // Find the last invoice number that follows the INV format
-        // We use regex to find codes like INV0001, INV1234, etc.
-        // We order by the numeric partdescending.
+        // Find the last invoice number that follows the INV format (inclusive)
         const result = await sql`
             SELECT invoice_no 
             FROM invoices 
-            WHERE invoice_no ~ '^INV\d+$'
-            ORDER BY CAST(SUBSTRING(invoice_no FROM 4) AS INTEGER) DESC
+            WHERE invoice_no ~* 'INV.*[0-9]+'
+            ORDER BY CAST(REGEXP_REPLACE(invoice_no, '\D', '', 'g') AS INTEGER) DESC
             LIMIT 1
         `;
 
+        let lastInvoiceNo = null;
         let nextNum = 1;
+
         if (result.length > 0) {
-            const lastNo = result[0].invoice_no;
-            const updates = lastNo.replace('INV', '');
-            if (!isNaN(parseInt(updates))) {
-                nextNum = parseInt(updates) + 1;
+            lastInvoiceNo = result[0].invoice_no;
+            // Remove non-digits
+            const numPart = lastInvoiceNo.replace(/\D/g, '');
+            const parsed = parseInt(numPart, 10);
+            if (!isNaN(parsed)) {
+                nextNum = parsed + 1;
             }
         }
 
         // Format as INV000X
         const nextInvoiceNo = `INV${nextNum.toString().padStart(4, '0')}`;
 
-        return NextResponse.json({ nextInvoiceNo });
+        return NextResponse.json({ nextInvoiceNo, lastInvoiceNo });
 
     } catch (error: any) {
         console.error('Error generating invoice number:', error);

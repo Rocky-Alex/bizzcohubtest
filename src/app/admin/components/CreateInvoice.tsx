@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-invoice.css';
+import ConfirmModal from './ConfirmModal';
 
 interface CreateInvoiceProps {
     setActiveSection: (section: string) => void;
@@ -17,6 +18,7 @@ interface InvoiceItem {
 export default function CreateInvoice({ setActiveSection, customers = [] }: CreateInvoiceProps) {
     // --- State ---
     const [invoiceNo, setInvoiceNo] = useState("INV0001");
+    const [lastInvoiceNo, setLastInvoiceNo] = useState<string | null>(null);
     const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
@@ -28,6 +30,9 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                     const data = await res.json();
                     if (data.nextInvoiceNo) {
                         setInvoiceNo(data.nextInvoiceNo);
+                    }
+                    if (data.lastInvoiceNo) {
+                        setLastInvoiceNo(data.lastInvoiceNo);
                     }
                 }
             } catch (error) {
@@ -146,6 +151,14 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
         }
     };
 
+    const [statusModal, setStatusModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'success' | 'error' | 'confirm';
+        onConfirm?: () => void;
+    }>({ isOpen: false, title: '', message: '', type: 'success' });
+
     const handleSave = async () => {
         try {
             const customer = filteredCustomers.find(c => c.name === toDetails.name);
@@ -183,17 +196,34 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
             });
 
             if (response.ok) {
-                alert('Invoice created successfully!');
-                setActiveSection('invoicing-dashboard');
+                setStatusModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Invoice created successfully!',
+                    type: 'success',
+                    onConfirm: () => setActiveSection('invoicing-dashboard')
+                });
             } else {
                 const error = await response.json();
-                alert('Failed to save invoice: ' + error.error);
+                setStatusModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to save invoice: ' + error.error,
+                    type: 'error'
+                });
             }
         } catch (error) {
             console.error('Error saving invoice:', error);
-            alert('An error occurred while saving the invoice.');
+            setStatusModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while saving the invoice.',
+                type: 'error'
+            });
         }
     };
+
+
 
     return (
         <div className="invoice-wrapper" style={{ padding: '2rem', background: '#f3f4f6', minHeight: '100vh' }}>
@@ -373,6 +403,11 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
 
                     <div className="invoice-meta" style={{ textAlign: 'right' }}>
                         <div style={{ marginBottom: '0.5rem' }}>Invoice No <strong style={{ color: '#0c86eaff' }}>#{invoiceNo}</strong></div>
+                        {lastInvoiceNo && (
+                            <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
+                                (Last: {lastInvoiceNo})
+                            </div>
+                        )}
                         <div style={{ marginBottom: '0.5rem' }}>Created Date : <input type="date" value={createdDate} onChange={e => setCreatedDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
                         <div>Due Date : <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
                     </div>
@@ -530,6 +565,18 @@ export default function CreateInvoice({ setActiveSection, customers = [] }: Crea
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={statusModal.isOpen}
+                title={statusModal.title}
+                message={statusModal.message}
+                onConfirm={() => {
+                    if (statusModal.onConfirm) statusModal.onConfirm();
+                    setStatusModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setStatusModal(prev => ({ ...prev, isOpen: false }))}
+                type={statusModal.type as any} // Cast to any or matching type if needed
+            />
         </div >
     );
 }
