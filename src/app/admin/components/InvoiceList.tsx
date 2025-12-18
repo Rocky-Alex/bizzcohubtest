@@ -206,6 +206,10 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                             </div>
                             <div style="text-align: right; min-width: 200px;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem;">Invoice #:</span>
+                                    <span style="font-size: 0.9rem; font-weight: 600;">${invoice.invoice_no}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
                                     <span style="font-size: 0.9rem;">Date:</span>
                                     <span style="font-size: 0.9rem; font-weight: 500;">${new Date(invoice.created_date).toLocaleDateString()}</span>
                                 </div>
@@ -251,6 +255,7 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                                 <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 1rem;">Please pay within 7 days from the date of invoice.</p>
                                 
                                 <h4 style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem;">Notes</h4>
+                                ${invoice.notes ? `<p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem;">${invoice.notes}</p>` : ''}
                                 <p style="font-size: 0.8rem; color: #6b7280;">Please quote invoice number when remitting funds.</p>
                             </div>
 
@@ -605,6 +610,10 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                                     </div>
                                     <div style={{ textAlign: 'right', minWidth: '200px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.9rem' }}>Invoice #:</span>
+                                            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{viewData.invoice.invoice_no}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                                             <span style={{ fontSize: '0.9rem' }}>Date:</span>
                                             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{new Date(viewData.invoice.created_date).toLocaleDateString()}</span>
                                         </div>
@@ -651,6 +660,9 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                                         <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '1rem' }}>Please pay within 7 days from the date of invoice.</p>
 
                                         <h4 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Notes</h4>
+                                        {viewData.invoice.notes && (
+                                            <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.25rem' }}>{viewData.invoice.notes}</p>
+                                        )}
                                         <p style={{ fontSize: '0.8rem', color: '#6b7280' }}>Please quote invoice number when remitting funds.</p>
                                     </div>
 

@@ -14,7 +14,9 @@ import CustomerList from "./components/CustomerList";
 import AddCustomerForm from "./components/AddCustomerForm";
 import ComingSoon from "./components/ComingSoon";
 import CreateInvoice from "./components/CreateInvoice";
+import CreateQuotation from "./components/CreateQuotation";
 import InvoiceList from "./components/InvoiceList";
+import QuotationList from "./components/QuotationList";
 import InventoryDashboard from "./components/InventoryDashboard";
 import ProductList from "./components/ProductList";
 import AddProduct from "./components/AddProduct";
@@ -60,6 +62,16 @@ export default function AdminPage() {
     const [isLoadingOrders, setIsLoadingOrders] = useState(false);
     const [orderToEdit, setOrderToEdit] = useState<any>(null);
     const [invoiceToEdit, setInvoiceToEdit] = useState<any>(null);
+    const [quotationToEdit, setQuotationToEdit] = useState<any>(null);
+
+    React.useEffect(() => {
+        if (activeSection !== 'create-quotation' && activeSection !== 'quotations-all') {
+            setQuotationToEdit(null);
+        }
+        if (activeSection !== 'invoicing-new' && activeSection !== 'invoicing-edit' && activeSection !== 'invoicing-all') {
+            setInvoiceToEdit(null);
+        }
+    }, [activeSection]);
 
     // Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -644,6 +656,22 @@ export default function AdminPage() {
                     setActiveSection={setActiveSection}
                     customers={customers}
                     initialData={invoiceToEdit}
+                />;
+
+            case "create-quotation":
+                return <CreateQuotation
+                    setActiveSection={setActiveSection}
+                    customers={customers}
+                    initialData={quotationToEdit}
+                />;
+
+            case "quotations-all":
+                return <QuotationList
+                    setActiveSection={setActiveSection}
+                    onEdit={(quotation: any) => {
+                        setQuotationToEdit(quotation);
+                        setActiveSection('create-quotation');
+                    }}
                 />;
 
             // --- Users ---

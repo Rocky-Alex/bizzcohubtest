@@ -6,7 +6,15 @@ interface InvoicingDashboardProps {
 }
 
 export default function InvoicingDashboard({ setActiveSection }: InvoicingDashboardProps) {
-    const [stats, setStats] = React.useState({
+    const [stats, setStats] = React.useState<{
+        totalInvoices: number;
+        totalReceived: number;
+        pendingAmount: number;
+        overdueAmount: number;
+        trends: any;
+        recentTransactions: any[];
+        monthlyRevenue: any[];
+    }>({
         totalInvoices: 0,
         totalReceived: 0,
         pendingAmount: 0,
@@ -16,7 +24,9 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
             received: 0,
             pending: 0,
             overdue: 0
-        }
+        },
+        recentTransactions: [],
+        monthlyRevenue: []
     });
 
     const fetchStats = React.useCallback(async () => {
@@ -93,6 +103,12 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
         );
     };
 
+    // Calculate max revenue for chart scaling
+    const maxRevenue = React.useMemo(() => {
+        if (!stats.monthlyRevenue.length) return 100;
+        return Math.max(...stats.monthlyRevenue.map((d: any) => Number(d.revenue))) || 100;
+    }, [stats.monthlyRevenue]);
+
     return (
         <div className="billing-dashboard-container">
             {/* Header / Title could go here if not handled by parent */}
@@ -162,13 +178,32 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                     <div className="chart-header">
                         <h3>Revenue Analytics</h3>
                         <div className="chart-actions">
-                            <button className="chart-filter">Monthly</button>
-                            <button className="chart-filter">Yearly</button>
+                            <button className="chart-filter active">Last 6 Months</button>
                         </div>
                     </div>
-                    <div className="chart-placeholder-box">
-                        <i className="fas fa-chart-area" style={{ marginRight: '10px', fontSize: '24px' }}></i>
-                        Interactive Revenue Chart Area
+                    <div className="chart-container" style={{ height: '250px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', paddingTop: '20px' }}>
+                        {stats.monthlyRevenue.length > 0 ? (
+                            stats.monthlyRevenue.map((item: any, index: number) => (
+                                <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '10%' }}>
+                                    <div
+                                        style={{
+                                            width: '100%',
+                                            backgroundColor: '#3b82f6',
+                                            borderRadius: '4px 4px 0 0',
+                                            height: `${(Number(item.revenue) / maxRevenue) * 200}px`,
+                                            minHeight: '4px',
+                                            transition: 'height 0.3s ease'
+                                        }}
+                                        title={`$${Number(item.revenue).toFixed(2)}`}
+                                    />
+                                    <span style={{ marginTop: '8px', fontSize: '0.75rem', color: '#6b7280' }}>{item.month}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+                                No revenue data available
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -176,8 +211,41 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                     <div className="chart-header">
                         <h3>Recent Transactions</h3>
                     </div>
-                    <ul className="activity-list">
-                        {/* No recent activity */}
+                    <ul className="activity-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                        {Array.isArray(stats.recentTransactions) && stats.recentTransactions.length > 0 ? (
+                            stats.recentTransactions.map((tx: any) => (
+                                <li key={tx.id || Math.random()} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{
+                                            width: '40px', height: '40px', borderRadius: '50%',
+                                            backgroundColor: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <i className="fas fa-file-invoice-dollar"></i>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 500, color: '#1f2937' }}>{tx.customer_name || 'Unknown Customer'}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                                                {tx.invoice_no || `ID: ${tx.id}`} • {tx.created_date ? new Date(tx.created_date).toLocaleDateString() : 'Date N/A'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontWeight: 600, color: '#1f2937' }}>${Number(tx.total_amount || 0).toFixed(2)}</div>
+                                        <div style={{
+                                            fontSize: '0.75rem',
+                                            fontWeight: 500,
+                                            color: tx.status === 'Paid' ? '#16a34a' : tx.status === 'Overdue' ? '#dc2626' : '#d97706'
+                                        }}>
+                                            {tx.status || 'Pending'}
+                                        </div>
+                                    </div>
+                                </li>
+                            ))
+                        ) : (
+                            <li style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+                                {stats.recentTransactions ? 'No recent transactions' : 'Loading transactions...'}
+                            </li>
+                        )}
                     </ul>
                 </div>
             </div>
@@ -196,17 +264,9 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         </div>
                     </div>
 
-                    <div className="quick-action-card" onClick={() => setActiveSection('invoicing-all')}>
-                        <div className="quick-action-icon" style={{ background: '#dcfce7', color: '#16a34a' }}>
-                            <i className="fas fa-file-signature"></i>
-                        </div>
-                        <div className="quick-action-content">
-                            <span className="quick-action-title">Edit Invoice</span>
-                            <span className="quick-action-desc">Modify existing invoices</span>
-                        </div>
-                    </div>
 
-                    <div className="quick-action-card" onClick={() => setActiveSection('quotations-new')}>
+
+                    <div className="quick-action-card" onClick={() => setActiveSection('create-quotation')}>
                         <div className="quick-action-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
                             <i className="fas fa-file-alt"></i>
                         </div>
@@ -216,15 +276,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         </div>
                     </div>
 
-                    <div className="quick-action-card" onClick={() => setActiveSection('quotations-all')}>
-                        <div className="quick-action-icon" style={{ background: '#ffedd5', color: '#c2410c' }}>
-                            <i className="fas fa-pen-fancy"></i>
-                        </div>
-                        <div className="quick-action-content">
-                            <span className="quick-action-title">Edit Quotation</span>
-                            <span className="quick-action-desc">Modify existing quotes</span>
-                        </div>
-                    </div>
+
 
 
 

@@ -1,0 +1,595 @@
+import React, { useState, useEffect, useRef } from 'react';
+import '../styles/create-invoice.css';
+
+interface CreateQuotationProps {
+    setActiveSection: (section: string) => void;
+    customers?: any[]; // Allow passing customers prop
+    initialData?: any; // For editing
+}
+
+interface InvoiceItem {
+    id: number;
+    description: string;
+    qty: number;
+    cost: number;
+    discount: number;
+}
+
+export default function CreateQuotation({ setActiveSection, customers = [], initialData }: CreateQuotationProps) {
+    // --- State ---
+    const [isEditing, setIsEditing] = useState(false);
+    const [originalId, setOriginalId] = useState<number | null>(null);
+
+    const [quotationNo, setQuotationNo] = useState("QTN0001");
+    const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+
+    // Initialize/Fetch Data
+    useEffect(() => {
+        const loadData = async () => {
+            if (initialData) {
+                setIsEditing(true);
+                setOriginalId(initialData.id);
+                setQuotationNo(initialData.quotation_no || initialData.invoice_no);
+                setCreatedDate(new Date(initialData.created_date).toISOString().split('T')[0]);
+                setDueDate(new Date(initialData.due_date).toISOString().split('T')[0]);
+
+                try {
+                    const res = await fetch(`/api/admin/quotations/${initialData.id}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const q = data.quotation; // Assuming API returns { quotation: ..., items: ... }
+                        const itemsData = data.items;
+
+                        setQuotationNo(q.quotation_no);
+                        setCreatedDate(new Date(q.created_date).toISOString().split('T')[0]);
+                        setDueDate(new Date(q.due_date).toISOString().split('T')[0]);
+
+                        setToDetails({
+                            name: q.customer_name || '',
+                            address: q.customer_address || '',
+                            email: q.customer_email || '',
+                            phone: q.customer_phone || ''
+                        });
+                        setCustomerSearch(q.customer_name || '');
+
+                        setPaymentType(q.payment_type || 'Cash');
+                        setAdvanceReceived(Number(q.advance_received) || 0);
+                        setTaxRate(Number(q.tax_rate) || 0);
+                        setIsTaxable(q.is_taxable);
+                        setIsDiscountable(q.is_discountable);
+
+                        // Map items
+                        const mappedItems = itemsData.map((d: any) => ({
+                            id: d.id,
+                            description: d.description,
+                            qty: Number(d.quantity),
+                            cost: Number(d.unit_price),
+                            discount: Number(d.discount)
+                        }));
+                        setItems(mappedItems.length > 0 ? mappedItems : [{ id: 1, description: "", qty: 0, cost: 0, discount: 0 }]);
+                    }
+                } catch (err) {
+                    console.error("Error fetching quotation details for edit", err);
+                }
+            } else {
+                // New Quotation Logic
+                const fetchNextQuotationNo = async () => {
+                    try {
+                        const response = await fetch('/api/admin/quotations/next-number');
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.nextQuotationNo) {
+                                setQuotationNo(data.nextQuotationNo);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch next quotation number:', error);
+                    }
+                };
+                fetchNextQuotationNo();
+            }
+        };
+        loadData();
+    }, [initialData]);
+
+    const [customerSearch, setCustomerSearch] = useState("");
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+
+    const searchRef = useRef<HTMLDivElement>(null);
+
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (customers) {
+            if (!customerSearch) {
+                setFilteredCustomers(customers);
+            } else {
+                const filtered = customers.filter(c =>
+                    (c.name && c.name.toLowerCase().includes(customerSearch.toLowerCase())) ||
+                    (c.email && c.email.toLowerCase().includes(customerSearch.toLowerCase()))
+                );
+                setFilteredCustomers(filtered);
+            }
+        }
+    }, [customerSearch, customers]);
+
+    const handleCustomerSelect = (customer: any) => {
+        setToDetails({
+            name: customer.name,
+            address: `${customer.shipping_address_1 || ''} ${customer.city || ''} ${customer.state || ''} ${customer.postcode || ''}`.trim().replace(/\s+/g, ' '),
+            email: customer.email || "",
+            phone: customer.phone || ""
+        });
+        setCustomerSearch(customer.name);
+        setShowSuggestions(false);
+    };
+
+    const [toDetails, setToDetails] = useState({
+        name: "",
+        address: "",
+        email: "",
+        phone: ""
+    });
+
+    const [paymentType, setPaymentType] = useState("Cash");
+    const [advanceReceived, setAdvanceReceived] = useState(0);
+
+    const [items, setItems] = useState<InvoiceItem[]>([
+        { id: 1, description: "", qty: 0, cost: 0, discount: 0 }
+    ]);
+
+    const [taxRate, setTaxRate] = useState(5); // 5%
+    const [isTaxable, setIsTaxable] = useState(true);
+    const [isDiscountable, setIsDiscountable] = useState(true);
+
+    // --- Calculations ---
+    const subTotal = items.reduce((sum, item) => sum + (item.qty * item.cost), 0);
+    const totalDiscount = items.reduce((sum, item) => sum + item.discount, 0);
+
+    const calculateRowTotal = (item: InvoiceItem) => {
+        return (item.qty * item.cost) - (isDiscountable ? item.discount : 0);
+    };
+
+    const calculateSubTotal = () => {
+        return items.reduce((acc, item) => acc + calculateRowTotal(item), 0);
+    };
+
+    const calculatedSubTotal = calculateSubTotal();
+    const vatAmount = isTaxable ? (calculatedSubTotal * taxRate) / 100 : 0;
+    const finalTotal = calculatedSubTotal + vatAmount;
+    const balanceDue = finalTotal - advanceReceived;
+
+    const handleItemChange = (id: number, field: keyof InvoiceItem, value: any) => {
+        setItems(prev => prev.map(item => {
+            if (item.id === id) {
+                return { ...item, [field]: value };
+            }
+            return item;
+        }));
+    };
+
+    const addItem = () => {
+        const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+        setItems([...items, { id: newId, description: "", qty: 0, cost: 0, discount: 0 }]);
+    };
+
+    const removeItem = (id: number) => {
+        if (items.length > 1) {
+            setItems(items.filter(i => i.id !== id));
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            const customer = filteredCustomers.find(c => c.name === toDetails.name);
+            const payload = {
+                quotationNo,
+                customerId: customer ? customer.id : null,
+                customerName: toDetails.name,
+                customerAddress: toDetails.address,
+                customerEmail: toDetails.email,
+                customerPhone: toDetails.phone,
+                createdDate,
+                dueDate,
+                subTotal: calculatedSubTotal,
+                discountTotal: totalDiscount,
+                taxRate: taxRate,
+                taxAmount: vatAmount,
+                totalAmount: finalTotal,
+                paymentType: paymentType,
+                status: 'Pending',
+                isTaxable,
+                isDiscountable,
+                advanceReceived,
+                items: items.map(item => ({
+                    description: item.description,
+                    qty: item.qty,
+                    cost: item.cost,
+                    discount: item.discount,
+                    total: calculateRowTotal(item)
+                }))
+            };
+
+            const url = isEditing && originalId ? `/api/admin/quotations/${originalId}` : '/api/admin/quotations';
+            const method = isEditing && originalId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert(isEditing ? 'Quotation updated successfully!' : 'Quotation created successfully!');
+                setActiveSection('invoicing-dashboard');
+            } else {
+                const error = await response.json();
+                alert(`Failed to ${isEditing ? 'update' : 'save'} quotation: ` + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error saving quotation:', error);
+            alert('An error occurred while saving the quotation.');
+        }
+    };
+
+    return (
+        <div className="invoice-wrapper" style={{ padding: '2rem', background: '#f3f4f6', minHeight: '100vh' }}>
+            <div className="actions-bar">
+                <button className="btn-secondary" onClick={() => setActiveSection('invoicing-dashboard')}>Cancel</button>
+                <button className="btn-primary" onClick={handleSave}>{isEditing ? 'Update Quotation' : 'Save Quotation'}</button>
+            </div>
+
+            <div className="invoice-container">
+                {/* Header */}
+                <div className="invoice-header" style={{ position: 'relative' }}>
+                    <div className="company-branding">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
+                            <h1 style={{ margin: 0, fontSize: '2.2rem', color: '#0c86eaff' }}>Bizz Co Hub</h1>
+                        </div>
+                        <p style={{ color: '#0c86eaff' }}>Professional Solutions for Modern Business</p>
+                    </div>
+
+                    {isTaxable && (
+                        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '60px' }}>
+                            <p style={{ color: '#0c86eaff', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
+                        </div>
+                    )}
+
+                    <div className="invoice-right-header">
+                        <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#0c86eaff', letterSpacing: '2px', textTransform: 'uppercase' }}>QUOTATION INVOICE</h1>
+                    </div>
+
+                </div>
+
+                {/* Addresses */}
+                <div className="invoice-addresses">
+
+
+                    <div className="address-content" style={{ width: '400px' }}>
+                        <div ref={searchRef} style={{ position: 'relative', marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>Customer Name</label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    className="editable-field name"
+                                    placeholder="Search Customer..."
+                                    value={customerSearch || toDetails.name}
+                                    onChange={e => {
+                                        setCustomerSearch(e.target.value);
+                                        setShowSuggestions(true);
+                                        setToDetails({ ...toDetails, name: e.target.value });
+                                    }}
+                                    onFocus={() => setShowSuggestions(true)}
+                                    onClick={() => setShowSuggestions(true)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.6rem 2.5rem 0.6rem 0.6rem',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        backgroundColor: 'white',
+                                        fontSize: '0.9rem'
+                                    }}
+                                />
+                                <i
+                                    className="fas fa-chevron-down"
+                                    style={{
+                                        position: 'absolute',
+                                        right: '12px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: '#9ca3af',
+                                        pointerEvents: 'none',
+                                        fontSize: '0.8rem'
+                                    }}
+                                ></i>
+                            </div>
+                            {showSuggestions && filteredCustomers.length > 0 && (
+                                <div className="customer-suggestions" style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    left: 0,
+                                    right: 0,
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    zIndex: 10,
+                                    maxHeight: '200px',
+                                    overflowY: 'auto',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                    marginTop: '4px'
+                                }}>
+                                    {filteredCustomers.map(c => (
+                                        <div
+                                            key={c.id}
+                                            onClick={() => handleCustomerSelect(c)}
+                                            style={{
+                                                padding: '0.6rem',
+                                                cursor: 'pointer',
+                                                borderBottom: '1px solid #f3f4f6',
+                                                fontSize: '0.9rem',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <img
+                                                    src={c.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&color=fff&size=32`}
+                                                    alt={c.name}
+                                                    style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                                                />
+                                                <div>
+                                                    <div style={{ fontWeight: 500, color: '#1f2937' }}>{c.name}</div>
+                                                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{c.email}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>Billing Address</label>
+                            <textarea
+                                className="editable-field"
+                                value={toDetails.address}
+                                onChange={e => setToDetails({ ...toDetails, address: e.target.value })}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.6rem',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'white',
+                                    minHeight: '40px',
+                                    resize: 'vertical',
+                                    fontSize: '0.9rem',
+                                    fontFamily: 'inherit'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>Email</label>
+                                <input
+                                    className="editable-field"
+                                    value={toDetails.email}
+                                    onChange={e => setToDetails({ ...toDetails, email: e.target.value })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.6rem',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        backgroundColor: 'white',
+                                        fontSize: '0.9rem'
+                                    }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>Phone</label>
+                                <input
+                                    className="editable-field"
+                                    value={toDetails.phone}
+                                    onChange={e => setToDetails({ ...toDetails, phone: e.target.value })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.6rem',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        backgroundColor: 'white',
+                                        fontSize: '0.9rem'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="invoice-meta" style={{ textAlign: 'right' }}>
+                        <div style={{ marginBottom: '0.5rem' }}>Quotation No <strong style={{ color: '#0c86eaff' }}>#{quotationNo}</strong></div>
+                        <div style={{ marginBottom: '0.5rem' }}>Created Date : <input type="date" value={createdDate} onChange={e => setCreatedDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
+                        <div>Due Date : <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
+                        <div style={{ marginTop: '0.5rem' }}>
+                            Payment Type :
+                            <select
+                                value={paymentType}
+                                onChange={e => setPaymentType(e.target.value)}
+                                className="editable-field"
+                                style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem', marginLeft: '0.5rem' }}
+                            >
+                                <option value="Cash">Cash</option>
+                                <option value="Bank">Bank</option>
+                                <option value="Credit">Credit</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* Items Table */}
+                <table className="invoice-items-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40%' }}>Job Description</th>
+                            <th style={{ width: '10%', textAlign: 'center' }}>Qty</th>
+                            <th style={{ width: '15%', textAlign: 'right' }}>Cost</th>
+                            <th style={{ width: '15%', textAlign: 'right' }}>Discount</th>
+                            <th style={{ width: '15%', textAlign: 'right' }}>Total</th>
+                            <th style={{ width: '5%' }}></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items.map((item) => (
+                            <tr key={item.id}>
+                                <td>
+                                    <input
+                                        value={item.description}
+                                        onChange={e => handleItemChange(item.id, 'description', e.target.value)}
+                                        className="editable-field"
+                                    />
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                    <input
+                                        type="number"
+                                        value={item.qty}
+                                        onChange={e => handleItemChange(item.id, 'qty', parseInt(e.target.value) || 0)}
+                                        className="editable-field"
+                                        style={{ textAlign: 'center' }}
+                                    />
+                                </td>
+                                <td style={{ textAlign: 'right' }}>
+                                    <input
+                                        type="number"
+                                        value={item.cost}
+                                        onChange={e => handleItemChange(item.id, 'cost', parseFloat(e.target.value) || 0)}
+                                        className="editable-field"
+                                        style={{ textAlign: 'right' }}
+                                    />
+                                </td>
+                                <td style={{ textAlign: 'right' }}>
+                                    <input
+                                        type="number"
+                                        value={item.discount}
+                                        onChange={e => handleItemChange(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                                        className="editable-field"
+                                        style={{ textAlign: 'right' }}
+                                    />
+                                </td>
+                                <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                                    ${calculateRowTotal(item).toFixed(0)}
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                    {items.length > 1 && (
+                                        <i
+                                            className="fas fa-trash-alt"
+                                            style={{ color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem' }}
+                                            onClick={() => removeItem(item.id)}
+                                        ></i>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <button className="btn-add-item" onClick={addItem}>+ Add Item</button>
+
+                {/* Footer Totals */}
+                <div className="invoice-footer-section">
+                    <div className="invoice-terms">
+                        <h4>Terms and Conditions</h4>
+                        <p>Valid for 7 days from the date of quotation.</p>
+                        <h4>Notes</h4>
+                        <p>Please quote quotation number when remitting funds.</p>
+                    </div>
+
+                    <div className="invoice-totals">
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '1rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#4b5563', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={isTaxable}
+                                    onChange={e => setIsTaxable(e.target.checked)}
+                                    style={{ width: '16px', height: '16px', accentColor: '#ea580c' }}
+                                />
+                                Taxable
+                            </label>
+                        </div>
+                        {(isDiscountable || isTaxable) && (
+                            <div className="total-row">
+                                <span>Sub Total</span>
+                                <span>${calculatedSubTotal.toFixed(0)}</span>
+                            </div>
+                        )}
+                        {isTaxable && (
+                            <div className="total-row">
+                                <span>VAT ({taxRate}%)</span>
+                                <span>${vatAmount.toFixed(0)}</span>
+                            </div>
+                        )}
+                        <div className="total-row final">
+                            <span>Total Amount</span>
+                            <span style={{ color: '#ea580c' }}>${finalTotal.toFixed(0)}</span>
+                        </div>
+
+                        <div className="total-row">
+                            <span>Advance Received</span>
+                            <input
+                                type="number"
+                                value={advanceReceived}
+                                onChange={e => setAdvanceReceived(parseFloat(e.target.value) || 0)}
+                                className="editable-field"
+                                style={{ width: '100px', textAlign: 'right', border: '1px solid #e5e7eb' }}
+                            />
+                        </div>
+
+                        <div className="total-row" style={{ fontWeight: 600, color: '#dc2626', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                            <span>Balance Due</span>
+                            <span>${balanceDue.toFixed(0)}</span>
+                        </div>
+
+                        <div className="amount-in-words">
+                            Amount in Words : Dollar {finalTotal} Only
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sigs */}
+                <div className="signature-section">
+                    <div style={{ display: 'inline-block', textAlign: 'center' }}>
+
+                        <span className="signature-line"></span>
+                        <h5 className="manager-name">Muhammed Rishad</h5>
+                        <p className="manager-title">Assistant Manager</p>
+                    </div>
+                </div>
+
+                {/* Bottom Branding */}
+                <div className="bottom-branding">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '32px', height: 'auto' }} />
+                        <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0c86eaff' }}>Bizz Co Hub</h3>
+                    </div>
+                    <div className="bank-details">
+                        Professional Solutions for Modern Business
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

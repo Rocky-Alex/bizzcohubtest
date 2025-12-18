@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import AutoRefreshSettings from "./AutoRefreshSettings";
 
 interface AdminSidebarProps {
@@ -60,6 +61,7 @@ export default function AdminSidebar({
             subItems: [
                 { id: "invoicing-dashboard", label: "Dashboard" },
                 { id: "invoicing-all", label: "All Invoice" },
+                { id: "quotations-all", label: "All Quotations" },
                 { id: "invoicing-new", label: "New Invoice" }
             ]
         },
@@ -154,12 +156,12 @@ export default function AdminSidebar({
             onMouseLeave={handleMouseLeave}
         >
             <div className="sidebar-header">
-                <div className="brand-wrapper">
+                <Link href="/" className="brand-wrapper">
                     <div className="brand-logo">
                         <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     {isExpanded && <span className="brand-text">Bizzcohub</span>}
-                </div>
+                </Link>
             </div>
 
             <nav className="sidebar-menu">

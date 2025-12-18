@@ -105,6 +105,7 @@ export async function POST(req: Request) {
                 is_taxable BOOLEAN DEFAULT TRUE,
                 is_discountable BOOLEAN DEFAULT TRUE,
                 advance_received NUMERIC(15, 2) DEFAULT 0,
+                notes TEXT,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             )
         `;
@@ -112,6 +113,9 @@ export async function POST(req: Request) {
         // Ensure column exists (migration for existing table)
         await sql`
             ALTER TABLE invoices ADD COLUMN IF NOT EXISTS advance_received NUMERIC(15, 2) DEFAULT 0
+        `;
+        await sql`
+            ALTER TABLE invoices ADD COLUMN IF NOT EXISTS notes TEXT
         `;
 
         await sql`
@@ -132,12 +136,13 @@ export async function POST(req: Request) {
                 invoice_no, customer_id, customer_name, customer_address, 
                 customer_email, customer_phone, created_date, due_date, 
                 sub_total, discount_total, tax_rate, tax_amount, total_amount, 
-                payment_type, status, is_taxable, is_discountable, advance_received
+                payment_type, status, is_taxable, is_discountable, advance_received, notes
             ) VALUES (
                 ${invoiceNo}, ${customerId || null}, ${customerName}, ${customerAddress}, 
                 ${customerEmail}, ${customerPhone}, ${createdDate}, ${dueDate}, 
                 ${subTotal}, ${discountTotal}, ${taxRate}, ${taxAmount}, ${totalAmount}, 
-                ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}, ${advanceReceived || 0}
+                ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}, ${advanceReceived || 0},
+                ${body.notes || null}
             ) RETURNING id
         `;
 

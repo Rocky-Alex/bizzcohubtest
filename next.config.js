@@ -3,6 +3,7 @@
 const nextConfig = {
     // Disable Vercel Analytics in development to reduce console noise
     experimental: {
+        serverComponentsExternalPackages: ['@react-pdf/renderer'],
         // Optimize resource loading
         optimizePackageImports: ['framer-motion', 'react-icons'],
     },
