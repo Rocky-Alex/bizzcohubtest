@@ -17,6 +17,7 @@ import CreateInvoice from "./components/CreateInvoice";
 import CreateQuotation from "./components/CreateQuotation";
 import InvoiceList from "./components/InvoiceList";
 import QuotationList from "./components/QuotationList";
+import PartialPaymentsList from "./components/PartialPaymentsList";
 import InventoryDashboard from "./components/InventoryDashboard";
 import ProductList from "./components/ProductList";
 import AddProduct from "./components/AddProduct";
@@ -470,7 +471,7 @@ export default function AdminPage() {
 
     const renderContent = () => {
         // --- Under Construction Sections ---
-        if (activeSection.startsWith("orders") && !['orders-all', 'orders-create'].includes(activeSection)) {
+        if (activeSection.startsWith("orders") && !['orders-all', 'orders-create', 'orders-returns'].includes(activeSection)) {
             return <ComingSoon title="Order Management" description="Advanced order processing and tracking features will be available here." />;
         }
         if (activeSection.startsWith("products") && !['products-add', 'products-import', 'products-list', 'products-edit'].includes(activeSection)) {
@@ -499,6 +500,18 @@ export default function AdminPage() {
                     orders={orders}
                     loading={isLoadingOrders}
                     onRefresh={fetchOrders}
+                    onEdit={(order) => {
+                        setOrderToEdit(order);
+                        setActiveSection('orders-create');
+                    }}
+                    onDelete={(order) => handleDelete(order, 'Order')}
+                />;
+            case "orders-returns":
+                return <OrderList
+                    orders={orders.filter(o => ['Return Requested', 'Returned'].includes(o.status))}
+                    loading={isLoadingOrders}
+                    onRefresh={fetchOrders}
+                    title="Return Requests"
                     onEdit={(order) => {
                         setOrderToEdit(order);
                         setActiveSection('orders-create');
@@ -665,6 +678,13 @@ export default function AdminPage() {
                     initialData={quotationToEdit}
                 />;
 
+            case "quotations-new":
+                return <CreateQuotation
+                    setActiveSection={setActiveSection}
+                    customers={customers}
+                    initialData={null}
+                />;
+
             case "quotations-all":
                 return <QuotationList
                     setActiveSection={setActiveSection}
@@ -673,6 +693,9 @@ export default function AdminPage() {
                         setActiveSection('create-quotation');
                     }}
                 />;
+
+            case "payments-all":
+                return <PartialPaymentsList setActiveSection={setActiveSection} />;
 
             // --- Users ---
             case "users-all":

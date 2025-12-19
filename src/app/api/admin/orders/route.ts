@@ -27,6 +27,12 @@ export async function GET(request: NextRequest) {
             )
         `;
 
+        // Migration: Add customer_id if it doesn't exist
+        await sql`
+            ALTER TABLE orders 
+            ADD COLUMN IF NOT EXISTS customer_id INTEGER
+        `;
+
         const orders = await sql`SELECT * FROM orders ORDER BY created_at DESC`;
 
         return NextResponse.json({ orders });
@@ -41,6 +47,12 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         const orderNumber = `ORD-${Date.now()}`;
+
+        // Ensure customer_id column exists before insert (double check for safety in this flow)
+        await sql`
+            ALTER TABLE orders 
+            ADD COLUMN IF NOT EXISTS customer_id INTEGER
+        `;
 
         const newOrder = await sql`
             INSERT INTO orders (
@@ -58,7 +70,8 @@ export async function POST(request: NextRequest) {
                 shipping_cost,
                 total,
                 payment_method,
-                status
+                status,
+                customer_id
             ) VALUES (
                 ${orderNumber},
                 ${body.firstName + ' ' + body.lastName},
@@ -74,7 +87,8 @@ export async function POST(request: NextRequest) {
                 ${body.shipping},
                 ${body.total},
                 ${body.paymentMethod || 'COD'},
-                'Pending'
+                'Pending',
+                ${body.customerId || null}
             )
             RETURNING *
         `;

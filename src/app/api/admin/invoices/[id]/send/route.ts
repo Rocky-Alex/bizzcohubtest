@@ -60,7 +60,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         const { data, error } = await resend.emails.send({
             from: senderEmail,
-            to: invoice.customer_email,
+            to: 'rishadpnpm@gmail.com', // Restricted to verified email in Resend free tier
             subject: `Invoice #${invoice.invoice_no} from Bizz Co Hub`,
             html: `
                 <div style="font-family: Arial, sans-serif; color: #333;">

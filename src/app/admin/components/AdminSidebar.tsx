@@ -62,7 +62,9 @@ export default function AdminSidebar({
                 { id: "invoicing-dashboard", label: "Dashboard" },
                 { id: "invoicing-all", label: "All Invoice" },
                 { id: "quotations-all", label: "All Quotations" },
-                { id: "invoicing-new", label: "New Invoice" }
+                { id: "invoicing-new", label: "New Invoice" },
+                { id: "quotations-new", label: "New Quotation" },
+                { id: "payments-all", label: "Partial Payments" }
             ]
         },
         {

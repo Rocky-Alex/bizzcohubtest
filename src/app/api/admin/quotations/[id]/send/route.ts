@@ -57,7 +57,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         const { data, error } = await resend.emails.send({
             from: 'Bizz Co Hub <onboarding@resend.dev>',
-            to: [quote.customer_email],
+            to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
             subject: `Quotation #${quote.quotation_no} from Bizz Co Hub`,
             html: `
                 <div style="font-family: Arial, sans-serif; color: #333;">

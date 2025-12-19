@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import './styles/login.css';
 
 export default function AdminLoginPage() {
@@ -30,11 +31,11 @@ export default function AdminLoginPage() {
             if (response.ok && data.success) {
                 router.push('/admin');
             } else {
-                alert(data.message || 'Invalid username or password');
+                toast.error(data.message || 'Invalid username or password');
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert('An error occurred during login. Please try again.');
+            toast.error('An error occurred during login. Please try again.');
         } finally {
             setIsLoading(false);
         }

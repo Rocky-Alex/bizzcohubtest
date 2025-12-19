@@ -41,19 +41,19 @@ export async function GET() {
                 COUNT(CASE WHEN type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories})) THEN 1 END) as total_accessories,
                 
                 -- Low Stock (Global)
-                COUNT(CASE WHEN stock_quantity < 10 THEN 1 END) as low_stock,
+                COUNT(CASE WHEN COALESCE(stock_quantity, stock, quantity, 0) < 10 THEN 1 END) as low_stock,
                 
-                -- Total Value (Global: base_price * stock_quantity)
-                SUM(base_price * stock_quantity) as total_value,
+                -- Total Value (Global: price * stock)
+                SUM(COALESCE(base_price, price, 0) * COALESCE(stock_quantity, stock, quantity, 0)) as total_value,
 
                 -- Trends (Current Month vs Previous Month for creation)
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND (type = 'system' OR type = 'laptop' OR (type IS NULL AND category != ALL(${accessoryCategories}))) THEN 1 END) as products_curr_month,
+                COUNT(CASE WHEN COALESCE(date_added, created_at) >= date_trunc('month', CURRENT_DATE) AND (type = 'system' OR type = 'laptop' OR (type IS NULL AND category != ALL(${accessoryCategories}))) THEN 1 END) as products_curr_month,
                 
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND (type = 'system' OR type = 'laptop' OR (type IS NULL AND category != ALL(${accessoryCategories}))) THEN 1 END) as products_prev_month,
+                COUNT(CASE WHEN COALESCE(date_added, created_at) >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND COALESCE(date_added, created_at) < date_trunc('month', CURRENT_DATE) AND (type = 'system' OR type = 'laptop' OR (type IS NULL AND category != ALL(${accessoryCategories}))) THEN 1 END) as products_prev_month,
                 
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE) AND (type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories}))) THEN 1 END) as accessories_curr_month,
+                COUNT(CASE WHEN COALESCE(date_added, created_at) >= date_trunc('month', CURRENT_DATE) AND (type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories}))) THEN 1 END) as accessories_curr_month,
                 
-                COUNT(CASE WHEN date_added >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND date_added < date_trunc('month', CURRENT_DATE) AND (type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories}))) THEN 1 END) as accessories_prev_month
+                COUNT(CASE WHEN COALESCE(date_added, created_at) >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month') AND COALESCE(date_added, created_at) < date_trunc('month', CURRENT_DATE) AND (type = 'accessory' OR (type IS NULL AND category = ANY(${accessoryCategories}))) THEN 1 END) as accessories_prev_month
 
             FROM products
         `;

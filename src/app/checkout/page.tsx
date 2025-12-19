@@ -5,12 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCart, clearCart, CartItem } from "@/utils/cart";
 import "./styles/checkout.css";
+import { toast } from "sonner";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 export default function CheckoutPage() {
     const router = useRouter();
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isClient, setIsClient] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -31,6 +34,46 @@ export default function CheckoutPage() {
         if (items.length === 0) {
             router.push('/cart');
         }
+
+        // Auto-fill from user profile
+        const storedUser = localStorage.getItem('customer_user');
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                const fetchProfile = async () => {
+                    try {
+                        const res = await fetch(`/api/customer/profile?id=${user.id}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            const u = data.user;
+
+                            // Split name if possible
+                            const nameParts = (u.name || '').split(' ');
+                            const firstName = nameParts[0] || '';
+                            const lastName = nameParts.slice(1).join(' ') || '';
+
+                            setFormData(prev => ({
+                                ...prev,
+                                firstName: firstName,
+                                lastName: lastName,
+                                email: u.email || '',
+                                phone: u.phone || '',
+                                // Prefer shipping address, fallback to billing or empty
+                                address: u.shipping_address_1 || u.billing_address_1 || '',
+                                city: u.shipping_city || u.billing_city || '',
+                                zip: u.shipping_zip || u.billing_zip || '',
+                                country: u.shipping_country || u.billing_country || 'United Arab Emirates'
+                            }));
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch user profile for checkout autofill", err);
+                    }
+                };
+                fetchProfile();
+            } catch (e) {
+                console.error("Error parsing stored user", e);
+            }
+        }
     }, [router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -43,6 +86,17 @@ export default function CheckoutPage() {
         setIsSubmitting(true);
 
         try {
+            const storedUser = localStorage.getItem('customer_user');
+            let customerId = null;
+            if (storedUser) {
+                try {
+                    const user = JSON.parse(storedUser);
+                    customerId = user.id;
+                } catch (e) {
+                    console.error("Failed to parse user from local storage", e);
+                }
+            }
+
             const orderData = {
                 ...formData,
                 items: cartItems,
@@ -50,7 +104,8 @@ export default function CheckoutPage() {
                 tax,
                 shipping,
                 total,
-                paymentMethod: 'COD' // Currently hardcoded as we only have COD
+                paymentMethod: 'COD', // Currently hardcoded as we only have COD
+                customerId
             };
 
             const response = await fetch('/api/admin/orders', {
@@ -61,15 +116,14 @@ export default function CheckoutPage() {
 
             if (response.ok) {
                 clearCart();
-                alert("Order placed successfully! Thank you for shopping with Bizz Co Hub.");
-                router.push('/');
+                setShowSuccessModal(true);
             } else {
                 const error = await response.json();
-                alert(`Failed to place order: ${error.error || 'Unknown error'}`);
+                toast.error(`Failed to place order: ${error.error || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Checkout error:', error);
-            alert("An error occurred while processing your order.");
+            toast.error("An error occurred while processing your order.");
         } finally {
             setIsSubmitting(false);
         }
@@ -85,6 +139,17 @@ export default function CheckoutPage() {
 
     return (
         <div className="checkout-page">
+            <ConfirmModal
+                isOpen={showSuccessModal}
+                title="Order Placed Successfully!"
+                message="Your order has been confirmed. Would you like to track your order details or return to the home page?"
+                confirmText="Track Order"
+                cancelText="Go to Home"
+                onConfirm={() => router.push('/orders')}
+                onCancel={() => router.push('/')}
+                type="success"
+            />
+
             <div className="checkout-container">
                 <Link href="/cart" className="back-link">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

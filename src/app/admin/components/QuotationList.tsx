@@ -280,7 +280,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
             const data = await res.json();
 
             if (res.ok) {
-                alert('Quotation email sent successfully!');
+                alert('Quotation email sent successfully! (Sent to rishadpnpm@gmail.com for testing)');
                 // Optionally update status to 'Sent' if relevant, or just notify user
             } else {
                 alert('Failed to send quotation: ' + data.error);

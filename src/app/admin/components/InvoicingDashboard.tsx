@@ -9,6 +9,10 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
     const [stats, setStats] = React.useState<{
         totalInvoices: number;
         totalReceived: number;
+        totalCreditAmount: number;
+        totalPartialCount: number;
+        totalPendingCount: number;
+        totalQuotations: number;
         pendingAmount: number;
         overdueAmount: number;
         trends: any;
@@ -17,6 +21,10 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
     }>({
         totalInvoices: 0,
         totalReceived: 0,
+        totalCreditAmount: 0,
+        totalPartialCount: 0,
+        totalPendingCount: 0,
+        totalQuotations: 0,
         pendingAmount: 0,
         overdueAmount: 0,
         trends: {
@@ -111,11 +119,87 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
 
     return (
         <div className="billing-dashboard-container">
+            {/* Quick Actions Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1f2937' }}>Invoicing Dashboard</h2>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch('/api/admin/invoices');
+                                if (!res.ok) throw new Error('Failed to fetch invoices');
+                                const data = await res.json();
+                                const invoices = data.invoices || [];
+
+                                if (invoices.length === 0) {
+                                    alert('No invoices to export');
+                                    return;
+                                }
+
+                                // Define CSV Headers
+                                const headers = [
+                                    'Invoice Number',
+                                    'Invoice Date',
+                                    'Due Date',
+                                    'Customer Name',
+                                    'Status',
+                                    'Total Amount',
+                                    'Paid Amount',
+                                    'Balance Due'
+                                ];
+
+                                // Map Data to Rows
+                                const rows = invoices.map((inv: any) => [
+                                    inv.invoice_no,
+                                    new Date(inv.created_date).toLocaleDateString(),
+                                    new Date(inv.due_date).toLocaleDateString(),
+                                    `"${inv.customer_name}"`, // Quote to handle commas
+                                    inv.status,
+                                    inv.total_amount,
+                                    inv.advance_received ? Number(inv.advance_received).toFixed(2) : '0.00',
+                                    (Number(inv.total_amount) - Number(inv.advance_received || 0)).toFixed(2)
+                                ]);
+
+                                // Construct CSV Content
+                                const csvContent = [
+                                    headers.join(','),
+                                    ...rows.map((row: any[]) => row.join(','))
+                                ].join('\n');
+
+                                // Trigger Download
+                                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', `invoices_export_${new Date().toISOString().split('T')[0]}.csv`);
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url);
+
+                            } catch (error) {
+                                console.error('Export failed:', error);
+                                alert('Failed to export invoices');
+                            }
+                        }}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.6rem 1rem',
+                            backgroundColor: '#0c86ea', border: 'none', borderRadius: '8px',
+                            color: '#fff', fontSize: '0.9rem', fontWeight: 600,
+                            cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                        }}
+                    >
+                        <i className="fas fa-file-export"></i> Export
+                    </button>
+                </div>
+            </div>
             {/* Header / Title could go here if not handled by parent */}
 
             {/* Stats Overview */}
             <div className="billing-stats-grid">
-                {/* Total Received */}
+                {/* 1. Total Paid Invoice (Amount) */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
@@ -124,26 +208,51 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         {renderTrend(stats.trends?.received)}
                     </div>
                     <div className="stat-content">
-                        <h3>Total Received</h3>
+                        <h3>Total Paid Invoice</h3>
                         <p className="stat-value">${stats.totalReceived.toFixed(2)}</p>
                     </div>
                 </div>
 
-                {/* Pending Amount */}
+                {/* 2. Total Credit Invoice (Amount) */}
+                <div className="billing-stat-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ backgroundColor: '#f3e8ff', color: '#9333ea' }}>
+                            <i className="fas fa-credit-card"></i>
+                        </div>
+                    </div>
+                    <div className="stat-content">
+                        <h3>Total Credit Invoice</h3>
+                        <p className="stat-value">${stats.totalCreditAmount.toFixed(2)}</p>
+                    </div>
+                </div>
+
+                {/* 3. Total Partial Invoice (Count) */}
+                <div className="billing-stat-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ backgroundColor: '#fef9c3', color: '#ca8a04' }}>
+                            <i className="fas fa-adjust"></i>
+                        </div>
+                    </div>
+                    <div className="stat-content">
+                        <h3>Total Partial Invoice</h3>
+                        <p className="stat-value">{stats.totalPartialCount}</p>
+                    </div>
+                </div>
+
+                {/* 4. Total Pending Invoice (Count) */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
                             <i className="fas fa-hourglass-start"></i>
                         </div>
-                        {renderTrend(stats.trends?.pending)}
                     </div>
                     <div className="stat-content">
-                        <h3>Pending Amount</h3>
-                        <p className="stat-value">${stats.pendingAmount.toFixed(2)}</p>
+                        <h3>Total Pending Invoice</h3>
+                        <p className="stat-value">{stats.totalPendingCount}</p>
                     </div>
                 </div>
 
-                {/* Overdue */}
+                {/* 5. Total Overdue Invoice (Amount) */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
@@ -152,22 +261,22 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         {renderTrend(stats.trends?.overdue)}
                     </div>
                     <div className="stat-content">
-                        <h3>Overdue Details</h3>
+                        <h3>Total Overdue Invoice</h3>
                         <p className="stat-value">${stats.overdueAmount.toFixed(2)}</p>
                     </div>
                 </div>
 
-                {/* Total Invoices */}
+                {/* 6. Total Quotations (Count) */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
-                        <div className="stat-icon" style={{ backgroundColor: '#f5f3ff', color: '#8b5cf6' }}>
+                        <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#059669' }}>
                             <i className="fas fa-file-invoice"></i>
                         </div>
-                        {renderTrend(stats.trends?.invoices)}
+                        {/* Using invoice trend as proxy? No, misleading. */}
                     </div>
                     <div className="stat-content">
-                        <h3>Total Invoices</h3>
-                        <p className="stat-value">{stats.totalInvoices}</p>
+                        <h3>Total Quotations</h3>
+                        <p className="stat-value">{stats.totalQuotations}</p>
                     </div>
                 </div>
             </div>

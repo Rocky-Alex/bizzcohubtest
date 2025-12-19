@@ -20,8 +20,10 @@ interface Order {
 interface OrderListProps {
     orders: Order[];
     loading: boolean;
-    onViewDetails?: (order: Order) => void;
     onRefresh: () => void;
+    onEdit?: (order: Order) => void;
+    onDelete?: (order: Order) => void;
+    title?: string;
 }
 
 const OrderList = ({
@@ -29,14 +31,9 @@ const OrderList = ({
     loading,
     onRefresh,
     onEdit,
-    onDelete
-}: {
-    orders: Order[],
-    loading: boolean,
-    onRefresh: () => void,
-    onEdit?: (order: Order) => void,
-    onDelete?: (order: Order) => void
-}) => {
+    onDelete,
+    title = "Order Management"
+}: OrderListProps) => {
     // --- Auto Refresh Logic ---
     React.useEffect(() => {
         let intervalId: NodeJS.Timeout;
@@ -106,10 +103,13 @@ const OrderList = ({
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
             case 'completed': return 'success';
+            case 'delivered': return 'success';
             case 'pending': return 'warning';
             case 'cancelled': return 'danger';
             case 'processing': return 'info';
             case 'shipped': return 'info';
+            case 'return requested': return 'warning';
+            case 'returned': return 'secondary';
             default: return 'secondary';
         }
     };
@@ -157,8 +157,8 @@ const OrderList = ({
         <div className="admin-section active">
             <div className="section-header">
                 <div>
-                    <h2><i className="fas fa-shopping-cart" style={{ color: '#3b82f6' }}></i> Order Management</h2>
-                    <p>Track and manage your customer orders.</p>
+                    <h2><i className="fas fa-shopping-cart" style={{ color: '#3b82f6' }}></i> {title}</h2>
+                    <p>Track and manage your {title.toLowerCase().includes('return') ? 'returns' : 'customer orders'}.</p>
                 </div>
             </div>
 
@@ -216,7 +216,7 @@ const OrderList = ({
                 </div>
 
                 <div className="filter-group">
-                    {['All', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(status => (
+                    {['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested'].map(status => (
                         <button
                             key={status}
                             className={`filter-btn ${statusFilter === status ? 'active' : ''}`}

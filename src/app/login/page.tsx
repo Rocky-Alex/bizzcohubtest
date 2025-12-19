@@ -1,0 +1,274 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import './login.css';
+import { toast } from 'sonner';
+
+export default function CustomerAuthPage() {
+    // We'll keep the state for logic, but visual focus is on "Login"
+    const [isLogin, setIsLogin] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // Form Data
+    const [email, setEmail] = useState(''); // Used for Login
+    const [password, setPassword] = useState('');
+
+    // Sign Up Specific
+    const [fullName, setFullName] = useState('');
+    const [username, setUsername] = useState('');
+    const [phone, setPhone] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        if (!isLogin && password !== confirmPassword) {
+            toast.error("Passwords do not match!");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const endpoint = '/api/auth/customer';
+            const payload = isLogin
+                ? { action: 'login', identifier: email, password }
+                : { action: 'signup', fullName, username, email, phone, password };
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                if (isLogin) {
+                    // Update UI State
+                    localStorage.setItem('customer_user', JSON.stringify(data.user));
+                    window.dispatchEvent(new Event('user-login'));
+                    toast.success('Login success!');
+
+                    // Redirect
+                    window.location.href = '/products';
+                } else {
+                    toast.success('Account created successfully! Please login.');
+                    setIsLogin(true);
+                    // Clear form
+                    setPassword('');
+                    setConfirmPassword('');
+                }
+            } else {
+                toast.error(data.error || 'Authentication failed');
+            }
+        } catch (error) {
+            console.error('Auth Error:', error);
+            toast.error('An error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="futuristic-login-container">
+            <div className="content-wrapper">
+
+                {/* Visual Side (Tech Core) */}
+                <div className="tech-visual-container">
+                    <div className="tech-core">
+                        {/* Animated Rings */}
+                        <div className="ring ring-outer"></div>
+                        <div className="ring ring-middle"></div>
+                        <div className="ring ring-inner"></div>
+
+                        {/* Central Icon */}
+                        <i className="fas fa-shield-alt core-icon"></i>
+
+                        {/* Floating Elements */}
+                        <div className="floating-item item-1">
+                            <i className="fas fa-mobile-alt"></i>
+                        </div>
+                        <div className="floating-item item-2">
+                            <i className="fas fa-phone"></i>
+                        </div>
+                        <div className="floating-item item-3">
+                            <i className="fas fa-user-shield"></i>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Login Form Side */}
+                <div className="login-card-glass">
+                    <div className="login-header">
+                        <h1 className="login-title">
+                            {isLogin ? 'User Login' : 'Create Account'}
+                        </h1>
+                        <p className="login-subtitle">
+                            BIZZ CO HUB
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit}>
+                        {!isLogin && (
+                            <>
+                                <div className="dark-form-group">
+                                    <div className="dark-input-container">
+                                        <i className="fas fa-user dark-input-icon"></i>
+                                        <input
+                                            type="text"
+                                            className="dark-input"
+                                            placeholder="Full Name"
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="dark-form-group">
+                                    <div className="dark-input-container">
+                                        <i className="fas fa-at dark-input-icon"></i>
+                                        <input
+                                            type="text"
+                                            className="dark-input"
+                                            placeholder="Username"
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Email Field - Used for both or adapted based on backend requirement */}
+                        <div className="dark-form-group">
+                            <div className="dark-input-container">
+                                <i className="fas fa-envelope dark-input-icon"></i>
+                                <input
+                                    type="text" // generic text to allow username or email on login
+                                    className="dark-input"
+                                    placeholder={isLogin ? "Username / Email" : "Email"}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {!isLogin && (
+                            <div className="dark-form-group">
+                                <div className="dark-input-container">
+                                    <i className="fas fa-phone dark-input-icon"></i>
+                                    <input
+                                        type="tel"
+                                        className="dark-input"
+                                        placeholder="Phone Number"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="dark-form-group">
+                            <div className="dark-input-container">
+                                <i className="fas fa-lock dark-input-icon"></i>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    className="dark-input"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#64748b',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {!isLogin && (
+                            <div className="dark-form-group">
+                                <div className="dark-input-container">
+                                    <i className="fas fa-lock dark-input-icon"></i>
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        className="dark-input"
+                                        placeholder="Confirm Password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#64748b',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <i className={`fas ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="login-btn-glow"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <i className="fas fa-circle-notch fa-spin"></i>
+                            ) : (
+                                isLogin ? 'Login' : 'Sign Up'
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="toggle-auth-mode">
+                        {isLogin ? (
+                            <>
+                                Don't have an account?
+                                <span className="toggle-link" onClick={() => setIsLogin(false)}>
+                                    Register
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                Already have an account?
+                                <span className="toggle-link" onClick={() => setIsLogin(true)}>
+                                    Login
+                                </span>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

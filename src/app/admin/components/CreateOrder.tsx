@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import ConfirmModal from './ConfirmModal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import '../styles/create-order.css';
 import AddCustomerForm from './AddCustomerForm';
 
@@ -91,7 +91,7 @@ const SearchableDropdown = ({
                 }}
                 onFocus={() => setIsOpen(true)}
                 placeholder={placeholder}
-                autoComplete="off"
+                autoComplete="new-password"
                 className="co-input"
             />
             {isOpen && filteredOptions.length > 0 && (
@@ -436,8 +436,6 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
             };
             setCart(prev => [...prev, newCartItem]);
             setProductCode('');
-            setCart(prev => [...prev, newCartItem]);
-            setProductCode('');
         } else {
             setModal({
                 isOpen: true,
@@ -575,7 +573,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                                     <label>Customer Name</label>
                                     <div className="input-with-button">
                                         <SearchableDropdown
-                                            name="customerName"
+                                            name="customer_lookup_field"
                                             value={customerName}
                                             onChange={(e) => setCustomerName(e.target.value)}
                                             options={customers.map(c => c.name)}
@@ -624,7 +622,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                             <h3><i className="fas fa-calendar-alt"></i> Order Details</h3>
                         </div>
                         <div className="card-body">
-                            <div className="form-grid-single-col">
+                            <div className="co-dates-row">
                                 <div className="co-control-group">
                                     <label>Order Date</label>
                                     <input

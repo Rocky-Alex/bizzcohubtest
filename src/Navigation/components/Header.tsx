@@ -1,11 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CircleUserRound } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import "../styles/header.css";
 import GradientText from "./GradientText";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 export default function Header() {
     const pathname = usePathname();
@@ -13,6 +25,8 @@ export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [cartCount, setCartCount] = useState(0);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -22,17 +36,48 @@ export default function Header() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Cart Sync
     useEffect(() => {
-        // Update cart count from localStorage
         const updateCartCount = () => {
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
             setCartCount(cart.reduce((sum: number, item: any) => sum + item.quantity, 0));
         };
-
         updateCartCount();
         window.addEventListener('cart-updated', updateCartCount);
         return () => window.removeEventListener('cart-updated', updateCartCount);
     }, []);
+
+    // Auth Sync
+    useEffect(() => {
+        const checkUser = () => {
+            const user = localStorage.getItem('customer_user');
+            if (user) {
+                setCurrentUser(JSON.parse(user));
+            } else {
+                setCurrentUser(null);
+            }
+        };
+
+        checkUser();
+        window.addEventListener('user-login', checkUser);
+        window.addEventListener('user-logout', checkUser); // In case we trigger this elsewhere
+
+        return () => {
+            window.removeEventListener('user-login', checkUser);
+            window.removeEventListener('user-logout', checkUser);
+        };
+    }, []);
+
+    const confirmLogout = () => {
+        setLogoutModalOpen(true);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('customer_user');
+        setCurrentUser(null);
+        setLogoutModalOpen(false);
+        window.location.href = '/login';
+    };
 
     const isActive = (path: string) => pathname === path ? 'active' : '';
 
@@ -103,6 +148,48 @@ export default function Header() {
                     </Link>
 
 
+                    {/* Auth Button */}
+                    {currentUser ? (
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="icon" variant="outline" aria-label="Open account menu" className="header-action-btn" style={{ border: 'none', background: 'transparent' }}>
+                                        <CircleUserRound size={24} strokeWidth={2} aria-hidden="true" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="max-w-64 bg-white" align="end">
+                                    <DropdownMenuLabel className="flex flex-col">
+                                        <span>Signed in as {currentUser.role}</span>
+                                        <span className="text-xs font-normal text-foreground" style={{ color: '#6b7280' }}>
+                                            {currentUser.username}
+                                            {currentUser.email && <br />}
+                                            {currentUser.email}
+                                        </span>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+                                            Profile
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => window.location.href = '/orders'}>
+                                            Orders
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
+                                            Settings
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={confirmLogout} style={{ color: '#ef4444' }}>
+                                        Logout
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    ) : (
+                        <Link href="/login" className="sign-in-btn">
+                            Sign In
+                        </Link>
+                    )}
 
                     {/* Mobile Menu Button */}
                     <button
@@ -179,12 +266,43 @@ export default function Header() {
                             E-Commerce
                         </Link>
 
+
                         <div className="mobile-menu-divider"></div>
 
-
+                        {currentUser ? (
+                            <button
+                                onClick={() => {
+                                    confirmLogout();
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="mobile-sign-in-btn"
+                                style={{ background: '#ef4444' }} // Red for logout
+                            >
+                                Logout ({currentUser.username})
+                            </button>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="mobile-sign-in-btn"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Sign In
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={logoutModalOpen}
+                title="Confirm Logout"
+                message="Are you sure you want to log out of your account?"
+                onConfirm={handleLogout}
+                onCancel={() => setLogoutModalOpen(false)}
+                confirmText="Logout"
+                cancelText="Cancel"
+                type="danger"
+            />
         </header>
     );
 }

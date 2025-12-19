@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import LayoutWrapper from "../Navigation/LayoutWrapper";
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
     title: "Bizz Co Hub",
@@ -41,6 +42,7 @@ export default function RootLayout({
                 <LayoutWrapper>
                     {children}
                 </LayoutWrapper>
+                <Toaster position="top-center" richColors />
             </body>
         </html>
     );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/order-details.css';
-import ConfirmModal from './ConfirmModal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface Order {
     id: number;
@@ -35,20 +35,39 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdateStat
 
     if (!isOpen || !order) return null;
 
-    const steps = ['Pending', 'Processing', 'Shipped', 'Completed'];
+    const isReturnProcess = ['Return Requested', 'Return Approved', 'Return Received', 'Returned'].includes(order.status);
+    const standardSteps = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+    const returnSteps = ['Return Requested', 'Return Approved', 'Return Received', 'Returned'];
+
+    const steps = isReturnProcess ? returnSteps : standardSteps;
     const currentStepIndex = steps.indexOf(order.status) === -1 ? 0 : steps.indexOf(order.status);
     const isCancelled = order.status === 'Cancelled';
 
     const handleStatusClick = (status: string) => {
         if (updating || status === order.status) return;
 
+        let title = 'Update Status';
+        let message = `Are you sure you want to change the status to ${status}?`;
+        let confirmText = 'Update';
+        let type: 'info' | 'danger' | 'success' = 'info';
+
+        if (status === 'Cancelled') {
+            title = 'Cancel Order';
+            message = 'Are you sure you want to cancel this order? This action cannot be undone.';
+            confirmText = 'Cancel Order';
+            type = 'danger';
+        } else if (status === 'Return Approved') {
+            title = 'Approve Return';
+            message = 'Are you sure you want to approve this return request?';
+            confirmText = 'Approve Return';
+            type = 'success';
+        }
+
         setConfirmModal({
             isOpen: true,
-            title: status === 'Cancelled' ? 'Cancel Order' : 'Update Status',
-            message: status === 'Cancelled'
-                ? 'Are you sure you want to cancel this order? This action cannot be undone.'
-                : `Are you sure you want to change the status to ${status}?`,
-            statusToSet: status
+            title,
+            message,
+            statusToSet: status,
         });
     };
 
@@ -87,7 +106,7 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdateStat
                     type={confirmModal.statusToSet === 'Cancelled' ? 'danger' : 'info'}
                     onConfirm={confirmStatusUpdate}
                     onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                    confirmText={confirmModal.statusToSet === 'Cancelled' ? 'Cancel Order' : 'Update'}
+                    confirmText={confirmModal.statusToSet === 'Cancelled' ? 'Cancel Order' : (confirmModal.statusToSet === 'Return Approved' ? 'Approve Return' : 'Update')}
                 />
 
                 {/* Body */}
@@ -98,7 +117,10 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdateStat
                         <div className="progress-bar-bg"></div>
                         <div
                             className="progress-bar-fill"
-                            style={{ width: isCancelled ? '0%' : `${(currentStepIndex / (steps.length - 1)) * 100}%`, background: isCancelled ? '#ef4444' : '#10b981' }}
+                            style={{
+                                width: isCancelled ? '0%' : `${(currentStepIndex / (steps.length - 1)) * 100}%`,
+                                background: isCancelled ? '#ef4444' : (isReturnProcess ? '#f59e0b' : '#10b981')
+                            }}
                         ></div>
 
                         <div className="status-steps">
@@ -129,16 +151,20 @@ export default function OrderDetailsModal({ order, isOpen, onClose, onUpdateStat
 
                     {/* Check / Actions Row */}
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', justifyContent: 'center' }}>
-                        {!isCancelled && order.status !== 'Completed' && (
-                            <button className="btn btn-primary" onClick={() => handleStatusClick(steps[currentStepIndex + 1])} disabled={currentStepIndex >= 3}>
-                                Advance Status <i className="fas fa-arrow-right"></i>
+                        {!isCancelled && order.status !== 'Delivered' && order.status !== 'Returned' && (
+                            <button className="btn btn-primary" onClick={() => handleStatusClick(steps[currentStepIndex + 1])} disabled={currentStepIndex >= steps.length - 1}>
+                                {order.status === 'Return Requested' ? 'Approve Return' : 'Advance Status'} <i className="fas fa-arrow-right"></i>
                             </button>
                         )}
-                        {order.status !== 'Cancelled' && order.status !== 'Completed' && (
+
+                        {/* Show Cancel only for standard flow and not completed */}
+                        {!isReturnProcess && order.status !== 'Cancelled' && order.status !== 'Delivered' && (
                             <button className="btn btn-danger" onClick={() => handleStatusClick('Cancelled')}>
                                 Cancel Order
                             </button>
                         )}
+
+                        {/* Special Reject Return Button could go here if needed, resetting to Delivered? */}
                     </div>
 
 
