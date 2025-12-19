@@ -18,10 +18,16 @@ export default function CustomerAuthPage() {
     const [password, setPassword] = useState('');
 
     // Sign Up Specific
-    const [fullName, setFullName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [username, setUsername] = useState('');
     const [phone, setPhone] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+
+    // Avatar State
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     // Secret Admin Navigation
     useEffect(() => {
@@ -56,6 +62,22 @@ export default function CustomerAuthPage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error("File size must be less than 5MB");
+                return;
+            }
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -67,10 +89,37 @@ export default function CustomerAuthPage() {
         }
 
         try {
+            let avatarUrl = null;
+
+            // Upload Avatar if present
+            if (!isLogin && avatarFile) {
+                const formData = new FormData();
+                formData.append('file', avatarFile);
+                formData.append('folder', 'Customers/Avatars');
+                formData.append('fileName', `${username || 'user'}_${Date.now()}`);
+
+                try {
+                    const uploadRes = await fetch('/api/imagekit/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json();
+                        avatarUrl = uploadData.url;
+                    } else {
+                        console.error('Avatar upload failed');
+                        toast.error('Failed to upload profile picture, continuing without it.');
+                    }
+                } catch (err) {
+                    console.error('Avatar upload error:', err);
+                }
+            }
+
             const endpoint = '/api/auth/customer';
             const payload = isLogin
                 ? { action: 'login', identifier: email, password }
-                : { action: 'signup', fullName, username, email, phone, password };
+                : { action: 'signup', firstName, lastName, username, email, phone, password, avatar: avatarUrl };
 
             const res = await fetch(endpoint, {
                 method: 'POST',
@@ -95,6 +144,8 @@ export default function CustomerAuthPage() {
                     // Clear form
                     setPassword('');
                     setConfirmPassword('');
+                    setAvatarFile(null);
+                    setAvatarPreview(null);
                 }
             } else {
                 toast.error(data.error || 'Authentication failed');
@@ -129,18 +180,62 @@ export default function CustomerAuthPage() {
 
                     <form onSubmit={handleSubmit}>
                         {!isLogin && (
+                            <div className="flex justify-center mb-6">
+                                <div
+                                    className="relative w-24 h-24 rounded-full border-2 border-dashed border-gray-500 flex items-center justify-center cursor-pointer hover:border-[#00f0ff] transition-colors overflow-hidden bg-black/20"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    {avatarPreview ? (
+                                        <img
+                                            src={avatarPreview}
+                                            alt="Avatar Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center text-gray-400">
+                                            <i className="fas fa-camera text-2xl mb-1"></i>
+                                            <span className="text-[10px]">Add Photo</span>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleAvatarChange}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {!isLogin && (
                             <>
                                 <div className="dark-form-group">
-                                    <div className="dark-input-container">
-                                        <i className="fas fa-user dark-input-icon"></i>
-                                        <input
-                                            type="text"
-                                            className="dark-input"
-                                            placeholder="Full Name"
-                                            value={fullName}
-                                            onChange={(e) => setFullName(e.target.value)}
-                                            required
-                                        />
+                                    <div className="flex gap-4">
+                                        <div className="dark-input-container w-1/2">
+                                            <i className="fas fa-user dark-input-icon"></i>
+                                            <input
+                                                type="text"
+                                                className="dark-input"
+                                                placeholder="First Name"
+                                                value={firstName}
+                                                onChange={(e) => setFirstName(e.target.value)}
+                                                required
+                                                autoComplete="given-name"
+                                            />
+                                        </div>
+                                        <div className="dark-input-container w-1/2">
+                                            <i className="fas fa-user dark-input-icon"></i>
+                                            <input
+                                                type="text"
+                                                className="dark-input"
+                                                placeholder="Last Name"
+                                                value={lastName}
+                                                onChange={(e) => setLastName(e.target.value)}
+                                                required
+                                                autoComplete="family-name"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="dark-form-group">
@@ -153,6 +248,7 @@ export default function CustomerAuthPage() {
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}
                                             required
+                                            autoComplete="username"
                                         />
                                     </div>
                                 </div>
@@ -170,6 +266,7 @@ export default function CustomerAuthPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
+                                    autoComplete="username"
                                 />
                             </div>
                         </div>
@@ -185,6 +282,7 @@ export default function CustomerAuthPage() {
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         required
+                                        autoComplete="tel"
                                     />
                                 </div>
                             </div>
@@ -200,6 +298,7 @@ export default function CustomerAuthPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
+                                    autoComplete={isLogin ? "current-password" : "new-password"}
                                 />
                                 <button
                                     type="button"
@@ -231,6 +330,7 @@ export default function CustomerAuthPage() {
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
+                                        autoComplete="new-password"
                                     />
                                     <button
                                         type="button"

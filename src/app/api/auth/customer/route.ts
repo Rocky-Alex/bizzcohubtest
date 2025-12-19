@@ -22,14 +22,15 @@ export async function POST(request: NextRequest) {
         await sql`
             ALTER TABLE customers 
             ADD COLUMN IF NOT EXISTS username VARCHAR(255) UNIQUE,
-            ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+            ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS avatar VARCHAR(1024);
         `;
 
         // Ensure email is unique (might fail if duplicates exist, so we use a safe index creation pattern if possible, or just ignore for now and rely on code)
         // For simplicity in this existing DB, we rely on application checks.
 
         if (action === 'signup') {
-            const { fullName, username, email, phone, password } = body;
+            const { firstName, lastName, username, email, phone, password, avatar } = body;
 
             if (!username || !password || !email) {
                 return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -45,12 +46,13 @@ export async function POST(request: NextRequest) {
             }
 
             const passwordHash = hashPassword(password);
+            const fullName = `${firstName} ${lastName}`.trim();
 
             // Insert new customer
             const newCustomer = await sql`
-                INSERT INTO customers (name, username, email, phone, password_hash, status)
-                VALUES (${fullName}, ${username}, ${email}, ${phone}, ${passwordHash}, 'Active')
-                RETURNING id, name, username, email
+                INSERT INTO customers (name, username, email, phone, password_hash, status, avatar)
+                VALUES (${fullName}, ${username}, ${email}, ${phone}, ${passwordHash}, 'Active', ${avatar || null})
+                RETURNING id, name, username, email, avatar
             `;
 
             return NextResponse.json({
