@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import './login.css';
 import { toast } from 'sonner';
+import OrbitingTechnologies from '@/components/ui/OrbitingTechnologies';
 
 export default function CustomerAuthPage() {
     // We'll keep the state for logic, but visual focus is on "Login"
@@ -21,6 +22,39 @@ export default function CustomerAuthPage() {
     const [username, setUsername] = useState('');
     const [phone, setPhone] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+
+    // Secret Admin Navigation
+    useEffect(() => {
+        let keySequence: string[] = [];
+        const secretCode = 'BIZZCOADMIN';
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // User must be holding shift as per requirements
+            if (!e.shiftKey) {
+                keySequence = [];
+                return;
+            }
+
+            // Ignore modifier keys themselves
+            if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
+
+            const char = e.key.toUpperCase();
+            keySequence.push(char);
+
+            // Keep only the last N characters
+            if (keySequence.length > secretCode.length) {
+                keySequence.shift();
+            }
+
+            if (keySequence.join('') === secretCode) {
+                toast.info("Accessing Admin Portal...");
+                window.location.href = '/admin/login';
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,26 +113,7 @@ export default function CustomerAuthPage() {
 
                 {/* Visual Side (Tech Core) */}
                 <div className="tech-visual-container">
-                    <div className="tech-core">
-                        {/* Animated Rings */}
-                        <div className="ring ring-outer"></div>
-                        <div className="ring ring-middle"></div>
-                        <div className="ring ring-inner"></div>
-
-                        {/* Central Icon */}
-                        <i className="fas fa-shield-alt core-icon"></i>
-
-                        {/* Floating Elements */}
-                        <div className="floating-item item-1">
-                            <i className="fas fa-mobile-alt"></i>
-                        </div>
-                        <div className="floating-item item-2">
-                            <i className="fas fa-phone"></i>
-                        </div>
-                        <div className="floating-item item-3">
-                            <i className="fas fa-user-shield"></i>
-                        </div>
-                    </div>
+                    <OrbitingTechnologies />
                 </div>
 
                 {/* Login Form Side */}
