@@ -49,10 +49,31 @@ export default function Header() {
 
     // Auth Sync
     useEffect(() => {
-        const checkUser = () => {
-            const user = localStorage.getItem('customer_user');
-            if (user) {
-                setCurrentUser(JSON.parse(user));
+        const checkUser = async () => {
+            const stored = localStorage.getItem('customer_user');
+            if (stored) {
+                try {
+                    const localUser = JSON.parse(stored);
+                    setCurrentUser(localUser); // Set immediately to show something
+
+                    // Fetch fresh data
+                    if (localUser.id) {
+                        const res = await fetch(`/api/customer/profile?id=${localUser.id}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            const freshUser = { ...localUser, ...data.user };
+                            // Ensure image_url is picked up
+                            if (data.user.image_url) freshUser.image_url = data.user.image_url;
+
+                            // Update state and storage
+                            setCurrentUser(freshUser);
+                            localStorage.setItem('customer_user', JSON.stringify(freshUser));
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error parsing user", e);
+                    setCurrentUser(null);
+                }
             } else {
                 setCurrentUser(null);
             }
@@ -60,7 +81,7 @@ export default function Header() {
 
         checkUser();
         window.addEventListener('user-login', checkUser);
-        window.addEventListener('user-logout', checkUser); // In case we trigger this elsewhere
+        window.addEventListener('user-logout', checkUser);
 
         return () => {
             window.removeEventListener('user-login', checkUser);

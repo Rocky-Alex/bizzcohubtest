@@ -43,27 +43,6 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user, activeSection = '
 
             {/* Navigation Menu */}
             <div className="sidebar-menu">
-                {/* My Orders */}
-                <div className="menu-group">
-                    <div className="menu-header">
-                        <div className="menu-icon text-blue">
-                            <Package size={20} />
-                        </div>
-                        <span className="menu-title">MY ORDERS</span>
-                    </div>
-                    <div className="submenu">
-                        <a href="#" onClick={(e) => handleNav('orders', e)} className={`submenu-item ${activeSection === 'orders' ? 'active' : ''}`}>
-                            All Orders
-                        </a>
-                        <a href="#" onClick={(e) => handleNav('returns', e)} className={`submenu-item ${activeSection === 'returns' ? 'active' : ''}`}>
-                            Returns
-                        </a>
-                        <a href="#" onClick={(e) => handleNav('cancelled', e)} className={`submenu-item ${activeSection === 'cancelled' ? 'active' : ''}`}>
-                            Cancelled Orders
-                        </a>
-                    </div>
-                </div>
-
                 {/* Account Settings */}
                 <div className="menu-group active-group">
                     <div className="menu-header">
@@ -80,6 +59,30 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user, activeSection = '
                             Manage Addresses
                         </a>
 
+                    </div>
+                </div>
+
+                {/* My Orders */}
+                <div className="menu-group">
+                    <div className="menu-header">
+                        <div className="menu-icon text-blue">
+                            <Package size={20} />
+                        </div>
+                        <span className="menu-title">MY ORDERS</span>
+                    </div>
+                    <div className="submenu">
+                        <a href="#" onClick={(e) => handleNav('orders', e)} className={`submenu-item ${activeSection === 'orders' ? 'active' : ''}`}>
+                            All Orders
+                        </a>
+                        <a href="#" onClick={(e) => handleNav('delivered', e)} className={`submenu-item ${activeSection === 'delivered' ? 'active' : ''}`}>
+                            Delivered Orders
+                        </a>
+                        <a href="#" onClick={(e) => handleNav('returns', e)} className={`submenu-item ${activeSection === 'returns' ? 'active' : ''}`}>
+                            Returns
+                        </a>
+                        <a href="#" onClick={(e) => handleNav('cancelled', e)} className={`submenu-item ${activeSection === 'cancelled' ? 'active' : ''}`}>
+                            Cancelled Orders
+                        </a>
                     </div>
                 </div>
 

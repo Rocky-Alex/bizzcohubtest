@@ -180,27 +180,33 @@ export default function CustomerAuthPage() {
 
                     <form onSubmit={handleSubmit}>
                         {!isLogin && (
-                            <div className="flex justify-center mb-6">
+                            <div className="avatar-upload-container">
                                 <div
-                                    className="relative w-24 h-24 rounded-full border-2 border-dashed border-gray-500 flex items-center justify-center cursor-pointer hover:border-[#00f0ff] transition-colors overflow-hidden bg-black/20"
+                                    className="avatar-preview-wrapper"
                                     onClick={() => fileInputRef.current?.click()}
+                                    title="Upload Profile Picture"
                                 >
                                     {avatarPreview ? (
                                         <img
                                             src={avatarPreview}
                                             alt="Avatar Preview"
-                                            className="w-full h-full object-cover"
+                                            className="avatar-image"
                                         />
                                     ) : (
-                                        <div className="flex flex-col items-center text-gray-400">
-                                            <i className="fas fa-camera text-2xl mb-1"></i>
-                                            <span className="text-[10px]">Add Photo</span>
+                                        <div className="avatar-placeholder">
+                                            <i className="fas fa-camera" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}></i>
+                                            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Add Photo</span>
+                                        </div>
+                                    )}
+                                    {avatarPreview && (
+                                        <div className="camera-icon-overlay">
+                                            <i className="fas fa-pen"></i>
                                         </div>
                                     )}
                                     <input
                                         type="file"
                                         ref={fileInputRef}
-                                        className="hidden"
+                                        className="hidden-input"
                                         accept="image/*"
                                         onChange={handleAvatarChange}
                                     />

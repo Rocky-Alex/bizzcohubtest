@@ -335,33 +335,121 @@
     }
 }
 
+/* Autofill styling fix */
+.dark-input:-webkit-autofill,
+.dark-input:-webkit-autofill:hover,
+.dark-input:-webkit-autofill:focus,
+.dark-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #0b1121 inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Avatar Upload Polish */
+.avatar-upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.avatar-preview-wrapper {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.avatar-preview-wrapper:hover {
+    border-color: var(--glow-blue);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.avatar-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: color 0.3s;
+}
+
+.avatar-preview-wrapper:hover .avatar-placeholder {
+    color: var(--glow-blue);
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.camera-icon-overlay {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--primary-blue);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.hidden-input {
+    display: none !important;
+}
+
+/* Form Group Spacing */
+.dark-form-group {
+    margin-bottom: 1.25rem;
+}
+
 /* Base Responsive */
 @media (max-width: 900px) {
     .content-wrapper {
         flex-direction: column;
         gap: 2rem;
+        padding: 1rem;
     }
 
     .tech-visual-container {
-        height: 300px;
+        height: 250px;
+        margin-bottom: -2rem;
+        /* Pull form up */
     }
 
-    .ring-outer {
-        width: 260px;
-        height: 260px;
+    .tech-core {
+        transform: scale(0.7);
     }
 
-    .ring-middle {
-        width: 200px;
-        height: 200px;
-    }
-
-    .ring-inner {
-        width: 150px;
-        height: 150px;
+    .login-card-glass {
+        width: 100%;
+        max-width: 450px;
+        padding: 2rem;
+        flex: none;
     }
 
     .futuristic-login-container {
-        padding-top: 50px;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        height: auto;
+        min-height: 100vh;
+        align-items: flex-start;
+        /* better for scrolling on mobile */
     }
 }

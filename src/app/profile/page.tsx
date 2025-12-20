@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import ProfileOrders from '@/components/profile/ProfileOrders';
+import ProfileWishlist from '@/components/profile/ProfileWishlist';
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -146,6 +147,84 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDeactivate = async () => {
+        if (!userId) return;
+        if (!confirm('Are you sure you want to deactivate your account? It will be preserved for 60 days, then permanently deleted if you do not login.')) {
+            return;
+        }
+
+        try {
+            toast.loading('Deactivating account...');
+            const res = await fetch('/api/customer/account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deactivate', customer_id: userId })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.dismiss();
+                toast.success(data.message);
+
+                // Logout flow
+                localStorage.removeItem('customer_user');
+                window.dispatchEvent(new Event('user-logout'));
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            } else {
+                toast.dismiss();
+                toast.error(data.error || 'Failed to deactivate account');
+            }
+        } catch (error) {
+            console.error('Deactivation Error:', error);
+            toast.error('An error occurred');
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!userId) return;
+        if (!confirm('WARNING: Are you sure you want to PERMANENTLY delete your account? This action CANNOT be undone and will delete all your orders, wishlist, and personal data immediately.')) {
+            return;
+        }
+
+        const doubleConfirm = prompt('Type "DELETE" to confirm permanent deletion:');
+        if (doubleConfirm !== 'DELETE') {
+            if (doubleConfirm !== null) toast.error('Incorrect confirmation text. Deletion cancelled.');
+            return;
+        }
+
+        try {
+            toast.loading('Deleting account...');
+            const res = await fetch('/api/customer/account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', customer_id: userId })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.dismiss();
+                toast.success(data.message);
+
+                // Logout flow
+                localStorage.removeItem('customer_user');
+                window.dispatchEvent(new Event('user-logout'));
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            } else {
+                toast.dismiss();
+                toast.error(data.error || 'Failed to delete account');
+            }
+        } catch (error) {
+            console.error('Deletion Error:', error);
+            toast.error('An error occurred');
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
@@ -253,17 +332,7 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Your Gender</label>
-                                        <div style={{ display: 'flex', gap: '20px', marginTop: '8px' }}>
-                                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                                <input type="radio" name="gender" value="male" disabled /> <span style={{ color: '#878787' }}>Male</span>
-                                            </label>
-                                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                                <input type="radio" name="gender" value="female" disabled /> <span style={{ color: '#878787' }}>Female</span>
-                                            </label>
-                                        </div>
-                                    </div>
+
 
                                     <div className="form-group" style={{ marginTop: '20px' }}>
                                         <label className="form-label">Email Address</label>
@@ -336,13 +405,46 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
 
-                                    <div style={{ marginTop: '30px' }}>
-                                        <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>FAQs</h3>
-                                        <div style={{ fontSize: '12px', color: '#1f2937' }}>
-                                            <p style={{ fontWeight: '600', marginBottom: '4px' }}>What happens when I update my email address (or mobile number)?</p>
-                                            <p style={{ marginBottom: '12px', color: '#666' }}>Your login email id (or mobile number) changes, likewise. You'll receive all your account related communication on your updated email address (or mobile number).</p>
+                                    {/* Account Settings Section */}
+                                    <div className="account-settings-section" style={{ marginTop: '30px' }}>
+                                        <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>Account Settings</h3>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>Deactivate Account</div>
+                                                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                                                        Deactivating your account is temporary. Your account will only be permanently deleted if you do not login within 60 days.
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDeactivate}
+                                                    style={{ color: '#2874f0', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: '500', fontSize: '14px' }}
+                                                >
+                                                    Deactivate
+                                                </button>
+                                            </div>
+
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#dc2626' }}>Delete Account</div>
+                                                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                                                        Permanently delete your account and all associated data. This action cannot be undone.
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDelete}
+                                                    style={{ color: '#dc2626', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: '500', fontSize: '14px' }}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+
+
 
                                     <button type="submit" className="save-btn" disabled={saving}>
                                         {saving ? 'Saving Changes...' : 'Save Personal Information'}
@@ -511,6 +613,12 @@ export default function ProfilePage() {
                             </div>
                         )}
 
+                        {activeView === 'delivered' && (
+                            <div className="profile-card">
+                                <ProfileOrders filterType="delivered" user={{ id: userId }} />
+                            </div>
+                        )}
+
                         {activeView === 'returns' && (
                             <div className="profile-card">
                                 <ProfileOrders filterType="returns" user={{ id: userId }} />
@@ -554,10 +662,7 @@ export default function ProfilePage() {
 
                         {activeView === 'wishlist' && (
                             <div className="profile-card">
-                                <h2 className="section-title">My Wishlist</h2>
-                                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
-                                    <p>Your wishlist is empty.</p>
-                                </div>
+                                <ProfileWishlist user={{ id: userId }} />
                             </div>
                         )}
                     </form>

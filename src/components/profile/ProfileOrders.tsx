@@ -23,7 +23,7 @@ interface Order {
 }
 
 interface ProfileOrdersProps {
-    filterType: 'all' | 'returns' | 'cancelled';
+    filterType: 'all' | 'returns' | 'cancelled' | 'delivered';
     user: any;
 }
 
@@ -142,6 +142,10 @@ export default function ProfileOrders({ filterType, user }: ProfileOrdersProps) 
             return ['cancelled', 'refunded'].includes(s);
         }
 
+        if (filterType === 'delivered') {
+            return s === 'delivered';
+        }
+
         return true;
     });
 
@@ -157,6 +161,7 @@ export default function ProfileOrders({ filterType, user }: ProfileOrdersProps) 
         <div className="profile-orders-container">
             <h2 className="orders-title">
                 {filterType === 'all' && 'All Orders'}
+                {filterType === 'delivered' && 'Delivered Orders'}
                 {filterType === 'returns' && 'Returns'}
                 {filterType === 'cancelled' && 'Cancelled Orders'}
             </h2>
@@ -232,6 +237,7 @@ export default function ProfileOrders({ filterType, user }: ProfileOrdersProps) 
                                             <button
                                                 className="btn-action btn-secondary"
                                                 onClick={() => setReturnModal({ open: true, orderId: order.id })}
+                                                title="Return valid within 7 days of delivery"
                                             >
                                                 Return
                                             </button>

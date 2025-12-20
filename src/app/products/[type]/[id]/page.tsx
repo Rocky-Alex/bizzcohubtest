@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { addToCart } from "@/utils/cart";
 import LoadingSpinner from "../../../components/LoadingSpinner";
-import { useToast } from "@/context/ToastContext";
+import { toast } from 'sonner';
 import "./styles/product-detail.css";
 
 interface Product {
@@ -183,8 +183,6 @@ export default function ProductDetailPage() {
         };
     };
 
-    const { showToast } = useToast();
-
     const addToCartAction = () => {
         if (!product) return;
         addToCart({
@@ -195,7 +193,7 @@ export default function ProductDetailPage() {
             quantity: quantity,
             options: getSelectedOptions(),
         });
-        showToast(`${product.name} added to cart!`, 'success');
+        toast.success(`${product.name} added to cart!`);
     };
 
     const handleBuyNow = () => {
@@ -210,6 +208,39 @@ export default function ProductDetailPage() {
         const text = `Hi, I am interested in ${product.name} (Code: ${product.productCode}). \nPrice: AED ${calculateTotalPrice().toLocaleString()} \n${optionsStr}`;
         const encodedText = encodeURIComponent(text);
         window.open(`https://wa.me/971567064457?text=${encodedText}`, '_blank');
+    };
+
+    const handleAddToWishlist = async () => {
+        if (!product) return;
+
+        const storedUser = localStorage.getItem('customer_user');
+        if (!storedUser) {
+            toast.error("Please login to add to wishlist");
+            router.push('/login');
+            return;
+        }
+
+        const user = JSON.parse(storedUser);
+
+        try {
+            const res = await fetch('/api/customer/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customer_id: user.id,
+                    product_id: product.id
+                })
+            });
+
+            if (res.ok) {
+                toast.success(`${product.name} added to wishlist!`);
+            } else {
+                toast.info("This product is already in your wishlist");
+            }
+        } catch (error) {
+            console.error("Wishlist error", error);
+            toast.error("Failed to add to wishlist");
+        }
     };
 
     const totalPrice = calculateTotalPrice();
@@ -362,7 +393,7 @@ export default function ProductDetailPage() {
                                 </div>
 
                                 <div className="action-buttons">
-                                    <button className="icon-btn-square" title="Add to Wishlist">
+                                    <button className="icon-btn-square" title="Add to Wishlist" onClick={handleAddToWishlist}>
                                         <i className="far fa-heart"></i>
                                     </button>
                                     <button className="icon-btn-square" title="Share">
