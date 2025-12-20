@@ -22,6 +22,7 @@ export default function CheckoutPage() {
         phone: "",
         address: "",
         city: "",
+        state: "",
         zip: "",
         country: "United Arab Emirates", // Default
     });
@@ -61,6 +62,7 @@ export default function CheckoutPage() {
                                 // Prefer shipping address, fallback to billing or empty
                                 address: u.shipping_address_1 || u.billing_address_1 || '',
                                 city: u.shipping_city || u.billing_city || '',
+                                state: u.shipping_state || u.billing_state || '',
                                 zip: u.shipping_zip || u.billing_zip || '',
                                 country: u.shipping_country || u.billing_country || 'United Arab Emirates'
                             }));
@@ -145,7 +147,7 @@ export default function CheckoutPage() {
                 message="Your order has been confirmed. Would you like to track your order details or return to the home page?"
                 confirmText="Track Order"
                 cancelText="Go to Home"
-                onConfirm={() => router.push('/orders')}
+                onConfirm={() => router.push('/profile?view=orders')}
                 onCancel={() => router.push('/')}
                 type="success"
             />
@@ -178,6 +180,7 @@ export default function CheckoutPage() {
                                             required
                                             value={formData.firstName}
                                             onChange={handleInputChange}
+                                            autoComplete="given-name"
                                         />
                                     </div>
                                     <div className="form-group">
@@ -189,6 +192,7 @@ export default function CheckoutPage() {
                                             required
                                             value={formData.lastName}
                                             onChange={handleInputChange}
+                                            autoComplete="family-name"
                                         />
                                     </div>
                                     <div className="form-group full-width">
@@ -200,6 +204,7 @@ export default function CheckoutPage() {
                                             required
                                             value={formData.email}
                                             onChange={handleInputChange}
+                                            autoComplete="email"
                                         />
                                     </div>
                                     <div className="form-group full-width">
@@ -211,6 +216,7 @@ export default function CheckoutPage() {
                                             required
                                             value={formData.phone}
                                             onChange={handleInputChange}
+                                            autoComplete="tel"
                                         />
                                     </div>
                                 </div>
@@ -233,6 +239,7 @@ export default function CheckoutPage() {
                                             required
                                             value={formData.address}
                                             onChange={handleInputChange}
+                                            autoComplete="street-address"
                                         />
                                     </div>
                                     <div className="form-group">
@@ -244,6 +251,18 @@ export default function CheckoutPage() {
                                             required
                                             value={formData.city}
                                             onChange={handleInputChange}
+                                            autoComplete="address-level2"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">State / Province</label>
+                                        <input
+                                            type="text"
+                                            name="state"
+                                            className="form-input"
+                                            value={formData.state}
+                                            onChange={handleInputChange}
+                                            autoComplete="address-level1"
                                         />
                                     </div>
                                     <div className="form-group">
@@ -255,6 +274,7 @@ export default function CheckoutPage() {
                                             required
                                             value={formData.zip}
                                             onChange={handleInputChange}
+                                            autoComplete="postal-code"
                                         />
                                     </div>
                                     <div className="form-group full-width">
@@ -264,6 +284,7 @@ export default function CheckoutPage() {
                                             className="form-input"
                                             value={formData.country}
                                             onChange={handleInputChange}
+                                            autoComplete="country-name"
                                         >
                                             <option value="United Arab Emirates">United Arab Emirates</option>
                                             <option value="Saudi Arabia">Saudi Arabia</option>

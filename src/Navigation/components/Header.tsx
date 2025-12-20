@@ -153,20 +153,25 @@ export default function Header() {
                         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button size="icon" variant="outline" aria-label="Open account menu" className="header-action-btn" style={{ border: 'none', background: 'transparent' }}>
-                                        <CircleUserRound size={24} strokeWidth={2} aria-hidden="true" />
+                                    <Button size="icon" variant="outline" aria-label="Open account menu" className="header-action-btn" style={{ border: 'none', background: 'transparent', padding: 0, overflow: 'hidden', width: '32px', height: '32px', borderRadius: '50%' }}>
+                                        {currentUser.image_url ? (
+                                            <img
+                                                src={currentUser.image_url}
+                                                alt="Profile"
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover'
+                                                }}
+                                            />
+                                        ) : (
+                                            <CircleUserRound size={24} strokeWidth={2} aria-hidden="true" />
+                                        )}
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="max-w-64 bg-white" align="end">
-                                    <DropdownMenuLabel className="flex flex-col">
-                                        <span>Signed in as {currentUser.role}</span>
-                                        <span className="text-xs font-normal text-foreground" style={{ color: '#6b7280' }}>
-                                            {currentUser.username}
-                                            {currentUser.email && <br />}
-                                            {currentUser.email}
-                                        </span>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
+
+
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
                                             Profile

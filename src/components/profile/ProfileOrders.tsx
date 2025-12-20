@@ -1,15 +1,11 @@
-"use client";
-
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import './orders.css';
-import ConfirmModal from '@/components/ui/ConfirmModal';
 import Link from 'next/link';
-import '@/components/ui/confirm-modal.css';
+import { toast } from 'sonner';
+import ConfirmModal from '../ui/ConfirmModal';
+import './profile-orders.css';
 
 interface OrderItem {
-    id: string; // or number depending on how it's stored in JSON
+    id: string;
     name: string;
     image: string;
     quantity: number;
@@ -26,12 +22,14 @@ interface Order {
     payment_method: string;
 }
 
-export default function OrdersPage() {
-    const router = useRouter();
+interface ProfileOrdersProps {
+    filterType: 'all' | 'returns' | 'cancelled';
+    user: any;
+}
+
+export default function ProfileOrders({ filterType, user }: ProfileOrdersProps) {
     const [loading, setLoading] = useState(true);
     const [orders, setOrders] = useState<Order[]>([]);
-    const [activeTab, setActiveTab] = useState('All');
-    const [currentUser, setCurrentUser] = useState<any>(null);
 
     // Modal States
     const [cancelModal, setCancelModal] = useState({ open: false, orderId: 0 });
@@ -39,17 +37,13 @@ export default function OrdersPage() {
     const [trackModal, setTrackModal] = useState({ open: false, order: null as Order | null });
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('customer_user');
-        if (!storedUser) {
-            router.push('/login');
-            return;
+        if (user && user.id) {
+            fetchOrders(user.id);
         }
-        const user = JSON.parse(storedUser);
-        setCurrentUser(user);
-        fetchOrders(user.id);
-    }, [router]);
+    }, [user]);
 
     const fetchOrders = async (customerId: number) => {
+        setLoading(true);
         try {
             const res = await fetch(`/api/customer/orders?customer_id=${customerId}`);
             if (res.ok) {
@@ -76,7 +70,7 @@ export default function OrdersPage() {
                 body: JSON.stringify({
                     order_id: cancelModal.orderId,
                     action: 'cancel',
-                    customer_id: currentUser.id
+                    customer_id: user.id
                 })
             });
 
@@ -107,7 +101,7 @@ export default function OrdersPage() {
                 body: JSON.stringify({
                     order_id: returnModal.orderId,
                     action: 'return',
-                    customer_id: currentUser.id
+                    customer_id: user.id
                 })
             });
 
@@ -130,42 +124,43 @@ export default function OrdersPage() {
 
     const filteredOrders = orders.filter(order => {
         const s = (order.status || '').toLowerCase();
-        if (activeTab === 'All') return true;
-        if (activeTab === 'Active') return ['pending', 'processing', 'shipped'].includes(s);
-        if (activeTab === 'Delivered') return s === 'delivered';
-        if (activeTab === 'Cancelled') return ['cancelled', 'refunded', 'return requested', 'return approved', 'return received', 'returned'].includes(s);
+
+        if (filterType === 'all') {
+            // "All Orders" usually implies everything, or maybe exclude cancelled/returned?
+            // The user wanted "separate" lists.
+            // Let's assume 'all' means actual normal orders (active + delivered)
+            // Or truly ALL. Let's start with truly ALL, but if 'returns' and 'cancelled' are separate tabs, maybe 'all' shouldn't duplicate them?
+            // Usually 'All Orders' lists everything.
+            return true;
+        }
+
+        if (filterType === 'returns') {
+            return ['return requested', 'return approved', 'return received', 'returned'].includes(s);
+        }
+
+        if (filterType === 'cancelled') {
+            return ['cancelled', 'refunded'].includes(s);
+        }
+
         return true;
     });
 
     if (loading) {
         return (
-            <div className="orders-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ fontSize: '1.2rem', color: '#94a3b8' }}>Loading your orders...</div>
+            <div className="profile-orders-container" style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+                <div style={{ color: '#94a3b8' }}>Loading orders...</div>
             </div>
         );
     }
 
     return (
-        <div className="orders-container">
-            <div className="orders-header">
-                <h1 className="orders-title">My Orders</h1>
-                <p className="orders-subtitle">Track and manage your recent purchases</p>
-            </div>
+        <div className="profile-orders-container">
+            <h2 className="orders-title">
+                {filterType === 'all' && 'All Orders'}
+                {filterType === 'returns' && 'Returns'}
+                {filterType === 'cancelled' && 'Cancelled Orders'}
+            </h2>
 
-            {/* Tabs */}
-            <div className="orders-tabs">
-                {['All', 'Active', 'Delivered', 'Cancelled'].map(tab => (
-                    <button
-                        key={tab}
-                        className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab)}
-                    >
-                        {tab}
-                    </button>
-                ))}
-            </div>
-
-            {/* List */}
             <div className="orders-list">
                 {filteredOrders.length === 0 ? (
                     <div className="empty-orders">
@@ -173,7 +168,7 @@ export default function OrdersPage() {
                             <i className="fas fa-box-open"></i>
                         </div>
                         <h3>No orders found</h3>
-                        <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>Looks like you haven't placed any orders in this category yet.</p>
+                        <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>No orders in this category.</p>
                         <Link href="/products" className="btn-action btn-track" style={{ display: 'inline-flex' }}>
                             Start Shopping
                         </Link>
@@ -221,7 +216,7 @@ export default function OrdersPage() {
                                             className="btn-action btn-track"
                                             onClick={() => setTrackModal({ open: true, order })}
                                         >
-                                            <i className="fas fa-map-marker-alt"></i> Track Order
+                                            <i className="fas fa-map-marker-alt"></i> Track
                                         </button>
 
                                         {['Pending', 'Processing'].includes(order.status) && (
@@ -238,7 +233,7 @@ export default function OrdersPage() {
                                                 className="btn-action btn-secondary"
                                                 onClick={() => setReturnModal({ open: true, orderId: order.id })}
                                             >
-                                                Return Item
+                                                Return
                                             </button>
                                         )}
                                     </div>
@@ -256,27 +251,27 @@ export default function OrdersPage() {
                 message="Are you sure you want to cancel this order? This action cannot be undone."
                 onConfirm={handleCancelOrder}
                 onCancel={() => setCancelModal({ open: false, orderId: 0 })}
-                confirmText="Yes, Cancel Order"
+                confirmText="Yes, Cancel"
                 type="danger"
             />
 
             <ConfirmModal
                 isOpen={returnModal.open}
                 title="Request Return"
-                message="Are you sure you want to request a return for this order? Our team will contact you shortly."
+                message="Are you sure you want to request a return? Our team will contact you shortly."
                 onConfirm={handleReturnOrder}
                 onCancel={() => setReturnModal({ open: false, orderId: 0 })}
                 confirmText="Request Return"
                 type="info"
             />
 
-            {/* Tracking Modal (Custom) */}
+            {/* Tracking Modal */}
             {trackModal.open && trackModal.order && (
-                <div className="custom-modal-overlay" onClick={() => setTrackModal({ open: false, order: null })}>
-                    <div className="custom-modal-content" style={{ maxWidth: '600px', width: '95%' }} onClick={e => e.stopPropagation()}>
+                <div className="custom-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setTrackModal({ open: false, order: null })}>
+                    <div className="custom-modal-content" style={{ background: 'white', padding: '2rem', borderRadius: '12px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3>Track Order #{trackModal.order.order_number}</h3>
-                            <button onClick={() => setTrackModal({ open: false, order: null })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>&times;</button>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 600 }}>Track Order #{trackModal.order.order_number}</h3>
+                            <button onClick={() => setTrackModal({ open: false, order: null })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem' }}>&times;</button>
                         </div>
 
                         <div className="tracking-steps">
@@ -291,7 +286,7 @@ export default function OrdersPage() {
                                 return (
                                     <div key={step} className={`step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'active' : ''}`}>
                                         <div className="step-icon">
-                                            {isCompleted ? <i className="fas fa-check"></i> : <i className="fas fa-circle" style={{ fontSize: '0.5rem' }}></i>}
+                                            {isCompleted ? <i className="fas fa-check"></i> : <i className="fas fa-circle" style={{ fontSize: '0.4rem' }}></i>}
                                         </div>
                                         <span className="step-label">{step}</span>
                                     </div>

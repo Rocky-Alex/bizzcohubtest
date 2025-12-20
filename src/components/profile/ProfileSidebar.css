@@ -1,0 +1,156 @@
+/* Profile Sidebar Styles */
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+/* User Card */
+.sidebar-user-card {
+    background: #ffffff;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    /* Slight rounding or square as per image */
+}
+
+.user-avatar-container {
+    width: 50px;
+    height: 50px;
+}
+
+.sidebar-avatar,
+.sidebar-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.sidebar-avatar-placeholder {
+    background-color: #f0f0f0;
+    /* Default placeholder bg */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c2c2c2;
+    background: #ffe11b;
+    /* Yellow generic avatar bg from image idea */
+    color: #fff;
+}
+
+.user-greeting {
+    display: flex;
+    flex-direction: column;
+}
+
+.greeting-text {
+    font-size: 12px;
+    color: #1f2937;
+}
+
+.user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Menu Section */
+.sidebar-menu {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+}
+
+.menu-group {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.menu-group:last-child {
+    border-bottom: none;
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.1s;
+    width: 100%;
+    box-sizing: border-box;
+    background: none;
+    border: none;
+    text-align: left;
+}
+
+.menu-header:hover {
+    color: #2874f0;
+    /* Flipkart blue hover */
+}
+
+.menu-icon {
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+}
+
+.menu-icon.text-blue {
+    color: #2874f0;
+}
+
+.menu-icon.text-gray {
+    color: #717478;
+}
+
+
+.menu-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #878787;
+    text-transform: uppercase;
+    flex-grow: 1;
+}
+
+.arrow-icon {
+    color: #878787;
+}
+
+/* Submenu */
+.submenu {
+    display: flex;
+    flex-direction: column;
+}
+
+.submenu-item {
+    padding: 12px 24px 12px 64px;
+    /* Indented alignment */
+    font-size: 14px;
+    color: #1f2937;
+    text-decoration: none;
+    transition: background 0.1s, color 0.1s;
+}
+
+.submenu-item:hover {
+    background-color: #f9f9f9;
+    color: #2874f0;
+}
+
+.submenu-item.active {
+    background-color: #f0f5ff;
+    color: #2874f0;
+    font-weight: 600;
+}
+
+.balance {
+    float: right;
+    color: #16a34a;
+    /* Green for money */
+    font-weight: 500;
+}
