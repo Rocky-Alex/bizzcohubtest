@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import './profile.css';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -9,7 +9,7 @@ import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import ProfileOrders from '@/components/profile/ProfileOrders';
 import ProfileWishlist from '@/components/profile/ProfileWishlist';
 
-export default function ProfilePage() {
+function ProfileContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(true);
@@ -671,4 +671,12 @@ export default function ProfilePage() {
         </div>
     );
 
+}
+
+export default function ProfilePage() {
+    return (
+        <Suspense fallback={<div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontSize: '1.2rem', color: '#6b7280' }}>Loading...</div></div>}>
+            <ProfileContent />
+        </Suspense>
+    );
 }
