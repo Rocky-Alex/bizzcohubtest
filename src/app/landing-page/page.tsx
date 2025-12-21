@@ -10,6 +10,7 @@ import Stack from "./components/Stack";
 import "./styles/landing-page.css";
 import "./styles/home-styles.css";
 import "./styles/landing-page-extra.css";
+import "./styles/product-card-outline.css";
 
 export default function LandingPage() {
     const scrollContainerRef = useRef<HTMLDivElement>(null);

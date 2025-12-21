@@ -61,13 +61,44 @@ export default function ProductDetailPage() {
     const [selectedRam, setSelectedRam] = useState(0);
     const [selectedStorage, setSelectedStorage] = useState(0);
     const [selectedColor, setSelectedColor] = useState(0);
+    const [isInWishlist, setIsInWishlist] = useState(false);
 
     useEffect(() => {
         if (params.id && params.type) {
             fetchProduct();
+            checkWishlistStatus();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params.id, params.type]);
+
+    const checkWishlistStatus = async () => {
+        const storedUser = localStorage.getItem('customer_user');
+        if (!storedUser) return;
+
+        try {
+            const user = JSON.parse(storedUser);
+            // Since we don't have a direct 'check' endpoint, we fetch the list. 
+            // Valid for small-medium wishlist sizes.
+            const res = await fetch(`/api/customer/wishlist?customer_id=${user.id}`);
+            if (res.ok) {
+                const data = await res.json();
+                // Check if current product is in the list
+                // foundProduct.id is what we need to match. But we might not have 'product' state yet if this runs parallel.
+                // We can use params.id for comparison if IDs match schema.
+                // Product fetch returns products with 'id' field.
+                // Wishlist returns items with 'id' (product id).
+
+                // Let's rely on params.id matching the product ID logic for now, 
+                // effectively checking if any item in wishlist has id == params.id
+
+                const productId = params.id; // This is a string from URL
+                const exists = data.wishlist.some((item: any) => String(item.id) === String(productId));
+                setIsInWishlist(exists);
+            }
+        } catch (e) {
+            console.error("Failed to check wishlist status", e);
+        }
+    };
 
     const parseColorOptions = (colorString: string): ColorOption[] => {
         if (!colorString) return [];
@@ -215,7 +246,7 @@ export default function ProductDetailPage() {
 
         const storedUser = localStorage.getItem('customer_user');
         if (!storedUser) {
-            toast.error("Please login to add to wishlist");
+            toast.error("Please login to manage wishlist");
             router.push('/login');
             return;
         }
@@ -223,23 +254,44 @@ export default function ProductDetailPage() {
         const user = JSON.parse(storedUser);
 
         try {
-            const res = await fetch('/api/customer/wishlist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    customer_id: user.id,
-                    product_id: product.id
-                })
-            });
+            if (isInWishlist) {
+                // Remove logic
+                const res = await fetch(`/api/customer/wishlist?customer_id=${user.id}&product_id=${product.id}`, {
+                    method: 'DELETE',
+                });
 
-            if (res.ok) {
-                toast.success(`${product.name} added to wishlist!`);
+                if (res.ok) {
+                    toast.success("Removed from wishlist");
+                    setIsInWishlist(false);
+                } else {
+                    toast.error("Failed to remove from wishlist");
+                }
+
             } else {
-                toast.info("This product is already in your wishlist");
+                // Add logic
+                const res = await fetch('/api/customer/wishlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_id: user.id,
+                        product_id: product.id
+                    })
+                });
+
+                if (res.ok) {
+                    toast.success(`${product.name} added to wishlist!`);
+                    setIsInWishlist(true);
+                } else {
+                    const data = await res.json();
+                    if (data.message === "Product already in wishlist") {
+                        setIsInWishlist(true);
+                        toast.info("Already in wishlist");
+                    }
+                }
             }
         } catch (error) {
             console.error("Wishlist error", error);
-            toast.error("Failed to add to wishlist");
+            toast.error(isInWishlist ? "Failed to remove" : "Failed to add");
         }
     };
 
@@ -393,8 +445,12 @@ export default function ProductDetailPage() {
                                 </div>
 
                                 <div className="action-buttons">
-                                    <button className="icon-btn-square" title="Add to Wishlist" onClick={handleAddToWishlist}>
-                                        <i className="far fa-heart"></i>
+                                    <button
+                                        className="icon-btn-square"
+                                        title={isInWishlist ? "Already in Wishlist" : "Add to Wishlist"}
+                                        onClick={handleAddToWishlist}
+                                    >
+                                        <i className={`fa-heart ${isInWishlist ? 'fas' : 'far'}`} style={{ color: isInWishlist ? 'black' : 'inherit' }}></i>
                                     </button>
                                     <button className="icon-btn-square" title="Share">
                                         <i className="fas fa-share-alt"></i>

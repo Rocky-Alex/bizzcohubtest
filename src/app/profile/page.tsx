@@ -392,7 +392,7 @@ function ProfileContent() {
                                         <AvatarUploader
                                             currentImage={formData.image_url}
                                             nameInitial={(formData.firstName || '').charAt(0)}
-                                            onUpload={handleAvatarUpdate}
+                                            onImageSelected={handleAvatarUpdate}
                                         />
                                     </div>
 

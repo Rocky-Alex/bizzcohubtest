@@ -57,24 +57,57 @@ export async function deleteFileByUrl(url: string): Promise<boolean> {
     try {
         if (!url || !url.includes('ik.imagekit.io')) return false;
 
-        // Extract filename from URL
-        // Example: https://ik.imagekit.io/kxci2a0h5/users/avatars/filename.jpg
-        const parts = url.split('/');
-        const fileName = parts[parts.length - 1];
+        // Clean URL first (remove query params)
+        const urlObj = new URL(url);
+        const urlWithoutParams = urlObj.origin + urlObj.pathname;
+
+        // Extract filename from path
+        // Example: /kxci2a0h5/users/avatars/filename.jpg
+        const parts = urlWithoutParams.split('/');
+        const rawFileName = parts[parts.length - 1];
+
+        // Decode filename (in case of spaces/special chars)
+        const fileName = decodeURIComponent(rawFileName);
 
         if (!fileName) return false;
 
+        console.log(`Attempting to delete image by name: ${fileName}`);
+
         // Search for file by name
+        // Note: ImageKit listFiles searches recursively by default
         const files = await imagekit.listFiles({
             searchQuery: `name="${fileName}"`,
-            limit: 1 // We only need one
+            // Explicitly ask for name to verify match
         });
 
         if (files && files.length > 0) {
-            const fileId = files[0].fileId;
-            await imagekit.deleteFile(fileId);
-            console.log(`Deleted old file from ImageKit: ${fileName} (${fileId})`);
-            return true;
+            // Find the exact match if multiple (though default unique should prevent duplicates, folders might share names)
+            // Ideally we should also check the folder path, but ImageKit file object contains 'filePath'.
+            // The URL path typically contains folder structure too, e.g. /slug/folder/file.jpg
+            // But stripping the endpoint leaves /folder/file.jpg.
+
+            // Let's try to find the one that matches the folder path derived from URL.
+            // URL path: /imagekit_id/folder/filename.jpg
+            // FilePath from API: /folder/filename.jpg
+
+            // We can try to deleting the first one or filter better.
+            // For now, simple match is better than nothing.
+
+            // Iterate and match strict name
+            const targetFile = files.find((f: any) => f.name === fileName);
+
+            if (targetFile) {
+                await imagekit.deleteFile(targetFile.fileId);
+                console.log(`Deleted old file from ImageKit: ${fileName} (${targetFile.fileId})`);
+                return true;
+            } else {
+                // Fallback to first if strict name match failed (unlikely if searchQuery worked)
+                if (files.length === 1) {
+                    await imagekit.deleteFile(files[0].fileId);
+                    console.log(`Deleted old file from ImageKit (fuzzy match): ${fileName} (${files[0].fileId})`);
+                    return true;
+                }
+            }
         }
 
         console.warn(`File not found in ImageKit for deletion: ${fileName}`);

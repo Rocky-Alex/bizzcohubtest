@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import './AddProduct.css';
+import ProductImageUploader from '@/components/ui/ProductImageUploader';
 
 interface AddProductProps {
     onCancel: () => void;
@@ -444,6 +445,8 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         }));
     };
 
+
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const newFiles = Array.from(e.target.files);
@@ -452,6 +455,11 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
             const newPreviews = newFiles.map(file => URL.createObjectURL(file));
             setPreviewUrls(prev => [...prev, ...newPreviews]);
         }
+    };
+
+    const handleCroppedImageAdd = (file: File) => {
+        setFiles(prev => [...prev, file]);
+        setPreviewUrls(prev => [...prev, URL.createObjectURL(file)]);
     };
 
     const removeFile = (index: number) => {
@@ -476,16 +484,23 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         const uploadedUrls: string[] = [];
 
         for (const file of files) {
-            const formData = new FormData();
-            formData.append('file', file);
+            const uploadData = new FormData();
+            uploadData.append('file', file);
             const folderName = productType === 'system' ? 'Products/Laptops' : 'Products/Accessories';
-            formData.append('folder', folderName);
-            formData.append('fileName', file.name.replace(/\s+/g, '_'));
+            uploadData.append('folder', folderName);
+
+            // Prefix filename with Product Code for safety and organization
+            const safeName = file.name.replace(/\s+/g, '_');
+            const finalFileName = formData.productCode
+                ? `${formData.productCode}_${safeName}`
+                : safeName;
+
+            uploadData.append('fileName', finalFileName);
 
             try {
                 const response = await fetch('/api/imagekit/upload', {
                     method: 'POST',
-                    body: formData
+                    body: uploadData
                 });
 
                 if (response.ok) {
@@ -708,25 +723,19 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
 
                     <div className="form-group">
                         <label>Product Images (First Image is Primary)</label>
-                        <div
-                            className="image-upload-area"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <i className="fas fa-cloud-upload-alt"></i>
-                            <p>Click to upload images</p>
-                            <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>Supports .jpg, .png, .webp</span>
-                        </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            multiple
-                            accept="image/*"
-                            style={{ display: 'none' }}
+
+                        <ProductImageUploader
+                            onImageSelected={handleCroppedImageAdd}
+                            onError={(msg: string) => setStatusModal({
+                                isOpen: true,
+                                type: 'error',
+                                title: 'Image Error',
+                                message: msg
+                            })}
                         />
 
                         {previewUrls.length > 0 && (
-                            <div className="image-previews">
+                            <div className="image-previews" style={{ marginTop: '1.5rem' }}>
                                 {previewUrls.map((url, index) => (
                                     <div key={index} className="image-preview-card">
                                         <img src={url} alt={`Preview ${index}`} />

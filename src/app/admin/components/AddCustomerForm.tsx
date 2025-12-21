@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './AddCustomerForm.css';
 import { Country, State, City } from 'country-state-city';
+import AvatarUploader from '@/components/ui/AvatarUploader';
 
 interface AddCustomerFormProps {
     onCancel: () => void;
@@ -31,7 +32,6 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
     });
 
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -55,14 +55,6 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
         });
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
-    };
-
     // Derived state for dropdowns
     const billingCountries = Country.getAllCountries();
     const billingStates = formData.billingCountry ? State.getStatesOfCountry(formData.billingCountry) : [];
@@ -82,29 +74,10 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
             <div className="form-section">
                 <h3 className="section-title">Basic Details</h3>
 
-                <div className="image-upload-area">
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <div className="image-preview-box">
-                            {imagePreview ? (
-                                <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                                <i className="far fa-image"></i>
-                            )}
-                        </div>
-                        <div className="upload-btn-wrapper">
-                            <label className="btn-upload" style={{ cursor: 'pointer', display: 'inline-block' }}>
-                                <i className="fas fa-file-upload"></i> Upload Image
-                                <input
-                                    type="file"
-                                    accept="image/png, image/jpeg"
-                                    onChange={handleImageChange}
-                                    style={{ display: 'none' }}
-                                />
-                            </label>
-                            <span className="upload-help-text">JPG or PNG format, not exceeding 5MB.</span>
-                        </div>
-                    </div>
-                </div>
+                <AvatarUploader
+                    onImageSelected={(file) => setImageFile(file)}
+                    aspect={1}
+                />
 
                 <div className="form-grid-3">
                     <div>
