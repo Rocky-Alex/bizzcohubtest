@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./DashboardOverview.css";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 
 interface DashboardOverviewProps {
     setActiveSection: (section: string) => void;
@@ -108,7 +109,7 @@ export default function DashboardOverview({
             const from = appliedStartDate.toISOString();
             const to = appliedEndDate.toISOString();
 
-            const res = await fetch(`/api/admin/dashboard/stats?from=${from}&to=${to}`);
+            const res = await fetch(`/api/admin/dashboard/stats?from=${from}&to=${to}`, { cache: 'no-store' });
             if (res.ok) {
                 const data = await res.json();
                 setAggregatedStats(prev => ({ ...prev, ...data }));
@@ -127,43 +128,7 @@ export default function DashboardOverview({
     }, [fetchStats]);
 
     // --- Auto Refresh Logic ---
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-
-        const setupAutoRefresh = () => {
-            const enabled = localStorage.getItem('autoRefreshEnabled') === 'true';
-            if (!enabled) {
-                if (intervalId) clearInterval(intervalId);
-                return;
-            }
-
-            const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
-            const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
-            const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
-            const totalMs = (h * 3600 + m * 60 + s) * 1000;
-
-            if (totalMs > 0) {
-                if (intervalId) clearInterval(intervalId);
-                intervalId = setInterval(() => {
-                    fetchStats();
-                    // Update timestamp so settings component knows
-                    localStorage.setItem('lastAutoRefresh', Date.now().toString());
-                }, totalMs);
-            }
-        };
-
-        setupAutoRefresh();
-
-        const handleSettingsChange = () => {
-            setupAutoRefresh();
-        };
-
-        window.addEventListener('autoRefreshSettingsChanged', handleSettingsChange);
-        return () => {
-            window.removeEventListener('autoRefreshSettingsChanged', handleSettingsChange);
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [fetchStats]);
+    useAutoRefresh(fetchStats);
 
 
     // --- Handlers ---

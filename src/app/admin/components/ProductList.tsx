@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ProductList.css';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 interface ProductListProps {
@@ -39,16 +40,10 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
     const [viewMode, setViewMode] = useState<'mini' | 'detailed'>('mini');
 
 
-    useEffect(() => {
-        fetchProducts();
-        const interval = setInterval(fetchProducts, 600000); // Refresh every 10 minutes
-        return () => clearInterval(interval);
-    }, []);
-
     const fetchProducts = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/admin/inventory/products');
+            const response = await fetch('/api/admin/inventory/products', { cache: 'no-store' });
             if (response.ok) {
                 const data = await response.json();
                 setProducts(data);
@@ -62,6 +57,13 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
         }
     };
 
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    // Auto Refresh Logic
+    useAutoRefresh(fetchProducts);
+
     const handleDelete = async (productId: string) => {
         if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
             try {
@@ -71,6 +73,9 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
 
                 if (response.ok) {
                     setProducts(prev => prev.filter(p => p.id !== productId));
+                    // Trigger global update for dashboards
+                    window.dispatchEvent(new Event('inventory-updated'));
+                    localStorage.setItem('inventoryLastUpdated', Date.now().toString());
                 } else {
                     const error = await response.json();
                     alert(`Failed to delete product: ${error.error || 'Unknown error'}`);

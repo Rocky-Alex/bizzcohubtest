@@ -346,7 +346,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
             if (data.image) {
                 const formData = new FormData();
                 formData.append('file', data.image);
-                formData.append('folder', 'Customers');
+                formData.append('folder', 'Profile_Pictures/Customers');
                 formData.append('fileName', data.image.name.replace(/\s+/g, '_'));
 
                 const uploadRes = await fetch('/api/imagekit/upload', {
@@ -382,6 +382,11 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                         setModal(prev => ({ ...prev, isOpen: false }));
                         setIsAddCustomerModalOpen(false);
                         fetchCustomers(); // Refresh list
+
+                        // Trigger global update
+                        window.dispatchEvent(new Event('dashboard-updated'));
+                        localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+
                         if (result.customer && result.customer.name) {
                             setCustomerName(result.customer.name);
                         }
@@ -521,6 +526,10 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                         setCustomerEmail('');
                         setCustomerAddress('');
                         if (onOrderCreated) onOrderCreated();
+
+                        // Trigger global update
+                        window.dispatchEvent(new Event('dashboard-updated'));
+                        localStorage.setItem('dashboardLastUpdated', Date.now().toString());
                     }
                 });
             } else {

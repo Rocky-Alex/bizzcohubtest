@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { addToCart } from "@/utils/cart";
 import { useToast } from "@/context/ToastContext";
@@ -12,6 +12,20 @@ import "./styles/home-styles.css";
 import "./styles/landing-page-extra.css";
 
 export default function LandingPage() {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            const { current } = scrollContainerRef;
+            const scrollAmount = 400;
+            if (direction === 'left') {
+                current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+    };
+
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
     const { showToast } = useToast();
 
@@ -253,15 +267,83 @@ export default function LandingPage() {
                             <span className="title-word delay-1 gradient-text-animated">Products</span>
                         </h2>
                     </div>
-                    <Link href="/products" className="view-all-btn magnetic-btn">
-                        <span>View All Products</span>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                    </Link>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div className="slider-nav-btns" style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                                onClick={() => scroll('left')}
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    border: '1px solid #e5e7eb',
+                                    background: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={() => scroll('right')}
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    border: '1px solid #e5e7eb',
+                                    background: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <Link href="/products" className="view-all-btn magnetic-btn">
+                            <span>View All Products</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                        </Link>
+                    </div>
                 </div>
 
-                <div className="products-grid-v3">
+                <div
+                    className="products-grid-v3"
+                    ref={scrollContainerRef}
+                    style={{
+                        display: 'flex',
+                        overflowX: 'auto',
+                        gap: '2rem',
+                        paddingBottom: '2rem',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none'
+                    }}
+                >
+                    <style jsx>{`
+                        .products-grid-v3::-webkit-scrollbar {
+                            display: none;
+                        }
+                        .product-card-v3 {
+                            flex: 0 0 320px;
+                            min-width: 320px;
+                        }
+                    `}</style>
                     {featuredProducts.map((product, index) => (
                         <div key={index} className="product-card-v3 hover-lift">
                             {product.badge && (

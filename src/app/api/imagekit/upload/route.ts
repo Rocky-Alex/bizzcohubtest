@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadToImageKit, deleteFromImageKit } from '@/lib/imagekit';
+import { uploadToImageKit, deleteFromImageKit, deleteFileByUrl } from '@/lib/imagekit';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,17 +93,26 @@ export async function DELETE(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const fileId = searchParams.get('fileId');
+        const url = searchParams.get('url');
 
-        if (!fileId) {
-            return NextResponse.json(
-                { error: 'fileId is required' },
-                { status: 400 }
-            );
+        if (fileId) {
+            await deleteFromImageKit(fileId);
+            return NextResponse.json({ message: 'Image deleted successfully' }, { status: 200 });
         }
 
-        await deleteFromImageKit(fileId);
+        if (url) {
+            const deleted = await deleteFileByUrl(url);
+            if (deleted) {
+                return NextResponse.json({ message: 'Image deleted by URL successfully' }, { status: 200 });
+            } else {
+                return NextResponse.json({ message: 'Image not found or could not be deleted' }, { status: 404 });
+            }
+        }
 
-        return NextResponse.json({ message: 'Image deleted successfully' }, { status: 200 });
+        return NextResponse.json(
+            { error: 'fileId or url is required' },
+            { status: 400 }
+        );
     } catch (error: any) {
         console.error('ImageKit delete error:', error);
         return NextResponse.json(

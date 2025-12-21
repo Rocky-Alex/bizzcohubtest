@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
+export const dynamic = 'force-dynamic';
+
 // Helper to get DB connection
 const getSql = () => {
     const dbUrl = process.env.INVOICE_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -52,6 +54,23 @@ export async function GET() {
                     THEN 1 
                 END) as total_accessories,
                 
+                -- Total Laptop Qty
+                SUM(CASE 
+                    WHEN type = 'laptop' 
+                    OR category ILIKE '%Laptop%' 
+                    OR category ILIKE '%MacBook%' 
+                    THEN stock_quantity 
+                    ELSE 0 
+                END) as total_laptop_qty,
+
+                -- Total Accessories Qty
+                SUM(CASE 
+                    WHEN type = 'accessory' 
+                    OR (type IS NULL AND category = ANY(${accessoryCategories})) 
+                    THEN stock_quantity
+                    ELSE 0 
+                END) as total_accessory_qty,
+
                 -- Low Stock
                 COUNT(CASE WHEN COALESCE(stock_quantity, 0) < 10 THEN 1 END) as low_stock,
                 
@@ -86,7 +105,9 @@ export async function GET() {
         const result = {
             totalProducts: Number(s.total_products || 0),
             totalLaptops: Number(s.total_laptops || 0),
+            totalLaptopQty: Number(s.total_laptop_qty || 0),
             totalAccessories: Number(s.total_accessories || 0),
+            totalAccessoryQty: Number(s.total_accessory_qty || 0),
             lowStockItems: Number(s.low_stock || 0),
             totalValue: Number(s.total_value || 0),
             trends: {

@@ -1,5 +1,6 @@
 import React from 'react';
 import './InvoicingDashboard.css';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 interface InvoicingDashboardProps {
     setActiveSection: (section: string) => void;
@@ -39,7 +40,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
 
     const fetchStats = React.useCallback(async () => {
         try {
-            const response = await fetch('/api/admin/invoices/stats');
+            const response = await fetch('/api/admin/invoices/stats', { cache: 'no-store' });
             if (response.ok) {
                 const data = await response.json();
                 setStats(data);
@@ -55,43 +56,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
     }, [fetchStats]);
 
     // Auto Refresh Logic
-    React.useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-
-        const setupAutoRefresh = () => {
-            const enabled = localStorage.getItem('autoRefreshEnabled') === 'true';
-            if (!enabled) {
-                if (intervalId) clearInterval(intervalId);
-                return;
-            }
-
-            const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
-            const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
-            const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
-            const totalMs = (h * 3600 + m * 60 + s) * 1000;
-
-            if (totalMs > 0) {
-                if (intervalId) clearInterval(intervalId);
-                intervalId = setInterval(() => {
-                    fetchStats();
-                    // Update timestamp so settings component knows
-                    localStorage.setItem('lastAutoRefresh', Date.now().toString());
-                }, totalMs);
-            }
-        };
-
-        setupAutoRefresh();
-
-        const handleSettingsChange = () => {
-            setupAutoRefresh();
-        };
-
-        window.addEventListener('autoRefreshSettingsChanged', handleSettingsChange);
-        return () => {
-            window.removeEventListener('autoRefreshSettingsChanged', handleSettingsChange);
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [fetchStats]);
+    useAutoRefresh(fetchStats);
 
     const renderTrend = (value: number) => {
         if (!value) return (

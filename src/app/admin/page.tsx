@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminHeader from "./components/AdminHeader";
 import DashboardOverview from "./components/DashboardOverview";
@@ -22,6 +23,7 @@ import InventoryDashboard from "./components/InventoryDashboard";
 import ProductList from "./components/ProductList";
 import AddProduct from "./components/AddProduct";
 import ImportProducts from './components/ImportProducts';
+import ImportCustomers from './components/ImportCustomers';
 import QuickActions from './components/QuickActions';
 import OrderList from './components/OrderList';
 import CreateOrder from './components/CreateOrder';
@@ -175,7 +177,7 @@ export default function AdminPage() {
                     try {
                         const formData = new FormData();
                         formData.append('file', item.image);
-                        formData.append('folder', 'User Profile');
+                        formData.append('folder', 'Profile_Pictures/Users');
                         formData.append('fileName', item.name.replace(/\s+/g, '_'));
 
                         const uploadResponse = await fetch('/api/imagekit/upload', {
@@ -215,6 +217,17 @@ export default function AdminPage() {
 
                 if (response.ok) {
                     console.log('User updated successfully');
+
+                    // Check for old avatar deletion
+                    const originalUser = users.find((u: any) => u.id === item.id);
+                    const oldAvatarUrl = originalUser?.avatar;
+
+                    if (oldAvatarUrl && avatarUrl && oldAvatarUrl !== avatarUrl && oldAvatarUrl.includes('ik.imagekit.io')) {
+                        console.log(`Deleting old avatar: ${oldAvatarUrl}`);
+                        fetch(`/api/imagekit/upload?url=${encodeURIComponent(oldAvatarUrl)}`, { method: 'DELETE' })
+                            .catch(e => console.error('Failed to delete old avatar:', e));
+                    }
+
                     // Refresh users list
                     fetchUsers();
                 } else {
@@ -281,6 +294,9 @@ export default function AdminPage() {
                             const res = await fetch(`/api/admin/orders?id=${item.id}`, { method: 'DELETE' });
                             if (res.ok) {
                                 fetchOrders();
+                                // Trigger global update
+                                window.dispatchEvent(new Event('dashboard-updated'));
+                                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
                             } else {
                                 const error = await res.json();
                                 setConfirmModal(prev => ({
@@ -422,23 +438,17 @@ export default function AdminPage() {
         checkAuth();
     }, [router, fetchUsers, fetchRoles]);
 
-    // Auto-refresh for Users and Customers every 10 minutes
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-
+    // Auto-refresh for Users and Customers
+    const refreshData = useCallback(() => {
         if (isAuthenticated && userRole?.toLowerCase() === 'admin') {
-            interval = setInterval(() => {
-                console.log('Auto-refreshing Users and Customers...');
-                fetchUsers();
-                fetchCustomers();
-                fetchOrders();
-            }, 600000);
+            console.log('Auto-refreshing Users, Customers, and Orders...');
+            fetchUsers();
+            fetchCustomers();
+            fetchOrders();
         }
+    }, [isAuthenticated, userRole, fetchUsers, fetchCustomers, fetchOrders]);
 
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [isAuthenticated, userRole, fetchUsers, fetchCustomers]);
+    useAutoRefresh(refreshData);
 
     const handleLogout = () => {
         setIsLogoutModalOpen(true);
@@ -533,6 +543,15 @@ export default function AdminPage() {
                     loading={isLoadingCustomers}
                     onAdd={() => setActiveSection('customers-add')}
                     onNavigateToNewInvoice={() => setActiveSection('invoicing-new')}
+                    onImportExport={() => setActiveSection('customers-import')}
+                />;
+            case "customers-import":
+                return <ImportCustomers
+                    onCancel={() => setActiveSection('customers-all')}
+                    onSuccess={() => {
+                        fetchCustomers();
+                        setActiveSection('customers-all');
+                    }}
                 />;
             case "customers-add":
                 return <AddCustomerForm
@@ -548,7 +567,7 @@ export default function AdminPage() {
                                 try {
                                     const formData = new FormData();
                                     formData.append('file', data.image);
-                                    formData.append('folder', 'Customer'); // Folder name
+                                    formData.append('folder', 'Profile_Pictures/Customers'); // Folder name
                                     formData.append('fileName', data.name.replace(/\s+/g, '_'));
 
                                     const uploadResponse = await fetch('/api/imagekit/upload', {
@@ -587,6 +606,9 @@ export default function AdminPage() {
                                     onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
                                 });
                                 fetchCustomers();
+                                // Trigger global update
+                                window.dispatchEvent(new Event('dashboard-updated'));
+                                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
                                 setActiveSection('customers-all');
                             } else {
                                 const err = await response.json();
@@ -716,7 +738,7 @@ export default function AdminPage() {
                                 try {
                                     const formData = new FormData();
                                     formData.append('file', userData.image);
-                                    formData.append('folder', 'User Profile');
+                                    formData.append('folder', 'Profile_Pictures/Users');
                                     formData.append('fileName', userData.userName ? userData.userName.replace(/\s+/g, '_') : 'user_avatar');
 
                                     const uploadResponse = await fetch('/api/imagekit/upload', {

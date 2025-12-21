@@ -24,12 +24,14 @@ export default function CustomerList({
     onAdd,
     customers = [],
     onNavigateToNewInvoice,
-    loading = false
+    loading = false,
+    onImportExport
 }: {
     onAdd?: () => void,
     customers?: any[],
     onNavigateToNewInvoice?: () => void,
-    loading?: boolean
+    loading?: boolean,
+    onImportExport?: () => void
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -65,14 +67,17 @@ export default function CustomerList({
 
     const totalPages = Math.ceil(filteredCustomers.length / rowsPerPage);
 
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + rowsPerPage);
+
     return (
         <div className="customer-list-container">
             {/* Header */}
             <div className="customer-header">
                 <h2>Customers</h2>
                 <div className="header-actions">
-                    <button className="btn-export">
-                        <i className="fas fa-file-export"></i> Export
+                    <button className="btn-export" onClick={onImportExport} style={{ marginRight: '10px' }}>
+                        <i className="fas fa-file-import"></i> Import / Export
                     </button>
                     <button className="btn-new-customer" onClick={onAdd}>
                         <i className="fas fa-plus"></i> New Customer
@@ -131,7 +136,7 @@ export default function CustomerList({
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredCustomers.map(customer => (
+                            {paginatedCustomers.map(customer => (
                                 <tr key={customer.id}>
                                     <td className="checkbox-col">
                                         <input type="checkbox" className="custom-checkbox" />

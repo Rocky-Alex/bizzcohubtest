@@ -250,6 +250,10 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
             });
 
             if (response.ok) {
+                // Trigger global update
+                window.dispatchEvent(new Event('dashboard-updated'));
+                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+
                 alert(isEditing ? 'Invoice updated successfully!' : 'Invoice created successfully!');
                 setActiveSection('invoicing-dashboard');
             } else {

@@ -42,10 +42,16 @@ export async function GET(request: NextRequest) {
             ADD COLUMN IF NOT EXISTS billing_country VARCHAR(100),
             ADD COLUMN IF NOT EXISTS billing_state VARCHAR(100),
             ADD COLUMN IF NOT EXISTS billing_city VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS billing_zip VARCHAR(20),
             ADD COLUMN IF NOT EXISTS shipping_address_1 VARCHAR(255),
             ADD COLUMN IF NOT EXISTS shipping_country VARCHAR(100),
             ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(100);
+            ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS shipping_zip VARCHAR(20),
+            ADD COLUMN IF NOT EXISTS avatar TEXT,
+            ADD COLUMN IF NOT EXISTS username VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS password_hash TEXT,
+            ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP;
         `;
 
         const customers = await sql`SELECT * FROM customers ORDER BY created_at DESC`;

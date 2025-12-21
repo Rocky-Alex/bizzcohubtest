@@ -478,7 +478,8 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         for (const file of files) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('folder', 'Products');
+            const folderName = productType === 'system' ? 'Products/Laptops' : 'Products/Accessories';
+            formData.append('folder', folderName);
             formData.append('fileName', file.name.replace(/\s+/g, '_'));
 
             try {
@@ -605,6 +606,30 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
             });
 
             if (response.ok) {
+                // Trigger global update for dashboards
+                window.dispatchEvent(new Event('inventory-updated'));
+                localStorage.setItem('inventoryLastUpdated', Date.now().toString());
+
+                // DELETE REMOVED IMAGES FROM IMAGEKIT
+                if (initialData) {
+                    const initialImages = initialData.all_images_urls
+                        ? (Array.isArray(initialData.all_images_urls) ? initialData.all_images_urls : initialData.all_images_urls.split(','))
+                        : (initialData.primary_image_url ? [initialData.primary_image_url] : []);
+
+                    const finalUrlSet = new Set(finalUrls);
+                    const imagesToDelete = initialImages.filter((url: string) => !finalUrlSet.has(url));
+
+                    if (imagesToDelete.length > 0) {
+                        console.log('Deleting removed images from ImageKit:', imagesToDelete);
+                        imagesToDelete.forEach((url: string) => {
+                            if (url.includes('ik.imagekit.io')) {
+                                fetch(`/api/imagekit/upload?url=${encodeURIComponent(url)}`, { method: 'DELETE' })
+                                    .catch(e => console.error('Failed to auto-delete image:', url, e));
+                            }
+                        });
+                    }
+                }
+
                 if (initialData) {
                     setStatusModal({
                         isOpen: true,

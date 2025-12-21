@@ -112,7 +112,7 @@ function ProfileContent() {
     const handleAvatarUpdate = async (blob: Blob) => {
         const formDataUpload = new FormData();
         formDataUpload.append('file', blob, 'avatar.jpg'); // ImageKit expects a file/blob
-        formDataUpload.append('folder', 'users/avatars');
+        formDataUpload.append('folder', 'Profile_Pictures/Customers');
         formDataUpload.append('fileName', `${userId}_${Date.now()}_avatar.jpg`);
 
         try {
@@ -144,6 +144,13 @@ function ProfileContent() {
 
                     // Notify components
                     window.dispatchEvent(new Event('user-login'));
+
+                    // Delete old image to save storage
+                    if (formData.image_url && formData.image_url.includes('ik.imagekit.io')) {
+                        fetch(`/api/imagekit/upload?url=${encodeURIComponent(formData.image_url)}`, {
+                            method: 'DELETE',
+                        }).then(r => r.json()).then(d => console.log('Old avatar cleanup:', d)).catch(e => console.error('Old avatar cleanup failed:', e));
+                    }
                 }
 
                 toast.success('Profile picture updated!');

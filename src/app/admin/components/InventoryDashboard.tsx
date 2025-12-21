@@ -1,5 +1,6 @@
 import React from 'react';
 import './InvoicingDashboard.css'; // Reusing the same styles for consistency
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 interface InventoryDashboardProps {
     setActiveSection: (section: string) => void;
@@ -9,7 +10,9 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
     const [stats, setStats] = React.useState({
         totalProducts: 0,
         totalLaptops: 0,
+        totalLaptopQty: 0,
         totalAccessories: 0,
+        totalAccessoryQty: 0,
         lowStockItems: 0,
         totalValue: 0,
         trends: {
@@ -23,7 +26,7 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
 
     const fetchStats = React.useCallback(async () => {
         try {
-            const response = await fetch('/api/admin/inventory/stats');
+            const response = await fetch('/api/admin/inventory/stats', { cache: 'no-store' });
             if (response.ok) {
                 const data = await response.json();
                 setStats(data);
@@ -39,43 +42,7 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
     }, [fetchStats]);
 
     // Auto Refresh Logic
-    React.useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-
-        const setupAutoRefresh = () => {
-            const enabled = localStorage.getItem('autoRefreshEnabled') === 'true';
-            if (!enabled) {
-                if (intervalId) clearInterval(intervalId);
-                return;
-            }
-
-            const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
-            const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
-            const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
-            const totalMs = (h * 3600 + m * 60 + s) * 1000;
-
-            if (totalMs > 0) {
-                if (intervalId) clearInterval(intervalId);
-                intervalId = setInterval(() => {
-                    fetchStats();
-                    // Update timestamp so settings component knows
-                    localStorage.setItem('lastAutoRefresh', Date.now().toString());
-                }, totalMs);
-            }
-        };
-
-        setupAutoRefresh();
-
-        const handleSettingsChange = () => {
-            setupAutoRefresh();
-        };
-
-        window.addEventListener('autoRefreshSettingsChanged', handleSettingsChange);
-        return () => {
-            window.removeEventListener('autoRefreshSettingsChanged', handleSettingsChange);
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [fetchStats]);
+    useAutoRefresh(fetchStats);
 
     const renderTrend = (value: number) => {
         if (!value) return (
@@ -98,7 +65,7 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
     return (
         <div className="billing-dashboard-container">
             {/* Stats Overview */}
-            <div className="billing-stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+            <div className="billing-stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                 {/* Total Products */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
@@ -127,6 +94,19 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
                     </div>
                 </div>
 
+                {/* Total Laptop Qty */}
+                <div className="billing-stat-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+                            <i className="fas fa-layer-group"></i>
+                        </div>
+                    </div>
+                    <div className="stat-content">
+                        <h3>Total Laptop Qty</h3>
+                        <p className="stat-value">{stats.totalLaptopQty || 0}</p>
+                    </div>
+                </div>
+
                 {/* Total Accessories */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
@@ -138,6 +118,19 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
                     <div className="stat-content">
                         <h3>Total Accessories</h3>
                         <p className="stat-value">{stats.totalAccessories}</p>
+                    </div>
+                </div>
+
+                {/* Total Accessories Qty */}
+                <div className="billing-stat-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
+                            <i className="fas fa-cubes"></i>
+                        </div>
+                    </div>
+                    <div className="stat-content">
+                        <h3>Total Acce Qty</h3>
+                        <p className="stat-value">{stats.totalAccessoryQty || 0}</p>
                     </div>
                 </div>
 

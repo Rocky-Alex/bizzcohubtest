@@ -67,6 +67,10 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
             if (!response.ok) {
                 console.error('Failed to update status');
                 // Could fetchInvoices() to revert
+            } else {
+                // Trigger global update
+                window.dispatchEvent(new Event('dashboard-updated'));
+                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
             }
         } catch (error) {
             console.error('Error updating status:', error);
@@ -172,6 +176,10 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                 // Optional: Keep modal open to show updated history
                 // setShowPaymentModal(false); 
 
+                // Trigger global update
+                window.dispatchEvent(new Event('dashboard-updated'));
+                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+
             } else {
                 alert('Failed to save payment: ' + data.error);
             }
@@ -213,6 +221,10 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
 
                 // Refresh History
                 setPaymentHistory(prev => prev.filter(p => p.id !== payId));
+
+                // Trigger global update
+                window.dispatchEvent(new Event('dashboard-updated'));
+                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
             } else {
                 alert('Failed to delete: ' + data.error);
             }
@@ -572,6 +584,10 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                     alert('Failed to delete invoice');
                     // Revert (fetch)
                     // ... fetchInvoices() logic reuse issues if not pulled out. Warning.
+                } else {
+                    // Trigger global update
+                    window.dispatchEvent(new Event('dashboard-updated'));
+                    localStorage.setItem('dashboardLastUpdated', Date.now().toString());
                 }
             } catch (e) {
                 console.error(e);
