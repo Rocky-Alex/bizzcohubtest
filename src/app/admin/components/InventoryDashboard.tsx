@@ -8,11 +8,13 @@ interface InventoryDashboardProps {
 export default function InventoryDashboard({ setActiveSection }: InventoryDashboardProps) {
     const [stats, setStats] = React.useState({
         totalProducts: 0,
+        totalLaptops: 0,
         totalAccessories: 0,
         lowStockItems: 0,
         totalValue: 0,
         trends: {
             products: 0,
+            laptops: 0,
             accessories: 0,
             stock: 0,
             value: 0
@@ -96,7 +98,7 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
     return (
         <div className="billing-dashboard-container">
             {/* Stats Overview */}
-            <div className="billing-stats-grid">
+            <div className="billing-stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                 {/* Total Products */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
@@ -108,6 +110,20 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
                     <div className="stat-content">
                         <h3>Total Products</h3>
                         <p className="stat-value">{stats.totalProducts}</p>
+                    </div>
+                </div>
+
+                {/* Total Laptops */}
+                <div className="billing-stat-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+                            <i className="fas fa-laptop"></i>
+                        </div>
+                        {renderTrend(stats.trends.laptops || 0)}
+                    </div>
+                    <div className="stat-content">
+                        <h3>Total Laptops</h3>
+                        <p className="stat-value">{stats.totalLaptops || 0}</p>
                     </div>
                 </div>
 
@@ -195,8 +211,8 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
                             <i className="fas fa-file-import"></i>
                         </div>
                         <div className="quick-action-content">
-                            <span className="quick-action-title">Import Products</span>
-                            <span className="quick-action-desc">Upload from CSV/Excel</span>
+                            <span className="quick-action-title">Import / Export</span>
+                            <span className="quick-action-desc">Manage data via CSV/Excel</span>
                         </div>
                     </div>
                 </div>

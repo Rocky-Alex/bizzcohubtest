@@ -12,33 +12,8 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
         }
 
-        // Ensure columns exist (Migration for GET to prevent crash on new fields)
-        await sql`
-            DO $$ 
-            BEGIN 
-                -- Image
-                BEGIN ALTER TABLE customers ADD COLUMN image_url TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END;
-                
-                -- Billing
-                BEGIN ALTER TABLE customers ADD COLUMN billing_name VARCHAR(255); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_address_1 TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_country VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_state VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_city VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_zip VARCHAR(20); EXCEPTION WHEN duplicate_column THEN NULL; END;
+        // DDL removed for performance
 
-                -- Shipping
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_name VARCHAR(255); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_address_1 TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_country VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_state VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_city VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_zip VARCHAR(20); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                
-                -- Preferences
-                BEGIN ALTER TABLE customers ADD COLUMN currency VARCHAR(10); EXCEPTION WHEN duplicate_column THEN NULL; END;
-            END $$;
-        `;
 
         const customers = await sql`
             SELECT 
@@ -104,33 +79,8 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
         }
 
-        // Ensure columns exist
-        await sql`
-            DO $$ 
-            BEGIN 
-                -- Image
-                BEGIN ALTER TABLE customers ADD COLUMN image_url TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END;
-                
-                -- Billing
-                BEGIN ALTER TABLE customers ADD COLUMN billing_name VARCHAR(255); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_address_1 TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_country VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_state VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_city VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN billing_zip VARCHAR(20); EXCEPTION WHEN duplicate_column THEN NULL; END;
+        // DDL removed for performance
 
-                -- Shipping
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_name VARCHAR(255); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_address_1 TEXT; EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_country VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_state VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_city VARCHAR(100); EXCEPTION WHEN duplicate_column THEN NULL; END;
-                BEGIN ALTER TABLE customers ADD COLUMN shipping_zip VARCHAR(20); EXCEPTION WHEN duplicate_column THEN NULL; END;
-
-                -- Preferences
-                BEGIN ALTER TABLE customers ADD COLUMN currency VARCHAR(10); EXCEPTION WHEN duplicate_column THEN NULL; END;
-            END $$;
-        `;
 
         // Check for duplicate email
         if (email) {

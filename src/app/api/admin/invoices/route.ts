@@ -5,42 +5,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        // Ensure tables exist
-        await sql`
-            CREATE TABLE IF NOT EXISTS invoices (
-                id SERIAL PRIMARY KEY,
-                invoice_no VARCHAR(50) UNIQUE NOT NULL,
-                customer_id INTEGER,
-                customer_name VARCHAR(255),
-                customer_address TEXT,
-                customer_email VARCHAR(255),
-                customer_phone VARCHAR(50),
-                created_date DATE,
-                due_date DATE,
-                sub_total NUMERIC(15, 2),
-                discount_total NUMERIC(15, 2),
-                tax_rate NUMERIC(5, 2),
-                tax_amount NUMERIC(15, 2),
-                total_amount NUMERIC(15, 2),
-                payment_type VARCHAR(50),
-                status VARCHAR(50) DEFAULT 'Pending',
-                is_taxable BOOLEAN DEFAULT TRUE,
-                is_discountable BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        // DDL removed for performance. Schema assumed to exist.
 
-        await sql`
-            CREATE TABLE IF NOT EXISTS invoice_items (
-                id SERIAL PRIMARY KEY,
-                invoice_id INTEGER REFERENCES invoices(id) ON DELETE CASCADE,
-                description TEXT,
-                quantity INTEGER,
-                unit_price NUMERIC(15, 2),
-                discount NUMERIC(15, 2),
-                total NUMERIC(15, 2)
-            )
-        `;
 
         const data = await sql`
             SELECT * FROM invoices ORDER BY created_at DESC
@@ -83,52 +49,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Ensure tables exist before inserting
-        await sql`
-            CREATE TABLE IF NOT EXISTS invoices (
-                id SERIAL PRIMARY KEY,
-                invoice_no VARCHAR(50) UNIQUE NOT NULL,
-                customer_id INTEGER,
-                customer_name VARCHAR(255),
-                customer_address TEXT,
-                customer_email VARCHAR(255),
-                customer_phone VARCHAR(50),
-                created_date DATE,
-                due_date DATE,
-                sub_total NUMERIC(15, 2),
-                discount_total NUMERIC(15, 2),
-                tax_rate NUMERIC(5, 2),
-                tax_amount NUMERIC(15, 2),
-                total_amount NUMERIC(15, 2),
-                payment_type VARCHAR(50),
-                status VARCHAR(50) DEFAULT 'Pending',
-                is_taxable BOOLEAN DEFAULT TRUE,
-                is_discountable BOOLEAN DEFAULT TRUE,
-                advance_received NUMERIC(15, 2) DEFAULT 0,
-                notes TEXT,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        // DDL removed for performance.
 
-        // Ensure column exists (migration for existing table)
-        await sql`
-            ALTER TABLE invoices ADD COLUMN IF NOT EXISTS advance_received NUMERIC(15, 2) DEFAULT 0
-        `;
-        await sql`
-            ALTER TABLE invoices ADD COLUMN IF NOT EXISTS notes TEXT
-        `;
-
-        await sql`
-            CREATE TABLE IF NOT EXISTS invoice_items (
-                id SERIAL PRIMARY KEY,
-                invoice_id INTEGER REFERENCES invoices(id) ON DELETE CASCADE,
-                description TEXT,
-                quantity INTEGER,
-                unit_price NUMERIC(15, 2),
-                discount NUMERIC(15, 2),
-                total NUMERIC(15, 2)
-            )
-        `;
 
         // Insert Invoice
         const invoiceResult = await sql`

@@ -1280,7 +1280,7 @@ body {
 }
 
 .product-info-v3 h3 {
-    font-size: 1.1rem;
+    font-size: 0.75rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
@@ -1321,13 +1321,13 @@ body {
 }
 
 .product-price-v3 .current {
-    font-size: 1.85rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: var(--text-primary);
 }
 
 .product-price-v3 .original {
-    font-size: 1.1rem;
+    font-size: 0.8rem;
     color: var(--text-tertiary);
     text-decoration: line-through;
 }
@@ -1337,7 +1337,7 @@ body {
     background: rgba(239, 68, 68, 0.1);
     color: var(--danger);
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+    font-size: 0.65rem;
     font-weight: 700;
 }
 
@@ -1349,7 +1349,7 @@ body {
     border: none;
     border-radius: var(--radius-md);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.75rem;
     cursor: pointer;
     display: flex;
     align-items: center;

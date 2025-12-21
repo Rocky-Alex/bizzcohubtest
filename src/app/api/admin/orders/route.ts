@@ -3,35 +3,8 @@ import { sql } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
     try {
-        // Ensure table exists (idempotent)
-        await sql`
-            CREATE TABLE IF NOT EXISTS orders (
-                id SERIAL PRIMARY KEY,
-                order_number VARCHAR(50) UNIQUE NOT NULL,
-                customer_name VARCHAR(255) NOT NULL,
-                email VARCHAR(255),
-                phone VARCHAR(50),
-                address TEXT,
-                city VARCHAR(100),
-                zip VARCHAR(20),
-                country VARCHAR(100),
-                items JSONB,
-                subtotal DECIMAL(10, 2),
-                tax DECIMAL(10, 2),
-                shipping_cost DECIMAL(10, 2),
-                total DECIMAL(10, 2),
-                status VARCHAR(50) DEFAULT 'Pending',
-                payment_method VARCHAR(50),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        // DDL removed for performance
 
-        // Migration: Add customer_id if it doesn't exist
-        await sql`
-            ALTER TABLE orders 
-            ADD COLUMN IF NOT EXISTS customer_id INTEGER
-        `;
 
         const orders = await sql`SELECT * FROM orders ORDER BY created_at DESC`;
 
@@ -48,11 +21,8 @@ export async function POST(request: NextRequest) {
 
         const orderNumber = `ORD-${Date.now()}`;
 
-        // Ensure customer_id column exists before insert (double check for safety in this flow)
-        await sql`
-            ALTER TABLE orders 
-            ADD COLUMN IF NOT EXISTS customer_id INTEGER
-        `;
+        // DDL removed for performance
+
 
         const newOrder = await sql`
             INSERT INTO orders (
@@ -111,11 +81,8 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
         }
 
-        // Migration: Ensure updated_at exists (idempotent)
-        await sql`
-            ALTER TABLE orders 
-            ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        `;
+        // DDL removed for performance
+
 
         let updatedOrder;
 

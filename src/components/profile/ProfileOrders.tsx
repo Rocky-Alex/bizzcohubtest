@@ -42,7 +42,7 @@ export default function ProfileOrders({ filterType, user }: ProfileOrdersProps) 
         }
     }, [user]);
 
-    const fetchOrders = async (customerId: number) => {
+    const fetchOrders = async (customerId: string | number) => {
         setLoading(true);
         try {
             const res = await fetch(`/api/customer/orders?customer_id=${customerId}`);
@@ -196,18 +196,23 @@ export default function ProfileOrders({ filterType, user }: ProfileOrdersProps) 
                             </div>
 
                             <div className="order-body">
-                                <div className="order-items">
-                                    {order.items.slice(0, 4).map((item, idx) => (
-                                        <img
-                                            key={idx}
-                                            src={item.image || '/placeholder.svg'}
-                                            alt={item.name}
-                                            className="item-preview"
-                                        />
+                                <div className="order-items-list">
+                                    {order.items.map((item, idx) => (
+                                        <div key={idx} className="order-item-row">
+                                            <img
+                                                src={item.image || '/placeholder.svg'}
+                                                alt={item.name}
+                                                className="item-image"
+                                            />
+                                            <div className="item-details">
+                                                <h4 className="item-name">{item.name}</h4>
+                                                <div className="item-meta">
+                                                    <span className="item-qty">Qty: {item.quantity}</span>
+                                                    <span>AED {item.price.toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ))}
-                                    {order.items.length > 4 && (
-                                        <div className="item-more">+{order.items.length - 4}</div>
-                                    )}
                                 </div>
 
                                 <div className="order-footer">

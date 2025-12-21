@@ -479,7 +479,7 @@ function ProductsContent() {
                     ) : (
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
                             gap: '30px'
                         }}>
                             {filteredProducts.map((product) => (
@@ -502,7 +502,7 @@ function ProductsContent() {
                                         {/* Product Image */}
                                         <div style={{
                                             width: '100%',
-                                            height: '220px',
+                                            height: '190px',
                                             overflow: 'hidden',
                                             background: '#f3f4f6',
                                             position: 'relative'
@@ -523,8 +523,8 @@ function ProductsContent() {
                                                     position: 'absolute',
                                                     top: '15px',
                                                     left: '15px',
-                                                    width: '85px',
-                                                    height: '33px',
+                                                    width: '75px',
+                                                    height: '28px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -532,7 +532,7 @@ function ProductsContent() {
                                                     color: 'white',
                                                     borderRadius: '20px',
                                                     fontWeight: '600',
-                                                    fontSize: '0.85rem',
+                                                    fontSize: '0.65rem',
                                                     zIndex: 10,
                                                     whiteSpace: 'nowrap'
                                                 }}>
@@ -544,8 +544,8 @@ function ProductsContent() {
                                                     position: 'absolute',
                                                     top: '15px',
                                                     right: '15px',
-                                                    width: '85px',
-                                                    height: '33px',
+                                                    width: '75px',
+                                                    height: '28px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -553,7 +553,7 @@ function ProductsContent() {
                                                     color: 'white',
                                                     borderRadius: '20px',
                                                     fontWeight: '600',
-                                                    fontSize: '0.85rem',
+                                                    fontSize: '0.65rem',
                                                     zIndex: 10,
                                                     whiteSpace: 'nowrap'
                                                 }}>
@@ -571,8 +571,8 @@ function ProductsContent() {
                                                 marginBottom: '10px'
                                             }}>
                                                 <span style={{
-                                                    fontSize: '0.75rem',
-                                                    color: '#6b7280',
+                                                    fontSize: '0.7rem',
+                                                    color: '#0c0c0cff',
                                                     textTransform: 'uppercase',
                                                     fontWeight: '600',
                                                     letterSpacing: '0.5px'
@@ -580,7 +580,7 @@ function ProductsContent() {
                                                     {product.brand}
                                                 </span>
                                                 <span style={{
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.7rem',
                                                     color: '#9ca3af',
                                                     fontWeight: '500'
                                                 }}>
@@ -589,7 +589,7 @@ function ProductsContent() {
                                             </div>
 
                                             <h3 style={{
-                                                fontSize: '1.1rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: '700',
                                                 color: '#1a1a1a',
                                                 marginBottom: '12px',
@@ -607,7 +607,7 @@ function ProductsContent() {
                                                     marginBottom: '12px'
                                                 }}>
                                                     <span style={{
-                                                        fontSize: '1.5rem',
+                                                        fontSize: '1.2rem',
                                                         fontWeight: '700',
                                                         color: '#007bff'
                                                     }}>
@@ -615,7 +615,7 @@ function ProductsContent() {
                                                     </span>
                                                     {product.originalPrice && product.originalPrice > product.price && (
                                                         <span style={{
-                                                            fontSize: '1rem',
+                                                            fontSize: '0.9rem',
                                                             color: '#9ca3af',
                                                             textDecoration: 'line-through'
                                                         }}>
@@ -630,7 +630,7 @@ function ProductsContent() {
                                                     alignItems: 'center'
                                                 }}>
                                                     <span style={{
-                                                        fontSize: '0.85rem',
+                                                        fontSize: '0.7rem',
                                                         color: product.stock > 0 ? '#10b981' : '#ef4444',
                                                         fontWeight: '600'
                                                     }}>
@@ -640,7 +640,7 @@ function ProductsContent() {
                                                     <span style={{
                                                         color: '#007bff',
                                                         fontWeight: '600',
-                                                        fontSize: '0.9rem'
+                                                        fontSize: '0.7rem'
                                                     }}>
                                                         View Details →
                                                     </span>

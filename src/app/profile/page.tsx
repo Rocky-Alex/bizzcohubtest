@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import ProfileOrders from '@/components/profile/ProfileOrders';
 import ProfileWishlist from '@/components/profile/ProfileWishlist';
+import AvatarUploader from '@/components/ui/AvatarUploader';
 
 function ProfileContent() {
     const router = useRouter();
@@ -15,6 +16,7 @@ function ProfileContent() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [userId, setUserId] = useState<number | null>(null);
+    const [userEmail, setUserEmail] = useState<string | null>(null);
     const [activeView, setActiveView] = useState('profile-info');
 
     useEffect(() => {
@@ -59,6 +61,7 @@ function ProfileContent() {
 
         const user = JSON.parse(storedUser);
         setUserId(user.id);
+        setUserEmail(user.email);
         fetchProfile(user.id);
     }, [router]);
 
@@ -106,26 +109,13 @@ function ProfileContent() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Basic validation
-        if (file.size > 5 * 1024 * 1024) { // 5MB limit
-            toast.error("File size too large (max 5MB)");
-            return;
-        }
-
+    const handleAvatarUpdate = async (blob: Blob) => {
         const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
+        formDataUpload.append('file', blob, 'avatar.jpg'); // ImageKit expects a file/blob
         formDataUpload.append('folder', 'users/avatars');
-        formDataUpload.append('fileName', `${userId}_${Date.now()}_${file.name} `);
+        formDataUpload.append('fileName', `${userId}_${Date.now()}_avatar.jpg`);
 
         try {
-            // Show loading state for image specifically if needed, or just rely on UI feedback
-            const btn = document.getElementById('upload-btn-text');
-            if (btn) btn.innerText = "Uploading...";
-
             const res = await fetch('/api/imagekit/upload', {
                 method: 'POST',
                 body: formDataUpload
@@ -134,16 +124,35 @@ function ProfileContent() {
             if (res.ok) {
                 const data = await res.json();
                 setFormData(prev => ({ ...prev, image_url: data.url }));
-                toast.success('Image uploaded successfully');
+
+                // Immediately update user profile in DB with new image to save user from clicking "Save" again?
+                // Or just keep it in state. Let's update DB too for instant gratification/persistence.
+                if (userId) {
+                    await fetch('/api/customer/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: userId,
+                            image_url: data.url
+                        })
+                    });
+
+                    // Update local storage
+                    const storedUser = JSON.parse(localStorage.getItem('customer_user') || '{}');
+                    storedUser.image_url = data.url;
+                    localStorage.setItem('customer_user', JSON.stringify(storedUser));
+
+                    // Notify components
+                    window.dispatchEvent(new Event('user-login'));
+                }
+
+                toast.success('Profile picture updated!');
             } else {
                 toast.error("Failed to upload image");
             }
         } catch (error) {
             console.error("Upload error:", error);
             toast.error("Error uploading image");
-        } finally {
-            const btn = document.getElementById('upload-btn-text');
-            if (btn) btn.innerText = "Change Photo";
         }
     };
 
@@ -372,37 +381,12 @@ function ProfileContent() {
                                     </div>
 
                                     <div className="avatar-section" style={{ marginTop: '20px', borderTop: '1px solid #f0f0f0', paddingTop: '20px' }}>
-                                        <span className="form-label" style={{ alignSelf: 'flex-start' }}>Profile Picture</span>
-                                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', width: '100%' }}>
-                                            <div className="avatar-wrapper" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => document.getElementById('avatar-upload')?.click()}>
-                                                {formData.image_url ? (
-                                                    <img
-                                                        src={formData.image_url}
-                                                        alt="Profile"
-                                                        className="avatar-circle"
-                                                        style={{ width: '60px', height: '60px', fontSize: '1.5rem', objectFit: 'cover' }}
-                                                    />
-                                                ) : (
-                                                    <div className="avatar-circle" style={{ width: '60px', height: '60px', fontSize: '1.5rem' }}>
-                                                        {(formData.firstName || '').charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => document.getElementById('avatar-upload')?.click()}
-                                                style={{ color: '#2874f0', background: 'white', border: '1px solid #e0e0e0', padding: '8px 16px', cursor: 'pointer', fontWeight: '500', borderRadius: '2px' }}
-                                            >
-                                                Change
-                                            </button>
-                                            <input
-                                                type="file"
-                                                id="avatar-upload"
-                                                style={{ display: 'none' }}
-                                                accept="image/*"
-                                                onChange={handleImageUpload}
-                                            />
-                                        </div>
+                                        <span className="form-label" style={{ alignSelf: 'flex-start', marginBottom: '1rem', display: 'block' }}>Profile Picture</span>
+                                        <AvatarUploader
+                                            currentImage={formData.image_url}
+                                            nameInitial={(formData.firstName || '').charAt(0)}
+                                            onUpload={handleAvatarUpdate}
+                                        />
                                     </div>
 
                                     {/* Account Settings Section */}
@@ -609,25 +593,25 @@ function ProfileContent() {
 
                         {activeView === 'orders' && (
                             <div className="profile-card">
-                                <ProfileOrders filterType="all" user={{ id: userId }} />
+                                <ProfileOrders filterType="all" user={{ id: userEmail }} />
                             </div>
                         )}
 
                         {activeView === 'delivered' && (
                             <div className="profile-card">
-                                <ProfileOrders filterType="delivered" user={{ id: userId }} />
+                                <ProfileOrders filterType="delivered" user={{ id: userEmail }} />
                             </div>
                         )}
 
                         {activeView === 'returns' && (
                             <div className="profile-card">
-                                <ProfileOrders filterType="returns" user={{ id: userId }} />
+                                <ProfileOrders filterType="returns" user={{ id: userEmail }} />
                             </div>
                         )}
 
                         {activeView === 'cancelled' && (
                             <div className="profile-card">
-                                <ProfileOrders filterType="cancelled" user={{ id: userId }} />
+                                <ProfileOrders filterType="cancelled" user={{ id: userEmail }} />
                             </div>
                         )}
 
@@ -662,7 +646,7 @@ function ProfileContent() {
 
                         {activeView === 'wishlist' && (
                             <div className="profile-card">
-                                <ProfileWishlist user={{ id: userId }} />
+                                <ProfileWishlist user={{ id: userEmail }} />
                             </div>
                         )}
                     </form>

@@ -14,7 +14,7 @@ export async function POST(req: Request) {
         await sql`
             CREATE TABLE IF NOT EXISTS wishlist (
                 id SERIAL PRIMARY KEY,
-                customer_id INTEGER NOT NULL,
+                customer_id VARCHAR(255) NOT NULL,
                 product_id INTEGER NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(customer_id, product_id)
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
         await sql`
             CREATE TABLE IF NOT EXISTS wishlist (
                 id SERIAL PRIMARY KEY,
-                customer_id INTEGER NOT NULL,
+                customer_id VARCHAR(255) NOT NULL,
                 product_id INTEGER NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(customer_id, product_id)

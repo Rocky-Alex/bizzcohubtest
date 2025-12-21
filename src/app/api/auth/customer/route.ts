@@ -18,15 +18,8 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { action } = body;
 
-        // Ensure Schema Exists
-        await sql`
-            ALTER TABLE customers 
-            ADD COLUMN IF NOT EXISTS username VARCHAR(255) UNIQUE,
-            ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255),
-            ADD COLUMN IF NOT EXISTS avatar VARCHAR(1024),
-            ADD COLUMN IF NOT EXISTS image_url VARCHAR(1024),
-            ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP;
-        `;
+        // DDL removed. Schema assumed to exist.
+
 
         if (action === 'signup') {
             const { firstName, lastName, username, email, phone, password, avatar } = body;

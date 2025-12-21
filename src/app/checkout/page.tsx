@@ -93,7 +93,8 @@ export default function CheckoutPage() {
             if (storedUser) {
                 try {
                     const user = JSON.parse(storedUser);
-                    customerId = user.id;
+                    // Use email as customer_id now
+                    customerId = user.email;
                 } catch (e) {
                     console.error("Failed to parse user from local storage", e);
                 }
