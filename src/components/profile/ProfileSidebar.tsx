@@ -52,13 +52,15 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user, activeSection = '
                         <span className="menu-title">ACCOUNT SETTINGS</span>
                     </div>
                     <div className="submenu">
+                        <a href="#" onClick={(e) => handleNav('dashboard', e)} className={`submenu-item ${activeSection === 'dashboard' ? 'active' : ''}`}>
+                            Dashboard
+                        </a>
                         <a href="#" onClick={(e) => handleNav('profile-info', e)} className={`submenu-item ${activeSection === 'profile-info' ? 'active' : ''}`}>
                             Profile Information
                         </a>
                         <a href="#" onClick={(e) => handleNav('addresses', e)} className={`submenu-item ${activeSection === 'addresses' ? 'active' : ''}`}>
                             Manage Addresses
                         </a>
-
                     </div>
                 </div>
 

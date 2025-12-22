@@ -194,7 +194,10 @@ export default function Header() {
 
 
                                     <DropdownMenuGroup>
-                                        <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
+                                        <DropdownMenuItem onClick={() => window.location.href = '/profile?view=dashboard'}>
+                                            Dashboard
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => window.location.href = '/profile?view=profile-info'}>
                                             Profile
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => window.location.href = '/orders'}>

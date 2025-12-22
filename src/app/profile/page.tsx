@@ -6,6 +6,7 @@ import './profile.css';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
+import CustomerDashboard from '@/components/profile/CustomerDashboard';
 import ProfileOrders from '@/components/profile/ProfileOrders';
 import ProfileWishlist from '@/components/profile/ProfileWishlist';
 import AvatarUploader from '@/components/ui/AvatarUploader';
@@ -17,7 +18,7 @@ function ProfileContent() {
     const [saving, setSaving] = useState(false);
     const [userId, setUserId] = useState<number | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
-    const [activeView, setActiveView] = useState('profile-info');
+    const [activeView, setActiveView] = useState('dashboard');
 
     useEffect(() => {
         const view = searchParams.get('view');
@@ -312,6 +313,9 @@ function ProfileContent() {
 
                 {/* Main Content Area */}
                 <div className="profile-content">
+                    {activeView === 'dashboard' && (
+                        <CustomerDashboard user={{ id: userId, email: userEmail }} />
+                    )}
                     <form onSubmit={handleSave}>
                         {activeView === 'profile-info' && (
                             <div className="profile-card">
