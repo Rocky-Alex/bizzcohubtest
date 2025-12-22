@@ -17,7 +17,9 @@ import {
     Calendar,
     ChevronRight,
     TrendingUp,
-    ShieldCheck
+    ShieldCheck,
+    Sun,
+    Moon
 } from 'lucide-react';
 import './customer-dashboard.css';
 
@@ -26,9 +28,11 @@ interface CustomerDashboardProps {
         id: number | null;
         email: string | null;
     };
+    theme: 'light' | 'dark';
+    onToggleTheme: () => void;
 }
 
-const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
+export default function CustomerDashboard({ user, theme, onToggleTheme }: CustomerDashboardProps) {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState<any>(null);
     const [orders, setOrders] = useState<any[]>([]);
@@ -38,6 +42,10 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
         total_pending: 0,
         active_orders: 0
     });
+    const [chartData, setChartData] = useState<number[]>(new Array(7).fill(0));
+    const [latestOrder, setLatestOrder] = useState<any>(null);
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [activities, setActivities] = useState<any[]>([]);
 
     useEffect(() => {
         if (user.id) {
@@ -76,6 +84,33 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                     total_pending: invoiced - paid,
                     active_orders: active
                 });
+
+                // Calculate chart data (last 7 days)
+                const now = new Date();
+                const days = new Array(7).fill(0);
+                fetchedOrders.forEach((o: any) => {
+                    const orderDate = new Date(o.created_at);
+                    const diffDays = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 3600 * 24));
+                    if (diffDays >= 0 && diffDays < 7) {
+                        days[6 - diffDays] += Number(o.total) || 0;
+                    }
+                });
+                setChartData(days);
+
+                if (fetchedOrders.length > 0) {
+                    setLatestOrder(fetchedOrders[0]);
+
+                    // Generate dynamic activities
+                    const generatedActivities: any[] = [];
+                    fetchedOrders.slice(0, 4).forEach((o: any) => {
+                        generatedActivities.push({
+                            title: `Order #${o.order_number} ${o.status}`,
+                            time: new Date(o.created_at).toLocaleDateString(),
+                            active: o.status === 'Processing' || o.status === 'Pending'
+                        });
+                    });
+                    setActivities(generatedActivities);
+                }
             }
         } catch (error) {
             console.error("Dashboard error:", error);
@@ -96,7 +131,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
     const firstName = (profile?.name || user.email?.split('@')[0] || 'Customer').split(' ')[0];
 
     return (
-        <div className="dashboard-v2-container">
+        <div className={`dashboard-v2-container ${theme}-mode`}>
             {/* Top Bar */}
             <header className="v2-header">
                 <div className="header-left">
@@ -108,6 +143,9 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                         <Search size={18} />
                         <input type="text" placeholder="Search orders..." />
                     </div>
+                    <button className="icon-btn-v2 theme-toggle-btn" onClick={onToggleTheme} title="Toggle Theme">
+                        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                    </button>
                     <button className="icon-btn-v2"><Bell size={20} /><span className="badge-dot"></span></button>
                     <button className="icon-btn-v2"><Settings size={20} /></button>
                 </div>
@@ -180,23 +218,40 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                             </div>
                         </div>
                         <div className="chart-wrapper-v2">
-                            <svg className="v2-line-chart" viewBox="0 0 800 200">
-                                <path
-                                    className="chart-path-bg"
-                                    d="M0,180 Q100,160 200,100 T400,120 T600,60 T800,40 L800,200 L0,200 Z"
-                                />
-                                <path
-                                    className="chart-path"
-                                    d="M0,180 Q100,160 200,100 T400,120 T600,60 T800,40"
-                                    fill="none"
-                                    strokeWidth="3"
-                                />
-                                <circle cx="200" cy="100" r="4" className="chart-dot" />
-                                <circle cx="400" cy="120" r="4" className="chart-dot" />
-                                <circle cx="600" cy="60" r="4" className="chart-dot" />
+                            <svg className="v2-line-chart" viewBox="0 0 800 200" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="var(--v2-primary)" stopOpacity="0.3" />
+                                        <stop offset="100%" stopColor="var(--v2-primary)" stopOpacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                {(() => {
+                                    const max = Math.max(...chartData, 1000);
+                                    const points = chartData.map((val, i) => {
+                                        const x = (i / 6) * 800;
+                                        const y = 180 - (val / max) * 140;
+                                        return { x, y };
+                                    });
+                                    const pathD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+                                    const areaD = `${pathD} L 800,200 L 0,200 Z`;
+
+                                    return (
+                                        <>
+                                            <path d={areaD} fill="url(#chartGradient)" />
+                                            <path d={pathD} fill="none" stroke="var(--v2-primary)" strokeWidth="3" className="chart-path" />
+                                            {points.map((p, i) => (
+                                                <circle key={i} cx={p.x} cy={p.y} r="4" className="chart-dot" />
+                                            ))}
+                                        </>
+                                    );
+                                })()}
                             </svg>
                             <div className="chart-labels">
-                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                                {Array.from({ length: 7 }).map((_, i) => {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() - (6 - i));
+                                    return <span key={i}>{d.toLocaleDateString('en-US', { weekday: 'short' })}</span>;
+                                })}
                             </div>
                         </div>
                     </div>
@@ -223,7 +278,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                                     <div className="tr-amount">
                                         <span className="val">AED {Number(order.total).toLocaleString()}</span>
                                     </div>
-                                    <button className="tr-more"><MoreHorizontal size={18} /></button>
+                                    <button className="tr-more" onClick={() => setSelectedOrder(order)}><MoreHorizontal size={18} /></button>
                                 </div>
                             )) : (
                                 <div className="empty-state-v2">
@@ -233,6 +288,29 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                             )}
                         </div>
                     </div>
+
+                    {/* Simple Items View Modal / Section */}
+                    {selectedOrder && (
+                        <div className="v2-panel order-detail-overlay">
+                            <div className="panel-header-v2">
+                                <h3>Items for #{selectedOrder.order_number}</h3>
+                                <button className="icon-btn-v2" onClick={() => setSelectedOrder(null)}><AlertCircle size={18} /></button>
+                            </div>
+                            <div className="v2-items-grid">
+                                {selectedOrder.items && JSON.parse(selectedOrder.items).map((item: any, i: number) => (
+                                    <div key={i} className="v2-item-mini">
+                                        <div className="item-info">
+                                            <span className="item-name">{item.name || item.product_name || 'Product'}</span>
+                                            <span className="item-sku">{item.sku || 'N/A'}</span>
+                                        </div>
+                                        <div className="item-price">
+                                            <span>{item.qty} x AED {Number(item.price).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Column: Support & Info */}
@@ -263,22 +341,18 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                     </div>
 
                     <div className="v2-panel activity-preview">
-                        <h3 className="section-title-sm">System Updates</h3>
+                        <h3 className="section-title-sm">Account Activity</h3>
                         <div className="system-logs">
-                            <div className="log-item">
-                                <div className="log-dot"></div>
-                                <div className="log-text">
-                                    <p>Server Maintenance</p>
-                                    <span>2 hours ago</span>
+                            {activities.map((act, i) => (
+                                <div key={i} className="log-item">
+                                    <div className={`log-dot ${act.active ? 'active' : ''}`}></div>
+                                    <div className="log-text">
+                                        <p>{act.title}</p>
+                                        <span>{act.time}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="log-item">
-                                <div className="log-dot active"></div>
-                                <div className="log-text">
-                                    <p>New Feature: Statement Export</p>
-                                    <span>Today at 10:00 AM</span>
-                                </div>
-                            </div>
+                            ))}
+                            {activities.length === 0 && <p className="v2-subtext">No recent activity.</p>}
                         </div>
                     </div>
                 </div>
@@ -287,4 +361,4 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
     );
 };
 
-export default CustomerDashboard;
+

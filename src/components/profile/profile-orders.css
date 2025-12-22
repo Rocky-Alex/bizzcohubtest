@@ -21,7 +21,7 @@
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.85rem;
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--profile-text-main);
     margin-bottom: 24px;
     letter-spacing: -0.5px;
 }
@@ -34,10 +34,10 @@
 }
 
 .order-card {
-    background: #151921;
+    background: var(--profile-card-bg);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--profile-card-border);
+    box-shadow: var(--profile-shadow);
     overflow: hidden;
     transition: all 0.2s;
 }
@@ -49,8 +49,8 @@
 
 .order-header {
     padding: 24px;
-    background: rgba(255, 255, 255, 0.02);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(var(--v2-primary-rgb), 0.02);
+    border-bottom: 1px solid var(--profile-card-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -66,7 +66,7 @@
 
 .order-number {
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--profile-text-main);
     font-size: 1.1rem;
     letter-spacing: 0.5px;
 }
@@ -132,7 +132,7 @@
     gap: 20px;
     align-items: center;
     padding-bottom: 16px;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    border-bottom: 1px dashed var(--profile-card-border);
 }
 
 .order-item-row:last-child {
@@ -144,7 +144,7 @@
     width: 64px;
     height: 64px;
     border-radius: 12px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--profile-card-border);
     object-fit: cover;
     flex-shrink: 0;
 }
@@ -152,7 +152,7 @@
 .item-name {
     font-size: 1rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--profile-text-main);
     margin: 0;
     line-height: 1.4;
 }
@@ -180,7 +180,7 @@
     flex-wrap: wrap;
     gap: 16px;
     padding-top: 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--profile-card-border);
 }
 
 .order-total {
@@ -198,7 +198,7 @@
 .total-amount {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--profile-text-main);
 }
 
 .order-actions {
@@ -265,7 +265,7 @@
     left: 10%;
     width: 80%;
     height: 3px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--profile-card-border);
     z-index: 1;
 }
 
@@ -283,12 +283,12 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #0b0e14;
-    border: 3px solid rgba(255, 255, 255, 0.05);
+    background: var(--profile-bg);
+    border: 3px solid var(--profile-card-border);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--v2-text-muted);
+    color: var(--profile-text-muted);
     transition: all 0.3s;
 }
 
@@ -323,9 +323,9 @@
 .empty-orders {
     text-align: center;
     padding: 60px 40px;
-    background: #151921;
+    background: var(--profile-card-bg);
     border-radius: 20px;
-    border: 2px dashed rgba(255, 255, 255, 0.05);
+    border: 2px dashed var(--profile-card-border);
 }
 
 .empty-icon {

@@ -11,9 +11,17 @@ interface ProfileSidebarProps {
     activeSection?: string;
     onLogout?: () => void;
     onNavigate?: (section: string) => void;
+    theme?: 'light' | 'dark';
+    onToggleTheme?: () => void;
 }
 
-const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user, activeSection = 'profile-info', onLogout, onNavigate }) => {
+const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
+    user,
+    activeSection = 'profile-info',
+    onLogout,
+    onNavigate,
+    theme = 'dark'
+}) => {
 
     const handleNav = (section: string, e: React.MouseEvent) => {
         if (onNavigate) {

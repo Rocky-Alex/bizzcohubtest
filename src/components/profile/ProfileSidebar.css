@@ -10,14 +10,14 @@
 
 /* User Card */
 .sidebar-user-card {
-    background: #151921;
+    background: var(--profile-card-bg);
     padding: 24px;
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--profile-shadow);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--profile-card-border);
 }
 
 .user-avatar-container {
@@ -26,8 +26,7 @@
     flex-shrink: 0;
 }
 
-.sidebar-avatar,
-.sidebar-avatar-placeholder {
+.sidebar-avatar {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -35,7 +34,10 @@
 }
 
 .sidebar-avatar-placeholder {
-    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--profile-accent) 0%, var(--v2-indigo) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -50,14 +52,14 @@
 
 .greeting-text {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--profile-text-muted);
     font-weight: 500;
 }
 
 .user-name {
     font-size: 1rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--profile-text-main);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -65,15 +67,15 @@
 
 /* Menu Section */
 .sidebar-menu {
-    background: #151921;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    background: var(--profile-card-bg);
+    box-shadow: var(--profile-shadow);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--profile-card-border);
     overflow: hidden;
 }
 
 .menu-group {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--profile-card-border);
 }
 
 .menu-group:last-child {
@@ -108,17 +110,17 @@
 }
 
 .menu-icon.text-blue {
-    color: #6366f1;
+    color: var(--profile-accent);
 }
 
 .menu-icon.text-gray {
-    color: #94a3b8;
+    color: var(--profile-text-muted);
 }
 
 .menu-title {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--profile-text-muted);
     text-transform: uppercase;
     flex-grow: 1;
     letter-spacing: 0.5px;
@@ -134,7 +136,7 @@
 .submenu-item {
     padding: 12px 24px 12px 64px;
     font-size: 0.9rem;
-    color: #94a3b8;
+    color: var(--profile-text-muted);
     text-decoration: none;
     transition: all 0.2s;
     font-weight: 500;
@@ -142,22 +144,22 @@
 }
 
 .submenu-item:hover {
-    background-color: rgba(255, 255, 255, 0.03);
-    color: #6366f1;
+    background-color: rgba(var(--v2-primary-rgb), 0.05);
+    color: var(--profile-accent);
 }
 
 .submenu-item.active {
-    background-color: #f5f3ff0a;
-    color: #6366f1;
+    background-color: rgba(var(--v2-primary-rgb), 0.08);
+    color: var(--profile-accent);
     font-weight: 700;
-    border-left-color: #6366f1;
+    border-left-color: var(--profile-accent);
 }
 
 .balance {
     float: right;
-    color: #10b981;
+    color: var(--v2-green);
     font-weight: 700;
-    background: #ecfdf5;
+    background: rgba(var(--v2-primary-rgb), 0.05);
     padding: 2px 8px;
     border-radius: 6px;
     font-size: 0.75rem;
@@ -168,13 +170,10 @@
 }
 
 .logout-btn:hover {
-    background-color: #ef444412;
+    background-color: rgba(239, 68, 68, 0.08);
 }
 
-.logout-btn:hover .menu-title {
-    color: #ef4444;
-}
-
+.logout-btn:hover .menu-title,
 .logout-btn:hover .menu-icon {
-    color: #ef4444;
+    color: var(--v2-red);
 }

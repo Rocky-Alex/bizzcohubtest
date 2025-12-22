@@ -1,9 +1,10 @@
-/* Dark Mode Premium Fintech Dashboard Styles */
-:root {
+/* Base Variables & Theme Support */
+.dashboard-v2-container.dark-mode {
     --v2-bg: #0b0e14;
     --v2-card-bg: #151921;
     --v2-card-border: rgba(255, 255, 255, 0.05);
     --v2-primary: #3b82f6;
+    --v2-primary-rgb: 59, 130, 246;
     --v2-primary-glow: rgba(59, 130, 246, 0.2);
     --v2-indigo: #6366f1;
     --v2-green: #10b981;
@@ -12,15 +13,34 @@
     --v2-text-main: #f8fafc;
     --v2-text-muted: #94a3b8;
     --v2-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --v2-panel-bg: #151921;
+}
+
+.dashboard-v2-container.light-mode {
+    --v2-bg: #f1f5f9;
+    --v2-card-bg: #ffffff;
+    --v2-card-border: rgba(0, 0, 0, 0.08);
+    --v2-primary: #2563eb;
+    --v2-primary-rgb: 37, 99, 235;
+    --v2-primary-glow: rgba(37, 99, 235, 0.1);
+    --v2-indigo: #4945ff;
+    --v2-green: #10b981;
+    --v2-yellow: #f59e0b;
+    --v2-red: #ef4444;
+    --v2-text-main: #0f172a;
+    --v2-text-muted: #64748b;
+    --v2-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --v2-panel-bg: #ffffff;
 }
 
 .dashboard-v2-container {
     background: var(--v2-bg);
     min-height: 100vh;
-    padding: 0;
+    padding: 24px;
     color: var(--v2-text-main);
     font-family: 'Inter', sans-serif;
     animation: v2FadeIn 0.6s ease-out;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 @keyframes v2FadeIn {
@@ -33,6 +53,61 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Order Detail Overlay */
+.order-detail-overlay {
+    margin-top: 10px;
+    animation: slideUp 0.3s ease-out;
+    background: linear-gradient(135deg, #1a1f29 0%, #151921 100%);
+    border: 1px solid var(--v2-primary-glow);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.v2-items-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.v2-item-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid var(--v2-card-border);
+}
+
+.v2-item-mini .item-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--v2-text-main);
+    display: block;
+}
+
+.v2-item-mini .item-sku {
+    font-size: 0.75rem;
+    color: var(--v2-text-muted);
+}
+
+.v2-item-mini .item-price {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--v2-primary);
+    text-align: right;
 }
 
 /* Loader */
@@ -97,12 +172,13 @@
     align-items: center;
     gap: 10px;
     width: 260px;
+    box-shadow: var(--shadow-sm);
 }
 
 .header-search input {
     background: none;
     border: none;
-    color: white;
+    color: var(--v2-text-main);
     font-size: 0.85rem;
     width: 100%;
 }
@@ -127,8 +203,8 @@
 }
 
 .icon-btn-v2:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
+    background: rgba(var(--v2-primary-rgb), 0.1);
+    color: var(--v2-primary);
 }
 
 .badge-dot {
@@ -162,12 +238,13 @@
 
 .v2-stat-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--v2-primary);
+    box-shadow: 0 10px 25px -5px rgba(var(--v2-primary-rgb), 0.15);
 }
 
 .primary-glow {
-    background: linear-gradient(135deg, #151921 0%, #1a1f29 100%);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, var(--v2-card-bg) 0%, var(--v2-bg) 100%);
+    border: 1px solid var(--v2-primary-glow);
 }
 
 .card-top {
@@ -293,7 +370,7 @@
 }
 
 .time-filters {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(var(--v2-primary-rgb), 0.05);
     padding: 4px;
     border-radius: 10px;
     display: flex;
@@ -367,7 +444,7 @@
 }
 
 .v2-tr-item:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(var(--v2-primary-rgb), 0.05);
     padding-left: 10px;
     padding-right: 10px;
     margin-left: -10px;
@@ -408,7 +485,7 @@
 .tr-name {
     font-size: 0.9rem;
     font-weight: 700;
-    color: white;
+    color: var(--v2-text-main);
 }
 
 .tr-date {
@@ -447,7 +524,7 @@
 .tr-amount .val {
     font-size: 0.95rem;
     font-weight: 800;
-    color: white;
+    color: var(--v2-text-main);
 }
 
 .tr-more {
@@ -460,30 +537,37 @@
 
 /* Side Column Styles */
 .promo-card-v2 {
-    background: linear-gradient(135deg, #1d4ed8 0%, #312e81 100%);
+    background: linear-gradient(135deg, var(--v2-primary) 0%, var(--v2-indigo) 100%);
     color: white;
     border: none;
     position: relative;
     overflow: hidden;
     padding: 30px;
+    box-shadow: 0 10px 20px rgba(var(--v2-primary-rgb), 0.2);
+}
+
+.dashboard-v2-container.light-mode .promo-card-v2 {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
 }
 
 .promo-card-v2 h4 {
     font-size: 1.25rem;
     font-weight: 800;
     margin-bottom: 12px;
+    color: white;
 }
 
 .promo-card-v2 p {
     font-size: 0.85rem;
-    opacity: 0.8;
+    opacity: 0.9;
     margin-bottom: 24px;
     line-height: 1.5;
+    color: white;
 }
 
 .v2-btn-gradient {
     background: white;
-    color: #1d4ed8;
+    color: var(--v2-primary);
     border: none;
     padding: 12px 24px;
     border-radius: 12px;
@@ -493,17 +577,19 @@
     transition: var(--v2-transition);
     position: relative;
     z-index: 2;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .v2-btn-gradient:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
 .promo-bg-icon {
     position: absolute;
     bottom: -30px;
     right: -20px;
-    opacity: 0.1;
+    opacity: 0.15;
     color: white;
     z-index: 1;
 }
@@ -526,7 +612,7 @@
 }
 
 .help-link-item:hover {
-    color: white;
+    color: var(--v2-primary);
     transform: translateX(4px);
 }
 
@@ -558,6 +644,7 @@
     font-size: 0.85rem;
     font-weight: 700;
     margin-bottom: 2px;
+    color: var(--v2-text-main);
 }
 
 .log-text span {

@@ -19,6 +19,20 @@ function ProfileContent() {
     const [userId, setUserId] = useState<number | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [activeView, setActiveView] = useState('dashboard');
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('dashboard-theme') as 'light' | 'dark';
+        if (savedTheme) {
+            setTheme(savedTheme);
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        localStorage.setItem('dashboard-theme', newTheme);
+    };
 
     useEffect(() => {
         const view = searchParams.get('view');
@@ -291,9 +305,7 @@ function ProfileContent() {
 
 
     return (
-        <div className="profile-container">
-            {/* Title can be removed or kept, user image showed it inside the sidebar mainly, but usually a page has a title or breadcrumb */}
-
+        <div className={`profile-container theme-${theme}`}>
             <div className="profile-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 3fr', gap: '24px', maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Sidebar */}
                 <div className="profile-sidebar-wrapper">
@@ -308,13 +320,19 @@ function ProfileContent() {
                             localStorage.removeItem('customer_user');
                             window.location.href = '/login';
                         }}
+                        theme={theme}
+                        onToggleTheme={toggleTheme}
                     />
                 </div>
 
                 {/* Main Content Area */}
                 <div className="profile-content">
                     {activeView === 'dashboard' && (
-                        <CustomerDashboard user={{ id: userId, email: userEmail }} />
+                        <CustomerDashboard
+                            user={{ id: userId, email: userEmail }}
+                            theme={theme}
+                            onToggleTheme={toggleTheme}
+                        />
                     )}
                     <form onSubmit={handleSave}>
                         {activeView === 'profile-info' && (
