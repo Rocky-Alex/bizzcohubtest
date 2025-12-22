@@ -5,184 +5,163 @@ export default function ServicesPage() {
     const services = [
         {
             id: 1,
-            title: "Premium Refurbished Laptops & Desktops",
-            icon: "fa-laptop",
-            description: "Certified, performance-optimized devices for every need.",
+            title: "Premium Refurbished & Desktops",
+            icon: "fa-laptop-code",
+            description: "We provide high-performance, certified refurbished laptops and desktops tailored for students, professionals, and enterprise needs. Every device undergoes rigorous testing.",
             details: [
-                "Students",
-                "Office employees",
-                "Freelancers",
-                "Gamers",
-                "Export buyers"
+                "Students & Ed-Tech",
+                "Corporate Workstations",
+                "Graphic Designers",
+                "Export Grade Quality"
             ],
-            footer: "Each device goes through 30+ quality checks.",
-            color: "blue"
+            footer: "Verified 30+ Point Check"
         },
         {
             id: 2,
-            title: "Bulk Supply & Export Services",
+            title: "Bulk Supply & Global Export",
             icon: "fa-shipping-fast",
-            description: "We supply large quantities of used/refurbished laptops globally.",
+            description: "A robust logistics network enabling bulk distribution of electronics across international borders, including specialized handling for emerging markets.",
             details: [
-                "India",
-                "Vietnam",
-                "Africa",
-                "Pakistan",
-                "Singapore",
-                "UAE local market"
+                "India & South Asia",
+                "Vietnam & ASEAN",
+                "Africa Region",
+                "UAE Local Wholesale"
             ],
-            footer: "Includes export packing, invoice, testing videos, and logistics support.",
-            color: "green"
+            footer: "Secure Logistics & Customs"
         },
         {
             id: 3,
-            title: "Laptop Repair & Upgrade",
-            icon: "fa-tools",
-            description: "Professional repair with high-quality parts.",
+            title: "Advanced Repair Center",
+            icon: "fa-microchip",
+            description: "State-of-the-art repair facility capable of component-level diagnostics and fixes. We revive devices others consider obsolete.",
             details: [
-                "SSD upgrades",
-                "RAM upgrades",
-                "Battery replacement",
-                "Keyboard/screen repair",
-                "Motherboard chip-level service"
+                "Motherboard Logic",
+                "Screen Replacements",
+                "Battery & Power",
+                "Liquid Damage Fix"
             ],
-            footer: "Fast and affordable.",
-            color: "orange"
+            footer: "Fast Turnaround Guaranteed"
         },
         {
             id: 4,
-            title: "Buyback & Trade-In Program",
-            icon: "fa-exchange-alt",
-            description: "We buy used laptops, corporate IT assets, ruined or old devices.",
+            title: "Corporate Buyback & Trade-In",
+            icon: "fa-hand-holding-usd",
+            description: "Maximize value from your aging IT infrastructure. We offer competitive buyback rates for corporate lots and individual trade-ins.",
             details: [
-                "Used laptops",
-                "Corporate IT assets",
-                "Damaged or old devices",
-                "Bulk lots from companies"
+                "Corporate Bulk Lots",
+                "End-of-Life Assets",
+                "Secure Data Wipe",
+                "Instant Valuation"
             ],
-            footer: "Get instant cash or device exchange.",
-            color: "purple"
+            footer: "Eco-friendly Disposal"
         },
         {
             id: 5,
-            title: "Software Installation & System Setup",
-            icon: "fa-download",
-            description: "Complete system setup so you are ready to go.",
+            title: "OS & Software Deployment",
+            icon: "fa-cogs",
+            description: "Turnkey software solutions ensuring your hardware is ready to deploy immediately upon arrival. Licensed and securely configured.",
             details: [
-                "Windows installation",
-                "Driver setup",
-                "MS Office",
-                "Antivirus",
-                "Data backup & recovery"
+                "Windows 10/11 Pro",
+                "Driver Optimization",
+                "Office Suites",
+                "Security Hardening"
             ],
-            footer: "Everything set and ready to use.",
-            color: "red"
+            footer: "Plug-and-Play Ready"
         },
         {
             id: 6,
-            title: "Corporate IT Solutions",
-            icon: "fa-building",
-            description: "Reliable, long-term IT partner for companies and schools.",
+            title: "Enterprise IT Partnerships",
+            icon: "fa-building-shield",
+            description: "Long-term strategic support for educational institutions and businesses, ensuring operational continuity through managed services.",
             details: [
-                "Large batch supply",
-                "Annual Maintenance Contracts (AMC)",
-                "Device health reports",
-                "On-site support"
+                "Annual Maintenance (AMC)",
+                "On-site Engineers",
+                "Fleet Health Reports",
+                "Priority Support"
             ],
-            footer: "Reliable, long-term IT partner.",
-            color: "teal"
+            footer: "Dedicated Account Managers"
         },
         {
             id: 7,
-            title: "Warranty & After-Sales Support",
-            icon: "fa-shield-alt",
-            description: "Peace of mind with every purchase.",
+            title: "Warranty & After-Sales",
+            icon: "fa-user-shield",
+            description: "Our commitment doesn't end at the sale. Enjoy comprehensive warranty coverage and expert technical guidance for the life of your device.",
             details: [
-                "Warranty",
-                "Easy replacement",
-                "Lifetime technical guidance"
+                "Standard Warranty",
+                "Easy Returns",
+                "Remote Support",
+                "Lifetime Guidance"
             ],
-            footer: "Zero-hassle service.",
-            color: "indigo"
+            footer: "Customer First Policy"
         },
         {
             id: 8,
-            title: "Customized Laptop Configurations",
-            icon: "fa-sliders-h",
-            description: "Build your machine exactly how you need it.",
+            title: "Custom Configurations",
+            icon: "fa-sliders",
+            description: "Don't settle for stock specifications. We build machines to your exact requirements for specialized workloads.",
             details: [
-                "RAM",
-                "SSD",
-                "Processor",
-                "Software",
-                "Accessories"
+                "RAM Expansion",
+                "NVMe Storage",
+                "Specialized GPUs",
+                "Custom OS Builds"
             ],
-            footer: "Tailored performance for your specific needs.",
-            color: "cyan"
+            footer: "Built to Order"
         }
     ];
 
     return (
         <div className="services-page-wrapper">
-            {/* Hero Section */}
-            <section className="page-hero">
-                <div className="hero-overlay"></div>
-                <div className="container relative z-10">
+            {/* Hero */}
+            <section className="narrative-hero">
+                <div className="container">
                     <h1>
-                        <i className="fas fa-star text-yellow-400 mr-3"></i>
-                        Our Services
+                        Empowering Your<br />
+                        <span>Digital Infrastructure.</span>
                     </h1>
-                    <p className="hero-subtitle">Bizz Co Hub — Your Trusted Technology Partner</p>
+                    <p>
+                        From individual power users to global enterprise supply chains, Bizz Co Hub delivers end-to-end technology solutions with certified quality and unmatched expertise.
+                    </p>
                 </div>
             </section>
 
-            {/* Services Grid */}
-            <section className="services-container">
-                <div className="container">
-                    <div className="services-grid-layout">
-                        {services.map((service) => (
-                            <div key={service.id} className={`premium-service-card ${service.color}`}>
-                                <div className="card-icon-wrapper">
+            {/* Narrative Sections (Z-Pattern) */}
+            <div className="narrative-flow">
+                {services.map((service, index) => (
+                    <section key={service.id} className="narrative-section">
+                        <div className="narrative-container">
+                            <div className="narrative-content">
+                                <span className="narrative-num">0{service.id}</span>
+                                <h2>{service.title}</h2>
+                                <p>{service.description}</p>
+                                <ul className="narrative-list">
+                                    {service.details.map((detail, idx) => (
+                                        <li key={idx} className="narrative-item">
+                                            <i className="fas fa-check-circle"></i> {detail}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="narrative-visual">
+                                <div className="visual-card">
                                     <i className={`fas ${service.icon}`}></i>
-                                </div>
-                                <div className="card-content">
-                                    <span className="service-number">0{service.id}</span>
-                                    <h3>{service.title}</h3>
-                                    <p className="service-desc">{service.description}</p>
-
-                                    <div className="service-details-list">
-                                        <h4>Includes:</h4>
-                                        <ul>
-                                            {service.details.map((detail, idx) => (
-                                                <li key={idx}>
-                                                    <i className="fas fa-check-circle"></i>
-                                                    {detail}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-
-                                    <div className="card-footer-note">
-                                        <i className="fas fa-info-circle"></i> {service.footer}
+                                    <div className="visual-label">{service.title}</div>
+                                    <div className="visual-footer">
+                                        <i className="fas fa-info-circle mr-2"></i> {service.footer}
                                     </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-
-                    {/* CTA Section */}
-                    <div className="services-cta">
-                        <h2>Ready to get started?</h2>
-                        <p>Contact us today for a custom quote or to discuss your requirements.</p>
-                        <div className="cta-buttons">
-                            <Link href="/contact" className="btn btn-primary-glow">
-                                <i className="fas fa-paper-plane"></i> Contact Us
-                            </Link>
-                            <Link href="/products" className="btn btn-secondary-glow">
-                                <i className="fas fa-store"></i> Browse Products
-                            </Link>
                         </div>
-                    </div>
+                    </section>
+                ))}
+            </div>
+
+            {/* CTA */}
+            <section className="narrative-cta">
+                <div className="container">
+                    <h2>Ready to upgrade your technology?</h2>
+                    <Link href="/contact" className="btn-white">
+                        <i className="fas fa-paper-plane"></i> Get Your Custom Quote
+                    </Link>
                 </div>
             </section>
         </div>
