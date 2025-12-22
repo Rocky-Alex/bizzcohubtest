@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ConfirmModal from './ConfirmModal';
 
 interface PartialPaymentsListProps {
     setActiveSection: (section: string) => void;
@@ -18,6 +19,21 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
     const [showViewModal, setShowViewModal] = useState(false);
     const [viewData, setViewData] = useState<any>(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
 
     useEffect(() => {
         fetchPayments();
@@ -39,48 +55,97 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
     };
 
     const handleDelete = async (pay: any) => {
-        if (!confirm(`Are you sure you want to delete this payment for Invoice ${pay.invoice_no}?`)) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Payment',
+            message: `Are you sure you want to delete this payment for Invoice ${pay.invoice_no}?`,
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await fetch(`/api/admin/invoices/${pay.invoice_id}/payments/${pay.id}`, {
+                        method: 'DELETE'
+                    });
 
-        try {
-            const res = await fetch(`/api/admin/invoices/${pay.invoice_id}/payments/${pay.id}`, {
-                method: 'DELETE'
-            });
-
-            if (res.ok) {
-                alert('Payment deleted successfully');
-                fetchPayments(); // Refresh list
-            } else {
-                const data = await res.json();
-                alert('Failed to delete: ' + data.error);
+                    if (res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Success',
+                            message: 'Payment deleted successfully',
+                            type: 'success',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                        fetchPayments(); // Refresh list
+                    } else {
+                        const data = await res.json();
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to delete: ' + data.error,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error deleting payment:', error);
+                }
             }
-        } catch (error) {
-            console.error('Error deleting payment:', error);
-        }
+        });
     };
 
     const handleSendReceipt = async (pay: any) => {
-        if (!confirm(`Send receipt to ${pay.customer_name}?`)) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Send Receipt',
+            message: `Send receipt to ${pay.customer_name}?`,
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await fetch(`/api/admin/invoices/${pay.invoice_id}/payments/${pay.id}/send`, {
+                        method: 'POST'
+                    });
 
-        try {
-            const res = await fetch(`/api/admin/invoices/${pay.invoice_id}/payments/${pay.id}/send`, {
-                method: 'POST'
-            });
-
-            if (res.ok) {
-                alert('Receipt sent successfully! (Sent to rishadpnpm@gmail.com for testing)');
-            } else {
-                const data = await res.json();
-                alert('Failed to send receipt: ' + data.error);
+                    if (res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Success',
+                            message: 'Receipt sent successfully! (Sent to rishadpnpm@gmail.com for testing)',
+                            type: 'success',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    } else {
+                        const data = await res.json();
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to send receipt: ' + data.error,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error sending receipt:', error);
+                }
             }
-        } catch (error) {
-            console.error('Error sending receipt:', error);
-        }
+        });
     };
 
     const handlePrintReceipt = (pay: any) => {
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
-            alert('Please allow popups');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Please allow popups',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
@@ -155,16 +220,37 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
             const data = await res.json();
 
             if (res.ok) {
-                alert('Payment updated successfully');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Payment updated successfully',
+                    type: 'success',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 setShowEditModal(false);
                 setEditingPayment(null);
                 fetchPayments();
             } else {
-                alert('Failed to update: ' + data.error);
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to update: ' + data.error,
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (error) {
             console.error('Error updating payment:', error);
-            alert('Error updating payment');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error updating payment',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -177,12 +263,26 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                 const data = await res.json();
                 setViewData(data);
             } else {
-                alert('Failed to fetch invoice details');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to fetch invoice details',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 setShowViewModal(false);
             }
         } catch (error) {
             console.error('Error fetching invoice details:', error);
-            alert('Error fetching invoice details');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error fetching invoice details',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
             setShowViewModal(false);
         } finally {
             setLoadingDetails(false);
@@ -253,6 +353,16 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                     </table>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
 
             {/* Edit Modal */}
             {showEditModal && editingPayment && (

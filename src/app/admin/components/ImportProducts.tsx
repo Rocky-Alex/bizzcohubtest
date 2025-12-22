@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
+import ConfirmModal from './ConfirmModal';
 
 interface ImportProductsProps {
     onCancel: () => void;
@@ -17,6 +18,21 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
 
     // Export State
     const [exportLoading, setExportLoading] = useState(false);
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
 
     // --- Import Handlers ---
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +72,14 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
             })).filter(p => p.name);
 
             if (products.length === 0) {
-                alert('No valid products found in the file. Please ensure the file has a "Product Name" or "product_name" column.');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'No valid products found in the file. Please ensure the file has a "Product Name" or "product_name" column.',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 setImportLoading(false);
                 return;
             }
@@ -68,20 +91,50 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
             });
 
             if (response.ok) {
-                alert(`Successfully imported ${products.length} products!`);
-                onSuccess();
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: `Successfully imported ${products.length} products!`,
+                    type: 'success',
+                    singleButton: true,
+                    onConfirm: () => {
+                        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                        onSuccess();
+                    }
+                });
             } else {
                 const text = await response.text();
                 try {
                     const error = JSON.parse(text);
-                    alert('Import failed: ' + error.error + (error.details ? `\n\nDetails: ${error.details}` : ''));
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Import failed: ' + error.error + (error.details ? `\n\nDetails: ${error.details}` : ''),
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
                 } catch {
-                    alert(`Import failed (Status ${response.status}): ` + text.slice(0, 100));
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: `Import failed (Status ${response.status}): ` + text.slice(0, 100),
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
                 }
             }
         } catch (error: any) {
             console.error('Error importing products:', error);
-            alert('An error occurred during import: ' + (error.message || JSON.stringify(error)));
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred during import: ' + (error.message || JSON.stringify(error)),
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         } finally {
             setImportLoading(false);
         }
@@ -97,7 +150,14 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
             const data = await response.json();
 
             if (!data || data.length === 0) {
-                alert('No products to export.');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Info',
+                    message: 'No products to export.',
+                    type: 'info',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 setExportLoading(false);
                 return;
             }
@@ -121,7 +181,14 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
 
         } catch (error) {
             console.error('Error exporting products:', error);
-            alert('Failed to export products.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to export products.',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         } finally {
             setExportLoading(false);
         }
@@ -373,6 +440,16 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
         </div>
     );
 }

@@ -1,65 +1,55 @@
 /* Profile Page Styles */
+
 .profile-container {
-    padding: 70px 20px 40px;
-    background-color: #f3f4f6;
-    min-height: 90vh;
-    font-family: 'Inter', sans-serif;
+    padding: 2rem;
+    background-color: var(--bg-secondary);
+    min-height: 100vh;
 }
 
-.profile-header {
-    max-width: 1000px;
-    margin: 0 auto 30px;
-}
-
-.profile-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #111827;
-}
-
-.profile-grid {
+.profile-layout {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: minmax(280px, 1fr) 3fr;
     gap: 24px;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
 @media (max-width: 768px) {
-    .profile-grid {
+    .profile-layout {
         grid-template-columns: 1fr;
     }
 }
 
 .profile-card {
-    background: #ffffff;
-    border-radius: 12px;
+    background: white;
+    border-radius: var(--radius-md);
     padding: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    height: fit-content;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
 }
 
 .section-title {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    color: #374151;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
 }
 
 .form-grid {
-    display: grid;
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 1.5rem;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 640px) {
     .form-row {
         grid-template-columns: 1fr;
     }
@@ -68,84 +58,58 @@
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0.5rem;
 }
 
 .form-label {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: #6b7280;
+    color: var(--text-secondary);
 }
 
 .form-input {
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
     font-size: 0.95rem;
     transition: all 0.2s;
 }
 
 .form-input:focus {
-    border-color: #3b82f6;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-input:disabled {
-    background-color: #f9fafb;
-    color: #9ca3af;
-    cursor: not-allowed;
-}
-
-.avatar-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.avatar-circle {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 2.5rem;
-    font-weight: 600;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(64, 121, 255, 0.1);
 }
 
 .save-btn {
-    background: #2563eb;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary);
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.95rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
-    width: 100%;
-    margin-top: 10px;
+    transition: background-color 0.2s;
 }
 
 .save-btn:hover {
-    background: #1d4ed8;
+    background-color: var(--primary-dark);
+}
+
+.save-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .address-section {
-    margin-bottom: 24px;
+    padding: 1.5rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
 }
 
 .address-header {
-    font-size: 0.95rem;
     font-weight: 600;
-    color: #111827;
-    margin-bottom: 12px;
-    background: #f3f4f6;
-    padding: 8px 12px;
-    border-radius: 6px;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
 }

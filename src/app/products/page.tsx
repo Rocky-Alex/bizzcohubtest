@@ -202,8 +202,8 @@ function ProductsContent() {
                                     }}
                                     style={{
                                         padding: '10px 24px',
-                                        borderRadius: '30px',
-                                        border: (selectedCategory === btn.category) ? '2px solid #007bff' : '1px solid #e5e7eb',
+                                        borderRadius: '10px',
+                                        border: (selectedCategory === btn.category) ? '2px solid #007bff' : '1px solid #5c5c5cff',
                                         background: (selectedCategory === btn.category) ? '#f0f9ff' : 'white',
                                         color: (selectedCategory === btn.category) ? '#007bff' : '#4b5563',
                                         cursor: 'pointer',
@@ -220,7 +220,7 @@ function ProductsContent() {
                                     }}
                                     onMouseOut={(e) => {
                                         if (!(selectedCategory === btn.category)) {
-                                            e.currentTarget.style.borderColor = '#e5e7eb';
+                                            e.currentTarget.style.borderColor = '#5c5c5cff';
                                             e.currentTarget.style.color = '#4b5563';
                                         }
                                     }}

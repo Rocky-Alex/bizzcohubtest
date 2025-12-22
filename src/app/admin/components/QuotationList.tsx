@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmModal from './ConfirmModal';
 
 export default function QuotationList({ setActiveSection, onEdit }: { setActiveSection: (section: string) => void, onEdit: (quotation: any) => void }) {
     const [quotations, setQuotations] = useState<any[]>([]);
@@ -30,42 +31,47 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
         return () => clearInterval(interval);
     }, []);
 
-    const [confirmationModal, setConfirmationModal] = useState<{ show: boolean; id: number | null; newStatus: string | null }>({
-        show: false,
-        id: null,
-        newStatus: null
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
     });
 
     const handleStatusChange = (id: number, newStatus: string) => {
-        setConfirmationModal({ show: true, id, newStatus });
-    };
+        setConfirmModal({
+            isOpen: true,
+            title: 'Confirm Status Change',
+            message: <span>Are you sure you want to change status to <strong>{newStatus}</strong>?</span>,
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                // Optimistic update
+                setQuotations(prev => prev.map(q => q.id === id ? { ...q, status: newStatus } : q));
 
-    const confirmStatusChange = async () => {
-        const { id, newStatus } = confirmationModal;
-        if (!id || !newStatus) return;
+                try {
+                    const response = await fetch(`/api/admin/quotations/${id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: newStatus })
+                    });
 
-        setConfirmationModal({ show: false, id: null, newStatus: null });
-
-        // Optimistic update
-        setQuotations(prev => prev.map(q => q.id === id ? { ...q, status: newStatus } : q));
-
-        try {
-            const response = await fetch(`/api/admin/quotations/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
-
-            if (!response.ok) {
-                console.error('Failed to update status');
+                    if (!response.ok) {
+                        console.error('Failed to update status');
+                    }
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                }
             }
-        } catch (error) {
-            console.error('Error updating status:', error);
-        }
-    };
-
-    const closeConfirmationModal = () => {
-        setConfirmationModal({ show: false, id: null, newStatus: null });
+        });
     };
 
     if (loading) {
@@ -82,12 +88,26 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
                 const data = await res.json();
                 setViewData(data);
             } else {
-                alert('Failed to fetch quotation details');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to fetch quotation details',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 setShowViewModal(false);
             }
         } catch (error) {
             console.error(error);
-            alert('Error fetching details');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error fetching details',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
             setShowViewModal(false);
         } finally {
             setLoadingDetails(false);
@@ -95,7 +115,29 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
     };
 
     const handleDelete = (id: number) => {
-        setConfirmationModal({ show: true, id, newStatus: 'DELETE' });
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Quotation',
+            message: 'Are you sure you want to delete this quotation? This action cannot be undone.',
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                setQuotations(prev => prev.filter(q => q.id !== id));
+                try {
+                    const res = await fetch(`/api/admin/quotations/${id}`, { method: 'DELETE' });
+                    if (!res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to delete quotation',
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (e) { console.error(e); }
+            }
+        });
     };
 
     const handlePrint = async (id: number) => {
@@ -107,7 +149,14 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
 
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                alert('Please allow popups to print');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Please allow popups to print',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 return;
             }
 
@@ -260,7 +309,14 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
             printWindow.document.close();
         } catch (error) {
             console.error(error);
-            alert('Failed to print');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to print',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -269,63 +325,110 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
         if (!inv) return;
 
         if (!inv.customer_email) {
-            alert('This quotation does not have a customer email associated with it.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'No Email',
+                message: 'This quotation does not have a customer email associated with it.',
+                type: 'info',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
-        if (!confirm(`Send Quotation #${inv.quotation_no} to ${inv.customer_email}?`)) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Send Quotation',
+            message: `Send Quotation #${inv.quotation_no} to ${inv.customer_email}?`,
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await fetch(`/api/admin/quotations/${id}/send`, { method: 'POST' });
+                    const data = await res.json();
 
-        try {
-            const res = await fetch(`/api/admin/quotations/${id}/send`, { method: 'POST' });
-            const data = await res.json();
-
-            if (res.ok) {
-                alert('Quotation email sent successfully! (Sent to rishadpnpm@gmail.com for testing)');
-                // Optionally update status to 'Sent' if relevant, or just notify user
-            } else {
-                alert('Failed to send quotation: ' + data.error);
+                    if (res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Success',
+                            message: 'Quotation email sent successfully! (Sent to rishadpnpm@gmail.com for testing)',
+                            type: 'success',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                        // Optionally update status to 'Sent' if relevant, or just notify user
+                    } else {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to send quotation: ' + data.error,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error sending quotation:', error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'An error occurred while sending the quotation.',
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        } catch (error) {
-            console.error('Error sending quotation:', error);
-            alert('An error occurred while sending the quotation.');
-        }
+        });
     };
 
     const handleConvert = async (id: number) => {
-        if (!confirm('Are you sure you want to convert this quotation to an invoice?')) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Convert to Invoice',
+            message: 'Are you sure you want to convert this quotation to an invoice?',
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await fetch(`/api/admin/quotations/${id}/convert`, { method: 'POST' });
+                    const data = await res.json();
 
-        try {
-            const res = await fetch(`/api/admin/quotations/${id}/convert`, { method: 'POST' });
-            const data = await res.json();
-
-            if (res.ok) {
-                alert(`Quotation converted successfully! New Invoice: ${data.invoiceNo}`);
-                // Update local state to show 'Converted'
-                setQuotations(prev => prev.map(q => q.id === id ? { ...q, status: 'Converted' } : q));
-                // Optionally redirect to invoices or show link
-            } else {
-                alert('Failed to convert: ' + data.error);
+                    if (res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Success',
+                            message: `Quotation converted successfully! New Invoice: ${data.invoiceNo}`,
+                            type: 'success',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                        // Update local state to show 'Converted'
+                        setQuotations(prev => prev.map(q => q.id === id ? { ...q, status: 'Converted' } : q));
+                        // Optionally redirect to invoices or show link
+                    } else {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to convert: ' + data.error,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error converting:', error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'An error occurred during conversion',
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        } catch (error) {
-            console.error('Error converting:', error);
-            alert('An error occurred during conversion');
-        }
-    };
-
-    const confirmAction = async () => {
-        const { id, newStatus } = confirmationModal;
-        if (!id || !newStatus) return;
-        setConfirmationModal({ show: false, id: null, newStatus: null });
-
-        if (newStatus === 'DELETE') {
-            setQuotations(prev => prev.filter(q => q.id !== id));
-            try {
-                const res = await fetch(`/api/admin/quotations/${id}`, { method: 'DELETE' });
-                if (!res.ok) alert('Failed to delete quotation');
-            } catch (e) { console.error(e); }
-        } else {
-            confirmStatusChange();
-        }
+        });
     };
 
     return (
@@ -404,18 +507,15 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
             </table>
 
             {/* Confirmation Modal */}
-            {confirmationModal.show && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '400px', maxWidth: '90%', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>{confirmationModal.newStatus === 'DELETE' ? 'Delete Quotation' : 'Confirm Status Change'}</h3>
-                        <p style={{ color: '#4b5563', marginBottom: '1.5rem', lineHeight: '1.5' }}>{confirmationModal.newStatus === 'DELETE' ? 'Are you sure you want to delete this quotation? This action cannot be undone.' : <span>Are you sure you want to change status to <strong style={{ color: '#000' }}>{confirmationModal.newStatus}</strong>?</span>}</p>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button onClick={closeConfirmationModal} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>Cancel</button>
-                            <button onClick={confirmAction} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', background: confirmationModal.newStatus === 'DELETE' ? '#dc2626' : '#ea580c', color: 'white', cursor: 'pointer' }}>Confirm</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
 
             {/* View Modal */}
             {showViewModal && viewData && (

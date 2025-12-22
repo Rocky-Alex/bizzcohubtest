@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/order-details.css';
-import ConfirmModal from '@/components/ui/ConfirmModal';
+import ConfirmModal from './ConfirmModal';
 
 interface Order {
     id: number;

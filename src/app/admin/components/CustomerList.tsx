@@ -4,34 +4,26 @@ import { Country } from 'country-state-city';
 import CustomerLedgerModal from './CustomerLedgerModal';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
-// interface Customer {
-//     id: number;
-//     name: string;
-//     avatar: string;
-//     phone: string;
-//     country: string;
-//     countryCode: string;
-//     balance: string;
-//     totalInvoice: number;
-//     createdOn: string;
-//     status: 'Active' | 'Inactive';
-// }
-
-// MOCK_CUSTOMERS removed in favor of real data
-// const MOCK_CUSTOMERS: Customer[] = [];
-
 export default function CustomerList({
     onAdd,
     customers = [],
     onNavigateToNewInvoice,
     loading = false,
-    onImportExport
+    onImportExport,
+    onEdit,
+    onDelete,
+    onArchive,
+    onView
 }: {
     onAdd?: () => void,
     customers?: any[],
     onNavigateToNewInvoice?: () => void,
     loading?: boolean,
-    onImportExport?: () => void
+    onImportExport?: () => void,
+    onEdit?: (customer: any) => void,
+    onDelete?: (customer: any) => void,
+    onArchive?: (customer: any) => void,
+    onView?: (customer: any) => void
 }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -191,16 +183,16 @@ export default function CustomerList({
                                             ></i>
                                             {activeDropdown === customer.id && (
                                                 <div className="action-menu-dropdown" ref={dropdownRef}>
-                                                    <div className="menu-item" onClick={() => setActiveDropdown(null)}>
+                                                    <div className="menu-item" onClick={() => { setActiveDropdown(null); onView?.(customer); }}>
                                                         <i className="far fa-eye"></i> View
                                                     </div>
-                                                    <div className="menu-item" onClick={() => setActiveDropdown(null)}>
+                                                    <div className="menu-item" onClick={() => { setActiveDropdown(null); onEdit?.(customer); }}>
                                                         <i className="far fa-edit"></i> Edit
                                                     </div>
-                                                    <div className="menu-item" onClick={() => setActiveDropdown(null)}>
-                                                        <i className="fas fa-archive"></i> Archive
+                                                    <div className="menu-item" onClick={() => { setActiveDropdown(null); onArchive?.(customer); }}>
+                                                        <i className="fas fa-archive"></i> {(customer.status || 'Active').toLowerCase() === 'archived' ? 'Unarchive' : 'Archive'}
                                                     </div>
-                                                    <div className="menu-item" onClick={() => setActiveDropdown(null)} style={{ color: '#ef4444' }}>
+                                                    <div className="menu-item" onClick={() => { setActiveDropdown(null); onDelete?.(customer); }} style={{ color: '#ef4444' }}>
                                                         <i className="far fa-trash-alt"></i> Delete
                                                     </div>
                                                 </div>
@@ -250,8 +242,8 @@ export default function CustomerList({
                 onClose={() => setSelectedCustomerForLedger(null)}
                 customer={selectedCustomerForLedger ? {
                     name: selectedCustomerForLedger.name,
-                    email: "johnson@example.com", // Mock email for now since it wasn't in list view
-                    avatar: selectedCustomerForLedger.avatar,
+                    email: selectedCustomerForLedger.email || "",
+                    avatar: selectedCustomerForLedger.image_url,
                     balance: selectedCustomerForLedger.balance
                 } : null}
             />

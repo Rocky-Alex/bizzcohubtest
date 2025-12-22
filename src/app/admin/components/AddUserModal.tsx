@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import "./AddUserModal.css";
+import ConfirmModal from './ConfirmModal';
 
 interface AddUserModalProps {
     isOpen: boolean;
@@ -27,7 +28,23 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, roles }: AddUs
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+
     const [errors, setErrors] = useState<any>({});
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
 
     // Reset form when modal opens
     useEffect(() => {
@@ -65,13 +82,27 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, roles }: AddUs
         if (file) {
             // Check file size (5MB limit as per design)
             if (file.size > 5 * 1024 * 1024) {
-                alert("File size must be less than 5MB");
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: "File size must be less than 5MB",
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 return;
             }
 
             // Check file type
             if (!file.type.match(/image\/(jpeg|png)/)) {
-                alert("Only JPEG and PNG files are allowed");
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: "Only JPEG and PNG files are allowed",
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 return;
             }
 
@@ -325,6 +356,16 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, roles }: AddUs
                     </button>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
         </div>
     );
 }

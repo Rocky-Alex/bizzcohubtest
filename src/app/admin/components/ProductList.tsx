@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './ProductList.css';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmModal from './ConfirmModal';
 
 interface ProductListProps {
     setActiveSection: (section: string) => void;
@@ -64,27 +65,63 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
     // Auto Refresh Logic
     useAutoRefresh(fetchProducts);
 
-    const handleDelete = async (productId: string) => {
-        if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-            try {
-                const response = await fetch(`/api/admin/inventory/products?id=${productId}`, {
-                    method: 'DELETE',
-                });
 
-                if (response.ok) {
-                    setProducts(prev => prev.filter(p => p.id !== productId));
-                    // Trigger global update for dashboards
-                    window.dispatchEvent(new Event('inventory-updated'));
-                    localStorage.setItem('inventoryLastUpdated', Date.now().toString());
-                } else {
-                    const error = await response.json();
-                    alert(`Failed to delete product: ${error.error || 'Unknown error'}`);
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
+    const handleDelete = (productId: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Product',
+            message: 'Are you sure you want to delete this product? This action cannot be undone.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    const response = await fetch(`/api/admin/inventory/products?id=${productId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        setProducts(prev => prev.filter(p => p.id !== productId));
+                        window.dispatchEvent(new Event('inventory-updated'));
+                        localStorage.setItem('inventoryLastUpdated', Date.now().toString());
+                        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    } else {
+                        const error = await response.json();
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: `Failed to delete product: ${error.error || 'Unknown error'}`,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error deleting product:', error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'An error occurred while deleting the product.',
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
                 }
-            } catch (error) {
-                console.error('Error deleting product:', error);
-                alert('An error occurred while deleting the product.');
             }
-        }
+        });
     };
 
     const getStockStatus = (qty: number) => {
@@ -366,6 +403,15 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
                     </table>
                 )}
             </div>
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
         </div>
     );
 }

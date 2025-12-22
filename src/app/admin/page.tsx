@@ -6,7 +6,7 @@ import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminHeader from "./components/AdminHeader";
 import DashboardOverview from "./components/DashboardOverview";
-import LogoutModal from "./components/LogoutModal";
+// import LogoutModal from "./components/LogoutModal"; // Removed
 
 import UserManagement from "./components/UserManagement";
 import RolesAndPermissions from "./components/RolesAndPermissions";
@@ -39,7 +39,7 @@ export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState("accountant");
     const [username, setUsername] = useState("Admin");
-    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+    // const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // Removed
 
     // Placeholder data state (to be replaced with real data fetching)
     const [laptops, setLaptops] = useState<any[]>([]);
@@ -62,6 +62,7 @@ export default function AdminPage() {
     const [productToEdit, setProductToEdit] = useState<any>(null);
     const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [customerToEdit, setCustomerToEdit] = useState<any>(null);
     const [isLoadingOrders, setIsLoadingOrders] = useState(false);
     const [orderToEdit, setOrderToEdit] = useState<any>(null);
     const [invoiceToEdit, setInvoiceToEdit] = useState<any>(null);
@@ -264,6 +265,30 @@ export default function AdminPage() {
         }
     };
 
+    const handleArchiveCustomer = async (customer: any) => {
+        try {
+            const currentStatus = (customer.status || 'Active').toLowerCase();
+            const newStatus = currentStatus === 'archived' ? 'Active' : 'Archived';
+
+            const response = await fetch('/api/admin/customers', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: customer.id,
+                    status: newStatus
+                })
+            });
+
+            if (response.ok) {
+                fetchCustomers();
+            } else {
+                console.error('Failed to archive customer');
+            }
+        } catch (error) {
+            console.error('Error modifying customer status:', error);
+        }
+    };
+
     const handleDelete = async (item: any, type: string) => {
         setConfirmModal({
             isOpen: true,
@@ -324,7 +349,11 @@ export default function AdminPage() {
                             return;
                         }
                     } else if (type === 'Product') setProducts(prev => prev.filter(p => p.id !== item.id));
-                    else if (type === 'Customer') setCustomers(prev => prev.filter(c => c.id !== item.id));
+                    else if (type === 'Customer') {
+                        const res = await fetch(`/api/admin/customers?id=${item.id}`, { method: 'DELETE' });
+                        if (res.ok) fetchCustomers();
+                        else console.error('Failed to delete customer customers');
+                    }
 
                     setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 } catch (error) {
@@ -451,7 +480,14 @@ export default function AdminPage() {
     useAutoRefresh(refreshData);
 
     const handleLogout = () => {
-        setIsLogoutModalOpen(true);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Confirm Logout',
+            message: 'Are you sure you want to log out of the admin panel?',
+            type: 'danger',
+            singleButton: false,
+            onConfirm: confirmLogout
+        });
     };
 
     const confirmLogout = async () => {
@@ -541,9 +577,23 @@ export default function AdminPage() {
                 return <CustomerList
                     customers={customers}
                     loading={isLoadingCustomers}
-                    onAdd={() => setActiveSection('customers-add')}
+                    onAdd={() => {
+                        setCustomerToEdit(null);
+                        setActiveSection('customers-add');
+                    }}
                     onNavigateToNewInvoice={() => setActiveSection('invoicing-new')}
                     onImportExport={() => setActiveSection('customers-import')}
+                    onEdit={(c) => {
+                        setCustomerToEdit(c);
+                        setActiveSection('customers-edit');
+                    }}
+                    onDelete={(c) => handleDelete(c, 'Customer')}
+                    onArchive={handleArchiveCustomer}
+                    onView={(c) => {
+                        console.log("View customer:", c);
+                        setCustomerToEdit(c);
+                        setActiveSection('customers-edit'); // Treating view as edit for now
+                    }}
                 />;
             case "customers-import":
                 return <ImportCustomers
@@ -631,6 +681,60 @@ export default function AdminPage() {
                                 singleButton: true,
                                 onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
                             });
+                        }
+                    }}
+                />;
+
+            case "customers-edit":
+                return <AddCustomerForm
+                    initialData={customerToEdit}
+                    onCancel={() => {
+                        setCustomerToEdit(null);
+                        setActiveSection('customers-all');
+                    }}
+                    onSubmit={async (data) => {
+                        try {
+                            let avatarUrl = customerToEdit?.image_url;
+
+                            if (data.image && data.image instanceof File) {
+                                // Upload new image logic ... (copy from create)
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('file', data.image);
+                                    formData.append('folder', 'Profile_Pictures/Customers');
+                                    formData.append('fileName', data.name.replace(/\s+/g, '_'));
+                                    const uploadResponse = await fetch('/api/imagekit/upload', { method: 'POST', body: formData });
+                                    if (uploadResponse.ok) {
+                                        const uploadData = await uploadResponse.json();
+                                        avatarUrl = uploadData.url;
+                                    }
+                                } catch (e) {
+                                    console.error("Upload error", e);
+                                }
+                            }
+
+                            const payload = {
+                                ...data,
+                                id: customerToEdit.id,
+                                image_url: avatarUrl // Match DB field name
+                            };
+                            delete payload.image;
+
+                            const response = await fetch('/api/admin/customers', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+
+                            if (response.ok) {
+                                fetchCustomers();
+                                setCustomerToEdit(null);
+                                setActiveSection('customers-all');
+                            } else {
+                                console.error('Failed to update customer');
+                            }
+                        } catch (error) {
+                            console.error('Error updating customer:', error);
                         }
                     }}
                 />;
@@ -839,11 +943,7 @@ export default function AdminPage() {
                     </main>
                 </div>
             </div>
-            <LogoutModal
-                isOpen={isLogoutModalOpen}
-                onClose={() => setIsLogoutModalOpen(false)}
-                onConfirm={confirmLogout}
-            />
+            {/* LogoutModal Removed */}
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 title={confirmModal.title}

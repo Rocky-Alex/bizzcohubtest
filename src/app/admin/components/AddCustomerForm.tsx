@@ -6,29 +6,30 @@ import AvatarUploader from '@/components/ui/AvatarUploader';
 interface AddCustomerFormProps {
     onCancel: () => void;
     onSubmit: (data: any) => void;
+    initialData?: any;
 }
 
-export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormProps) {
+export default function AddCustomerForm({ onCancel, onSubmit, initialData }: AddCustomerFormProps) {
     const [formData, setFormData] = useState({
         // Basic
-        name: '',
-        email: '',
-        phone: '',
-        currency: '',
+        name: initialData?.name || '',
+        email: initialData?.email || '',
+        phone: initialData?.phone || '',
+        currency: initialData?.currency || '',
 
         // Billing
-        billingName: '',
-        billingAddress1: '',
-        billingCountry: '',
-        billingState: '',
-        billingCity: '',
+        billingName: initialData?.billing_name || '',
+        billingAddress1: initialData?.billing_address_1 || '',
+        billingCountry: initialData?.billing_country || '',
+        billingState: initialData?.billing_state || '',
+        billingCity: initialData?.billing_city || '',
 
         // Shipping
-        shippingName: '',
-        shippingAddress1: '',
-        shippingCountry: '',
-        shippingState: '',
-        shippingCity: ''
+        shippingName: initialData?.shipping_name || '',
+        shippingAddress1: initialData?.shipping_address_1 || '',
+        shippingCountry: initialData?.shipping_country || '',
+        shippingState: initialData?.shipping_state || '',
+        shippingCity: initialData?.shipping_city || ''
     });
 
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -38,7 +39,12 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
 
-            // Reset dependent fields
+            // Reset dependent fields only if main field changed
+            if (name === 'billingCountry' && name !== 'billingCountry') { // Logic check: only if country changes
+                // Logic error in previous thought: if target name is billingCountry, we reset state/city
+            }
+
+            // Correct logic:
             if (name === 'billingCountry') {
                 newData.billingState = '';
                 newData.billingCity = '';
@@ -67,7 +73,7 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
     return (
         <div className="add-customer-container">
             <div className="add-customer-header">
-                <h2>Add Customer</h2>
+                <h2>{initialData ? 'Edit Customer' : 'Add Customer'}</h2>
             </div>
 
             {/* Basic Details */}
@@ -75,6 +81,7 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
                 <h3 className="section-title">Basic Details</h3>
 
                 <AvatarUploader
+                    currentImage={initialData?.image_url}
                     onImageSelected={(file) => setImageFile(file)}
                     aspect={1}
                 />
@@ -102,6 +109,7 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
                             <option value="USD">USD</option>
                             <option value="EUR">EUR</option>
                             <option value="INR">INR</option>
+                            <option value="AED">AED</option>
                         </select>
                     </div>
                 </div>
@@ -191,7 +199,9 @@ export default function AddCustomerForm({ onCancel, onSubmit }: AddCustomerFormP
 
             <div className="form-footer">
                 <button className="btn-cancel-form" onClick={onCancel}>Cancel</button>
-                <button className="btn-create-submit" onClick={() => onSubmit({ ...formData, image: imageFile })}>Create New</button>
+                <button className="btn-create-submit" onClick={() => onSubmit({ ...formData, image: imageFile })}>
+                    {initialData ? 'Save Changes' : 'Create New'}
+                </button>
             </div>
         </div>
     );

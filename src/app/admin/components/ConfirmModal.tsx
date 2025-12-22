@@ -4,7 +4,7 @@ import '../styles/confirm-modal.css';
 interface ConfirmModalProps {
     isOpen: boolean;
     title: string;
-    message: string;
+    message: React.ReactNode;
     onConfirm: () => void;
     onCancel: () => void;
     confirmText?: string;
@@ -27,18 +27,18 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="custom-modal-overlay">
-            <div className={`custom-modal-content ${type}`}>
-                <div className="icon-wrapper">
+        <div className="admin-confirm-overlay">
+            <div className={`admin-confirm-content ${type}`}>
+                <div className="admin-confirm-icon">
                     {type === 'danger' && <i className="fas fa-exclamation-triangle"></i>}
                     {type === 'info' && <i className="fas fa-info-circle"></i>}
                     {type === 'success' && <i className="fas fa-check-circle"></i>}
                 </div>
                 <h3>{title}</h3>
                 <p>{message}</p>
-                <div className="modal-actions">
-                    {!singleButton && <button className="btn-cancel" onClick={onCancel}>{cancelText}</button>}
-                    <button className={`btn-confirm ${type}`} onClick={onConfirm}>{confirmText}</button>
+                <div className="admin-modal-actions">
+                    {!singleButton && <button className="admin-btn-cancel" onClick={onCancel}>{cancelText}</button>}
+                    <button className={`admin-btn-confirm ${type}`} onClick={onConfirm}>{confirmText}</button>
                 </div>
             </div>
         </div>

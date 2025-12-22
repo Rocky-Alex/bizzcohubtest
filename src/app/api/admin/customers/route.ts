@@ -160,3 +160,87 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to create customer', details: error.message }, { status: 500 });
     }
 }
+
+export async function PUT(request: NextRequest) {
+    try {
+        const body = await request.json();
+
+        if (!body.id) {
+            return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
+        }
+
+        // If 'status' is provided alone, just update status
+        if (body.status && Object.keys(body).length === 2 && body.id) {
+            const updatedCustomer = await sql`
+                UPDATE customers
+                SET status = ${body.status}
+                WHERE id = ${body.id}
+                RETURNING *
+            `;
+            return NextResponse.json({ customer: updatedCustomer[0] });
+        }
+
+        // Full update
+        // Note: Using COALESCE doesn't make sense if we want to allow clearing fields, 
+        // but here we probably want to update with provided values.
+        // We will assume the body contains the full form state or at least the fields that changed.
+
+        // We map frontend field names to DB columns
+        // Frontend: billingName -> DB: billing_name
+        // Frontend: image_url or avatar -> DB: image_url
+
+        const updatedCustomer = await sql`
+            UPDATE customers
+            SET
+                image_url = ${body.image_url || body.avatar}, 
+                name = ${body.name}, 
+                email = ${body.email}, 
+                phone = ${body.phone}, 
+                currency = ${body.currency}, 
+                
+                billing_name = ${body.billingName || body.billing_name}, 
+                billing_address_1 = ${body.billingAddress1 || body.billing_address_1}, 
+                billing_country = ${body.billingCountry || body.billing_country}, 
+                billing_state = ${body.billingState || body.billing_state}, 
+                billing_city = ${body.billingCity || body.billing_city}, 
+                
+                shipping_name = ${body.shippingName || body.shipping_name}, 
+                shipping_address_1 = ${body.shippingAddress1 || body.shipping_address_1}, 
+                shipping_country = ${body.shippingCountry || body.shipping_country}, 
+                shipping_state = ${body.shippingState || body.shipping_state}, 
+                shipping_city = ${body.shippingCity || body.shipping_city},
+                
+                status = ${body.status || 'Active'}
+            WHERE id = ${body.id}
+            RETURNING *
+        `;
+
+        if (updatedCustomer.length === 0) {
+            return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({ customer: updatedCustomer[0] });
+
+    } catch (error: any) {
+        console.error('Error updating customer:', error);
+        return NextResponse.json({ error: 'Failed to update customer', details: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
+        }
+
+        await sql`DELETE FROM customers WHERE id = ${id}`;
+
+        return NextResponse.json({ message: 'Customer deleted successfully' });
+    } catch (error: any) {
+        console.error('Error deleting customer:', error);
+        return NextResponse.json({ error: 'Failed to delete customer', details: error.message }, { status: 500 });
+    }
+}

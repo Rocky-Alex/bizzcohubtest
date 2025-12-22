@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import "../styles/order-list.css";
 import OrderDetailsModal from './OrderDetailsModal';
+import ConfirmModal from './ConfirmModal';
 
 interface Order {
     id: number;
@@ -77,6 +78,21 @@ const OrderList = ({
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
+
     // --- Computed Stats ---
     const stats = useMemo(() => {
         const total = orders.length;
@@ -145,11 +161,25 @@ const OrderList = ({
             } else {
                 const errorData = await response.json();
                 console.error("Status update failed:", errorData);
-                alert(`Failed to update status: ${errorData.error || response.statusText}`);
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: `Failed to update status: ${errorData.error || response.statusText}`,
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (error) {
             console.error("Network error updating status:", error);
-            alert("Error updating status: " + (error instanceof Error ? error.message : String(error)));
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: "Error updating status: " + (error instanceof Error ? error.message : String(error)),
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -355,6 +385,16 @@ const OrderList = ({
                 order={selectedOrder}
                 onClose={() => setIsModalOpen(false)}
                 onUpdateStatus={handleUpdateStatus}
+            />
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
             />
         </div>
     );

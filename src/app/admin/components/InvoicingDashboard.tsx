@@ -1,6 +1,7 @@
 import React from 'react';
 import './InvoicingDashboard.css';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import ConfirmModal from './ConfirmModal';
 
 interface InvoicingDashboardProps {
     setActiveSection: (section: string) => void;
@@ -36,6 +37,21 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
         },
         recentTransactions: [],
         monthlyRevenue: []
+    });
+
+    const [confirmModal, setConfirmModal] = React.useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
     });
 
     const fetchStats = React.useCallback(async () => {
@@ -98,7 +114,14 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                                 const invoices = data.invoices || [];
 
                                 if (invoices.length === 0) {
-                                    alert('No invoices to export');
+                                    setConfirmModal({
+                                        isOpen: true,
+                                        title: 'Info',
+                                        message: 'No invoices to export',
+                                        type: 'info',
+                                        singleButton: true,
+                                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                                    });
                                     return;
                                 }
 
@@ -145,7 +168,14 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
 
                             } catch (error) {
                                 console.error('Export failed:', error);
-                                alert('Failed to export invoices');
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'Error',
+                                    message: 'Failed to export invoices',
+                                    type: 'danger',
+                                    singleButton: true,
+                                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                                });
                             }
                         }}
                         style={{
@@ -365,6 +395,17 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+                confirmText={confirmModal.title.includes('Error') ? 'Close' : 'OK'}
+            />
         </div>
     );
 }

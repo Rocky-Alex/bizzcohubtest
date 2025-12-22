@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmModal from './ConfirmModal';
 
 export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSection: (section: string) => void, onEdit: (invoice: any) => void }) {
     const [invoices, setInvoices] = useState<any[]>([]);
@@ -38,47 +39,52 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
         return () => clearInterval(interval);
     }, []);
 
-    const [confirmationModal, setConfirmationModal] = useState<{ show: boolean; id: number | null; newStatus: string | null }>({
-        show: false,
-        id: null,
-        newStatus: null
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
     });
 
     const handleStatusChange = (id: number, newStatus: string) => {
-        setConfirmationModal({ show: true, id, newStatus });
-    };
+        setConfirmModal({
+            isOpen: true,
+            title: 'Confirm Status Change',
+            message: <span>Are you sure you want to change status to <strong>{newStatus}</strong>?</span>,
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                // Optimistic update
+                setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, status: newStatus } : inv));
 
-    const confirmStatusChange = async () => {
-        const { id, newStatus } = confirmationModal;
-        if (!id || !newStatus) return;
+                try {
+                    const response = await fetch(`/api/admin/invoices/${id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: newStatus })
+                    });
 
-        setConfirmationModal({ show: false, id: null, newStatus: null });
-
-        // Optimistic update
-        setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, status: newStatus } : inv));
-
-        try {
-            const response = await fetch(`/api/admin/invoices/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
-
-            if (!response.ok) {
-                console.error('Failed to update status');
-                // Could fetchInvoices() to revert
-            } else {
-                // Trigger global update
-                window.dispatchEvent(new Event('dashboard-updated'));
-                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+                    if (!response.ok) {
+                        console.error('Failed to update status');
+                        // Could revert here if needed
+                    } else {
+                        // Trigger global update
+                        window.dispatchEvent(new Event('dashboard-updated'));
+                        localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+                    }
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                }
             }
-        } catch (error) {
-            console.error('Error updating status:', error);
-        }
-    };
-
-    const closeConfirmationModal = () => {
-        setConfirmationModal({ show: false, id: null, newStatus: null });
+        });
     };
 
     if (loading) {
@@ -97,12 +103,26 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                 const data = await res.json();
                 setViewData(data);
             } else {
-                alert('Failed to fetch invoice details');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to fetch invoice details',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 setShowViewModal(false);
             }
         } catch (error) {
             console.error(error);
-            alert('Error fetching details');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error fetching details',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
             setShowViewModal(false);
         } finally {
             setLoadingDetails(false);
@@ -110,8 +130,44 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
     };
 
     const handleDelete = (id: number) => {
-        // Reuse confirmation modal for delete, utilizing a special status 'DELETE' to identify action
-        setConfirmationModal({ show: true, id, newStatus: 'DELETE' });
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Invoice',
+            message: 'Are you sure you want to delete this invoice? This action cannot be undone.',
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                // Optimistic Delete
+                setInvoices(prev => prev.filter(i => i.id !== id));
+                try {
+                    const res = await fetch(`/api/admin/invoices/${id}`, { method: 'DELETE' });
+                    if (!res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to delete invoice',
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    } else {
+                        // Trigger global update
+                        window.dispatchEvent(new Event('dashboard-updated'));
+                        localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+                    }
+                } catch (e) {
+                    console.error(e);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Error deleting invoice',
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
+            }
+        });
     };
 
     const handlePayment = async (inv: any) => {
@@ -152,7 +208,14 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
             const data = await res.json();
 
             if (res.ok) {
-                alert(editingPaymentId ? 'Payment updated successfully!' : 'Payment recorded successfully!');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: editingPaymentId ? 'Payment updated successfully!' : 'Payment recorded successfully!',
+                    type: 'success',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
 
                 // Refresh list logic
                 // 1. Update Invoices List locally
@@ -181,11 +244,25 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                 localStorage.setItem('dashboardLastUpdated', Date.now().toString());
 
             } else {
-                alert('Failed to save payment: ' + data.error);
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to save payment: ' + data.error,
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (error) {
             console.error('Error submitting payment:', error);
-            alert('Error submitting payment');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error submitting payment',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -201,53 +278,113 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
     };
 
     const handleDeletePayment = async (payId: number) => {
-        if (!confirm('Are you sure you want to delete this payment record? This will adjust the invoice balance.')) return;
         if (!selectedInvoiceId) return;
 
-        try {
-            const res = await fetch(`/api/admin/invoices/${selectedInvoiceId}/payments/${payId}`, {
-                method: 'DELETE'
-            });
-            const data = await res.json();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Payment',
+            message: 'Are you sure you want to delete this payment record? This will adjust the invoice balance.',
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await fetch(`/api/admin/invoices/${selectedInvoiceId}/payments/${payId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
 
-            if (res.ok) {
-                alert('Payment deleted successfully.');
-                // Update Invoice List
-                setInvoices(prev => prev.map(inv => inv.id === selectedInvoiceId ? {
-                    ...inv,
-                    status: data.newStatus,
-                    advance_received: data.newPaid
-                } : inv));
+                    if (res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Success',
+                            message: 'Payment deleted successfully.',
+                            type: 'success',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                        // Update Invoice List
+                        setInvoices(prev => prev.map(inv => inv.id === selectedInvoiceId ? {
+                            ...inv,
+                            status: data.newStatus,
+                            advance_received: data.newPaid
+                        } : inv));
 
-                // Refresh History
-                setPaymentHistory(prev => prev.filter(p => p.id !== payId));
+                        // Refresh History
+                        setPaymentHistory(prev => prev.filter(p => p.id !== payId));
 
-                // Trigger global update
-                window.dispatchEvent(new Event('dashboard-updated'));
-                localStorage.setItem('dashboardLastUpdated', Date.now().toString());
-            } else {
-                alert('Failed to delete: ' + data.error);
+                        // Trigger global update
+                        window.dispatchEvent(new Event('dashboard-updated'));
+                        localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+                    } else {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to delete: ' + data.error,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error deleting payment:', error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Error deleting payment',
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        } catch (error) {
-            console.error('Error deleting payment:', error);
-        }
+        });
     };
 
     const handleSendReceipt = async (payId: number) => {
         if (!selectedInvoiceId) return;
-        if (!confirm('Send payment receipt to customer?')) return;
-        try {
-            const res = await fetch(`/api/admin/invoices/${selectedInvoiceId}/payments/${payId}/send`, { method: 'POST' });
-            if (res.ok) {
-                alert('Receipt sent successfully! (Sent to rishadpnpm@gmail.com for testing)');
-            } else {
-                const data = await res.json();
-                alert('Failed to send: ' + data.error);
+
+        setConfirmModal({
+            isOpen: true,
+            title: 'Send Receipt',
+            message: 'Send payment receipt to customer?',
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await fetch(`/api/admin/invoices/${selectedInvoiceId}/payments/${payId}/send`, { method: 'POST' });
+                    if (res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Success',
+                            message: 'Receipt sent successfully! (Sent to rishadpnpm@gmail.com for testing)',
+                            type: 'success',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    } else {
+                        const data = await res.json();
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to send: ' + data.error,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (e) {
+                    console.error(e);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'Error sending receipt',
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
-        } catch (e) {
-            console.error(e);
-            alert('Error sending receipt');
-        }
+        });
     };
 
     const handlePrintReceipt = (pay: any) => {
@@ -257,7 +394,14 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
 
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
-            alert('Please allow popups');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Please allow popups to print',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
@@ -319,7 +463,14 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
             // Generate HTML
             const printWindow = window.open('', '_blank');
             if (!printWindow) {
-                alert('Please allow popups to print');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Please allow popups to print',
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
                 return;
             }
 
@@ -534,7 +685,14 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
 
         } catch (error) {
             console.error('Error printing:', error);
-            alert('Failed to print invoice');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to print invoice',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -543,61 +701,68 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
         if (!inv) return;
 
         if (!inv.customer_email) {
-            alert('This invoice does not have a customer email associated with it.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'No Email',
+                message: 'This invoice does not have a customer email associated with it.',
+                type: 'info',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
-        if (!confirm(`Send Invoice #${inv.invoice_no} to ${inv.customer_email}?`)) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Send Invoice',
+            message: `Send Invoice #${inv.invoice_no} to ${inv.customer_email}?`,
+            type: 'info',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    // Optimistic feedback? No, wait for result.
+                    const res = await fetch(`/api/admin/invoices/${id}/send`, { method: 'POST' });
+                    const data = await res.json();
 
-        try {
-            // Optimistic feedback? No, wait for result.
-            const res = await fetch(`/api/admin/invoices/${id}/send`, { method: 'POST' });
-            const data = await res.json();
-
-            if (res.ok) {
-                alert('Invoice email sent successfully! (Sent to rishadpnpm@gmail.com for testing)');
-                // Refresh list to show 'Sent' status if backend updated it
-                // fetching invoices again or updating state locally
-                setInvoices(prev => prev.map(item => item.id === id ? { ...item, status: 'Sent' } : item));
-            } else {
-                alert('Failed to send invoice: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Error sending invoice:', error);
-            alert('An error occurred while sending the invoice.');
-        }
-    };
-
-    // Refactored Confirm Action
-    const confirmAction = async () => {
-        const { id, newStatus } = confirmationModal;
-        if (!id || !newStatus) return;
-
-        setConfirmationModal({ show: false, id: null, newStatus: null });
-
-        if (newStatus === 'DELETE') {
-            // Optimistic Delete
-            setInvoices(prev => prev.filter(i => i.id !== id));
-            try {
-                const res = await fetch(`/api/admin/invoices/${id}`, { method: 'DELETE' });
-                if (!res.ok) {
-                    alert('Failed to delete invoice');
-                    // Revert (fetch)
-                    // ... fetchInvoices() logic reuse issues if not pulled out. Warning.
-                } else {
-                    // Trigger global update
-                    window.dispatchEvent(new Event('dashboard-updated'));
-                    localStorage.setItem('dashboardLastUpdated', Date.now().toString());
+                    if (res.ok) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Success',
+                            message: 'Invoice email sent successfully! (Sent to rishadpnpm@gmail.com for testing)',
+                            type: 'success',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                        // Refresh list to show 'Sent' status if backend updated it
+                        // fetching invoices again or updating state locally
+                        setInvoices(prev => prev.map(item => item.id === id ? { ...item, status: 'Sent' } : item));
+                    } else {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Error',
+                            message: 'Failed to send invoice: ' + data.error,
+                            type: 'danger',
+                            singleButton: true,
+                            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error sending invoice:', error);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: 'An error occurred while sending the invoice.',
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
                 }
-            } catch (e) {
-                console.error(e);
-                alert('Error deleting invoice');
             }
-        } else {
-            // Status Update
-            confirmStatusChange();
-        }
+        });
     };
+
+    // Confirm Action Removed - Handled by closure in handlers
+
 
     return (
         <div style={{ padding: '2rem', background: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -739,39 +904,15 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
             </table>
 
             {/* Confirmation Modal */}
-            {
-                confirmationModal.show && (
-                    <div style={{
-                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center', zIndex: 1000
-                    }}>
-                        <div style={{
-                            background: 'white', padding: '2rem', borderRadius: '12px', width: '400px', maxWidth: '90%',
-                            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
-                        }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>
-                                {confirmationModal.newStatus === 'DELETE' ? 'Delete Invoice' : 'Confirm Status Change'}
-                            </h3>
-                            <p style={{ color: '#4b5563', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-                                {confirmationModal.newStatus === 'DELETE'
-                                    ? 'Are you sure you want to delete this invoice? This action cannot be undone.'
-                                    : <span>Are you sure you want to change status to <strong style={{ color: '#000' }}>{confirmationModal.newStatus}</strong>?</span>}
-                            </p>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                                <button onClick={closeConfirmationModal}
-                                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', cursor: 'pointer' }}>
-                                    Cancel
-                                </button>
-                                <button onClick={confirmAction}
-                                    style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', background: confirmationModal.newStatus === 'DELETE' ? '#dc2626' : '#ea580c', color: 'white', cursor: 'pointer' }}>
-                                    Confirm
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
 
             {/* View Modal */}
             {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-invoice.css';
+import ConfirmModal from './ConfirmModal';
 
 interface CreateInvoiceProps {
     setActiveSection: (section: string) => void;
@@ -19,6 +20,21 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
     // --- State ---
     const [isEditing, setIsEditing] = useState(false);
     const [originalId, setOriginalId] = useState<number | null>(null);
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
 
     const [invoiceNo, setInvoiceNo] = useState("INV0001");
     const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -254,15 +270,38 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
                 window.dispatchEvent(new Event('dashboard-updated'));
                 localStorage.setItem('dashboardLastUpdated', Date.now().toString());
 
-                alert(isEditing ? 'Invoice updated successfully!' : 'Invoice created successfully!');
-                setActiveSection('invoicing-dashboard');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: isEditing ? 'Invoice updated successfully!' : 'Invoice created successfully!',
+                    type: 'success',
+                    singleButton: true,
+                    onConfirm: () => {
+                        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                        setActiveSection('invoicing-dashboard');
+                    }
+                });
             } else {
                 const error = await response.json();
-                alert(`Failed to ${isEditing ? 'update' : 'save'} invoice: ` + error.error);
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: `Failed to ${isEditing ? 'update' : 'save'} invoice: ` + error.error,
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (error) {
             console.error('Error saving invoice:', error);
-            alert('An error occurred while saving the invoice.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while saving the invoice.',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -616,6 +655,15 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
         </div>
     );
 }

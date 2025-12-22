@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-invoice.css';
+import ConfirmModal from './ConfirmModal';
 
 interface CreateQuotationProps {
     setActiveSection: (section: string) => void;
@@ -19,6 +20,21 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
     // --- State ---
     const [isEditing, setIsEditing] = useState(false);
     const [originalId, setOriginalId] = useState<number | null>(null);
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        type: 'danger' | 'info' | 'success';
+        singleButton?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
 
     const [quotationNo, setQuotationNo] = useState("QTN0001");
     const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -233,15 +249,38 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
             });
 
             if (response.ok) {
-                alert(isEditing ? 'Quotation updated successfully!' : 'Quotation created successfully!');
-                setActiveSection('invoicing-dashboard');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: isEditing ? 'Quotation updated successfully!' : 'Quotation created successfully!',
+                    type: 'success',
+                    singleButton: true,
+                    onConfirm: () => {
+                        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                        setActiveSection('invoicing-dashboard');
+                    }
+                });
             } else {
                 const error = await response.json();
-                alert(`Failed to ${isEditing ? 'update' : 'save'} quotation: ` + (error.error || 'Unknown error'));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: `Failed to ${isEditing ? 'update' : 'save'} quotation: ` + (error.error || 'Unknown error'),
+                    type: 'danger',
+                    singleButton: true,
+                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (error) {
             console.error('Error saving quotation:', error);
-            alert('An error occurred while saving the quotation.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while saving the quotation.',
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
         }
     };
 
@@ -590,6 +629,15 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                singleButton={confirmModal.singleButton}
+            />
         </div>
     );
 }
