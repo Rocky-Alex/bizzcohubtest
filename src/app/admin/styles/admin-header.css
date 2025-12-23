@@ -200,6 +200,44 @@
     overflow: hidden;
 }
 
+/* Profile Dropdown Header */
+.profile-dropdown-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.profile-dropdown-header .user-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.profile-dropdown-header .user-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.profile-dropdown-header .user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-dropdown-header .user-role {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: capitalize;
+}
+
 .dropdown-item {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;

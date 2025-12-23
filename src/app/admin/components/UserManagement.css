@@ -167,24 +167,7 @@
     text-align: center;
 }
 
-.settings-icon {
-    background: #f97316;
-    color: white;
-    border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
 
-.settings-icon:hover {
-    background: #ea580c;
-    transform: rotate(90deg);
-}
 
 .user-table tbody tr {
     border-bottom: 1px solid #f3f4f6;

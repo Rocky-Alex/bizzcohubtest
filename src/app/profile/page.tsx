@@ -295,7 +295,7 @@ function ProfileContent() {
 
     return (
         <div className={`profile-container theme-${theme}`}>
-            <div className="profile-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 3fr', gap: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div className="profile-layout">
                 {/* Sidebar */}
                 <div className="profile-sidebar-wrapper">
                     <ProfileSidebar

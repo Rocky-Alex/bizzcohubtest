@@ -95,6 +95,39 @@ export default function Contact2Page() {
 
                 </div>
             </div>
+
+            {/* About Section */}
+            <div className="c2-about-section">
+                <div className="c2-container">
+                    <div className="c2-about-content">
+                        <h2>About Us</h2>
+                        <p>
+                            Welcome to Bizz Co Hub, your premier destination for high-quality electronics and tech solutions.
+                            Established with a vision to bridge the gap between premium technology and affordability, we specialize
+                            in offering a curated selection of mobile phones, renewed laptops, desktops, gaming devices, and accessories.
+                        </p>
+                        <p>
+                            Our mission is to empower individuals and businesses by providing reliable, high-performance devices
+                            at competitive prices. Whether you are a student, a creative professional, or an enterprise looking
+                            to upgrade your infrastructure, Bizz Co Hub is committed to delivering excellence with every product.
+                        </p>
+                        <div className="c2-about-stats">
+                            <div className="stat-item">
+                                <span className="stat-number">100+</span>
+                                <span className="stat-label">Happy Customers</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-number">1K+</span>
+                                <span className="stat-label">Products Sold</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-number">24/7</span>
+                                <span className="stat-label">Expert Support</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

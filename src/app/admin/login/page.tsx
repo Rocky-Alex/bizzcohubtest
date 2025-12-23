@@ -29,6 +29,11 @@ export default function AdminLoginPage() {
             const data = await response.json();
 
             if (response.ok && data.success) {
+                // Save admin user to localStorage for UI sync
+                localStorage.setItem('admin_user', JSON.stringify(data.user));
+                // Dispatch event so other components can react immediately if needed
+                window.dispatchEvent(new Event('admin-login'));
+
                 router.push('/admin');
             } else {
                 toast.error(data.message || 'Invalid username or password');

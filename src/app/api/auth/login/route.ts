@@ -79,7 +79,10 @@ export async function POST(request: NextRequest) {
             message: 'Login successful',
             user: {
                 username: user.username,
-                role: user.role
+                role: user.role,
+                name: (user.first_name || user.last_name) ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.username,
+                email: user.email,
+                image_url: user.avatar || user.image_url
             }
         });
 

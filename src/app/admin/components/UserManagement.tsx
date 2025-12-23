@@ -156,9 +156,7 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd, availab
                                 <th>Role</th>
                                 <th>Status</th>
                                 <th className="actions-header">
-                                    <button className="settings-icon">
-                                        <i className="fas fa-cog"></i>
-                                    </button>
+                                    Action
                                 </th>
                             </tr>
                         </thead>
@@ -206,6 +204,7 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd, availab
                                                 <button
                                                     className="action-btn view-btn"
                                                     title="View"
+                                                    onClick={() => openEditModal(user)}
                                                 >
                                                     <i className="fas fa-eye"></i>
                                                 </button>

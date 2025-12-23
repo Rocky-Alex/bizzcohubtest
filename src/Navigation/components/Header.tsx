@@ -205,7 +205,7 @@ export default function Header() {
                                         )}
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="max-w-64 bg-white" align="end">
+                                <DropdownMenuContent className="max-w-64" align="end">
 
 
                                     <DropdownMenuGroup>
@@ -215,11 +215,14 @@ export default function Header() {
                                         <DropdownMenuItem onClick={() => window.location.href = '/profile?view=profile-info'}>
                                             Profile
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => window.location.href = '/orders'}>
+                                        <DropdownMenuItem onClick={() => window.location.href = '/profile?view=orders'}>
                                             Orders
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
-                                            Settings
+                                        <DropdownMenuItem onClick={() => window.location.href = '/profile?view=wishlist'}>
+                                            Wishlist
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => window.location.href = '/profile?view=addresses'}>
+                                            Addresses
                                         </DropdownMenuItem>
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />

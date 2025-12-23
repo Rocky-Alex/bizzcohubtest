@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import "./EditUserModal.css";
 import ConfirmModal from './ConfirmModal';
+import AvatarUploader from './AvatarUploader';
 
 interface User {
     id: string;
@@ -103,44 +104,9 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
         }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            // Check file size (5MB limit)
-            if (file.size > 5 * 1024 * 1024) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: "File size must be less than 5MB",
-                    type: 'danger',
-                    singleButton: true,
-                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
-                });
-                return;
-            }
-
-            // Check file type
-            if (!file.type.match(/image\/(jpeg|png)/)) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: "Only JPEG and PNG files are allowed",
-                    type: 'danger',
-                    singleButton: true,
-                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
-                });
-                return;
-            }
-
-            setFormData(prev => ({ ...prev, image: file }));
-
-            // Create preview
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
+    const handleAvatarChange = (file: File, previewUrl: string) => {
+        setFormData(prev => ({ ...prev, image: file }));
+        setImagePreview(previewUrl);
     };
 
     const validateForm = () => {
@@ -220,30 +186,11 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                 <div className="modal-body">
                     <div className="form-section">
                         <label className="section-label">Image</label>
-                        <div className="image-upload-row">
-                            <div className="image-preview-box">
-                                {imagePreview ? (
-                                    <img src={imagePreview} alt="Preview" />
-                                ) : (
-                                    <div className="placeholder-icon">
-                                        <i className="far fa-image"></i>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="upload-controls">
-                                <label htmlFor="image-upload-edit" className="upload-btn-purple">
-                                    <i className="fas fa-upload"></i> Change Image
-                                </label>
-                                <input
-                                    id="image-upload-edit"
-                                    type="file"
-                                    accept="image/jpeg,image/png"
-                                    onChange={handleImageUpload}
-                                    style={{ display: 'none' }}
-                                />
-                                <p className="upload-help-text">JPG or PNG format, not exceeding 5MB.</p>
-                            </div>
-                        </div>
+                        <AvatarUploader
+                            currentImage={imagePreview}
+                            onImageChange={handleAvatarChange}
+                            imageName={user.name}
+                        />
                     </div>
 
                     <div className="form-grid">

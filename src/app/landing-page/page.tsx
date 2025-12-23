@@ -201,6 +201,18 @@ export default function LandingPage() {
                 </div>
 
                 <div className="new-categories-grid">
+                    {/* Phones - Light Theme */}
+                    <Link href="/products?category=Phones" className="new-category-card light-theme">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80" alt="Phones" />
+                        <div className="new-category-content">
+                            <h3>Phones</h3>
+                            <p>Premium Smartphones</p>
+                            <span className="explore-btn">
+                                Explore <i className="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </Link>
+
                     {/* Renewed Laptops - Light Theme */}
                     <Link href="/products?category=Renewed%20Laptops" className="new-category-card light-theme">
                         <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg?updatedAt=1765186346540" alt="Renewed Laptops" />
@@ -227,24 +239,36 @@ export default function LandingPage() {
                         </div>
                     </Link>
 
-                    {/* Accessories - Light Theme */}
-                    <Link href="/products?category=Accessories" className="new-category-card light-theme">
-                        <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories.jpg?updatedAt=1765254764848" alt="Accessories" />
-                        <div className="new-category-content">
-                            <h3>Accessories</h3>
-                            <p>Complete your setup</p>
-                            <span className="explore-btn">
-                                Explore <i className="fas fa-arrow-right"></i>
-                            </span>
-                        </div>
-                    </Link>
-
                     {/* Gaming Laptops - Dark Theme */}
                     <Link href="/products?category=Gaming%20Laptop" className="new-category-card">
                         <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop.png?updatedAt=1765254743460" alt="Gaming Laptops" />
                         <div className="new-category-content">
                             <h3>Gaming Laptops</h3>
                             <p>Dominate the Game</p>
+                            <span className="explore-btn">
+                                Explore <i className="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </Link>
+
+                    {/* Desktops - Dark Theme */}
+                    <Link href="/products?category=Desktops" className="new-category-card">
+                        <img src="https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=800&q=80" alt="Desktops" />
+                        <div className="new-category-content">
+                            <h3>Desktops</h3>
+                            <p>Ultimate Power</p>
+                            <span className="explore-btn">
+                                Explore <i className="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </Link>
+
+                    {/* Accessories - Light Theme */}
+                    <Link href="/products?category=Accessories" className="new-category-card light-theme">
+                        <img src="https://ik.imagekit.io/kxci2a0h5/landing-page/category-accessories.jpg?updatedAt=1765254764848" alt="Accessories" />
+                        <div className="new-category-content">
+                            <h3>Accessories</h3>
+                            <p>Complete your setup</p>
                             <span className="explore-btn">
                                 Explore <i className="fas fa-arrow-right"></i>
                             </span>

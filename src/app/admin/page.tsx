@@ -937,7 +937,7 @@ export default function AdminPage() {
                 />
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    <AdminHeader onLogout={handleLogout} />
+                    <AdminHeader onLogout={handleLogout} roles={roles.map(r => r.name)} />
                     <main className="admin-content">
                         {renderContent()}
                     </main>
