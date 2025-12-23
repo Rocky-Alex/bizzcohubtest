@@ -19,6 +19,7 @@ import "../styles/header.css";
 import GradientText from "./GradientText";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { useTheme } from "../../context/ThemeContext";
+import imageKitLoader from "@/utils/imageLoader";
 
 export default function Header() {
     const { theme, toggleTheme } = useTheme();
@@ -191,15 +192,17 @@ export default function Header() {
                                 <DropdownMenuTrigger asChild>
                                     <Button size="icon" variant="outline" aria-label="Open account menu" className="header-action-btn" style={{ border: 'none', background: 'transparent', padding: 0, overflow: 'hidden', width: '32px', height: '32px', borderRadius: '50%' }}>
                                         {currentUser.image_url ? (
-                                            <img
-                                                src={currentUser.image_url}
-                                                alt="Profile"
-                                                style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover'
-                                                }}
-                                            />
+                                            <div className="profile-img-container" style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                                <Image
+                                                    loader={imageKitLoader}
+                                                    src={currentUser.image_url}
+                                                    alt="Profile"
+                                                    fill
+                                                    style={{
+                                                        objectFit: 'cover'
+                                                    }}
+                                                />
+                                            </div>
                                         ) : (
                                             <CircleUserRound size={24} strokeWidth={2} aria-hidden="true" />
                                         )}
@@ -220,9 +223,6 @@ export default function Header() {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => window.location.href = '/profile?view=wishlist'}>
                                             Wishlist
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => window.location.href = '/profile?view=addresses'}>
-                                            Addresses
                                         </DropdownMenuItem>
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />

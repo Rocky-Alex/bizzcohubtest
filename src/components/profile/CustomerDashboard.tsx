@@ -147,7 +147,9 @@ export default function CustomerDashboard({ user, theme, onToggleTheme }: Custom
                         {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                     </button>
                     <button className="icon-btn-v2"><Bell size={20} /><span className="badge-dot"></span></button>
-                    <button className="icon-btn-v2"><Settings size={20} /></button>
+                    <button className="icon-btn-v2" onClick={() => window.location.href = '/profile?view=profile-info'} title="Edit Profile">
+                        <Settings size={20} />
+                    </button>
                 </div>
             </header>
 

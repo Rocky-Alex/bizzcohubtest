@@ -1,702 +1,98 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { useEffect, useState, Suspense } from "react";
+import { getProducts } from "@/lib/products";
+import ProductFilters from "./components/ProductFilters";
+import ProductCard from "./components/ProductCard";
+import { Suspense } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
+import "./styles/products.css";
+import { Metadata } from 'next';
 
-interface Product {
-    id: string;
-    productCode: string;
-    name: string;
-    brand: string;
-    price: number;
-    originalPrice?: number;
-    type: 'laptop' | 'accessory';
-    category?: string;
-    images: string[];
-    createdAt: string;
-    stock: number;
+export const dynamic = 'force-dynamic';
+
+interface ProductsPageProps {
+    searchParams: {
+        type?: string;
+        category?: string;
+        brand?: string;
+        priceRange?: string;
+        sortBy?: string;
+    };
 }
 
-function ProductsContent() {
-    const searchParams = useSearchParams();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+export async function generateMetadata({ searchParams }: ProductsPageProps): Promise<Metadata> {
+    const category = searchParams.category && searchParams.category !== 'all' ? searchParams.category : '';
+    const type = searchParams.type && searchParams.type !== 'all' ? searchParams.type : 'Products';
 
-    // Filter states
-    const [selectedType, setSelectedType] = useState<string>('all');
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const [selectedBrand, setSelectedBrand] = useState<string>('all');
-    const [priceRange, setPriceRange] = useState<string>('all');
-    const [sortBy, setSortBy] = useState<string>('newest');
+    return {
+        title: `${category || (type.charAt(0).toUpperCase() + type.slice(1))} | Bizz Co Hub`,
+        description: `Explore our collection of ${category || 'premium refurbished electronics'}. High performance, certified quality, and competitive prices at Bizz Co Hub.`,
+    };
+}
 
-    // Available filter options
-    const [brands, setBrands] = useState<string[]>([]);
-
-    // Filter visibility state
-    const [showFilters, setShowFilters] = useState(false);
-
-    useEffect(() => {
-        fetchProducts();
-    }, []);
-
-    // Sync URL params to state
-    useEffect(() => {
-        const typeParam = searchParams.get('type');
-        const categoryParam = searchParams.get('category');
-        const brandParam = searchParams.get('brand');
-
-        if (typeParam) setSelectedType(typeParam);
-        if (categoryParam) setSelectedCategory(categoryParam);
-        if (brandParam) setSelectedBrand(brandParam);
-    }, [searchParams]);
-
-    useEffect(() => {
-        applyFilters();
-    }, [products, selectedType, selectedCategory, selectedBrand, priceRange, sortBy]);
-
-    const fetchProducts = async () => {
-        try {
-            setLoading(true);
-            const [laptopsRes, accessoriesRes] = await Promise.all([
-                fetch('/api/products?type=laptop'),
-                fetch('/api/products?type=accessory')
-            ]);
-
-            const laptopsData = await laptopsRes.json();
-            const accessoriesData = await accessoriesRes.json();
-
-            const allProducts = [
-                ...(laptopsData.products || []),
-                ...(accessoriesData.products || [])
-            ].filter((p: Product) => p.id && p.type); // Filter out invalid products
-
-            setProducts(allProducts);
-
-            // Extract unique brands using Array.from() instead of spread operator
-            const uniqueBrands = Array.from(new Set(allProducts.map((p: Product) => p.brand))).filter(Boolean);
-            setBrands(uniqueBrands as string[]);
-
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-            setLoading(false);
-        }
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+    // 1. Resolve filters from searchParams
+    const filters = {
+        type: searchParams.type || 'all',
+        category: searchParams.category || 'all',
+        brand: searchParams.brand || 'all',
+        priceRange: searchParams.priceRange || 'all',
+        sortBy: searchParams.sortBy || 'newest',
     };
 
-    const applyFilters = () => {
-        let filtered = [...products];
+    // 2. Fetch all products once to get full brand list and filter what we need
+    // This avoids redundant DB calls while we're doing in-memory filtering anyway
+    const allProducts = await getProducts();
 
-        // Filter by type
-        if (selectedType !== 'all') {
-            filtered = filtered.filter(p => p.type === selectedType);
-        }
-
-        // Filter by category
-        if (selectedCategory !== 'all') {
-            filtered = filtered.filter(p => p.category === selectedCategory);
-        }
-
-        // Filter by brand
-        if (selectedBrand !== 'all') {
-            filtered = filtered.filter(p => p.brand === selectedBrand);
-        }
-
-        // Filter by price range
-        if (priceRange !== 'all') {
-            const [min, max] = priceRange.split('-').map(Number);
-            if (max) {
-                filtered = filtered.filter(p => p.price >= min && p.price <= max);
-            } else {
-                filtered = filtered.filter(p => p.price >= min);
-            }
-        }
-
-        // Sort products
-        switch (sortBy) {
-            case 'newest':
-                filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                break;
-            case 'oldest':
-                filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                break;
-            case 'price-low':
-                filtered.sort((a, b) => a.price - b.price);
-                break;
-            case 'price-high':
-                filtered.sort((a, b) => b.price - a.price);
-                break;
-            case 'name':
-                filtered.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-        }
-
-        setFilteredProducts(filtered);
-    };
-
-    const resetFilters = () => {
-        setSelectedType('all');
-        setSelectedCategory('all');
-        setSelectedBrand('all');
-        setPriceRange('all');
-        setSortBy('newest');
-    };
-
+    // 3. Derive stats and brands from the full list
+    const brands = Array.from(new Set(allProducts.map(p => p.brand))).filter(Boolean);
     const stats = {
-        total: products.length,
-        laptops: products.filter(p => p.type === 'laptop').length,
-        accessories: products.filter(p => p.type === 'accessory').length,
-        filtered: filteredProducts.length
+        total: allProducts.length,
+        laptops: allProducts.filter(p => p.type === 'laptop').length,
+        accessories: allProducts.filter(p => p.type === 'accessory').length,
     };
 
+    // 4. Get the filtered products for display (use the DAL for consistency)
+    const products = await getProducts(filters);
+
     return (
-        <>
-            {/* Hero Section Removed */}
+        <section style={{
+            padding: '40px 20px',
+            background: 'var(--bg-primary)',
+            minHeight: '60vh'
+        }}>
+            <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ProductFilters
+                        stats={stats}
+                        brands={brands}
+                        initialFilters={filters}
+                    />
+                </Suspense>
 
-            {/* Filters and Products Section */}
-            <section style={{
-                padding: '40px 20px',
-                background: 'var(--bg-primary)',
-                minHeight: '60vh'
-            }}>
-                <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                    {/* Toggle Filter Button */}
-                    <div style={{ marginBottom: '20px', marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-                        {/* Quick Categories */}
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            {[
-                                { label: 'Renewed Laptops', type: 'laptop', category: 'Renewed Laptops', brand: 'all' },
-                                { label: 'MacBook', type: 'laptop', category: 'MacBook', brand: 'Apple' },
-                                { label: 'Accessories', type: 'accessory', category: 'Accessories', brand: 'all' },
-                                { label: 'Gaming Laptop', type: 'laptop', category: 'Gaming Laptop', brand: 'all' }
-                            ].map((btn, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => {
-                                        const isSelected = selectedCategory === btn.category;
-                                        if (isSelected) {
-                                            // Deselect
-                                            setSelectedType('all');
-                                            setSelectedCategory('all');
-                                            setSelectedBrand('all');
-                                            // Optional: Update URL to remove params
-                                            const newUrl = new URL(window.location.href);
-                                            newUrl.searchParams.delete('type');
-                                            newUrl.searchParams.delete('category');
-                                            newUrl.searchParams.delete('brand');
-                                            window.history.pushState({}, '', newUrl.toString());
-                                        } else {
-                                            // Select
-                                            setSelectedType(btn.type);
-                                            setSelectedCategory(btn.category);
-                                            setSelectedBrand(btn.brand);
-                                            // Optional: Update URL with new params
-                                            const newUrl = new URL(window.location.href);
-                                            newUrl.searchParams.set('type', btn.type);
-                                            newUrl.searchParams.set('category', btn.category);
-                                            newUrl.searchParams.set('brand', btn.brand);
-                                            window.history.pushState({}, '', newUrl.toString());
-                                        }
-                                    }}
-                                    style={{
-                                        padding: '10px 24px',
-                                        borderRadius: '10px',
-                                        border: (selectedCategory === btn.category) ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                        background: (selectedCategory === btn.category) ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--bg-secondary)',
-                                        color: (selectedCategory === btn.category) ? 'var(--primary)' : 'var(--text-secondary)',
-                                        cursor: 'pointer',
-                                        fontWeight: '600',
-                                        fontSize: '0.95rem',
-                                        transition: 'all 0.2s ease',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                                    }}
-                                    onMouseOver={(e) => {
-                                        if (!(selectedCategory === btn.category)) {
-                                            e.currentTarget.style.borderColor = 'var(--primary)';
-                                            e.currentTarget.style.color = 'var(--primary)';
-                                        }
-                                    }}
-                                    onMouseOut={(e) => {
-                                        if (!(selectedCategory === btn.category)) {
-                                            e.currentTarget.style.borderColor = 'var(--border)';
-                                            e.currentTarget.style.color = 'var(--text-secondary)';
-                                        }
-                                    }}
-                                >
-                                    {btn.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            style={{
-                                padding: '10px 24px',
-                                background: showFilters ? 'var(--primary)' : 'var(--bg-secondary)',
-                                color: showFilters ? 'white' : 'var(--primary)',
-                                border: '2px solid var(--primary)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: '600',
-                                fontSize: '1rem',
-                                transition: 'all 0.3s ease',
-                                boxShadow: '0 4px 6px rgba(0, 123, 255, 0.15)',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}
-                            onMouseOver={(e) => {
-                                if (!showFilters) {
-                                    e.currentTarget.style.background = 'var(--primary)';
-                                    e.currentTarget.style.color = 'white';
-                                }
-                            }}
-                            onMouseOut={(e) => {
-                                if (!showFilters) {
-                                    e.currentTarget.style.background = 'var(--bg-secondary)';
-                                    e.currentTarget.style.color = 'var(--primary)';
-                                }
-                            }}
-                        >
-                            <i className={`fas fa-${showFilters ? 'times' : 'filter'}`}></i>
-                            {showFilters ? 'Hide Filters' : 'Show Filters'}
-                        </button>
+                {products.length === 0 ? (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '60px 20px',
+                        background: 'var(--bg-secondary)',
+                        borderRadius: '16px',
+                        border: '1px solid var(--border)'
+                    }}>
+                        <i className="fas fa-box-open" style={{ fontSize: '4rem', color: 'var(--text-tertiary)', marginBottom: '20px' }}></i>
+                        <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', marginBottom: '10px' }}>No Products Found</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Try adjusting your filters to see more results</p>
                     </div>
+                ) : (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                        gap: '30px'
+                    }}>
+                        {products.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+                )}
+            </div>
 
-                    {/* Filter Bar - Collapsible */}
-                    {showFilters && (
-                        <div style={{
-                            background: 'var(--bg-secondary)',
-                            borderRadius: '16px',
-                            padding: '30px',
-                            marginBottom: '40px',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                            animation: 'slideDown 0.3s ease-out',
-                            border: '1px solid var(--border)'
-                        }}>
-                            <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                marginBottom: '20px',
-                                flexWrap: 'wrap',
-                                gap: '15px'
-                            }}>
-                                <h2 style={{
-                                    fontSize: '1.5rem',
-                                    fontWeight: '700',
-                                    color: 'var(--text-primary)',
-                                    margin: 0
-                                }}>
-                                    <i className="fas fa-sliders-h" style={{ marginRight: '10px', color: '#007bff' }}></i>
-                                    Filter Options
-                                </h2>
-                                <button
-                                    onClick={resetFilters}
-                                    style={{
-                                        padding: '10px 20px',
-                                        background: 'var(--bg-tertiary)',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        fontWeight: '600',
-                                        color: 'var(--text-secondary)',
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-primary)'}
-                                    onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
-                                >
-                                    <i className="fas fa-redo" style={{ marginRight: '8px' }}></i>
-                                    Reset All
-                                </button>
-                            </div>
-
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                                gap: '20px'
-                            }}>
-                                {/* Type Filter */}
-                                <div>
-                                    <label style={{
-                                        display: 'block',
-                                        marginBottom: '8px',
-                                        fontWeight: '600',
-                                        color: '#374151',
-                                        fontSize: '0.9rem'
-                                    }}>
-                                        <i className="fas fa-laptop" style={{ marginRight: '8px', color: '#007bff' }}></i>
-                                        Product Type
-                                    </label>
-                                    <select
-                                        value={selectedType}
-                                        onChange={(e) => setSelectedType(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px',
-                                            borderRadius: '8px',
-                                            border: '2px solid var(--border)',
-                                            fontSize: '0.95rem',
-                                            cursor: 'pointer',
-                                            transition: 'border-color 0.3s ease',
-                                            background: 'var(--bg-tertiary)',
-                                            color: 'var(--text-primary)'
-                                        }}
-                                    >
-                                        <option value="all">All Products ({stats.total})</option>
-                                        <option value="laptop">Laptops ({stats.laptops})</option>
-                                        <option value="accessory">Accessories ({stats.accessories})</option>
-                                    </select>
-                                </div>
-
-                                {/* Brand Filter */}
-                                <div>
-                                    <label style={{
-                                        display: 'block',
-                                        marginBottom: '8px',
-                                        fontWeight: '600',
-                                        color: 'var(--text-primary)',
-                                        fontSize: '0.9rem'
-                                    }}>
-                                        <i className="fas fa-tag" style={{ marginRight: '8px', color: '#007bff' }}></i>
-                                        Brand
-                                    </label>
-                                    <select
-                                        value={selectedBrand}
-                                        onChange={(e) => setSelectedBrand(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px',
-                                            borderRadius: '8px',
-                                            border: '2px solid var(--border)',
-                                            fontSize: '0.95rem',
-                                            cursor: 'pointer',
-                                            background: 'var(--bg-tertiary)',
-                                            color: 'var(--text-primary)'
-                                        }}
-                                    >
-                                        <option value="all">All Brands</option>
-                                        {brands.map((brand: string) => (
-                                            <option key={brand} value={brand}>{brand}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Price Range Filter */}
-                                <div>
-                                    <label style={{
-                                        display: 'block',
-                                        marginBottom: '8px',
-                                        fontWeight: '600',
-                                        color: 'var(--text-primary)',
-                                        fontSize: '0.9rem'
-                                    }}>
-                                        <i className="fas fa-dollar-sign" style={{ marginRight: '8px', color: '#007bff' }}></i>
-                                        Price Range
-                                    </label>
-                                    <select
-                                        value={priceRange}
-                                        onChange={(e) => setPriceRange(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px',
-                                            borderRadius: '8px',
-                                            border: '2px solid var(--border)',
-                                            fontSize: '0.95rem',
-                                            cursor: 'pointer',
-                                            background: 'var(--bg-tertiary)',
-                                            color: 'var(--text-primary)'
-                                        }}
-                                    >
-                                        <option value="all">All Prices</option>
-                                        <option value="0-10000">Under ₹10,000</option>
-                                        <option value="10000-25000">₹10,000 - ₹25,000</option>
-                                        <option value="25000-50000">₹25,000 - ₹50,000</option>
-                                        <option value="50000-75000">₹50,000 - ₹75,000</option>
-                                        <option value="75000-999999">Above ₹75,000</option>
-                                    </select>
-                                </div>
-
-                                {/* Sort By */}
-                                <div>
-                                    <label style={{
-                                        display: 'block',
-                                        marginBottom: '8px',
-                                        fontWeight: '600',
-                                        color: 'var(--text-primary)',
-                                        fontSize: '0.9rem'
-                                    }}>
-                                        <i className="fas fa-sort" style={{ marginRight: '8px', color: '#007bff' }}></i>
-                                        Sort By
-                                    </label>
-                                    <select
-                                        value={sortBy}
-                                        onChange={(e) => setSortBy(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px',
-                                            borderRadius: '8px',
-                                            border: '2px solid var(--border)',
-                                            fontSize: '0.95rem',
-                                            cursor: 'pointer',
-                                            background: 'var(--bg-tertiary)',
-                                            color: 'var(--text-primary)'
-                                        }}
-                                    >
-                                        <option value="newest">Newest First</option>
-                                        <option value="oldest">Oldest First</option>
-                                        <option value="price-low">Price: Low to High</option>
-                                        <option value="price-high">Price: High to Low</option>
-                                        <option value="name">Name: A to Z</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {loading ? (
-                        <LoadingSpinner fullScreen />
-                    ) : filteredProducts.length === 0 ? (
-                        <div style={{
-                            textAlign: 'center',
-                            padding: '60px 20px',
-                            background: 'var(--bg-secondary)',
-                            borderRadius: '16px',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                            border: '1px solid var(--border)'
-                        }}>
-                            <i className="fas fa-box-open" style={{ fontSize: '4rem', color: 'var(--text-tertiary)', marginBottom: '20px' }}></i>
-                            <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', marginBottom: '10px' }}>No Products Found</h3>
-                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Try adjusting your filters to see more results</p>
-                            <button
-                                onClick={resetFilters}
-                                style={{
-                                    padding: '12px 24px',
-                                    background: '#007bff',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontWeight: '600',
-                                    fontSize: '1rem'
-                                }}
-                            >
-                                Reset Filters
-                            </button>
-                        </div>
-                    ) : (
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                            gap: '30px'
-                        }}>
-                            {filteredProducts.map((product) => (
-                                <Link
-                                    key={product.id}
-                                    href={`/products/${product.type}/${product.id}`}
-                                    style={{ textDecoration: 'none' }}
-                                >
-                                    <div className="product-card" style={{
-                                        background: 'var(--bg-secondary)',
-                                        borderRadius: '16px',
-                                        overflow: 'hidden',
-                                        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.08)',
-                                        border: '1px solid var(--border)',
-                                        transition: 'all 0.3s ease',
-                                        cursor: 'pointer',
-                                        height: '100%',
-                                        display: 'flex',
-                                        flexDirection: 'column'
-                                    }}>
-                                        {/* Product Image */}
-                                        <div style={{
-                                            width: '100%',
-                                            height: '190px',
-                                            overflow: 'hidden',
-                                            background: 'var(--bg-tertiary)',
-                                            position: 'relative'
-                                        }}>
-                                            <img
-                                                src={product.images?.[0] || '/uploads/placeholder.jpg'}
-                                                alt={product.name}
-                                                style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'cover',
-                                                    transition: 'transform 0.5s ease'
-                                                }}
-                                                className="product-image"
-                                            />
-                                            {product.originalPrice && product.originalPrice > product.price && (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    top: '15px',
-                                                    left: '15px',
-                                                    width: '75px',
-                                                    height: '28px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    background: '#ef4444',
-                                                    color: 'white',
-                                                    borderRadius: '20px',
-                                                    fontWeight: '600',
-                                                    fontSize: '0.65rem',
-                                                    zIndex: 10,
-                                                    whiteSpace: 'nowrap'
-                                                }}>
-                                                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
-                                                </div>
-                                            )}
-                                            {product.stock <= 5 && product.stock > 0 && (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    top: '15px',
-                                                    right: '15px',
-                                                    width: '75px',
-                                                    height: '28px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    background: '#f59e0b',
-                                                    color: 'white',
-                                                    borderRadius: '20px',
-                                                    fontWeight: '600',
-                                                    fontSize: '0.65rem',
-                                                    zIndex: 10,
-                                                    whiteSpace: 'nowrap'
-                                                }}>
-                                                    Only {product.stock} left
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Product Info */}
-                                        <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                marginBottom: '10px'
-                                            }}>
-                                                <span style={{
-                                                    fontSize: '0.7rem',
-                                                    color: 'var(--text-secondary)',
-                                                    textTransform: 'uppercase',
-                                                    fontWeight: '600',
-                                                    letterSpacing: '0.5px'
-                                                }}>
-                                                    {product.brand}
-                                                </span>
-                                                <span style={{
-                                                    fontSize: '0.7rem',
-                                                    color: 'var(--text-tertiary)',
-                                                    fontWeight: '500'
-                                                }}>
-                                                    {product.productCode}
-                                                </span>
-                                            </div>
-
-                                            <h3 style={{
-                                                fontSize: '0.75rem',
-                                                fontWeight: '700',
-                                                color: 'var(--text-primary)',
-                                                marginBottom: '12px',
-                                                lineHeight: '1.4',
-                                                flex: 1
-                                            }}>
-                                                {product.name}
-                                            </h3>
-
-                                            <div style={{ marginTop: 'auto' }}>
-                                                <div style={{
-                                                    display: 'flex',
-                                                    alignItems: 'baseline',
-                                                    gap: '10px',
-                                                    marginBottom: '12px'
-                                                }}>
-                                                    <span style={{
-                                                        fontSize: '1.2rem',
-                                                        fontWeight: '700',
-                                                        color: 'var(--primary)'
-                                                    }}>
-                                                        ₹{product.price.toLocaleString()}
-                                                    </span>
-                                                    {product.originalPrice && product.originalPrice > product.price && (
-                                                        <span style={{
-                                                            fontSize: '0.9rem',
-                                                            color: 'var(--text-tertiary)',
-                                                            textDecoration: 'line-through'
-                                                        }}>
-                                                            ₹{product.originalPrice.toLocaleString()}
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center'
-                                                }}>
-                                                    <span style={{
-                                                        fontSize: '0.7rem',
-                                                        color: product.stock > 0 ? '#10b981' : '#ef4444',
-                                                        fontWeight: '600'
-                                                    }}>
-                                                        <i className={`fas fa-${product.stock > 0 ? 'check-circle' : 'times-circle'}`} style={{ marginRight: '5px' }}></i>
-                                                        {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                                                    </span>
-                                                    <span style={{
-                                                        color: 'var(--primary)',
-                                                        fontWeight: '600',
-                                                        fontSize: '0.7rem'
-                                                    }}>
-                                                        View Details →
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            <style jsx>{`
-                @keyframes slideDown {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                .product-card:hover {
-                    transform: translateY(-8px);
-                    box-shadow: 0 12px 40px rgba(0, 123, 255, 0.15) !important;
-                }
-                .product-card:hover .product-image {
-                    transform: scale(1.1);
-                }
-                select:focus {
-                    outline: none;
-                    border-color: #007bff !important;
-                }
-            `}</style>
-        </>
-    );
-}
-
-export default function ProductsPage() {
-    return (
-        <Suspense fallback={<LoadingSpinner fullScreen />}>
-            <ProductsContent />
-        </Suspense>
+        </section>
     );
 }

@@ -1,6 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { User, Package, Wallet, Folder, ChevronRight, Power } from 'lucide-react';
+import Image from 'next/image';
+import imageKitLoader from '@/utils/imageLoader';
 import './ProfileSidebar.css';
 
 interface ProfileSidebarProps {
@@ -36,7 +38,16 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             <div className="sidebar-user-card">
                 <div className="user-avatar-container">
                     {user.image_url ? (
-                        <img src={user.image_url} alt="Profile" className="sidebar-avatar" />
+                        <div className="sidebar-avatar-wrapper" style={{ position: 'relative', width: '50px', height: '50px', borderRadius: '50%', overflow: 'hidden' }}>
+                            <Image
+                                loader={imageKitLoader}
+                                src={user.image_url}
+                                alt="Profile"
+                                fill
+                                style={{ objectFit: 'cover' }}
+                                className="sidebar-avatar"
+                            />
+                        </div>
                     ) : (
                         <div className="sidebar-avatar-placeholder">
                             <User size={24} />
@@ -64,10 +75,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                             Dashboard
                         </a>
                         <a href="#" onClick={(e) => handleNav('profile-info', e)} className={`submenu-item ${activeSection === 'profile-info' ? 'active' : ''}`}>
-                            Profile Information
-                        </a>
-                        <a href="#" onClick={(e) => handleNav('addresses', e)} className={`submenu-item ${activeSection === 'addresses' ? 'active' : ''}`}>
-                            Manage Addresses
+                            Manage Profile
                         </a>
                     </div>
                 </div>

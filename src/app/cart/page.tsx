@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getCart, updateCartItemQuantity, removeFromCart, CartItem } from "@/utils/cart";
+import Image from "next/image";
+import imageKitLoader from "@/utils/imageLoader";
 import "./styles/cart.css";
 
 export default function CartPage() {
@@ -61,7 +63,14 @@ export default function CartPage() {
                                 {cartItems.map((item, idx) => (
                                     <div key={`${item.id}-${idx}`} className="cart-item">
                                         <div className="item-image">
-                                            <img src={item.image || '/placeholder.svg'} alt={item.name} />
+                                            <Image
+                                                src={item.image || '/placeholder.svg'}
+                                                alt={item.name}
+                                                width={100}
+                                                height={100}
+                                                loader={imageKitLoader}
+                                                className="object-contain"
+                                            />
                                         </div>
 
                                         <div className="item-details-col">

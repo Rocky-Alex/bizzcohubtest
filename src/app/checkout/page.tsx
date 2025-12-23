@@ -7,6 +7,8 @@ import { getCart, clearCart, CartItem } from "@/utils/cart";
 import "./styles/checkout.css";
 import { toast } from "sonner";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import Image from "next/image";
+import imageKitLoader from "@/utils/imageLoader";
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -328,7 +330,16 @@ export default function CheckoutPage() {
                             <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1.5rem' }}>
                                 {cartItems.map((item, idx) => (
                                     <div key={`${item.id}-${idx}`} className="order-summary-item">
-                                        <img src={item.image || '/placeholder.svg'} alt={item.name} className="summary-img" />
+                                        <div style={{ position: 'relative', width: '50px', height: '50px', flexShrink: 0, borderRadius: '4px', overflow: 'hidden', background: 'var(--bg-secondary)' }}>
+                                            <Image
+                                                loader={imageKitLoader}
+                                                src={item.image || '/placeholder.svg'}
+                                                alt={item.name}
+                                                fill
+                                                style={{ objectFit: 'cover' }}
+                                                className="summary-img"
+                                            />
+                                        </div>
                                         <div className="summary-details">
                                             <span className="summary-name">{item.name}</span>
                                             <span className="summary-qty">Qty: {item.quantity}</span>

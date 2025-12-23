@@ -1,7 +1,11 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import ConfirmModal from '../ui/ConfirmModal';
+import Image from 'next/image';
+import imageKitLoader from '@/utils/imageLoader';
 import './profile-orders.css';
 
 interface OrderItem {
@@ -199,10 +203,13 @@ export default function ProfileOrders({ filterType, user }: ProfileOrdersProps) 
                                 <div className="order-items-list">
                                     {order.items.map((item, idx) => (
                                         <div key={idx} className="order-item-row">
-                                            <img
+                                            <Image
                                                 src={item.image || '/placeholder.svg'}
                                                 alt={item.name}
-                                                className="item-image"
+                                                width={60}
+                                                height={60}
+                                                loader={imageKitLoader}
+                                                className="item-image object-contain"
                                             />
                                             <div className="item-details">
                                                 <h4 className="item-name">{item.name}</h4>

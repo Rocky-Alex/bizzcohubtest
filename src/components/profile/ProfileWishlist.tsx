@@ -1,7 +1,10 @@
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import Image from 'next/image';
+import imageKitLoader from '@/utils/imageLoader';
 import './profile-wishlist.css';
 
 interface WishlistItem {
@@ -102,7 +105,14 @@ export default function ProfileWishlist({ user }: { user: any }) {
                     return (
                         <div key={item.wishlist_id} className="wishlist-item">
                             <div className="wishlist-image-container">
-                                <img src={imgUrl} alt={item.name} className="wishlist-image" />
+                                <Image
+                                    src={imgUrl}
+                                    alt={item.name}
+                                    width={120}
+                                    height={120}
+                                    loader={imageKitLoader}
+                                    className="wishlist-image object-contain"
+                                />
                             </div>
 
                             <div className="wishlist-details">

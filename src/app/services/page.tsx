@@ -1,11 +1,18 @@
 import Link from "next/link";
 import "./styles/services.css";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Professional Technology Services | Bizz Co Hub',
+    description: 'Explore Bizz Co Hub\'s comprehensive IT services including premium refurbished hardware, global bulk supply, advanced repair center, and enterprise IT partnerships.',
+    keywords: 'refurbished laptops, IT services, data recovery, bulk electronics, electronics repair, BizzCoHub',
+};
 
 export default function ServicesPage() {
     const services = [
         {
             id: 1,
-            title: "Premium Refurbished & Desktops",
+            title: "Premium Refurbished Laptops & Desktops",
             icon: "fa-laptop-code",
             description: "We provide high-performance, certified refurbished laptops and desktops tailored for students, professionals, and enterprise needs. Every device undergoes rigorous testing.",
             details: [
@@ -23,7 +30,7 @@ export default function ServicesPage() {
             description: "A robust logistics network enabling bulk distribution of electronics across international borders, including specialized handling for emerging markets.",
             details: [
                 "India & South Asia",
-                "Vietnam & ASEAN",
+                "Vietnam & Qatar",
                 "Africa Region",
                 "UAE Local Wholesale"
             ],
@@ -33,7 +40,7 @@ export default function ServicesPage() {
             id: 3,
             title: "Advanced Repair Center",
             icon: "fa-microchip",
-            description: "State-of-the-art repair facility capable of component-level diagnostics and fixes. We revive devices others consider obsolete.",
+            description: "We don't just replace parts; we understand the engineering. Equipped with industry-leading diagnostic tools, we repair faults at the microscopic level—saving your data and your device.",
             details: [
                 "Motherboard Logic",
                 "Screen Replacements",
@@ -44,19 +51,6 @@ export default function ServicesPage() {
         },
         {
             id: 4,
-            title: "Corporate Buyback & Trade-In",
-            icon: "fa-hand-holding-usd",
-            description: "Maximize value from your aging IT infrastructure. We offer competitive buyback rates for corporate lots and individual trade-ins.",
-            details: [
-                "Corporate Bulk Lots",
-                "End-of-Life Assets",
-                "Secure Data Wipe",
-                "Instant Valuation"
-            ],
-            footer: "Eco-friendly Disposal"
-        },
-        {
-            id: 5,
             title: "OS & Software Deployment",
             icon: "fa-cogs",
             description: "Turnkey software solutions ensuring your hardware is ready to deploy immediately upon arrival. Licensed and securely configured.",
@@ -69,7 +63,7 @@ export default function ServicesPage() {
             footer: "Plug-and-Play Ready"
         },
         {
-            id: 6,
+            id: 5,
             title: "Enterprise IT Partnerships",
             icon: "fa-building-shield",
             description: "Long-term strategic support for educational institutions and businesses, ensuring operational continuity through managed services.",
@@ -82,7 +76,7 @@ export default function ServicesPage() {
             footer: "Dedicated Account Managers"
         },
         {
-            id: 7,
+            id: 6,
             title: "Warranty & After-Sales",
             icon: "fa-user-shield",
             description: "Our commitment doesn't end at the sale. Enjoy comprehensive warranty coverage and expert technical guidance for the life of your device.",
@@ -95,7 +89,7 @@ export default function ServicesPage() {
             footer: "Customer First Policy"
         },
         {
-            id: 8,
+            id: 7,
             title: "Custom Configurations",
             icon: "fa-sliders",
             description: "Don't settle for stock specifications. We build machines to your exact requirements for specialized workloads.",
@@ -106,6 +100,20 @@ export default function ServicesPage() {
                 "Custom OS Builds"
             ],
             footer: "Built to Order"
+        },
+
+        {
+            id: 8,
+            title: "Advanced Data Recovery",
+            icon: "fa-database",
+            description: "Unexpected data loss shouldn't mean the end of your business operations. Our forensic-grade recovery labs specialize in retrieving critical information from damaged drives and corrupted systems with industry-standard privacy protocols.",
+            details: [
+                "Data Recovery",
+                "Data Backup",
+                "Data Security",
+                "Data Encryption"
+            ],
+            footer: "Data Recovery"
         }
     ];
 

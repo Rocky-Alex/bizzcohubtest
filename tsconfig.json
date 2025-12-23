@@ -25,7 +25,11 @@
             "@/*": [
                 "./src/*"
             ]
-        }
+        },
+        "types": [
+            "node",
+            "react"
+        ]
     },
     "include": [
         "next-env.d.ts",
