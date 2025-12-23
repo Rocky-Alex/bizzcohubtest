@@ -4,7 +4,9 @@
 .new-categories-section {
     padding: 80px 0;
     position: relative;
-    background: white;
+    padding: 80px 0;
+    position: relative;
+    background: var(--bg-primary);
 }
 
 .new-categories-header {
@@ -16,10 +18,11 @@
 .new-categories-header .pill {
     display: inline-block;
     padding: 8px 16px;
-    background: white;
-    border: 1px solid #030303;
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
     border-radius: 50px;
-    color: #667eea;
+    color: var(--primary);
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -31,7 +34,7 @@
 .new-categories-header h2 {
     font-size: 3.5rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--text-primary);
     margin-bottom: 15px;
     font-family: 'Space Grotesk', sans-serif;
 }
@@ -41,7 +44,7 @@
 }
 
 .new-categories-header p {
-    color: #6b7280;
+    color: var(--text-secondary);
     font-size: 1.1rem;
 }
 

@@ -11,15 +11,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleUserRound } from "lucide-react";
+import { CircleUserRound, Sun, Moon } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import "../styles/header.css";
 import GradientText from "./GradientText";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function Header() {
+    const { theme, toggleTheme } = useTheme();
     const pathname = usePathname();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -146,6 +148,19 @@ export default function Header() {
 
                 {/* Right Side Actions */}
                 <div className="header-actions">
+                    {/* Theme Toggle */}
+                    <button
+                        className="header-action-btn theme-btn"
+                        onClick={toggleTheme}
+                        title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+                    >
+                        {theme === 'light' ? (
+                            <Moon size={20} />
+                        ) : (
+                            <Sun size={20} />
+                        )}
+                    </button>
+
                     {/* Search Button */}
                     <button
                         className="header-action-btn search-btn"
@@ -295,6 +310,41 @@ export default function Header() {
                             E-Commerce
                         </Link>
 
+
+                        <div className="mobile-menu-divider"></div>
+
+                        <button
+                            onClick={() => {
+                                toggleTheme();
+                                setMobileMenuOpen(false);
+                            }}
+                            className="mobile-nav-link"
+                            style={{
+                                width: '100%',
+                                textAlign: 'left',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                fontSize: '15px',
+                                fontWeight: 500,
+                                padding: '12px 0'
+                            }}
+                        >
+                            {theme === 'light' ? (
+                                <>
+                                    <Moon size={18} />
+                                    <span>Dark Mode</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Sun size={18} />
+                                    <span>Light Mode</span>
+                                </>
+                            )}
+                        </button>
 
                         <div className="mobile-menu-divider"></div>
 

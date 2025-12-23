@@ -273,20 +273,7 @@ export default function LandingPage() {
                         <div className="slider-nav-btns" style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
                                 onClick={() => scroll('left')}
-                                style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '50%',
-                                    border: '1px solid #e5e7eb',
-                                    background: 'white',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.background = '#f3f4f6'}
-                                onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                                className="slider-nav-btn"
                             >
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M15 18l-6-6 6-6" />
@@ -294,20 +281,7 @@ export default function LandingPage() {
                             </button>
                             <button
                                 onClick={() => scroll('right')}
-                                style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '50%',
-                                    border: '1px solid #e5e7eb',
-                                    background: 'white',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.background = '#f3f4f6'}
-                                onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                                className="slider-nav-btn"
                             >
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M9 18l6-6-6-6" />

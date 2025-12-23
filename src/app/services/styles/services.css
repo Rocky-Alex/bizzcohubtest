@@ -4,11 +4,12 @@
 
 :root {
     --n-primary: #4079ff;
-    --n-text-dark: #111827;
-    --n-text-light: #4b5563;
-    --n-bg: #ffffff;
-    --n-section-alt: #f8fafc;
-    --n-border: #e2e8f0;
+    /* Map to global theme vars */
+    --n-text-dark: var(--text-primary);
+    --n-text-light: var(--text-secondary);
+    --n-bg: var(--bg-primary);
+    --n-section-alt: var(--bg-secondary);
+    --n-border: var(--border);
 }
 
 .services-page-wrapper {
@@ -22,7 +23,7 @@
 .narrative-hero {
     padding: 120px 24px 80px;
     text-align: center;
-    background: radial-gradient(circle at 50% 0%, #eff6ff 0%, transparent 70%);
+    background: radial-gradient(circle at 50% 0%, var(--bg-secondary) 0%, transparent 70%);
 }
 
 .narrative-hero h1 {
@@ -146,7 +147,7 @@
 }
 
 .visual-card {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 24px;
     padding: 3rem;
     box-shadow:
@@ -188,7 +189,7 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: #f8fafc;
+    background: var(--bg-tertiary);
     padding: 0.75rem;
     font-size: 0.85rem;
     color: var(--n-text-light);
@@ -199,8 +200,8 @@
 .narrative-cta {
     padding: 80px 24px;
     text-align: center;
-    background: #111827;
-    color: white;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .narrative-cta h2 {
@@ -210,8 +211,8 @@
 }
 
 .btn-white {
-    background: white;
-    color: #111827;
+    background: var(--primary);
+    color: white;
     padding: 1rem 3rem;
     border-radius: 50px;
     font-weight: 600;

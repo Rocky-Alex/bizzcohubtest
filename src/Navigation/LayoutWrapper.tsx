@@ -6,6 +6,7 @@ import Footer from "../Footer/Footer";
 import AutoRefresh from "../components/AutoRefresh/AutoRefresh";
 import AutoRefreshCountdown from "../components/AutoRefresh/AutoRefreshCountdown";
 import { ToastProvider } from "../context/ToastContext";
+import { ThemeProvider } from "../context/ThemeContext";
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -13,15 +14,17 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     return (
         <ToastProvider>
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                <AutoRefresh />
-                <AutoRefreshCountdown />
-                {!isAdmin && <Header />}
-                <main className={isAdmin ? '' : 'landing-page'} style={{ flex: 1 }}>
-                    {children}
-                </main>
-                {!isAdmin && <Footer />}
-            </div>
+            <ThemeProvider>
+                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                    <AutoRefresh />
+                    <AutoRefreshCountdown />
+                    {!isAdmin && <Header />}
+                    <main className={isAdmin ? '' : 'landing-page'} style={{ flex: 1 }}>
+                        {children}
+                    </main>
+                    {!isAdmin && <Footer />}
+                </div>
+            </ThemeProvider>
         </ToastProvider>
     );
 }

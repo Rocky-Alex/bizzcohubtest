@@ -1,6 +1,8 @@
 
 "use client";
 
+import { useTheme } from '@/context/ThemeContext';
+
 import React, { useEffect, useState, Suspense } from 'react';
 import './profile.css';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -19,20 +21,7 @@ function ProfileContent() {
     const [userId, setUserId] = useState<number | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [activeView, setActiveView] = useState('dashboard');
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('dashboard-theme') as 'light' | 'dark';
-        if (savedTheme) {
-            setTheme(savedTheme);
-        }
-    }, []);
-
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light';
-        setTheme(newTheme);
-        localStorage.setItem('dashboard-theme', newTheme);
-    };
+    const { theme, toggleTheme } = useTheme();
 
     useEffect(() => {
         const view = searchParams.get('view');

@@ -4,9 +4,9 @@ const LoadingSpinner = ({ fullScreen = false }: { fullScreen?: boolean }) => {
     const spinnerStyle = {
         width: '50px',
         height: '50px',
-        border: '3px solid rgba(0, 0, 0, 0.1)',
+        border: '3px solid var(--border)',
         borderRadius: '50%',
-        borderTop: '3px solid #007bff',
+        borderTop: '3px solid var(--primary)',
         animation: 'spin 1s linear infinite',
     };
 
@@ -16,7 +16,7 @@ const LoadingSpinner = ({ fullScreen = false }: { fullScreen?: boolean }) => {
         left: 0,
         width: '100%',
         height: '100vh',
-        backgroundColor: 'white',
+        backgroundColor: 'var(--bg-primary)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -44,7 +44,7 @@ const LoadingSpinner = ({ fullScreen = false }: { fullScreen?: boolean }) => {
                 `}
             </style>
             <div style={spinnerStyle}></div>
-            <p style={{ color: '#666', fontSize: '0.9rem', fontWeight: 500 }}>Loading...</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Loading...</p>
         </div>
     );
 };

@@ -5,37 +5,7 @@
 /* Import Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
-:root {
-    --primary: #4079ff;
-    --primary-dark: #3360cc;
-    --secondary: #40ffaa;
-    --accent: #4079ff;
-    --success: #10B981;
-    --warning: #F59E0B;
-    --danger: #EF4444;
 
-    --bg-primary: #FFFFFF;
-    --bg-secondary: #F9FAFB;
-    --bg-tertiary: #F3F4F6;
-
-    --text-primary: #111827;
-    --text-secondary: #6B7280;
-    --text-tertiary: #9CA3AF;
-
-    --border: #E5E7EB;
-    --border-light: #F3F4F6;
-
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-}
 
 /* ==========================================
    ANIMATIONS
@@ -127,7 +97,7 @@
 
 .cart-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 50%, #F3F4F6 100%);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 50%, var(--bg-tertiary) 100%);
     padding: 120px 0 80px;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     position: relative;
@@ -169,7 +139,7 @@
     margin-bottom: 2rem;
     padding: 0.75rem 1.25rem;
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(var(--bg-primary-rgb), 0.8);
     backdrop-filter: blur(10px);
     border: 1px solid var(--border-light);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -178,7 +148,7 @@
 
 .back-link:hover {
     color: var(--primary);
-    background: white;
+    background: var(--bg-primary);
     transform: translateX(-5px);
     box-shadow: var(--shadow-md);
 }
@@ -207,7 +177,7 @@
    ========================================== */
 
 .cart-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(var(--bg-primary-rgb), 0.95);
     backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
     padding: 2rem;
@@ -282,7 +252,7 @@
 }
 
 .cart-item:hover {
-    background: white;
+    background: var(--bg-primary);
     box-shadow: var(--shadow-md);
     transform: translateX(5px);
 }
@@ -296,7 +266,7 @@
     height: 100px;
     border-radius: var(--radius-md);
     overflow: hidden;
-    background: white;
+    background: var(--bg-primary);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
     transition: all 0.3s;
@@ -362,7 +332,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 1rem;
-    background: white;
+    background: var(--bg-primary);
     border: 1.5px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
@@ -414,7 +384,7 @@
 .item-price {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #000000;
+    color: var(--text-primary);
     font-family: 'Space Grotesk', sans-serif;
 }
 
@@ -490,7 +460,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     color: var(--text-primary);
-    background: white;
+    background: var(--bg-primary);
     resize: vertical;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -556,7 +526,7 @@
 }
 
 .summary-row.total span:last-child {
-    color: #000000;
+    color: var(--text-primary);
     font-size: 1.75rem;
 }
 

@@ -3,13 +3,14 @@
    ========================================== */
 
 :root {
-    --c2-bg: #0f172a;
-    --c2-card-bg: rgba(30, 41, 59, 0.7);
-    --c2-border: rgba(255, 255, 255, 0.1);
-    --c2-primary: #3b82f6;
-    --c2-accent: #10b981;
-    --c2-text: #f1f5f9;
-    --c2-text-muted: #94a3b8;
+    /* Map to global variables */
+    --c2-bg: var(--bg-primary);
+    --c2-card-bg: var(--bg-secondary);
+    --c2-border: var(--border);
+    --c2-primary: var(--primary);
+    --c2-accent: var(--success);
+    --c2-text: var(--text-primary);
+    --c2-text-muted: var(--text-secondary);
 }
 
 .contact2-wrapper {
@@ -19,7 +20,7 @@
     color: var(--c2-text);
     padding-bottom: 80px;
     background-image:
-        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 10% 20%, rgba(var(--primary-rgb), 0.15) 0%, transparent 40%),
         radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
 }
 
@@ -41,10 +42,8 @@
     font-weight: 700;
     letter-spacing: -1px;
     margin-bottom: 0.5rem;
-    background: linear-gradient(to right, #ffffff, #94a3b8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    color: var(--c2-text);
 }
 
 .contact2-header p {
@@ -85,7 +84,7 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(var(--primary-rgb), 0.1);
     color: var(--c2-primary);
     display: flex;
     align-items: center;
@@ -162,17 +161,17 @@
 .c2-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--c2-text-muted);
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 
 .c2-input {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg-tertiary);
     border: 1px solid var(--c2-border);
     border-radius: 12px;
     padding: 1rem;
-    color: white;
+    color: var(--c2-text);
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
     transition: all 0.2s;
@@ -182,7 +181,7 @@
     outline: none;
     border-color: var(--c2-primary);
     box-shadow: 0 0 0 1px var(--c2-primary);
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--bg-tertiary);
 }
 
 .c2-textarea {
@@ -238,4 +237,25 @@
     .c2-info-card {
         min-width: 100%;
     }
+}
+
+/* Light Mode Overrides for Better Visibility */
+.light .c2-input {
+    background: #ffffff;
+    border-color: #d1d5db;
+    color: #111827;
+}
+
+.light .c2-label {
+    color: #4b5563;
+}
+
+.light .c2-form-header p {
+    color: #64748b !important;
+}
+
+.light .c2-info-card,
+.light .c2-form-card {
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.575);
 }

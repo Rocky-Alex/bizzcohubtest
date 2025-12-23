@@ -8,7 +8,7 @@
 }
 
 :root {
-    /* Colors */
+    /* Colors - Consistent */
     --primary: #4079ff;
     --primary-dark: #3360cc;
     --secondary: #40ffaa;
@@ -17,8 +17,39 @@
     --warning: #F59E0B;
     --danger: #EF4444;
 
+    /* Backgrounds - Default Dark */
+    --bg-primary: #0b0e14;
+    --bg-primary-rgb: 11, 14, 20;
+    --bg-secondary: #151921;
+    --bg-tertiary: #1e293b;
+
+    /* Typography - Default Dark */
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+
+    /* Borders - Default Dark */
+    --border: rgba(255, 255, 255, 0.1);
+    --border-light: rgba(255, 255, 255, 0.05);
+
+    /* Shadows - Default Dark */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+}
+
+.light {
     /* Backgrounds */
     --bg-primary: #FFFFFF;
+    --bg-primary-rgb: 255, 255, 255;
     --bg-secondary: #F9FAFB;
     --bg-tertiary: #F3F4F6;
 
@@ -37,12 +68,6 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-
-    /* Border Radius */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
 }
 
 body {

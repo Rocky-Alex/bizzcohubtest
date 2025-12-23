@@ -5,34 +5,7 @@
 /* Import Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
-:root {
-    --primary: #4079ff;
-    --primary-dark: #3360cc;
-    --secondary: #40ffaa;
-    --accent: #4079ff;
-    --success: #10B981;
-    --warning: #F59E0B;
-    --danger: #EF4444;
 
-    --bg-primary: #FFFFFF;
-    --bg-secondary: #F9FAFB;
-    --bg-tertiary: #F3F4F6;
-
-    --text-primary: #111827;
-    --text-secondary: #6B7280;
-    --text-tertiary: #9CA3AF;
-
-    --border: #E5E7EB;
-    --border-light: #F3F4F6;
-
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-}
 
 /* ==========================================
    ANIMATIONS
@@ -70,7 +43,7 @@
 
 .checkout-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 50%, #F3F4F6 100%);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 50%, var(--bg-tertiary) 100%);
     padding: 120px 0 80px;
     font-family: 'Inter', sans-serif;
     position: relative;
@@ -113,7 +86,7 @@
    ========================================== */
 
 .checkout-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(var(--bg-primary-rgb), 0.95);
     backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
     padding: 2rem;
@@ -176,7 +149,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     color: var(--text-primary);
-    background: #fff;
+    background: var(--bg-primary);
     transition: all 0.3s;
 }
 
@@ -283,13 +256,13 @@
     margin-bottom: 2rem;
     padding: 0.75rem 1.25rem;
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(var(--bg-primary-rgb), 0.8);
     border: 1px solid var(--border-light);
 }
 
 .back-link:hover {
     color: var(--primary);
-    background: white;
+    background: var(--bg-primary);
 }
 
 /* ==========================================

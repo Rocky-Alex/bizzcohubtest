@@ -158,7 +158,7 @@ function ProductsContent() {
             {/* Filters and Products Section */}
             <section style={{
                 padding: '40px 20px',
-                background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
+                background: 'var(--bg-primary)',
                 minHeight: '60vh'
             }}>
                 <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
@@ -203,9 +203,9 @@ function ProductsContent() {
                                     style={{
                                         padding: '10px 24px',
                                         borderRadius: '10px',
-                                        border: (selectedCategory === btn.category) ? '2px solid #007bff' : '1px solid #5c5c5cff',
-                                        background: (selectedCategory === btn.category) ? '#f0f9ff' : 'white',
-                                        color: (selectedCategory === btn.category) ? '#007bff' : '#4b5563',
+                                        border: (selectedCategory === btn.category) ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                        background: (selectedCategory === btn.category) ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--bg-secondary)',
+                                        color: (selectedCategory === btn.category) ? 'var(--primary)' : 'var(--text-secondary)',
                                         cursor: 'pointer',
                                         fontWeight: '600',
                                         fontSize: '0.95rem',
@@ -214,14 +214,14 @@ function ProductsContent() {
                                     }}
                                     onMouseOver={(e) => {
                                         if (!(selectedCategory === btn.category)) {
-                                            e.currentTarget.style.borderColor = '#007bff';
-                                            e.currentTarget.style.color = '#007bff';
+                                            e.currentTarget.style.borderColor = 'var(--primary)';
+                                            e.currentTarget.style.color = 'var(--primary)';
                                         }
                                     }}
                                     onMouseOut={(e) => {
                                         if (!(selectedCategory === btn.category)) {
-                                            e.currentTarget.style.borderColor = '#5c5c5cff';
-                                            e.currentTarget.style.color = '#4b5563';
+                                            e.currentTarget.style.borderColor = 'var(--border)';
+                                            e.currentTarget.style.color = 'var(--text-secondary)';
                                         }
                                     }}
                                 >
@@ -234,9 +234,9 @@ function ProductsContent() {
                             onClick={() => setShowFilters(!showFilters)}
                             style={{
                                 padding: '10px 24px',
-                                background: showFilters ? '#007bff' : 'white',
-                                color: showFilters ? 'white' : '#007bff',
-                                border: '2px solid #007bff',
+                                background: showFilters ? 'var(--primary)' : 'var(--bg-secondary)',
+                                color: showFilters ? 'white' : 'var(--primary)',
+                                border: '2px solid var(--primary)',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontWeight: '600',
@@ -249,14 +249,14 @@ function ProductsContent() {
                             }}
                             onMouseOver={(e) => {
                                 if (!showFilters) {
-                                    e.currentTarget.style.background = '#007bff';
+                                    e.currentTarget.style.background = 'var(--primary)';
                                     e.currentTarget.style.color = 'white';
                                 }
                             }}
                             onMouseOut={(e) => {
                                 if (!showFilters) {
-                                    e.currentTarget.style.background = 'white';
-                                    e.currentTarget.style.color = '#007bff';
+                                    e.currentTarget.style.background = 'var(--bg-secondary)';
+                                    e.currentTarget.style.color = 'var(--primary)';
                                 }
                             }}
                         >
@@ -268,12 +268,13 @@ function ProductsContent() {
                     {/* Filter Bar - Collapsible */}
                     {showFilters && (
                         <div style={{
-                            background: 'white',
+                            background: 'var(--bg-secondary)',
                             borderRadius: '16px',
                             padding: '30px',
                             marginBottom: '40px',
                             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                            animation: 'slideDown 0.3s ease-out'
+                            animation: 'slideDown 0.3s ease-out',
+                            border: '1px solid var(--border)'
                         }}>
                             <div style={{
                                 display: 'flex',
@@ -286,7 +287,7 @@ function ProductsContent() {
                                 <h2 style={{
                                     fontSize: '1.5rem',
                                     fontWeight: '700',
-                                    color: '#1a1a1a',
+                                    color: 'var(--text-primary)',
                                     margin: 0
                                 }}>
                                     <i className="fas fa-sliders-h" style={{ marginRight: '10px', color: '#007bff' }}></i>
@@ -296,16 +297,16 @@ function ProductsContent() {
                                     onClick={resetFilters}
                                     style={{
                                         padding: '10px 20px',
-                                        background: '#f3f4f6',
+                                        background: 'var(--bg-tertiary)',
                                         border: 'none',
                                         borderRadius: '8px',
                                         cursor: 'pointer',
                                         fontWeight: '600',
-                                        color: '#666',
+                                        color: 'var(--text-secondary)',
                                         transition: 'all 0.3s ease'
                                     }}
-                                    onMouseOver={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                    onMouseOut={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-primary)'}
+                                    onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
                                 >
                                     <i className="fas fa-redo" style={{ marginRight: '8px' }}></i>
                                     Reset All
@@ -336,10 +337,12 @@ function ProductsContent() {
                                             width: '100%',
                                             padding: '12px',
                                             borderRadius: '8px',
-                                            border: '2px solid #e5e7eb',
+                                            border: '2px solid var(--border)',
                                             fontSize: '0.95rem',
                                             cursor: 'pointer',
-                                            transition: 'border-color 0.3s ease'
+                                            transition: 'border-color 0.3s ease',
+                                            background: 'var(--bg-tertiary)',
+                                            color: 'var(--text-primary)'
                                         }}
                                     >
                                         <option value="all">All Products ({stats.total})</option>
@@ -354,7 +357,7 @@ function ProductsContent() {
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '600',
-                                        color: '#374151',
+                                        color: 'var(--text-primary)',
                                         fontSize: '0.9rem'
                                     }}>
                                         <i className="fas fa-tag" style={{ marginRight: '8px', color: '#007bff' }}></i>
@@ -367,9 +370,11 @@ function ProductsContent() {
                                             width: '100%',
                                             padding: '12px',
                                             borderRadius: '8px',
-                                            border: '2px solid #e5e7eb',
+                                            border: '2px solid var(--border)',
                                             fontSize: '0.95rem',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
+                                            background: 'var(--bg-tertiary)',
+                                            color: 'var(--text-primary)'
                                         }}
                                     >
                                         <option value="all">All Brands</option>
@@ -385,7 +390,7 @@ function ProductsContent() {
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '600',
-                                        color: '#374151',
+                                        color: 'var(--text-primary)',
                                         fontSize: '0.9rem'
                                     }}>
                                         <i className="fas fa-dollar-sign" style={{ marginRight: '8px', color: '#007bff' }}></i>
@@ -398,9 +403,11 @@ function ProductsContent() {
                                             width: '100%',
                                             padding: '12px',
                                             borderRadius: '8px',
-                                            border: '2px solid #e5e7eb',
+                                            border: '2px solid var(--border)',
                                             fontSize: '0.95rem',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
+                                            background: 'var(--bg-tertiary)',
+                                            color: 'var(--text-primary)'
                                         }}
                                     >
                                         <option value="all">All Prices</option>
@@ -418,7 +425,7 @@ function ProductsContent() {
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '600',
-                                        color: '#374151',
+                                        color: 'var(--text-primary)',
                                         fontSize: '0.9rem'
                                     }}>
                                         <i className="fas fa-sort" style={{ marginRight: '8px', color: '#007bff' }}></i>
@@ -431,9 +438,11 @@ function ProductsContent() {
                                             width: '100%',
                                             padding: '12px',
                                             borderRadius: '8px',
-                                            border: '2px solid #e5e7eb',
+                                            border: '2px solid var(--border)',
                                             fontSize: '0.95rem',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
+                                            background: 'var(--bg-tertiary)',
+                                            color: 'var(--text-primary)'
                                         }}
                                     >
                                         <option value="newest">Newest First</option>
@@ -453,13 +462,14 @@ function ProductsContent() {
                         <div style={{
                             textAlign: 'center',
                             padding: '60px 20px',
-                            background: 'white',
+                            background: 'var(--bg-secondary)',
                             borderRadius: '16px',
-                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                            border: '1px solid var(--border)'
                         }}>
-                            <i className="fas fa-box-open" style={{ fontSize: '4rem', color: '#d1d5db', marginBottom: '20px' }}></i>
-                            <h3 style={{ fontSize: '1.5rem', color: '#374151', marginBottom: '10px' }}>No Products Found</h3>
-                            <p style={{ color: '#6b7280', marginBottom: '20px' }}>Try adjusting your filters to see more results</p>
+                            <i className="fas fa-box-open" style={{ fontSize: '4rem', color: 'var(--text-tertiary)', marginBottom: '20px' }}></i>
+                            <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', marginBottom: '10px' }}>No Products Found</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Try adjusting your filters to see more results</p>
                             <button
                                 onClick={resetFilters}
                                 style={{
@@ -489,11 +499,11 @@ function ProductsContent() {
                                     style={{ textDecoration: 'none' }}
                                 >
                                     <div className="product-card" style={{
-                                        background: 'white',
+                                        background: 'var(--bg-secondary)',
                                         borderRadius: '16px',
                                         overflow: 'hidden',
                                         boxShadow: '0 4px 10px rgba(0, 0, 0, 0.08)',
-                                        border: '1px solid #d3d3d3ff',
+                                        border: '1px solid var(--border)',
                                         transition: 'all 0.3s ease',
                                         cursor: 'pointer',
                                         height: '100%',
@@ -505,7 +515,7 @@ function ProductsContent() {
                                             width: '100%',
                                             height: '190px',
                                             overflow: 'hidden',
-                                            background: '#f3f4f6',
+                                            background: 'var(--bg-tertiary)',
                                             position: 'relative'
                                         }}>
                                             <img
@@ -573,7 +583,7 @@ function ProductsContent() {
                                             }}>
                                                 <span style={{
                                                     fontSize: '0.7rem',
-                                                    color: '#0c0c0cff',
+                                                    color: 'var(--text-secondary)',
                                                     textTransform: 'uppercase',
                                                     fontWeight: '600',
                                                     letterSpacing: '0.5px'
@@ -582,7 +592,7 @@ function ProductsContent() {
                                                 </span>
                                                 <span style={{
                                                     fontSize: '0.7rem',
-                                                    color: '#9ca3af',
+                                                    color: 'var(--text-tertiary)',
                                                     fontWeight: '500'
                                                 }}>
                                                     {product.productCode}
@@ -592,7 +602,7 @@ function ProductsContent() {
                                             <h3 style={{
                                                 fontSize: '0.75rem',
                                                 fontWeight: '700',
-                                                color: '#1a1a1a',
+                                                color: 'var(--text-primary)',
                                                 marginBottom: '12px',
                                                 lineHeight: '1.4',
                                                 flex: 1
@@ -610,14 +620,14 @@ function ProductsContent() {
                                                     <span style={{
                                                         fontSize: '1.2rem',
                                                         fontWeight: '700',
-                                                        color: '#007bff'
+                                                        color: 'var(--primary)'
                                                     }}>
                                                         ₹{product.price.toLocaleString()}
                                                     </span>
                                                     {product.originalPrice && product.originalPrice > product.price && (
                                                         <span style={{
                                                             fontSize: '0.9rem',
-                                                            color: '#9ca3af',
+                                                            color: 'var(--text-tertiary)',
                                                             textDecoration: 'line-through'
                                                         }}>
                                                             ₹{product.originalPrice.toLocaleString()}
@@ -639,7 +649,7 @@ function ProductsContent() {
                                                         {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                                                     </span>
                                                     <span style={{
-                                                        color: '#007bff',
+                                                        color: 'var(--primary)',
                                                         fontWeight: '600',
                                                         fontSize: '0.7rem'
                                                     }}>
