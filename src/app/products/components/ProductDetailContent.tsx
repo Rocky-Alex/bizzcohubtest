@@ -48,12 +48,24 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
     const parseColorOptions = (colorString: string): ColorOption[] => {
         if (!colorString) return [];
         try {
+            // New Format: JSON String of objects [{label, code, price}]
             if (colorString.trim().startsWith('[')) {
                 const parsed = JSON.parse(colorString);
-                return Array.isArray(parsed) ? parsed : [];
+                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+                    return parsed.map((p: any) => ({
+                        label: p.label || p.color || 'Unknown', // Fallback for various legacy formats
+                        code: p.code || '#000000'
+                    }));
+                }
+                // Fallback for simple string array
+                return Array.isArray(parsed) ? parsed.map((c, i) => ({
+                    label: c,
+                    code: ['#C0C0C0', '#4A4A4A', '#D4AF37', '#191970'][i % 4]
+                })) : [];
             }
         } catch (e) { console.warn('Failed to parse colors', e); }
 
+        // Fallback: Comma separated string
         return colorString.split(',').map((color: string, index: number) => ({
             label: color.trim(),
             code: ['#C0C0C0', '#4A4A4A', '#D4AF37', '#191970'][index % 4]
@@ -74,8 +86,14 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
                 const baseRamSize = baseRamStr.split(' ')[0];
                 const baseRam = { label: baseRamStr, size: baseRamSize, type: 'DDR4', price: 0 };
                 let ramOpts: ConfigOption[] = [baseRam];
-                if (product.ramVariants && Array.isArray(product.ramVariants)) {
-                    const variantOpts = product.ramVariants.map((v: any) => ({
+
+                let pRamVariants = product.ramVariants;
+                if (typeof pRamVariants === 'string') {
+                    try { pRamVariants = JSON.parse(pRamVariants); } catch (e) { pRamVariants = []; }
+                }
+
+                if (pRamVariants && Array.isArray(pRamVariants)) {
+                    const variantOpts = pRamVariants.map((v: any) => ({
                         label: `${v.size} ${v.type || ''}`.trim(),
                         size: v.size,
                         type: v.type,
@@ -90,8 +108,14 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
                 const baseStoSize = baseStoStr.split(' ')[0];
                 const baseStorage = { label: baseStoStr, size: baseStoSize, type: 'SSD', price: 0 };
                 let storageOpts: ConfigOption[] = [baseStorage];
-                if (product.storageVariants && Array.isArray(product.storageVariants)) {
-                    const variantOpts = product.storageVariants.map((v: any) => ({
+
+                let pStorageVariants = product.storageVariants;
+                if (typeof pStorageVariants === 'string') {
+                    try { pStorageVariants = JSON.parse(pStorageVariants); } catch (e) { pStorageVariants = []; }
+                }
+
+                if (pStorageVariants && Array.isArray(pStorageVariants)) {
+                    const variantOpts = pStorageVariants.map((v: any) => ({
                         label: `${v.size} ${v.type || ''}`.trim(),
                         size: v.size,
                         type: v.type,
@@ -103,7 +127,7 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
 
                 // Colors
                 const colors = parseColorOptions(product.specifications?.colors || '');
-                setColorOptions(colors.length > 0 ? colors : [{ label: 'Silver', code: '#C0C0C0' }, { label: 'Space Grey', code: '#4A4A4A' }]);
+                setColorOptions(colors);
             }
         }
     }, [product]);
@@ -263,7 +287,7 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
                     </div>
 
                     <div className="variants-row">
-                        {ramOptions.length > 0 && (
+                        {ramOptions.length > 1 && (
                             <div className="variant-section">
                                 <h4 className="variant-title">Memory Variants</h4>
                                 <div className="config-group">
@@ -281,7 +305,7 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
                             </div>
                         )}
 
-                        {storageOptions.length > 0 && (
+                        {storageOptions.length > 1 && (
                             <div className="variant-section">
                                 <h4 className="variant-title">Storage Variants</h4>
                                 <div className="config-group">
@@ -303,7 +327,7 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
                     <div className="color-qty-row">
                         {colorOptions.length > 0 && (
                             <div className="option-section">
-                                <span className="section-label">Color</span>
+                                <span className="section-label">Color <span style={{ fontWeight: 400, color: '#666', marginLeft: '5px' }}>{colorOptions[selectedColor]?.label}</span></span>
                                 <div className="color-selection">
                                     {colorOptions.map((col, idx) => (
                                         <div

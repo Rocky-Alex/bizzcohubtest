@@ -1051,7 +1051,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                         name="graphicsStorage"
                                         value={formData.graphicsStorage}
                                         onChange={handleChange as any}
-                                        options={['2GB', '4GB', '6GB', '8GB', '10GB', '12GB', '16GB', '24GB']}
+                                        options={['none', '2GB', '4GB', '6GB', '8GB', '10GB', '12GB', '16GB', '24GB']}
                                         placeholder="Select VRAM"
                                     />
                                 </div>

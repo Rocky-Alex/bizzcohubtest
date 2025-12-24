@@ -22,6 +22,7 @@ const CreateQuotation = dynamic(() => import("./components/CreateQuotation"), { 
 const InvoiceList = dynamic(() => import("./components/InvoiceList"), { loading: () => <LoadingSpinner /> });
 const QuotationList = dynamic(() => import("./components/QuotationList"), { loading: () => <LoadingSpinner /> });
 const PartialPaymentsList = dynamic(() => import("./components/PartialPaymentsList"), { loading: () => <LoadingSpinner /> });
+const InvoiceReturn = dynamic(() => import("./components/InvoiceReturn"), { loading: () => <LoadingSpinner /> });
 const InventoryDashboard = dynamic(() => import("./components/InventoryDashboard"), { loading: () => <LoadingSpinner /> });
 const ProductList = dynamic(() => import("./components/ProductList"), { loading: () => <LoadingSpinner /> });
 const AddProduct = dynamic(() => import("./components/AddProduct"), { loading: () => <LoadingSpinner /> });
@@ -30,6 +31,7 @@ const ImportCustomers = dynamic(() => import('./components/ImportCustomers'), { 
 const QuickActions = dynamic(() => import('./components/QuickActions'), { loading: () => <LoadingSpinner /> });
 const OrderList = dynamic(() => import('./components/OrderList'), { loading: () => <LoadingSpinner /> });
 const CreateOrder = dynamic(() => import('./components/CreateOrder'), { loading: () => <LoadingSpinner /> });
+const ActivityLog = dynamic(() => import('./components/ActivityLog'), { loading: () => <LoadingSpinner /> });
 const ConfirmModal = dynamic(() => import('./components/ConfirmModal'));
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
@@ -627,6 +629,8 @@ export default function AdminPage() {
             'create-quotation': ['Quotations', quotationToEdit ? 'Edit Quotation' : 'New Quotation'],
             'quotations-new': ['Quotations', 'New Quotation'],
             'payments-all': ['Invoicing', 'Partial Payments'],
+            'invoices-return': ['Billing', 'Invoice Return'],
+            'activity-log': ['Activity Log'],
             'quick-actions': ['Quick Actions'],
         };
 
@@ -641,6 +645,9 @@ export default function AdminPage() {
 
     const renderContent = () => {
         // --- Under Construction Sections ---
+        if (activeSection === 'invoices-return') {
+            return <InvoiceReturn setActiveSection={setActiveSection} />;
+        }
         if (activeSection.startsWith("orders") && !['orders-all', 'orders-create', 'orders-returns'].includes(activeSection)) {
             return <ComingSoon title="Order Management" description="Advanced order processing and tracking features will be available here." />;
         }
@@ -727,6 +734,8 @@ export default function AdminPage() {
                         setActiveSection('customers-all');
                     }}
                 />;
+            case "activity-log":
+                return <ActivityLog />;
             case "customers-add":
                 return <AddCustomerForm
                     onCancel={() => setActiveSection('customers-all')}

@@ -12,7 +12,12 @@ interface AddCustomerFormProps {
 export default function AddCustomerForm({ onCancel, onSubmit, initialData }: AddCustomerFormProps) {
     const [formData, setFormData] = useState({
         // Basic
-        name: initialData?.name || '',
+        // Basic
+        firstName: initialData?.name ? initialData.name.split(' ')[0] : '',
+        lastName: initialData?.name ? initialData.name.split(' ').slice(1).join(' ') : '',
+        username: initialData?.username || '',
+        password: '',
+        confirmPassword: '',
         email: initialData?.email || '',
         phone: initialData?.phone || '',
         currency: initialData?.currency || '',
@@ -88,9 +93,20 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
 
                 <div className="form-grid-3">
                     <div>
-                        <label className="input-label">Name <span className="required">*</span></label>
-                        <input type="text" name="name" className="input-field" value={formData.name} onChange={handleChange} />
+                        <label className="input-label">First Name <span className="required">*</span></label>
+                        <input type="text" name="firstName" className="input-field" value={formData.firstName} onChange={handleChange} />
                     </div>
+                    <div>
+                        <label className="input-label">Last Name <span className="required">*</span></label>
+                        <input type="text" name="lastName" className="input-field" value={formData.lastName} onChange={handleChange} />
+                    </div>
+                    <div>
+                        <label className="input-label">Username</label>
+                        <input type="text" name="username" className="input-field" value={formData.username} onChange={handleChange} />
+                    </div>
+                </div>
+
+                <div className="form-grid-3">
                     <div>
                         <label className="input-label">Email <span className="required">*</span></label>
                         <input type="email" name="email" className="input-field" value={formData.email} onChange={handleChange} />
@@ -99,9 +115,6 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
                         <label className="input-label">Phone Number <span className="required">*</span></label>
                         <input type="text" name="phone" className="input-field" value={formData.phone} onChange={handleChange} />
                     </div>
-                </div>
-
-                <div className="form-grid-3">
                     <div>
                         <label className="input-label">Currency</label>
                         <select name="currency" className="select-field" value={formData.currency} onChange={handleChange}>
@@ -113,6 +126,21 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
                         </select>
                     </div>
                 </div>
+
+                {!initialData && (
+                    <div className="form-grid-3">
+                        <div>
+                            <label className="input-label">Password <span className="required">*</span></label>
+                            <input type="password" name="password" className="input-field" value={formData.password} onChange={handleChange} />
+                        </div>
+                        <div>
+                            <label className="input-label">Confirm Password <span className="required">*</span></label>
+                            <input type="password" name="confirmPassword" className="input-field" value={formData.confirmPassword} onChange={handleChange} />
+                        </div>
+                    </div>
+                )}
+
+
             </div>
 
             <div className="address-grid">
@@ -199,7 +227,19 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
 
             <div className="form-footer">
                 <button className="btn-cancel-form" onClick={onCancel}>Cancel</button>
-                <button className="btn-create-submit" onClick={() => onSubmit({ ...formData, image: imageFile })}>
+                <button className="btn-create-submit" onClick={() => {
+                    // Validation
+                    if (!initialData) {
+                        if (formData.password !== formData.confirmPassword) {
+                            alert("Passwords do not match!");
+                            return;
+                        }
+                    }
+
+                    // Combine First and Last Name
+                    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+                    onSubmit({ ...formData, name: fullName, image: imageFile });
+                }}>
                     {initialData ? 'Save Changes' : 'Create New'}
                 </button>
             </div>

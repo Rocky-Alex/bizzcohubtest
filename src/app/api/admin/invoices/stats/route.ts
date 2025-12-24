@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         // Parallelize queries for efficiency

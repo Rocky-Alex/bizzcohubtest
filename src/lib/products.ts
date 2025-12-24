@@ -36,7 +36,32 @@ export function transformProduct(dbProduct: any) {
         badge: dbProduct.badge || '',
         category: dbProduct.category || '',
         rating: dbProduct.rating || 5, // Default rating
-        reviews: dbProduct.reviews || 0
+        reviews: dbProduct.reviews || 0,
+        specifications: {
+            'Processor': dbProduct.processor,
+            'Processor Generation': dbProduct.processor_gen,
+            'Processor Speed': dbProduct.processor_speed,
+            'RAM': dbProduct.ram,
+            'RAM Type': dbProduct.ram_type,
+            'Storage': dbProduct.storage,
+            'Storage Type': dbProduct.storage_type,
+            'Graphics': dbProduct.graphics_card,
+            'Graphics Type': dbProduct.graphics_card_type,
+            'Graphics Storage': dbProduct.graphics_storage,
+            'Screen': dbProduct.screen_size,
+            'Screen Resolution': dbProduct.screen_resolution,
+            'Resolution Pixel': dbProduct.screen_resolution_pixel,
+            'Display Type': dbProduct.display_type,
+            'Operating System': dbProduct.operating_system,
+            'Wireless Type': dbProduct.wireless_type,
+            'Optical Drive': dbProduct.optical_drive,
+            'Condition': dbProduct.condition_status,
+            'Model': dbProduct.model,
+            'Series': dbProduct.series,
+            'colors': dbProduct.colors
+        },
+        ramVariants: dbProduct.ram_variants,
+        storageVariants: dbProduct.storage_variants
     };
 }
 

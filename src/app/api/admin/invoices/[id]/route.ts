@@ -97,17 +97,47 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
         }
 
+        // 1. Fetch existing items to revert stock
+        const existingItems = await sql`SELECT product_code, quantity FROM invoice_items WHERE invoice_id = ${id}`;
+
+        // 2. Revert stock (Add back old quantities)
+        for (const item of existingItems) {
+            if (item.product_code) {
+                await sql`
+                    UPDATE products 
+                    SET stock_quantity = stock_quantity + ${Number(item.quantity)}
+                    WHERE product_code = ${item.product_code}
+                `;
+            }
+        }
+
         // Replace Items
         await sql`DELETE FROM invoice_items WHERE invoice_id = ${id}`;
+
+        // Ensure column exists (Migration fix for existing dbs)
+        try {
+            await sql`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS product_code TEXT`;
+        } catch (e) {
+            console.log('Migration note (invoice_items update):', e);
+        }
 
         for (const item of items) {
             await sql`
                 INSERT INTO invoice_items (
-                    invoice_id, description, quantity, unit_price, discount, total
+                    invoice_id, description, quantity, unit_price, discount, total, product_code
                 ) VALUES (
-                    ${id}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}
+                    ${id}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}
                 )
             `;
+
+            // Deduct from Inventory if product_code is provided
+            if (item.product_code) {
+                await sql`
+                    UPDATE products 
+                    SET stock_quantity = stock_quantity - ${Number(item.qty)}
+                    WHERE product_code = ${item.product_code}
+                `;
+            }
         }
 
         return NextResponse.json({ message: 'Invoice updated successfully' }, { status: 200 });

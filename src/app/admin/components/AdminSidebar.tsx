@@ -64,7 +64,8 @@ export default function AdminSidebar({
                 { id: "quotations-all", label: "All Quotations" },
                 { id: "invoicing-new", label: "New Invoice" },
                 { id: "quotations-new", label: "New Quotation" },
-                { id: "payments-all", label: "Partial Payments" }
+                { id: "payments-all", label: "Partial Payments" },
+                { id: "invoices-return", label: "Invoice Return" }
             ]
         },
         {
@@ -75,6 +76,11 @@ export default function AdminSidebar({
                 { id: "users-all", label: "All Users" },
                 { id: "users-roles", label: "Roles and Permissions" }
             ]
+        },
+        {
+            id: "activity-log",
+            icon: "fa-history",
+            label: "Activity Log"
         },
         {
             id: "auto-refresh",

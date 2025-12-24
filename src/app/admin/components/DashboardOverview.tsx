@@ -545,7 +545,7 @@ export default function DashboardOverview({
                                         <td>
                                             <div className="customer-info">
                                                 <img
-                                                    src={getAvatarUrl(inv.customer_name)}
+                                                    src={inv.customer_avatar || getAvatarUrl(inv.customer_name)}
                                                     alt={inv.customer_name}
                                                     className="avatar"
                                                 />

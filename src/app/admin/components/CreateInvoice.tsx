@@ -14,6 +14,7 @@ interface InvoiceItem {
     qty: number;
     cost: number;
     discount: number;
+    product_code?: string;
 }
 
 export default function CreateInvoice({ setActiveSection, customers = [], initialData }: CreateInvoiceProps) {
@@ -126,6 +127,9 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
                 setShowSuggestions(false);
             }
+            if (productSearchRef.current && !productSearchRef.current.contains(event.target as Node)) {
+                setShowProductSuggestions(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
@@ -176,6 +180,26 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
     const [isTaxable, setIsTaxable] = useState(true);
     const [isDiscountable, setIsDiscountable] = useState(true);
 
+    const [productCodeInput, setProductCodeInput] = useState("");
+    const [inventoryProducts, setInventoryProducts] = useState<any[]>([]);
+    const [showProductSuggestions, setShowProductSuggestions] = useState(false);
+    const productSearchRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const fetchInventory = async () => {
+            try {
+                const res = await fetch('/api/admin/inventory/products');
+                if (res.ok) {
+                    const data = await res.json();
+                    setInventoryProducts(data);
+                }
+            } catch (err) {
+                console.error("Failed to load inventory products", err);
+            }
+        };
+        fetchInventory();
+    }, []);
+
     // --- Calculations ---
     const subTotal = items.reduce((sum, item) => sum + (item.qty * item.cost), 0);
     const totalDiscount = items.reduce((sum, item) => sum + item.discount, 0);
@@ -225,6 +249,37 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
         }
     };
 
+    const handleAddProductByCode = () => {
+        if (!productCodeInput.trim()) return;
+
+        const product = inventoryProducts.find(p => p.product_code === productCodeInput.trim());
+
+        if (product) {
+            const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
+            // Use offer_price if available, else base_price. Ensure numbering.
+            const price = product.offer_price ? Number(product.offer_price) : Number(product.base_price);
+
+            setItems(prev => [...prev, {
+                id: newId,
+                description: product.product_name,
+                qty: 1,
+                cost: price,
+                discount: 0,
+                product_code: product.product_code
+            }]);
+            setProductCodeInput("");
+        } else {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Product Not Found',
+                message: `No product found with code: ${productCodeInput}`,
+                type: 'danger',
+                singleButton: true,
+                onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+            });
+        }
+    };
+
     const handleSave = async () => {
         try {
             const customer = filteredCustomers.find(c => c.name === toDetails.name);
@@ -252,6 +307,7 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
                     qty: item.qty,
                     cost: item.cost,
                     discount: item.discount,
+                    product_code: item.product_code, // Pass product code for inventory update
                     total: calculateRowTotal(item)
                 }))
             };
@@ -572,7 +628,92 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
                         ))}
                     </tbody>
                 </table>
-                <button className="btn-add-item" onClick={addItem}>+ Add Item</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                    <button className="btn-add-item" style={{ marginTop: 0 }} onClick={addItem}>+ Add Item</button>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} ref={productSearchRef}>
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                placeholder="Product Code"
+                                className="editable-field"
+                                value={productCodeInput}
+                                onChange={(e) => {
+                                    setProductCodeInput(e.target.value);
+                                    setShowProductSuggestions(true);
+                                }}
+                                onFocus={() => setShowProductSuggestions(true)}
+                                style={{
+                                    width: '150px',
+                                    border: '1px solid #e5e7eb',
+                                    padding: '0.5rem',
+                                    borderRadius: '6px',
+                                    background: 'white'
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleAddProductByCode();
+                                        setShowProductSuggestions(false);
+                                    }
+                                }}
+                            />
+                            {showProductSuggestions && productCodeInput && (
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: '100%',
+                                    left: 0,
+                                    width: '300px',
+                                    maxHeight: '200px',
+                                    overflowY: 'auto',
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                    marginBottom: '4px',
+                                    zIndex: 50
+                                }}>
+                                    {inventoryProducts
+                                        .filter(p => (p.product_code?.toLowerCase().includes(productCodeInput.toLowerCase()) || p.product_name?.toLowerCase().includes(productCodeInput.toLowerCase())))
+                                        .slice(0, 10)
+                                        .map(p => (
+                                            <div
+                                                key={p.id}
+                                                onClick={() => {
+                                                    setProductCodeInput(p.product_code);
+                                                    setShowProductSuggestions(false);
+                                                }}
+                                                style={{
+                                                    padding: '0.5rem',
+                                                    cursor: 'pointer',
+                                                    borderBottom: '1px solid #f3f4f6',
+                                                    fontSize: '0.85rem',
+                                                    display: 'flex',
+                                                    flexDirection: 'column'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                            >
+                                                <span style={{ fontWeight: 600, color: '#374151' }}>{p.product_code}</span>
+                                                <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>{p.product_name}</span>
+                                            </div>
+                                        ))}
+                                    {inventoryProducts.filter(p => (p.product_code?.toLowerCase().includes(productCodeInput.toLowerCase()) || p.product_name?.toLowerCase().includes(productCodeInput.toLowerCase()))).length === 0 && (
+                                        <div style={{ padding: '0.5rem', color: '#9ca3af', fontSize: '0.85rem' }}>No matches found</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            className="btn-primary"
+                            onClick={() => {
+                                handleAddProductByCode();
+                                setShowProductSuggestions(false);
+                            }}
+                            style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                        >
+                            Add
+                        </button>
+                    </div>
+                </div>
 
                 {/* Footer Totals */}
                 <div className="invoice-footer-section">

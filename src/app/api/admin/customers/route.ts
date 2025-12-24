@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { createHash } from 'crypto';
 
 export async function GET(request: NextRequest) {
     try {
@@ -105,8 +106,15 @@ export async function POST(request: NextRequest) {
             ADD COLUMN IF NOT EXISTS shipping_address_1 VARCHAR(255),
             ADD COLUMN IF NOT EXISTS shipping_country VARCHAR(100),
             ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(100),
-            ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(100);
+            ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS username VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS password_hash TEXT;
         `;
+
+        let passwordHash = null;
+        if (body.password) {
+            passwordHash = createHash('sha256').update(body.password).digest('hex');
+        }
 
         // Insert into database
         const newCustomer = await sql`
@@ -129,7 +137,9 @@ export async function POST(request: NextRequest) {
                 shipping_state, 
                 shipping_city, 
                 
-                status
+                status,
+                username,
+                password_hash
             ) VALUES (
                 ${body.avatar || null}, 
                 ${body.name}, 
@@ -149,7 +159,9 @@ export async function POST(request: NextRequest) {
                 ${body.shippingState}, 
                 ${body.shippingCity}, 
                 
-                'Active'
+                'Active',
+                ${body.username || null},
+                ${passwordHash}
             )
             RETURNING *
         `;

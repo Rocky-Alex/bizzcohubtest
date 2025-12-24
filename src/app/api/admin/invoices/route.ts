@@ -3,13 +3,17 @@ import { invoiceSql as sql } from '@/lib/invoice-db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
+        const url = new URL(req.url);
         // DDL removed for performance. Schema assumed to exist.
 
 
         const data = await sql`
-            SELECT * FROM invoices ORDER BY created_at DESC
+            SELECT * FROM invoices 
+            WHERE 1=1
+            ${url.searchParams.get('invoiceNo') ? sql`AND invoice_no = ${url.searchParams.get('invoiceNo')}` : sql``}
+            ORDER BY created_date DESC
         `;
 
         return NextResponse.json({ invoices: data }, { status: 200 });
@@ -70,15 +74,35 @@ export async function POST(req: Request) {
 
         const invoiceId = invoiceResult[0].id;
 
+        // Ensure column exists
+        try {
+            await sql`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS product_code TEXT`;
+        } catch (e) {
+            console.log('Migration note (invoice_items):', e);
+        }
+
         // Insert Items
         for (const item of items) {
             await sql`
                 INSERT INTO invoice_items (
-                    invoice_id, description, quantity, unit_price, discount, total
+                    invoice_id, description, quantity, unit_price, discount, total, product_code
                 ) VALUES (
-                    ${invoiceId}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}
+                    ${invoiceId}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}
                 )
             `;
+
+            // Deduct from Inventory if product_code is provided
+            if (item.product_code) {
+                // We use GREATEST(0, ...) to prevent negative stock if that's desired, 
+                // but usually simply subtracting is fine and lets admin see negative stock if they oversold.
+                // Let's just subtract. If they want to prevent negative, we'd check first.
+                // User said "reduce from the inventory".
+                await sql`
+                    UPDATE products 
+                    SET stock_quantity = stock_quantity - ${Number(item.qty)}
+                    WHERE product_code = ${item.product_code}
+                `;
+            }
         }
 
         return NextResponse.json({ message: 'Invoice created successfully', invoiceId }, { status: 201 });

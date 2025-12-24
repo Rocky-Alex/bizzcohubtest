@@ -46,11 +46,13 @@ export async function GET(request: Request) {
             // 4. Recent Invoices
             sql`SELECT COUNT(*) as count FROM products`,
             sql`
-                SELECT id, customer_name, created_date, total_amount, 
-                       CASE WHEN status = 'Paid' THEN total_amount ELSE 0 END as paid_amount, 
-                       payment_type, status, due_date 
-                FROM invoices 
-                ORDER BY created_date DESC 
+                SELECT i.id, i.customer_name, i.created_date, i.total_amount, 
+                       CASE WHEN i.status = 'Paid' THEN i.total_amount ELSE 0 END as paid_amount, 
+                       i.payment_type, i.status, i.due_date,
+                       c.image_url as customer_avatar
+                FROM invoices i
+                LEFT JOIN customers c ON i.customer_name = c.name
+                ORDER BY i.created_date DESC 
                 LIMIT 5
             `
         ]);
