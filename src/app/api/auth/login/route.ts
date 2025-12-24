@@ -64,9 +64,17 @@ export async function POST(request: NextRequest) {
             path: '/',
         });
 
-        // Set user role cookie (not httpOnly so frontend can read it if needed, or just keep it httpOnly and expose via API)
-        // For security, let's keep it httpOnly and use the session API to get user details
+        // Set user role cookie
         cookies().set('user_role', user.role, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            expires: expiresAt,
+            path: '/',
+        });
+
+        // Set user id cookie for session retrieval
+        cookies().set('user_id', String(user.id), {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
@@ -78,6 +86,7 @@ export async function POST(request: NextRequest) {
             success: true,
             message: 'Login successful',
             user: {
+                id: user.id,
                 username: user.username,
                 role: user.role,
                 name: (user.first_name || user.last_name) ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.username,

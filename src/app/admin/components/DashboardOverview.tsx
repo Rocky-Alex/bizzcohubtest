@@ -541,7 +541,7 @@ export default function DashboardOverview({
                             {aggregatedStats.recentInvoices.length > 0 ? (
                                 aggregatedStats.recentInvoices.map((inv: any) => (
                                     <tr key={inv.id}>
-                                        <td style={{ color: '#6b7280' }}>{inv.id}</td>
+                                        <td style={{ color: 'var(--text-secondary)' }}>{inv.id}</td>
                                         <td>
                                             <div className="customer-info">
                                                 <img
@@ -552,24 +552,24 @@ export default function DashboardOverview({
                                                 <span style={{ fontWeight: 500 }}>{inv.customer_name}</span>
                                             </div>
                                         </td>
-                                        <td style={{ color: '#6b7280' }}>
+                                        <td style={{ color: 'var(--text-secondary)' }}>
                                             {new Date(inv.created_date).toLocaleDateString()}
                                         </td>
-                                        <td style={{ fontWeight: 600 }}>{formatCurrency(inv.total_amount)}</td>
-                                        <td style={{ color: '#6b7280' }}>{formatCurrency(inv.paid_amount || 0)}</td>
+                                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatCurrency(inv.total_amount)}</td>
+                                        <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(inv.paid_amount || 0)}</td>
                                         <td>
                                             <span className="payment-mode-pill">
                                                 {inv.payment_type || 'N/A'}
                                             </span>
                                         </td>
-                                        <td style={{ color: '#6b7280' }}>
+                                        <td style={{ color: 'var(--text-secondary)' }}>
                                             {inv.due_date ? new Date(inv.due_date).toLocaleDateString() : '-'}
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)' }}>
                                         No recent invoices found.
                                     </td>
                                 </tr>

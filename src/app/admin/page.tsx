@@ -36,8 +36,12 @@ import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
 import "./styles/admin-header.css";
 
+import { useTheme } from "@/context/ThemeContext";
+
 export default function AdminPage() {
+    const { theme } = useTheme();
     const router = useRouter();
+
     const [activeSection, setActiveSection] = useState("dashboard");
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState("accountant");
@@ -139,6 +143,50 @@ export default function AdminPage() {
         }
     }, []);
 
+    // Fetch users from database - defined before useEffect
+    const fetchUsers = useCallback(async () => {
+        setIsLoadingUsers(true);
+        try {
+            console.log('Fetching users from API...');
+            const response = await fetch('/api/admin/users');
+            console.log('Response status:', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Fetched users data:', data);
+
+                // Transform database users to match the UI format
+                const transformedUsers = data.users.map((user: any) => ({
+                    id: user.id.toString(),
+                    name: user.username, // Display the username handle in table as requested
+                    username: user.username, // Keep original username/handle
+                    firstName: user.first_name,
+                    lastName: user.last_name,
+                    phone: user.phone || '',
+                    email: user.email || '',
+                    role: user.role,
+                    status: user.status === 'active' ? 'Active' : 'Inactive',
+                    avatar: user.avatar || undefined
+                }));
+
+                console.log('Transformed users:', transformedUsers);
+                setUsers(transformedUsers);
+            } else {
+                console.error('Failed to fetch users, status:', response.status);
+                try {
+                    const errorData = await response.json();
+                    console.error('Error data:', errorData);
+                } catch (e) {
+                    console.error('Could not parse error response');
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setIsLoadingUsers(false);
+        }
+    }, []);
+
     const handleAddRole = async (roleName: string) => {
         try {
             const response = await fetch('/api/admin/roles', {
@@ -171,6 +219,96 @@ export default function AdminPage() {
             });
         }
     };
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                console.log('Checking authentication...');
+                const response = await fetch('/api/auth/session');
+                console.log('Auth response status:', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Auth data:', data);
+                    console.log('User role:', data.role);
+
+                    if (data.authenticated) {
+                        setIsAuthenticated(true);
+                        setUserRole(data.role || 'accountant');
+                        setUsername(data.user?.name || 'Admin');
+                        setCurrentUser(data.user);
+
+                        if (data.role?.toLowerCase() === 'admin') {
+                            console.log('User is admin, fetching users and roles...');
+                            fetchUsers();
+                            fetchRoles();
+                            fetchCustomers();
+                            fetchOrders();
+                        } else {
+                            console.log('User is not admin, role is:', data.role);
+                        }
+                    } else {
+                        console.log('Not authenticated, redirecting to login');
+                        router.push('/admin/login');
+                    }
+                } else {
+                    console.log('Auth check failed, redirecting to login');
+                    router.push('/admin/login');
+                }
+            } catch (error) {
+                console.error("Auth check failed", error);
+                router.push('/admin/login');
+            }
+        };
+        checkAuth();
+    }, [router, fetchUsers, fetchRoles]);
+
+    // Sync current user with latest DB data when users list is fetched
+    useEffect(() => {
+        if (currentUser && users.length > 0) {
+            // Find the current user in the fresh users list
+            const freshUserData = users.find((u: any) =>
+                String(u.id) === String(currentUser.id) ||
+                u.email === currentUser.email
+            );
+
+            if (freshUserData) {
+                // Construct the storage object format
+                const updatedUserForStorage = {
+                    ...currentUser,
+                    ...freshUserData,
+                    // Ensure naming consistency for header
+                    name: freshUserData.firstName && freshUserData.lastName
+                        ? `${freshUserData.firstName} ${freshUserData.lastName}`
+                        : freshUserData.name || freshUserData.username,
+                    image_url: freshUserData.avatar,
+                    avatar: freshUserData.avatar
+                };
+
+                // Compare with current storage to avoid infinite loops/unnecessary writes
+                const stored = localStorage.getItem('admin_user');
+                const storedUser = stored ? JSON.parse(stored) : null;
+
+                // Simple check if avatar or name changed
+                const hasChanged = !storedUser ||
+                    storedUser.avatar !== updatedUserForStorage.avatar ||
+                    storedUser.name !== updatedUserForStorage.name;
+
+                if (hasChanged) {
+                    console.log('Syncing fresh DB user data to local storage/header...');
+                    localStorage.setItem('admin_user', JSON.stringify(updatedUserForStorage));
+                    // Update local state is optional since Header reads from LS, 
+                    // but keeping them in sync is good.
+                    // setCurrentUser(updatedUserForStorage); // Avoid this if it causes re-renders loop
+
+                    window.dispatchEvent(new Event('admin-login'));
+                }
+            }
+        }
+    }, [users, currentUser]);
+
+    // Handle Edit
     const handleEdit = async (item: any, type: string) => {
         if (type === 'User') {
             try {
@@ -234,6 +372,26 @@ export default function AdminPage() {
 
                     // Refresh users list
                     fetchUsers();
+
+                    // Update Header/Local Storage if the edited user is the current user
+                    if (currentUser && String(currentUser.id) === String(item.id)) {
+                        const updatedUserForStorage = {
+                            ...currentUser,
+                            name: `${item.firstName} ${item.lastName}`,
+                            first_name: item.firstName,
+                            last_name: item.lastName,
+                            email: item.email,
+                            phone: item.phone,
+                            image_url: avatarUrl,
+                            avatar: avatarUrl
+                        };
+                        localStorage.setItem('admin_user', JSON.stringify(updatedUserForStorage));
+                        // Update local state to reflect immediately in other components if passed down, 
+                        // though AdminHeader reads from localStorage on event.
+                        setCurrentUser(updatedUserForStorage);
+                        window.dispatchEvent(new Event('admin-login'));
+                    }
+
                 } else {
                     const error = await response.json();
                     setConfirmModal({
@@ -383,92 +541,7 @@ export default function AdminPage() {
         }
     };
 
-    // Fetch users from database - defined before useEffect
-    const fetchUsers = useCallback(async () => {
-        setIsLoadingUsers(true);
-        try {
-            console.log('Fetching users from API...');
-            const response = await fetch('/api/admin/users');
-            console.log('Response status:', response.status);
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Fetched users data:', data);
-
-                // Transform database users to match the UI format
-                const transformedUsers = data.users.map((user: any) => ({
-                    id: user.id.toString(),
-                    name: user.username, // Display the username handle in table as requested
-                    username: user.username, // Keep original username/handle
-                    firstName: user.first_name,
-                    lastName: user.last_name,
-                    phone: user.phone || '',
-                    email: user.email || '',
-                    role: user.role,
-                    status: user.status === 'active' ? 'Active' : 'Inactive',
-                    avatar: user.avatar || undefined
-                }));
-
-                console.log('Transformed users:', transformedUsers);
-                setUsers(transformedUsers);
-            } else {
-                console.error('Failed to fetch users, status:', response.status);
-                try {
-                    const errorData = await response.json();
-                    console.error('Error data:', errorData);
-                } catch (e) {
-                    console.error('Could not parse error response');
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching users:', error);
-        } finally {
-            setIsLoadingUsers(false);
-        }
-    }, []);
-
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                console.log('Checking authentication...');
-                const response = await fetch('/api/auth/session');
-                console.log('Auth response status:', response.status);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Auth data:', data);
-                    console.log('User role:', data.role);
-
-                    if (data.authenticated) {
-                        setIsAuthenticated(true);
-                        setUserRole(data.role || 'accountant');
-                        setUsername(data.user?.name || 'Admin');
-
-                        if (data.role?.toLowerCase() === 'admin') {
-                            console.log('User is admin, fetching users and roles...');
-                            fetchUsers();
-                            fetchRoles();
-                            fetchCustomers();
-                            fetchOrders();
-                        } else {
-                            console.log('User is not admin, role is:', data.role);
-                        }
-                    } else {
-                        console.log('Not authenticated, redirecting to login');
-                        router.push('/admin/login');
-                    }
-                } else {
-                    console.log('Auth check failed, redirecting to login');
-                    router.push('/admin/login');
-                }
-            } catch (error) {
-                console.error("Auth check failed", error);
-                router.push('/admin/login');
-            }
-        };
-        checkAuth();
-    }, [router, fetchUsers, fetchRoles]);
 
     // Auto-refresh for Users and Customers
     const refreshData = useCallback(() => {
@@ -479,6 +552,17 @@ export default function AdminPage() {
             fetchOrders();
         }
     }, [isAuthenticated, userRole, fetchUsers, fetchCustomers, fetchOrders]);
+
+    // Listen for user updates from Header (Profile Edit)
+    useEffect(() => {
+        const handleUserUpdated = () => {
+            console.log("User updated event received, refreshing users list...");
+            fetchUsers();
+        };
+
+        window.addEventListener('user-updated', handleUserUpdated);
+        return () => window.removeEventListener('user-updated', handleUserUpdated);
+    }, [fetchUsers]);
 
     useAutoRefresh(refreshData);
 
@@ -517,6 +601,43 @@ export default function AdminPage() {
             </div>
         </div>
     );
+
+    const getBreadcrumbs = () => {
+        const mapping: Record<string, string[]> = {
+            'dashboard': ['Dashboard'],
+            'users-all': ['Users', 'All Users'],
+            'users-roles': ['Users', 'Roles & Permissions'],
+            'customers-all': ['Customers', 'All Customers'],
+            'customers-add': ['Customers', 'Add Customer'],
+            'customers-edit': ['Customers', 'Edit Customer'],
+            'customers-import': ['Customers', 'Import Customers'],
+            'orders-all': ['Orders', 'All Orders'],
+            'orders-returns': ['Orders', 'Return Requests'],
+            'orders-create': ['Orders', orderToEdit ? 'Edit Order' : 'Create Order'],
+            'products-list': ['Inventory', 'Product List'],
+            'products-add': ['Inventory', 'Add Product'],
+            'products-edit': ['Inventory', 'Edit Product'],
+            'products-import': ['Inventory', 'Import Products'],
+            'inventory-dashboard': ['Inventory', 'Dashboard'],
+            'invoicing-dashboard': ['Invoicing', 'Dashboard'],
+            'invoicing-all': ['Invoicing', 'All Invoices'],
+            'invoicing-new': ['Invoicing', 'Create Invoice'],
+            'invoicing-edit': ['Invoicing', 'Edit Invoice'],
+            'quotations-all': ['Quotations', 'All Quotations'],
+            'create-quotation': ['Quotations', quotationToEdit ? 'Edit Quotation' : 'New Quotation'],
+            'quotations-new': ['Quotations', 'New Quotation'],
+            'payments-all': ['Invoicing', 'Partial Payments'],
+            'quick-actions': ['Quick Actions'],
+        };
+
+        let path = mapping[activeSection];
+        if (!path) {
+            // Fallback for sections not explicitly mapped
+            const formatted = activeSection.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            path = [formatted];
+        }
+        return ['Home', ...path];
+    };
 
     const renderContent = () => {
         // --- Under Construction Sections ---
@@ -929,7 +1050,7 @@ export default function AdminPage() {
     };
 
     return (
-        <div className="admin-body">
+        <div className={`admin-body ${theme === 'dark' ? 'dark' : ''}`}>
             <div className="admin-container">
                 <AdminSidebar
                     activeSection={activeSection}
@@ -941,7 +1062,31 @@ export default function AdminPage() {
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                     <AdminHeader onLogout={handleLogout} roles={roles.map(r => r.name)} />
-                    <main className="admin-content">
+                    <main className="admin-content" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {/* Breadcrumbs */}
+                        <div className="admin-breadcrumbs" style={{ padding: '0 0.5rem', display: 'flex', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            {getBreadcrumbs().map((item, index, arr) => (
+                                <React.Fragment key={index}>
+                                    {index === 0 && <i className="fas fa-home" style={{ marginRight: '0.5rem' }}></i>}
+                                    <span
+                                        onClick={() => index === 0 ? setActiveSection('dashboard') : null}
+                                        style={{
+                                            fontWeight: index === arr.length - 1 ? 600 : 400,
+                                            color: index === arr.length - 1 ? 'var(--text-primary)' : (index === 0 ? 'var(--primary, #2563eb)' : 'var(--text-secondary)'),
+                                            cursor: index === 0 ? 'pointer' : 'default'
+                                        }}
+                                        className={index === 0 ? "breadcrumb-link" : ""}
+                                    >
+                                        {item}
+                                    </span>
+                                    {index < arr.length - 1 && (
+                                        <span style={{ margin: '0 0.5rem', color: 'var(--text-tertiary)', fontSize: '0.7rem' }}>
+                                            <i className="fas fa-chevron-right"></i>
+                                        </span>
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </div>
                         {renderContent()}
                     </main>
                 </div>

@@ -8,11 +8,13 @@ export async function GET(request: NextRequest) {
     try {
         const sessionToken = cookies().get('admin_session')?.value;
         const userRole = cookies().get('user_role')?.value;
+        const userId = cookies().get('user_id')?.value;
 
         if (sessionToken) {
             return NextResponse.json({
                 authenticated: true,
                 role: userRole || 'accountant', // Default to accountant if missing
+                user: userId ? { id: userId, role: userRole } : null,
                 message: 'Valid session'
             });
         } else {

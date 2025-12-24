@@ -1,17 +1,15 @@
 /* Modern Sidebar Styles */
-:root {
+.modern-sidebar {
     --sidebar-width-expanded: 260px;
     --sidebar-width-collapsed: 70px;
-    --sidebar-bg: #ffffff;
-    --sidebar-border: #e5e7eb;
-    --sidebar-text: #4b5563;
-    --sidebar-text-active: #111827;
-    --sidebar-bg-active: #f3f4f6;
-    --sidebar-hover-bg: #f9fafb;
-    --sidebar-primary: #f97316;
-}
+    --sidebar-bg: var(--bg-primary);
+    --sidebar-border: var(--border);
+    --sidebar-text: var(--text-secondary);
+    --sidebar-text-active: var(--text-primary);
+    --sidebar-bg-active: var(--bg-secondary);
+    --sidebar-hover-bg: var(--bg-secondary);
+    --sidebar-primary: var(--primary);
 
-.modern-sidebar {
     width: var(--sidebar-width-expanded);
     background-color: var(--sidebar-bg);
     border-right: 1px solid var(--sidebar-border);
@@ -51,7 +49,7 @@
 .brand-logo {
     width: 32px;
     height: 32px;
-    background: #fdf2f8;
+    background: var(--bg-secondary);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -64,7 +62,7 @@
 .brand-text {
     font-weight: 700;
     font-size: 1rem;
-    color: #111827;
+    color: var(--text-primary);
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -75,8 +73,8 @@
     height: 40px;
     border-radius: 8px;
     border: 1px solid var(--sidebar-border);
-    background: white;
-    color: #6b7280;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -89,7 +87,7 @@
 }
 
 .sidebar-toggle-btn:hover {
-    background: #f3f4f6;
+    background: var(--sidebar-hover-bg);
     color: var(--sidebar-primary);
     border-color: var(--sidebar-primary);
 }
@@ -163,7 +161,7 @@
 .menu-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #9ca3af;
+    color: var(--text-tertiary);
     margin-bottom: 0.75rem;
     padding-left: 0.75rem;
     text-transform: uppercase;
@@ -209,7 +207,7 @@
 
 .nav-item.active {
     background-color: var(--sidebar-bg-active);
-    color: #111827;
+    color: var(--text-primary);
     font-weight: 600;
 }
 
@@ -251,9 +249,9 @@
     width: 32px;
     height: 32px;
     border-radius: 6px;
-    border: 1px solid #e5e7eb;
-    background: white;
-    color: #6b7280;
+    border: 1px solid var(--border);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -268,8 +266,8 @@
 }
 
 .control-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .modern-sidebar.collapsed .footer-controls {
@@ -319,11 +317,11 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #dbeafe;
+    background: var(--bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #2563eb;
+    color: var(--primary);
     font-weight: 600;
     font-size: 0.9rem;
     flex-shrink: 0;
@@ -339,17 +337,17 @@
 .user-name {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .user-role {
     font-size: 0.75rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     text-transform: capitalize;
 }
 
 .user-menu-trigger {
-    color: #9ca3af;
+    color: var(--text-tertiary);
     font-size: 1rem;
 }
 
@@ -369,7 +367,7 @@
     margin-left: auto;
     font-size: 0.8rem !important;
     transition: transform 0.2s ease;
-    color: #9ca3af;
+    color: var(--text-tertiary);
 }
 
 .dropdown-arrow.rotated {
@@ -407,7 +405,7 @@
 
 .sub-nav-item:hover {
     color: var(--sidebar-text-active);
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: var(--sidebar-hover-bg);
 }
 
 .sub-nav-item.active {

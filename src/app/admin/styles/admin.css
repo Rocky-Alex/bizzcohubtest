@@ -3,8 +3,10 @@
     display: flex;
     min-height: 100vh;
     padding-top: 0;
-    background-color: #f3f4f6;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
     font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .admin-container {
@@ -26,7 +28,7 @@
 
 .section-header h2 {
     font-size: 1.8rem;
-    color: #111827;
+    color: var(--text-primary);
     margin: 0;
     display: flex;
     align-items: center;
@@ -34,6 +36,6 @@
 }
 
 .section-header p {
-    color: #6b7280;
+    color: var(--text-secondary);
     margin: 0.5rem 0 0 0;
 }

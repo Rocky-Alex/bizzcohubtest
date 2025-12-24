@@ -14,13 +14,44 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isViewProfileOpen, setIsViewProfileOpen] = useState(false);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
+    // Auto Refresh Settings State
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+    const [refreshInterval, setRefreshInterval] = useState({ h: 0, m: 1, s: 0 });
+
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const settingsRef = useRef<HTMLDivElement>(null);
+
+    // Load initial settings
+    useEffect(() => {
+        const enabled = localStorage.getItem('autoRefreshEnabled') !== 'false';
+        const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
+        const m = parseInt(localStorage.getItem('autoRefreshMinutes') || (enabled ? '1' : '0'));
+        const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
+
+        setAutoRefreshEnabled(enabled);
+        setRefreshInterval({ h, m, s: (h === 0 && m === 0 && s === 0) ? 0 : s });
+    }, []);
+
+    const saveSettings = () => {
+        localStorage.setItem('autoRefreshEnabled', String(autoRefreshEnabled));
+        localStorage.setItem('autoRefreshHours', String(refreshInterval.h));
+        localStorage.setItem('autoRefreshMinutes', String(refreshInterval.m));
+        localStorage.setItem('autoRefreshSeconds', String(refreshInterval.s));
+        window.dispatchEvent(new Event('autoRefreshSettingsChanged'));
+        toast.success("Settings saved");
+        setIsSettingsOpen(false);
+    };
 
     // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsProfileOpen(false);
+            }
+            if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+                setIsSettingsOpen(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
@@ -55,24 +86,87 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
         setIsEditProfileOpen(true);
     };
 
-    const handleSaveProfile = (updatedUser: any) => {
-        // In a real app, you would make an API call here to update the user in the backend.
-        // For now, we update the local state and localStorage.
+    const handleSaveProfile = async (updatedUser: any) => {
+        try {
+            if (!user?.id) {
+                toast.error("Please Log Out and Log In to update your session.");
+                return;
+            }
 
-        const mergedUser = { ...user, ...updatedUser };
+            let avatarUrl = updatedUser.avatar || null;
 
-        // Ensure image_url is preserved or updated if avatar is returned
-        if (updatedUser.avatar && typeof updatedUser.avatar === 'string') {
-            mergedUser.image_url = updatedUser.avatar;
+            // If there's a new image file, try to upload it to ImageKit
+            if (updatedUser.image && updatedUser.image instanceof File) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', updatedUser.image);
+                    formData.append('folder', 'Profile_Pictures/Users');
+                    formData.append('fileName', updatedUser.username ? updatedUser.username.replace(/\s+/g, '_') : 'user_avatar');
+
+                    const uploadResponse = await fetch('/api/imagekit/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        avatarUrl = uploadData.url;
+                        console.log('Image uploaded successfully:', avatarUrl);
+                    } else {
+                        console.error('Failed to upload image, continuing with existing avatar');
+                    }
+                } catch (uploadError) {
+                    console.error('Image upload error:', uploadError);
+                }
+            }
+
+            // Prepare payload for API
+            const payload = {
+                id: user.id, // Ensure we use the current user's ID
+                first_name: updatedUser.firstName,
+                last_name: updatedUser.lastName,
+                username: updatedUser.username || updatedUser.userName,
+                email: updatedUser.email,
+                phone: updatedUser.phone,
+                role: updatedUser.role,
+                status: (updatedUser.status || 'active').toLowerCase(),
+                avatar: avatarUrl,
+                ...(updatedUser.password && { password: updatedUser.password })
+            };
+
+            const response = await fetch('/api/admin/users', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                // Update local state and storage
+                const mergedUser = {
+                    ...user,
+                    ...updatedUser,
+                    image_url: avatarUrl, // Update image_url for local usage
+                    avatar: avatarUrl
+                };
+
+                // Cleanup unnecessary fields from merge if needed, but keeping them is generally fine for local storage wrapper
+
+                localStorage.setItem('admin_user', JSON.stringify(mergedUser));
+                setUser(mergedUser);
+                toast.success("Profile updated successfully!");
+                setIsEditProfileOpen(false);
+
+                // Dispatch events
+                window.dispatchEvent(new Event('admin-login')); // Update other header components if any
+                window.dispatchEvent(new Event('user-updated')); // Signal AdminPage to refetch users
+            } else {
+                const errorData = await response.json();
+                toast.error(`Failed to update profile: ${errorData.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            toast.error("An error occurred while updating profile.");
         }
-
-        localStorage.setItem('admin_user', JSON.stringify(mergedUser));
-        setUser(mergedUser);
-        toast.success("Profile updated successfully!");
-        setIsEditProfileOpen(false);
-
-        // Dispatch event to notify valid changes if needed
-        window.dispatchEvent(new Event('admin-login'));
     };
 
     const { theme, toggleTheme } = useTheme();
@@ -103,9 +197,66 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                     <i className="fas fa-bell"></i>
                 </button>
 
-                <button className="icon-btn">
-                    <i className="fas fa-cog"></i>
-                </button>
+                <div className="icon-btn-wrapper" ref={settingsRef} style={{ position: 'relative' }}>
+                    <button className="icon-btn" onClick={() => setIsSettingsOpen(!isSettingsOpen)}>
+                        <i className={`fas fa-cog ${isSettingsOpen ? 'fa-spin' : ''}`} style={{ transition: 'transform 0.5s' }}></i>
+                    </button>
+                    {isSettingsOpen && (
+                        <div className="profile-dropdown" style={{ width: '260px', right: '-50px', top: '120%', cursor: 'default' }}>
+                            <div className="profile-dropdown-header">
+                                <span className="user-name">Auto Refresh Settings</span>
+                            </div>
+                            <div style={{ padding: '0 1rem 1rem 1rem' }}>
+                                <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={autoRefreshEnabled}
+                                        onChange={e => setAutoRefreshEnabled(e.target.checked)}
+                                        id="enableAutoRefresh"
+                                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                    />
+                                    <label htmlFor="enableAutoRefresh" style={{ cursor: 'pointer', fontSize: '0.9rem' }}>Enable Auto Refresh</label>
+                                </div>
+
+                                {autoRefreshEnabled && (
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Hours</label>
+                                            <input type="number" min="0" value={refreshInterval.h} onChange={e => setRefreshInterval(prev => ({ ...prev, h: Number(e.target.value) }))} style={{ width: '100%', padding: '4px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Mins</label>
+                                            <input type="number" min="0" value={refreshInterval.m} onChange={e => setRefreshInterval(prev => ({ ...prev, m: Number(e.target.value) }))} style={{ width: '100%', padding: '4px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Secs</label>
+                                            <input type="number" min="0" value={refreshInterval.s} onChange={e => setRefreshInterval(prev => ({ ...prev, s: Number(e.target.value) }))} style={{ width: '100%', padding: '4px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={saveSettings}
+                                    className="btn-primary"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontWeight: 500,
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    <i className="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <div className="header-profile" ref={dropdownRef}>
                     <img
@@ -132,8 +283,8 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                                         }}
                                     />
                                     <div className="user-info" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                        <span className="user-name" style={{ fontWeight: 600, fontSize: '0.9rem', color: '#111827' }}>{userName}</span>
-                                        <span className="user-role" style={{ fontSize: '0.75rem', color: '#6b7280' }}>{user.role || 'Administrator'}</span>
+                                        <span className="user-name" style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{userName}</span>
+                                        <span className="user-role" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{user.role || 'Administrator'}</span>
                                     </div>
                                 </div>
                             )}

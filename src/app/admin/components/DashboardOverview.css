@@ -4,7 +4,7 @@
 .dashboard-overview-container {
     padding: 0;
     font-family: 'Inter', sans-serif;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .dashboard-header-row {
@@ -17,7 +17,7 @@
 .dashboard-header-row h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 /* Date Picker Button */
@@ -26,18 +26,18 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 0.875rem;
-    color: #4b5563;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .date-filter-btn:hover {
-    border-color: #d1d5db;
-    background: #f9fafb;
+    border-color: var(--border-light);
+    background: var(--bg-secondary);
 }
 
 /* Top Row: 3 Main Cards */
@@ -49,11 +49,11 @@
 }
 
 .stats-card {
-    background: white;
+    background: var(--bg-primary);
     padding: 1.25rem;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f3f4f6;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
 }
 
 .stats-card-header {
@@ -61,7 +61,7 @@
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border-light);
     padding-bottom: 0.75rem;
 }
 
@@ -69,11 +69,11 @@
     font-size: 1rem;
     font-weight: 600;
     margin: 0;
-    color: #1f2937;
+    color: var(--text-primary);
 }
 
 .stats-card-header i {
-    color: #4b5563;
+    color: var(--text-secondary);
 }
 
 .stats-grid {
@@ -135,14 +135,14 @@
 
 .stat-label {
     font-size: 0.75rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin-bottom: 0.1rem;
 }
 
 .stat-value {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 /* Middle Row: Summary Cards */
@@ -154,11 +154,11 @@
 }
 
 .summary-data-card {
-    background: white;
+    background: var(--bg-primary);
     padding: 1.5rem;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f3f4f6;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -175,12 +175,12 @@
 
 .summary-card-title {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
 .summary-card-icon {
-    color: #9ca3af;
+    color: var(--text-tertiary);
     font-size: 1rem;
 }
 
@@ -191,7 +191,7 @@
 .summary-main-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
     margin-right: 0.5rem;
 }
 
@@ -209,7 +209,7 @@
 
 .summary-card-footer {
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     cursor: pointer;
     margin-top: auto;
 }
@@ -238,10 +238,10 @@
 
 /* Invoices Table Section */
 .invoices-section {
-    background: white;
+    background: var(--bg-primary);
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f3f4f6;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
     padding: 1.5rem;
 }
 
@@ -255,7 +255,7 @@
 .invoices-header h3 {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -289,17 +289,17 @@
 
 .dashboard-table th {
     padding: 1rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     font-weight: 600;
     font-size: 0.8rem;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border-light);
     white-space: nowrap;
 }
 
 .dashboard-table td {
     padding: 1rem;
-    border-bottom: 1px solid #f9fafb;
-    color: #374151;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
     vertical-align: middle;
 }
 
@@ -317,7 +317,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: #e5e7eb;
+    background-color: var(--bg-tertiary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -328,5 +328,5 @@
 
 .payment-mode-pill {
     font-size: 0.85rem;
-    color: #4b5563;
+    color: var(--text-secondary);
 }
