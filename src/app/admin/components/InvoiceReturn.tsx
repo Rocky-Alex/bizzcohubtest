@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import '../styles/create-invoice.css'; // Reuse invoice styles
 import ConfirmModal from './ConfirmModal';

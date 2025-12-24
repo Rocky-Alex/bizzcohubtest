@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useCallback } from "react";
 import "./DashboardOverview.css";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";

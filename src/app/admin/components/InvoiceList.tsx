@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ConfirmModal from './ConfirmModal';

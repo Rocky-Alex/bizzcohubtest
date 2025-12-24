@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useMemo } from 'react';
 import './ActivityLog.css'; // Import the new specific styles
 import '@/app/admin/styles/admin.css'; // Ensure global styles are present
