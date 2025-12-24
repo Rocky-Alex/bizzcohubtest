@@ -6,9 +6,10 @@ import imageKitLoader from "@/utils/imageLoader";
 
 interface ProductCardProps {
     product: any;
+    type?: string;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, type }: ProductCardProps) {
     const isDiscounted = product.originalPrice && product.originalPrice > product.price;
     const discountPercent = isDiscounted
         ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -16,7 +17,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     return (
         <Link
-            href={`/products/${product.type}/${product.id}`}
+            href={`/products/${type || product.type}/${product.id}`}
             style={{ textDecoration: 'none' }}
         >
             <div className="product-card" style={{
