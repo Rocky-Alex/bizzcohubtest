@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -118,6 +119,8 @@ export async function GET() {
                 value: 0
             }
         };
+
+
 
         return NextResponse.json(result);
 

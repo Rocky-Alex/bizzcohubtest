@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
+import { logActivity } from '@/lib/activity-logger';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
@@ -16,6 +17,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         const itemsResult = await sql`
             SELECT * FROM quotation_items WHERE quotation_id = ${id}
         `;
+
+
 
         return NextResponse.json({ quotation: quotationResult[0], items: itemsResult }, { status: 200 });
     } catch (error: any) {
@@ -43,6 +46,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         if (result.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
         }
+
+        await logActivity(
+            'Admin',
+            'Update Quotation Status',
+            `Quotation #${id} status updated to ${status}`,
+            'success',
+            'Admin'
+        );
 
         return NextResponse.json({ message: 'Status updated successfully', quotation: result[0] }, { status: 200 });
 
@@ -106,6 +117,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             `;
         }
 
+        await logActivity(
+            customerName || 'Admin',
+            'Update Quotation',
+            `Quotation #${quotationNo} updated. Total: ${totalAmount}`,
+            'success',
+            'Admin'
+        );
+
         return NextResponse.json({ message: 'Quotation updated successfully' }, { status: 200 });
 
     } catch (error: any) {
@@ -127,6 +146,14 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
         }
+
+        await logActivity(
+            'Admin',
+            'Delete Quotation',
+            `Quotation #${id} deleted`,
+            'success',
+            'Admin'
+        );
 
         return NextResponse.json({ message: 'Quotation deleted successfully' }, { status: 200 });
     } catch (error: any) {

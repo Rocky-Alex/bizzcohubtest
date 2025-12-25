@@ -31,7 +31,7 @@ const ImportCustomers = dynamic(() => import('./components/ImportCustomers'), { 
 const QuickActions = dynamic(() => import('./components/QuickActions'), { loading: () => <LoadingSpinner /> });
 const OrderList = dynamic(() => import('./components/OrderList'), { loading: () => <LoadingSpinner /> });
 const CreateOrder = dynamic(() => import('./components/CreateOrder'), { loading: () => <LoadingSpinner /> });
-const ActivityLog = dynamic(() => import('./components/ActivityLog'), { loading: () => <LoadingSpinner /> });
+const ActivityLog = dynamic(() => import('./activity-log/ActivityLog'), { loading: () => <LoadingSpinner /> });
 const ConfirmModal = dynamic(() => import('./components/ConfirmModal'));
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
@@ -565,6 +565,41 @@ export default function AdminPage() {
         window.addEventListener('user-updated', handleUserUpdated);
         return () => window.removeEventListener('user-updated', handleUserUpdated);
     }, [fetchUsers]);
+
+    // Page View Logging (Duration tracking)
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const startTime = Date.now();
+        const sectionName = activeSection;
+
+        return () => {
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000); // in seconds
+
+            // Only log if spent at least 5 seconds AND it's not the dashboard
+            if (timeSpent >= 5 && sectionName !== 'dashboard') {
+                const readableName = sectionName
+                    .split('-')
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+
+                console.log(`Logging page view for: ${readableName} (${timeSpent}s)`);
+
+                fetch('/api/admin/activity-logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'View Page',
+                        details: `Viewed ${readableName} page (Duration: ${timeSpent}s)`,
+                        user_name: username,
+                        role: userRole,
+                        status: 'success'
+                    }),
+                    keepalive: true
+                }).catch((err) => console.error('Failed to log page view:', err));
+            }
+        };
+    }, [activeSection, isAuthenticated, username, userRole]);
 
     useAutoRefresh(refreshData);
 

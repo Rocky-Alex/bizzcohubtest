@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { logActivity } from '@/lib/activity-logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -63,6 +64,14 @@ export async function POST(request: NextRequest) {
             RETURNING *
         `;
 
+        await logActivity(
+            'Admin',
+            'Create Order',
+            `Order created: ${orderNumber} for ${body.firstName} ${body.lastName}`,
+            'success',
+            'Admin'
+        );
+
         return NextResponse.json({ order: newOrder[0] });
     } catch (error: any) {
         console.error('Error creating order:', error);
@@ -121,6 +130,14 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
         }
 
+        await logActivity(
+            'Admin',
+            'Update Order',
+            `Order ${id} updated${status ? ` to status: ${status}` : ''}`,
+            'success',
+            'Admin'
+        );
+
         return NextResponse.json({ order: updatedOrder[0] });
     } catch (error: any) {
         console.error('[Orders API] Error updating order:', error);
@@ -142,6 +159,14 @@ export async function DELETE(request: NextRequest) {
         if (result.length === 0) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
         }
+
+        await logActivity(
+            'Admin',
+            'Delete Order',
+            `Order ${id} deleted`,
+            'success',
+            'Admin'
+        );
 
         return NextResponse.json({ message: 'Order deleted successfully', id });
     } catch (error: any) {

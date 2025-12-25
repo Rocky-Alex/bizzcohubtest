@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { createHash } from 'crypto';
 import { cookies } from 'next/headers';
+import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,8 @@ export async function POST(request: NextRequest) {
                 RETURNING id, name, username, email, avatar, image_url
             `;
 
+            await logActivity(username, 'Customer Signup', `New customer signed up: ${fullName} (${email})`, 'success', 'Customer');
+
             return NextResponse.json({
                 success: true,
                 message: 'Account created successfully',
@@ -73,6 +76,7 @@ export async function POST(request: NextRequest) {
             `;
 
             if (users.length === 0) {
+                await logActivity(identifier, 'Login Failed', `Failed login attempt for: ${identifier}`, 'failure', 'Customer');
                 return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
             }
 
@@ -110,6 +114,8 @@ export async function POST(request: NextRequest) {
                 expires: expiresAt,
                 path: '/'
             });
+
+            await logActivity(user.username, 'Customer Login', `Customer logged in: ${user.name}`, 'success', 'Customer');
 
             // Frontend might want some user info
             return NextResponse.json({

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import AutoRefreshSettings from "./AutoRefreshSettings";
 
 interface AdminSidebarProps {
@@ -19,6 +20,7 @@ export default function AdminSidebar({
     userRole = 'accountant',
     username = 'Admin'
 }: AdminSidebarProps) {
+    const router = useRouter();
     const menuItems = [
         { id: "quick-actions", icon: "fa-rocket", label: "Quick Actions" },
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
@@ -144,7 +146,9 @@ export default function AdminSidebar({
     };
 
     const handleItemClick = (item: any) => {
-        if (item.id === 'auto-refresh') {
+        if (item.id === 'activity-log') {
+            router.push('/activitylog');
+        } else if (item.id === 'auto-refresh') {
             setShowAutoRefreshSettings(true);
         } else if (item.subItems) {
             toggleMenu(item.id);

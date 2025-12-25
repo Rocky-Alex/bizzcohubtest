@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { logActivity } from '@/lib/activity-logger';
 
 export async function POST(request: NextRequest) {
     try {
@@ -155,6 +156,14 @@ export async function POST(request: NextRequest) {
                 `;
             }
         }
+
+        await logActivity(
+            'Admin',
+            'Bulk Import Customers',
+            `Imported ${toInsert.length} customers, Updated ${toUpdate.length} customers`,
+            'success',
+            'Admin'
+        );
 
         return NextResponse.json({
             message: `Successfully processed import`,

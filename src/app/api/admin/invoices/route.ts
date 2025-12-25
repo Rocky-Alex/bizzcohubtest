@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
+import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,6 +105,14 @@ export async function POST(req: Request) {
                 `;
             }
         }
+
+        await logActivity(
+            customerName || 'Admin',
+            'Create Invoice',
+            `Invoice #${invoiceNo} created for ${customerName}. Total: ${totalAmount}.`,
+            'success',
+            'Admin' // Assuming Admin creates invoice, could be passed from body if needed
+        );
 
         return NextResponse.json({ message: 'Invoice created successfully', invoiceId }, { status: 201 });
 

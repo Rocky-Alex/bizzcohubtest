@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
+import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +77,14 @@ export async function POST(req: Request) {
                 )
             `;
         }
+
+        await logActivity(
+            customerName || 'Admin',
+            'Create Quotation',
+            `Quotation #${quotationNo} created for ${customerName}. Total: ${totalAmount}.`,
+            'success',
+            'Admin'
+        );
 
         return NextResponse.json({ message: 'Quotation created successfully', quotationId }, { status: 201 });
 

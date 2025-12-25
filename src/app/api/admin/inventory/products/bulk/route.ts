@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logActivity } from '@/lib/activity-logger';
 import { neon } from '@neondatabase/serverless';
 
 export async function POST(req: Request) {
@@ -93,6 +94,14 @@ export async function POST(req: Request) {
         }
 
         console.log('Insert successful');
+
+        await logActivity(
+            'Admin',
+            'Bulk Import Products',
+            `Imported ${fulfilled.length} products with ${rejected.length} failures`,
+            rejected.length > 0 ? 'failure' : 'success',
+            'Admin'
+        );
 
         return NextResponse.json({ message: `Successfully imported ${products.length} products` }, { status: 201 });
 

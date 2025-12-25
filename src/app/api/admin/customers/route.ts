@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { createHash } from 'crypto';
+import { logActivity } from '@/lib/activity-logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -166,6 +167,14 @@ export async function POST(request: NextRequest) {
             RETURNING *
         `;
 
+        await logActivity(
+            'Admin',
+            'Create Customer',
+            `Created customer: ${body.name} (${body.email})`,
+            'success',
+            'Admin'
+        );
+
         return NextResponse.json({ customer: newCustomer[0] });
     } catch (error: any) {
         console.error('Error creating customer:', error);
@@ -231,6 +240,16 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
         }
 
+        // Calculate diffs for detailed logging would require fetching old customer first.
+        // For now, let's just log the action.
+        await logActivity(
+            'Admin',
+            'Update Customer',
+            `Updated details for customer ${body.name}`,
+            'success',
+            'Admin'
+        );
+
         return NextResponse.json({ customer: updatedCustomer[0] });
 
     } catch (error: any) {
@@ -249,6 +268,14 @@ export async function DELETE(request: NextRequest) {
         }
 
         await sql`DELETE FROM customers WHERE id = ${id}`;
+
+        await logActivity(
+            'Admin',
+            'Delete Customer',
+            `Deleted customer ID: ${id}`,
+            'success',
+            'Admin'
+        );
 
         return NextResponse.json({ message: 'Customer deleted successfully' });
     } catch (error: any) {

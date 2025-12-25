@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,8 @@ export async function GET(request: Request) {
             products: Number(prod.count || 0),
             recentInvoices: recentInvoices || []
         };
+
+
 
         return NextResponse.json(data);
 
