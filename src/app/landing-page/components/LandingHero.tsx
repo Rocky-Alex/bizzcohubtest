@@ -88,9 +88,9 @@ export default function LandingHero() {
                         </div>
 
                         <h1 className="hero-title">
-                            <span className="title-line slide-in-left">Transform Your</span>
+                            <span className="title-line slide-in-left">Welcome to</span>
                             <span className="title-line slide-in-left delay-1">
-                                <span className="gradient-text-animated">Digital World</span>
+                                <span className="gradient-text-animated">Bizzcohub</span>
                             </span>
                         </h1>
 
