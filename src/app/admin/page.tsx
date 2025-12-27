@@ -37,6 +37,7 @@ import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
 import "./styles/admin-header.css";
+import "./styles/mobile-responsive.css";
 
 import { useTheme } from "@/context/ThemeContext";
 
@@ -48,6 +49,8 @@ export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState("accountant");
     const [username, setUsername] = useState("Admin");
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
     // const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // Removed
 
     // Placeholder data state (to be replaced with real data fetching)
@@ -601,6 +604,48 @@ export default function AdminPage() {
         };
     }, [activeSection, isAuthenticated, username, userRole]);
 
+    // Shortcut for Activity Log: Shift + LOG
+    useEffect(() => {
+        let keySequence = '';
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Only proceed if Shift is held down and no other modifiers
+            if (e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                // ignore Shift key itself
+                if (e.key === 'Shift') return;
+
+                const char = e.key.toUpperCase();
+
+                // Append valid letters to sequence
+                if (/^[A-Z]$/.test(char)) {
+                    keySequence += char;
+
+                    if (keySequence.endsWith('ACTIVITYLOG')) {
+                        console.log('Shortcut triggered: Shift + ACTIVITYLOG -> Navigating to Activity Log');
+                        setActiveSection('activity-log');
+                        keySequence = '';
+                    }
+                }
+            } else {
+                keySequence = '';
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === 'Shift') {
+                keySequence = '';
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, []);
+
     useAutoRefresh(refreshData);
 
     const handleLogout = () => {
@@ -666,6 +711,7 @@ export default function AdminPage() {
             'payments-all': ['Invoicing', 'Partial Payments'],
             'invoices-return': ['Billing', 'Invoice Return'],
             'activity-log': ['Activity Log'],
+            'email-inbox': ['Application', 'Email'],
             'quick-actions': ['Quick Actions'],
         };
 
@@ -1095,17 +1141,31 @@ export default function AdminPage() {
 
     return (
         <div className={`admin-body ${theme === 'dark' ? 'dark' : ''}`}>
+            {/* Mobile Sidebar Overlay */}
+            <div
+                className={`sidebar-overlay ${isMobileSidebarOpen ? 'active' : ''}`}
+                onClick={() => setIsMobileSidebarOpen(false)}
+            ></div>
+
             <div className="admin-container">
                 <AdminSidebar
                     activeSection={activeSection}
-                    setActiveSection={setActiveSection}
+                    setActiveSection={(section) => {
+                        setActiveSection(section);
+                        setIsMobileSidebarOpen(false); // Close mobile sidebar on navigation
+                    }}
                     onLogout={handleLogout}
                     userRole={userRole}
                     username={username}
+                    mobileOpen={isMobileSidebarOpen}
                 />
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    <AdminHeader onLogout={handleLogout} roles={roles.map(r => r.name)} />
+                    <AdminHeader
+                        onLogout={handleLogout}
+                        roles={roles.map(r => r.name)}
+                        toggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+                    />
                     <main className="admin-content" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {/* Breadcrumbs */}
                         <div className="admin-breadcrumbs" style={{ padding: '0 0.5rem', display: 'flex', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>

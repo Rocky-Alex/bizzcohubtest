@@ -18,3 +18,126 @@ select:focus {
 .filter-container {
     animation: slideDown 0.3s ease-out;
 }
+
+/* Products Grid Layout */
+.products-layout-grid {
+    display: grid;
+    gap: 10px;
+    /* Reduced gap for denser layout */
+    grid-template-columns: repeat(2, 1fr);
+    /* Mobile default */
+}
+
+@media (min-width: 640px) {
+    .products-layout-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .products-layout-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .products-layout-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (min-width: 1500px) {
+    .products-layout-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+.products-layout-grid>a {
+    max-width: 240px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Product Card Responsive Heights */
+.product-card {
+    min-height: 280px;
+}
+
+.product-card-image-wrapper {
+    height: 190px;
+}
+
+/* Product Card Typography */
+.product-card-badge {
+    font-size: 0.6rem;
+}
+
+.product-card-brand,
+.product-card-code {
+    font-size: 0.6rem;
+}
+
+.product-card-title {
+    font-size: 0.75rem;
+}
+
+.product-card-price {
+    font-size: 0.8rem;
+}
+
+.product-card-price-original {
+    font-size: 0.8rem;
+}
+
+.product-card-stock,
+.product-card-view {
+    font-size: 0.6rem;
+}
+
+@media (max-width: 640px) {
+    .product-card {
+        min-height: 200px !important;
+    }
+
+    .product-card-image-wrapper {
+        height: 120px !important;
+    }
+
+    /* Mobile Text Reductions */
+    .product-card-badge {
+        font-size: 0.5rem !important;
+    }
+
+    .product-card-brand,
+    .product-card-code {
+        font-size: 0.45rem !important;
+    }
+
+    .product-card-title {
+        font-size: 0.65rem !important;
+        margin-bottom: 8px !important;
+    }
+
+    .product-card-price {
+        font-size: 0.75rem !important;
+    }
+
+    .product-card-price-original {
+        font-size: 0.7rem !important;
+    }
+
+    .product-card-stock,
+    .product-card-view {
+        font-size: 0.55rem !important;
+    }
+
+    /* Hide Quick Categories */
+    .quick-categories-nav {
+        display: none !important;
+    }
+
+    /* Hide Filter Toggle Button */
+    .product-filter-toggle-btn-wrapper {
+        display: none !important;
+    }
+}

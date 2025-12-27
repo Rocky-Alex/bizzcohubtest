@@ -246,11 +246,41 @@
     transform: translateY(-2px);
 }
 
+.narrative-header-group {
+    position: relative;
+    /* Default is stacked, no flex unless needed, but existing num has negative margin */
+}
+
 /* Responsive */
 @media (max-width: 900px) {
+    .narrative-hero h1 {
+        font-size: 2                                                                                                            rem;
+    }
+
     .narrative-container {
         flex-direction: column !important;
         gap: 3rem;
+    }
+
+    /* Side-by-side Layout for Mobile Titles */
+    .narrative-header-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 1rem;
+    }
+
+    .narrative-num {
+        font-size: 2.5rem;
+        margin-bottom: 0;
+        opacity: 0.2;
+        line-height: 0.8;
+    }
+
+    .narrative-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        line-height: 1.2;
     }
 
     .visual-card {

@@ -7,7 +7,7 @@ import React from 'react';
 import path from 'path';
 
 // Initialize Resend with the provided API Key
-const resend = new Resend('re_d3byfQhH_G7nTsDTeMg2FZGNvDSd9Scqa');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {

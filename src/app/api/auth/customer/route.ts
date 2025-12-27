@@ -3,6 +3,9 @@ import { sql } from '@/lib/db';
 import { createHash } from 'crypto';
 import { cookies } from 'next/headers';
 import { logActivity } from '@/lib/activity-logger';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +52,37 @@ export async function POST(request: NextRequest) {
             `;
 
             await logActivity(username, 'Customer Signup', `New customer signed up: ${fullName} (${email})`, 'success', 'Customer');
+
+            // Send Welcome Email
+            try {
+                await resend.emails.send({
+                    from: 'Bizz Co Hub <onboarding@resend.dev>',
+                    to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
+                    subject: 'Welcome to Bizz Co Hub!',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                            <h2 style="color: #4f46e5;">Welcome, ${fullName}!</h2>
+                            <p>Thank you for joining <strong>Bizz Co Hub</strong>.</p>
+                            <p>We are thrilled to have you on board. Explore our wide range of premium refurbished electronics and professional IT services.</p>
+                            
+                            <div style="margin: 30px 0; text-align: center;">
+                                <a href="https://bizzcohub.com/products" style="background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Browse Collection</a>
+                            </div>
+
+                            <p style="color: #666; font-size: 14px;">
+                                If you have any questions, feel free to reply to this email or contact our support team.
+                            </p>
+                            
+                            <p style="margin-top: 30px; font-size: 12px; color: #999; text-align: center;">
+                                Happy Shopping!<br/>
+                                Bizz Co Hub Team
+                            </p>
+                        </div>
+                    `
+                });
+            } catch (emailError) {
+                console.error('Failed to send welcome email:', emailError);
+            }
 
             return NextResponse.json({
                 success: true,

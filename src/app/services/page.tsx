@@ -138,8 +138,10 @@ export default function ServicesPage() {
                     <section key={service.id} className="narrative-section">
                         <div className="narrative-container">
                             <div className="narrative-content">
-                                <span className="narrative-num">0{service.id}</span>
-                                <h2>{service.title}</h2>
+                                <div className="narrative-header-group">
+                                    <span className="narrative-num">0{service.id}</span>
+                                    <h2>{service.title}</h2>
+                                </div>
                                 <p>{service.description}</p>
                                 <ul className="narrative-list">
                                     {service.details.map((detail, idx) => (

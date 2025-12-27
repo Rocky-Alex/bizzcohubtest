@@ -3,6 +3,8 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState, useCallback } from "react";
 
+// ProductFilters component handles filtering logic using searchParams
+
 interface ProductFiltersProps {
     stats: {
         total: number;
@@ -55,8 +57,22 @@ export default function ProductFilters({ stats, brands, initialFilters }: Produc
     return (
         <div style={{ marginBottom: '20px', marginTop: '40px' }}>
             {/* Quick Categories & Toggle */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Quick Categories & Toggle */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '20px' }}>
+                <div className="quick-categories-nav" style={{
+                    display: 'flex',
+                    gap: '10px',
+                    overflowX: 'auto',
+                    paddingBottom: '5px',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                }}>
+                    <style jsx>{`
+                        div::-webkit-scrollbar {
+                            display: none;
+                        }
+                    `}</style>
                     {[
                         { label: 'Renewed Laptops', type: 'laptop', category: 'Renewed Laptops' },
                         { label: 'MacBook', type: 'laptop', category: 'MacBook' },
@@ -69,16 +85,18 @@ export default function ProductFilters({ stats, brands, initialFilters }: Produc
                                 key={idx}
                                 onClick={() => handleFilterChange('category', isSelected ? 'all' : btn.category)}
                                 style={{
-                                    padding: '10px 24px',
-                                    borderRadius: '10px',
-                                    border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                    padding: '8px 20px',
+                                    borderRadius: '50px',
+                                    border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
                                     background: isSelected ? 'rgba(var(--primary-rgb), 0.1)' : 'var(--bg-secondary)',
-                                    color: isSelected ? 'var(--primary)' : 'var(--text-secondary)',
+                                    color: isSelected ? 'var(--primary)' : 'var(--text-primary)',
                                     cursor: 'pointer',
-                                    fontWeight: '600',
-                                    fontSize: '0.95rem',
+                                    fontWeight: '500',
+                                    fontSize: '0.9rem',
                                     transition: 'all 0.2s ease',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                    whiteSpace: 'nowrap',
+                                    flexShrink: 0
                                 }}
                             >
                                 {btn.label}
@@ -87,25 +105,28 @@ export default function ProductFilters({ stats, brands, initialFilters }: Produc
                     })}
                 </div>
 
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    style={{
-                        padding: '10px 24px',
-                        background: showFilters ? 'var(--primary)' : 'var(--bg-secondary)',
-                        color: showFilters ? 'white' : 'var(--primary)',
-                        border: '2px solid var(--primary)',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: '600',
-                        fontSize: '1rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}
-                >
-                    <i className={`fas fa-${showFilters ? 'times' : 'filter'}`}></i>
-                    {showFilters ? 'Hide Filters' : 'Show Filters'}
-                </button>
+                <div className="product-filter-toggle-btn-wrapper" style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        style={{
+                            padding: '10px 20px',
+                            background: showFilters ? 'var(--primary)' : 'transparent',
+                            color: showFilters ? 'white' : 'var(--primary)',
+                            border: '1px solid var(--primary)',
+                            borderRadius: '50px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '0.9rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease'
+                        }}
+                    >
+                        <i className={`fas fa-${showFilters ? 'times' : 'filter'}`}></i>
+                        {showFilters ? 'Hide Filters' : 'Filter & Sort'}
+                    </button>
+                </div>
             </div>
 
             {/* Filter Bar - Collapsible */}

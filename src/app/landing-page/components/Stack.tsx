@@ -91,8 +91,8 @@ export default function Stack({
         return () => window.removeEventListener('resize', checkMobile);
     }, [mobileBreakpoint]);
 
-    const shouldDisableDrag = mobileClickOnly && isMobile;
-    const shouldEnableClick = sendToBackOnClick || shouldDisableDrag;
+    const shouldDisableDrag = isMobile || (mobileClickOnly && isMobile);
+    const shouldEnableClick = !isMobile && (sendToBackOnClick || shouldDisableDrag);
 
     const [stack, setStack] = useState<{ id: number; content: React.ReactNode }[]>(
         () => {

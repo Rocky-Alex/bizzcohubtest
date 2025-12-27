@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import './login.css';
 import { toast } from 'sonner';
 import OrbitingTechnologies from '@/components/ui/OrbitingTechnologies';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '@/utils/canvasUtils';
 
 export default function CustomerAuthPage() {
     // We'll keep the state for logic, but visual focus is on "Login"
@@ -25,9 +27,16 @@ export default function CustomerAuthPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
 
     // Avatar State
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarFile, setAvatarFile] = useState<File | Blob | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Cropping State
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+    const [isCropping, setIsCropping] = useState(false);
+    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
     // Secret Admin Navigation
     useEffect(() => {
@@ -69,14 +78,35 @@ export default function CustomerAuthPage() {
                 toast.error("File size must be less than 5MB");
                 return;
             }
-            setAvatarFile(file);
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result as string);
-            };
+            reader.addEventListener('load', () => {
+                setCropImageSrc(reader.result as string);
+                setIsCropping(true);
+            });
             reader.readAsDataURL(file);
+            // Don't set avatarFile yet, wait for crop
         }
     };
+
+    const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    }, []);
+
+    const showCroppedImage = useCallback(async () => {
+        if (!cropImageSrc || !croppedAreaPixels) return;
+        try {
+            const croppedImageBlob = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+            if (croppedImageBlob) {
+                setAvatarFile(new File([croppedImageBlob], "avatar.jpg", { type: "image/jpeg" }));
+                setAvatarPreview(URL.createObjectURL(croppedImageBlob));
+                setIsCropping(false);
+                setCropImageSrc(null); // Cleanup
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Failed to crop image");
+        }
+    }, [cropImageSrc, croppedAreaPixels]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -390,6 +420,84 @@ export default function CustomerAuthPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Crop Modal */}
+            {isCropping && cropImageSrc && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    zIndex: 1000,
+                    background: 'rgba(11, 17, 33, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <div style={{ position: 'relative', width: '100%', maxWidth: '500px', height: '500px', background: '#000', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <Cropper
+                            image={cropImageSrc}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={1}
+                            onCropChange={setCrop}
+                            onCropComplete={onCropComplete}
+                            onZoomChange={setZoom}
+                            cropShape="round"
+                            showGrid={true}
+                        />
+                    </div>
+                    <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', width: '100%', maxWidth: '500px', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#94a3b8' }}>
+                                <i className="fas fa-search-minus"></i>
+                                <input
+                                    type="range"
+                                    value={zoom}
+                                    min={1}
+                                    max={3}
+                                    step={0.1}
+                                    aria-labelledby="Zoom"
+                                    onChange={(e) => setZoom(Number(e.target.value))}
+                                    style={{ width: '100%', accentColor: '#007aff' }}
+                                />
+                                <i className="fas fa-search-plus"></i>
+                            </div>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsCropping(false); setCropImageSrc(null); }}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: 'transparent',
+                                        color: '#ef4444',
+                                        border: '1px solid #ef4444',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 600
+                                    }}>
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={showCroppedImage}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: 'linear-gradient(90deg, #007aff, #00b4ff)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                        boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)'
+                                    }}>
+                                    Set Profile Picture
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

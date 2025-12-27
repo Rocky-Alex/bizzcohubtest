@@ -1,9 +1,55 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 import "./styles/contact2.css";
 
 export default function Contact2Page() {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState({
+        name: "",
+        company: "",
+        email: "",
+        category: "Product Inquiry",
+        message: ""
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error || 'Failed to send message');
+
+            toast.success("Message sent successfully! We'll get back to you soon.");
+            setFormData({
+                name: "",
+                company: "",
+                email: "",
+                category: "Product Inquiry",
+                message: ""
+            });
+        } catch (error: any) {
+            console.error('Submission error:', error);
+            toast.error(error.message || "Failed to send message. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
     return (
         <div className="contact2-wrapper">
             <div className="c2-container">
@@ -59,36 +105,71 @@ export default function Contact2Page() {
                             <p style={{ color: '#94a3b8' }}>Fill out the form below and we will get back to you shortly.</p>
                         </div>
 
-                        <form onSubmit={(e) => e.preventDefault()}>
+                        <form onSubmit={handleSubmit}>
                             <div className="c2-input-grid">
                                 <div className="c2-group">
                                     <label className="c2-label">Name</label>
-                                    <input type="text" className="c2-input" placeholder="Your Name" />
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        className="c2-input"
+                                        placeholder="Your Name"
+                                        required
+                                    />
                                 </div>
                                 <div className="c2-group">
                                     <label className="c2-label">Company</label>
-                                    <input type="text" className="c2-input" placeholder="Company Name" />
+                                    <input
+                                        type="text"
+                                        name="company"
+                                        value={formData.company}
+                                        onChange={handleChange}
+                                        className="c2-input"
+                                        placeholder="Company Name"
+                                    />
                                 </div>
                                 <div className="c2-group full">
                                     <label className="c2-label">Email</label>
-                                    <input type="email" className="c2-input" placeholder="name@example.com" />
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="c2-input"
+                                        placeholder="name@example.com"
+                                        required
+                                    />
                                 </div>
                                 <div className="c2-group full">
                                     <label className="c2-label">Category</label>
-                                    <select className="c2-input">
-                                        <option>Product Inquiry</option>
-                                        <option>Bulk/Wholesale</option>
-                                        <option>Technical Issue</option>
-                                        <option>Other</option>
+                                    <select
+                                        name="category"
+                                        value={formData.category}
+                                        onChange={handleChange}
+                                        className="c2-input"
+                                    >
+                                        <option value="Product Inquiry">Product Inquiry</option>
+                                        <option value="Bulk/Wholesale">Bulk/Wholesale</option>
+                                        <option value="Technical Issue">Technical Issue</option>
+                                        <option value="Other">Other</option>
                                     </select>
                                 </div>
                                 <div className="c2-group full">
                                     <label className="c2-label">Message</label>
-                                    <textarea className="c2-input c2-textarea" placeholder="Tell us more about your needs..."></textarea>
+                                    <textarea
+                                        name="message"
+                                        value={formData.message}
+                                        onChange={handleChange}
+                                        className="c2-input c2-textarea"
+                                        placeholder="Tell us more about your needs..."
+                                        required
+                                    />
                                 </div>
                             </div>
-                            <button type="submit" className="c2-submit">
-                                Submit Request <i className="fas fa-paper-plane ml-2"></i>
+                            <button type="submit" className="c2-submit" disabled={isSubmitting}>
+                                {isSubmitting ? 'Sending...' : 'Submit Request'} <i className={`fas ${isSubmitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'} ml-2`}></i>
                             </button>
                         </form>
                     </div>

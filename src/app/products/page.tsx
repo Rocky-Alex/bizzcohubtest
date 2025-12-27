@@ -59,7 +59,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             background: 'var(--bg-primary)',
             minHeight: '60vh'
         }}>
-            <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+            <div style={{ maxWidth: '1500px', margin: '0 auto' }}>
                 <Suspense fallback={<LoadingSpinner />}>
                     <ProductFilters
                         stats={stats}
@@ -81,11 +81,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Try adjusting your filters to see more results</p>
                     </div>
                 ) : (
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                        gap: '30px'
-                    }}>
+                    <div className="products-layout-grid">
                         {products.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}

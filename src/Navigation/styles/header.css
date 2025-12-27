@@ -369,7 +369,17 @@
     }
 
     .header-actions {
-        gap: 4px;
+        gap: 8px;
+        /* Increased from 4px to prevent miss-clicks and crowing */
+    }
+
+    .logo-text {
+        font-size: 18px;
+        /* Slightly smaller logo text on mobile */
+    }
+
+    .header-action-btn.theme-btn {
+        display: none !important;
     }
 
     .sign-in-btn {

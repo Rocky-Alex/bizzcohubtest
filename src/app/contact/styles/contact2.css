@@ -14,6 +14,8 @@
 }
 
 .contact2-wrapper {
+    display: flex;
+    flex-direction: column;
     background-color: var(--c2-bg);
     min-height: 100vh;
     font-family: 'Inter', sans-serif;
@@ -336,11 +338,30 @@
 
 @media (max-width: 768px) {
     .c2-about-stats {
-        gap: 2rem;
+        gap: 10px;
+        flex-wrap: nowrap;
     }
 
     .stat-item {
         flex: 1;
-        min-width: 120px;
+        min-width: 0;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+    }
+
+    /* Move About Section to Top on Mobile */
+    .c2-about-section {
+        order: -1;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-top: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 40px 0;
     }
 }

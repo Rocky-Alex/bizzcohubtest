@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { addToCart } from "@/utils/cart";
@@ -18,7 +18,59 @@ interface FeaturedProductsProps {
 
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [activeSlide, setActiveSlide] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
     const { showToast } = useToast();
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (!scrollContainerRef.current) return;
+        setIsDragging(true);
+        setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+        setScrollLeft(scrollContainerRef.current.scrollLeft);
+    };
+
+    const handleMouseLeave = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging || !scrollContainerRef.current) return;
+        e.preventDefault();
+        const x = e.pageX - scrollContainerRef.current.offsetLeft;
+        const walk = (x - startX) * 2; // scroll-fast
+        scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+    const handleScroll = () => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, clientWidth } = scrollContainerRef.current;
+            const newActiveSlide = Math.round(scrollLeft / clientWidth); // Simplistic for single items, might need adjustment if multiple visible
+            // Better: use card width.
+            // If using auto-width/flex, clientWidth might be the container width.
+            // Let's rely on scroll percentage or specific item width if possible. 
+            // For now, simple ratio.
+            const totalWidth = scrollContainerRef.current.scrollWidth - clientWidth;
+            if (totalWidth > 0) {
+                const progress = scrollLeft / totalWidth;
+                const index = Math.round(progress * (products.length - 1));
+                setActiveSlide(index);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', handleScroll);
+            return () => container.removeEventListener('scroll', handleScroll);
+        }
+    }, [products.length]);
 
     const scroll = (direction: 'left' | 'right') => {
         if (scrollContainerRef.current) {
@@ -67,39 +119,43 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                     </h2>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div className="slider-nav-btns" style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => scroll('left')} className="slider-nav-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M15 18l-6-6 6-6" />
-                            </svg>
-                        </button>
-                        <button onClick={() => scroll('right')} className="slider-nav-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M9 18l6-6-6-6" />
-                            </svg>
-                        </button>
-                    </div>
+                <Link href="/products" className="view-all-btn magnetic-btn">
+                    <span>View All Products</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                </Link>
+            </div>
 
-                    <Link href="/products" className="view-all-btn magnetic-btn">
-                        <span>View All Products</span>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                    </Link>
-                </div>
+            {/* Desktop Navigation Buttons */}
+            <div className="desktop-slider-nav">
+                <button onClick={() => scroll('left')} className="slider-nav-btn left-nav">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                </button>
+                <button onClick={() => scroll('right')} className="slider-nav-btn right-nav">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 18l6-6-6-6" />
+                    </svg>
+                </button>
             </div>
 
             <div
                 className="products-grid-v3"
                 ref={scrollContainerRef}
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeave}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
                 style={{
                     display: 'flex',
                     overflowX: 'auto',
                     gap: '2rem',
                     paddingBottom: '2rem',
                     scrollbarWidth: 'none',
-                    msOverflowStyle: 'none'
+                    msOverflowStyle: 'none',
+                    cursor: isDragging ? 'grabbing' : 'grab'
                 }}
             >
                 <style jsx>{`
@@ -180,6 +236,16 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                         </div>
                         <div className="product-glow"></div>
                     </div>
+                ))}
+            </div>
+
+            {/* Mobile Dots */}
+            <div className="mobile-dots">
+                {products.map((_, index) => (
+                    <span
+                        key={index}
+                        className={`dot ${activeSlide === index ? 'active' : ''}`}
+                    />
                 ))}
             </div>
         </section>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
+import { logActivity } from '@/lib/activity-logger';
 import { Resend } from 'resend';
 import { renderToBuffer } from '@react-pdf/renderer';
 import InvoicePDF from '@/components/pdf/InvoicePDF';
@@ -8,7 +9,7 @@ import path from 'path';
 
 // Initialize Resend with the provided API key
 // In production, this should be in process.env.RESEND_API_KEY
-const resend = new Resend('re_UJdWuSAV_5S6CAwuph56XNAojkxjJJYVz');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
@@ -56,10 +57,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         // 3. Send Email with Attachment via Resend
         // Using the user-provided sender address
-        const senderEmail = 'Bizzcohub@resend.dev';
-
         const { data, error } = await resend.emails.send({
-            from: senderEmail,
+            from: 'Bizz Co Hub <onboarding@resend.dev>',
             to: 'rishadpnpm@gmail.com', // Restricted to verified email in Resend free tier
             subject: `Invoice #${invoice.invoice_no} from Bizz Co Hub`,
             html: `
@@ -88,6 +87,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         // 4. Update Invoice Status
         await sql`UPDATE invoices SET status = 'Sent' WHERE id = ${id}`;
+
+        await logActivity(
+            'Admin',
+            'Send Invoice',
+            `Invoice ${invoice.invoice_no} sent via email to ${invoice.customer_email}`,
+            'success',
+            'Admin'
+        );
 
         return NextResponse.json({ message: 'Email sent successfully', data });
 

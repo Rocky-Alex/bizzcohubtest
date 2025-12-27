@@ -29,15 +29,12 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                 transition: 'all 0.3s ease',
                 cursor: 'pointer',
                 height: '100%',
-                // Min height to keep cards uniform
-                minHeight: '400px',
                 display: 'flex',
                 flexDirection: 'column'
             }}>
                 {/* Product Image */}
-                <div style={{
+                <div className="product-card-image-wrapper" style={{
                     width: '100%',
-                    height: '190px',
                     overflow: 'hidden',
                     background: 'var(--bg-tertiary)',
                     position: 'relative'
@@ -65,10 +62,9 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                             color: 'white',
                             borderRadius: '20px',
                             fontWeight: '600',
-                            fontSize: '0.65rem',
                             zIndex: 10,
                             whiteSpace: 'nowrap'
-                        }}>
+                        }} className="product-card-badge">
                             {discountPercent}% OFF
                         </div>
                     )}
@@ -87,25 +83,23 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                             color: 'white',
                             borderRadius: '20px',
                             fontWeight: '600',
-                            fontSize: '0.65rem',
                             zIndex: 10,
                             whiteSpace: 'nowrap'
-                        }}>
+                        }} className="product-card-badge">
                             Only {product.stock} left
                         </div>
                     )}
                 </div>
 
                 {/* Product Info */}
-                <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         marginBottom: '10px'
                     }}>
-                        <span style={{
-                            fontSize: '0.7rem',
+                        <span className="product-card-brand" style={{
                             color: 'var(--text-secondary)',
                             textTransform: 'uppercase',
                             fontWeight: '600',
@@ -113,8 +107,7 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                         }}>
                             {product.brand}
                         </span>
-                        <span style={{
-                            fontSize: '0.7rem',
+                        <span className="product-card-code" style={{
                             color: 'var(--text-tertiary)',
                             fontWeight: '500'
                         }}>
@@ -122,8 +115,7 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                         </span>
                     </div>
 
-                    <h3 style={{
-                        fontSize: '0.85rem',
+                    <h3 className="product-card-title" style={{
                         fontWeight: '700',
                         color: 'var(--text-primary)',
                         marginBottom: '12px',
@@ -140,16 +132,14 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                             gap: '10px',
                             marginBottom: '12px'
                         }}>
-                            <span style={{
-                                fontSize: '1.2rem',
+                            <span className="product-card-price" style={{
                                 fontWeight: '700',
                                 color: 'var(--primary)'
                             }}>
                                 AED {product.price.toLocaleString()}
                             </span>
                             {isDiscounted && (
-                                <span style={{
-                                    fontSize: '0.9rem',
+                                <span className="product-card-price-original" style={{
                                     color: 'var(--text-tertiary)',
                                     textDecoration: 'line-through'
                                 }}>
@@ -163,18 +153,16 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                             justifyContent: 'space-between',
                             alignItems: 'center'
                         }}>
-                            <span style={{
-                                fontSize: '0.7rem',
+                            <span className="product-card-stock" style={{
                                 color: product.stock > 0 ? '#10b981' : '#ef4444',
                                 fontWeight: '600'
                             }}>
                                 <i className={`fas fa-${product.stock > 0 ? 'check-circle' : 'times-circle'}`} style={{ marginRight: '5px' }}></i>
                                 {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                             </span>
-                            <span style={{
+                            <span className="product-card-view" style={{
                                 color: 'var(--primary)',
                                 fontWeight: '600',
-                                fontSize: '0.7rem'
                             }}>
                                 View Details →
                             </span>

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import AutoRefreshSettings from "./AutoRefreshSettings";
 
 interface AdminSidebarProps {
@@ -11,6 +11,7 @@ interface AdminSidebarProps {
     onLogout: () => void;
     userRole?: string;
     username?: string;
+    mobileOpen?: boolean;
 }
 
 export default function AdminSidebar({
@@ -18,12 +19,22 @@ export default function AdminSidebar({
     setActiveSection,
     onLogout,
     userRole = 'accountant',
-    username = 'Admin'
+    username = 'Admin',
+    mobileOpen = false
 }: AdminSidebarProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const menuItems = [
         { id: "quick-actions", icon: "fa-rocket", label: "Quick Actions" },
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
+        // {
+        //     id: "application",
+        //     icon: "fa-th-large",
+        //     label: "Application",
+        //     subItems: [
+        //         { id: "email-inbox", label: "Email" }
+        //     ]
+        // },
         {
             id: "inventory-dashboard",
             icon: "fa-boxes",
@@ -79,11 +90,11 @@ export default function AdminSidebar({
                 { id: "users-roles", label: "Roles and Permissions" }
             ]
         },
-        {
-            id: "activity-log",
-            icon: "fa-history",
-            label: "Activity Log"
-        },
+        // {
+        //     id: "activity-log",
+        //     icon: "fa-history",
+        //     label: "Activity Log"
+        // },
         {
             id: "auto-refresh",
             icon: "fa-sync-alt",
@@ -150,6 +161,19 @@ export default function AdminSidebar({
             router.push('/activitylog');
         } else if (item.id === 'auto-refresh') {
             setShowAutoRefreshSettings(true);
+        } else if (item.id === 'email-inbox') {
+            router.push('/admin/email');
+        } else if (pathname === '/admin/email') {
+            // If on email page and clicking another item (and it's not a submenu toggle)
+            if (item.subItems) {
+                toggleMenu(item.id);
+            } else {
+                // Navigate back to admin dashboard
+                // Optionally pass the section as query param if we wanted deep linking, 
+                // but defaulting to dashboard is safe.
+                // We can manually set the section in localStorage or just go to /admin
+                router.push('/admin');
+            }
         } else if (item.subItems) {
             toggleMenu(item.id);
         } else {
@@ -163,7 +187,7 @@ export default function AdminSidebar({
 
     return (
         <aside
-            className={`modern-sidebar ${!isExpanded ? "collapsed" : ""}`}
+            className={`modern-sidebar ${!isExpanded ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -201,7 +225,20 @@ export default function AdminSidebar({
                                         <button
                                             key={sub.id}
                                             className={`sub-nav-item ${activeSection === sub.id ? "active" : ""}`}
-                                            onClick={() => setActiveSection(sub.id)}
+                                            onClick={() => {
+                                                if (sub.id === 'email-inbox') {
+                                                    router.push('/admin/email');
+                                                } else {
+                                                    if (pathname === '/admin/email') {
+                                                        router.push('/admin');
+                                                        // A small timeout might be needed if state isn't persisted, 
+                                                        // but usually setActiveSection logic happens in parent or we assume default
+                                                        setTimeout(() => setActiveSection(sub.id), 100);
+                                                    } else {
+                                                        setActiveSection(sub.id);
+                                                    }
+                                                }
+                                            }}
                                         >
                                             <span className="sub-nav-text">{sub.label}</span>
                                         </button>

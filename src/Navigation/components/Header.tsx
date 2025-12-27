@@ -360,7 +360,7 @@ export default function Header() {
                                 className="mobile-sign-in-btn"
                                 style={{ background: '#ef4444' }} // Red for logout
                             >
-                                Logout ({currentUser.username})
+                                Logout
                             </button>
                         ) : (
                             <Link

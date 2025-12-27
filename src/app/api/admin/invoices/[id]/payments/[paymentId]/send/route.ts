@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 import path from 'path';
 
 // Initialize Resend
-const resend = new Resend('re_d3byfQhH_G7nTsDTeMg2FZGNvDSd9Scqa'); // Using same key as previous files
+const resend = new Resend(process.env.RESEND_API_KEY); // Using same key as previous files
 
 export async function POST(req: Request, { params }: { params: { id: string, paymentId: string } }) {
     try {

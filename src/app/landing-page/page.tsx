@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
     // 1. Fetch data on the server
-    const featuredProducts = await getFeaturedProducts(4);
+    const featuredProducts = await getFeaturedProducts(10);
 
     return (
         <div className="landing-page">
