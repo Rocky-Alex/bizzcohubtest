@@ -36,7 +36,7 @@ export async function GET(req: Request) {
         `;
 
         // Map database fields to frontend interface
-        const logs = data.map(log => ({
+        const logs = data.map((log: any) => ({
             id: log.id,
             user: log.user_name,
             action: log.action,
