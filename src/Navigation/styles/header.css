@@ -18,12 +18,12 @@
 .header-container {
     max-width: 1800px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 52px;
-    gap: 48px;
+    min-height: 35px;
+    gap: 20px;
     position: relative;
     z-index: 1001;
 }
@@ -32,15 +32,15 @@
 .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
     text-decoration: none;
     flex-shrink: 0;
     transition: transform 0.2s ease;
 }
 
 .logo-text {
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 600;
     letter-spacing: -0.025em;
     /* Color is handled by GradientText component */
 }
@@ -57,7 +57,7 @@
 .main-nav {
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 6px;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -69,9 +69,9 @@
     gap: 4px;
     text-decoration: none;
     color: var(--text-secondary);
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 500;
-    padding: 8px 0;
+    padding: 4px 0;
     transition: color 0.2s ease;
     position: relative;
     white-space: nowrap;
@@ -89,7 +89,7 @@
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     margin-left: auto !important;
     position: relative;
     z-index: 1002;
@@ -112,11 +112,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
     border: none;
     background: transparent;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     color: var(--text-secondary);
     transition: all 0.2s ease;
@@ -129,23 +129,23 @@
 }
 
 .header-action-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
 }
 
 /* Cart Badge - Prominent Design */
 .cart-badge {
     position: absolute;
-    top: 2px;
-    right: 2px;
-    min-width: 18px;
-    height: 18px;
+    top: -2px;
+    right: -2px;
+    min-width: 14px;
+    height: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--danger);
     color: #ffffff;
-    font-size: 11px;
+    font-size: 8px;
     font-weight: 700;
     border-radius: 9px;
     padding: 0 5px;
@@ -384,6 +384,10 @@
 
     .sign-in-btn {
         display: none;
+    }
+
+    .header-action-btn.cart-btn {
+        display: none !important;
     }
 }
 

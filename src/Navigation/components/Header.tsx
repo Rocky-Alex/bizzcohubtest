@@ -113,8 +113,8 @@ export default function Header() {
                     <Image
                         src="/icon/nav-logo.png"
                         alt="Bizz Co Hub Logo"
-                        width={32}
-                        height={32}
+                        width={24}
+                        height={24}
                         className="logo-image"
                     />
                     <GradientText
@@ -190,7 +190,7 @@ export default function Header() {
                         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button size="icon" variant="outline" aria-label="Open account menu" className="header-action-btn" style={{ border: 'none', background: 'transparent', padding: 0, overflow: 'hidden', width: '32px', height: '32px', borderRadius: '50%' }}>
+                                    <Button size="icon" variant="outline" aria-label="Open account menu" className="header-action-btn" style={{ border: 'none', background: 'transparent', padding: 0, overflow: 'hidden', width: '28px', height: '28px', borderRadius: '50%' }}>
                                         {currentUser.image_url ? (
                                             <div className="profile-img-container" style={{ position: 'relative', width: '100%', height: '100%' }}>
                                                 <Image
@@ -291,6 +291,14 @@ export default function Header() {
                         </Link>
 
                         <Link
+                            href="/products"
+                            className={`mobile-nav-link ${pathname.startsWith('/products') ? 'active' : ''}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            E-Commerce
+                        </Link>
+
+                        <Link
                             href="/services"
                             className={`mobile-nav-link ${isActive('/services') ? 'active' : ''}`}
                             onClick={() => setMobileMenuOpen(false)}
@@ -307,11 +315,25 @@ export default function Header() {
                         </Link>
 
                         <Link
-                            href="/products/laptop"
-                            className={`mobile-nav-link ${pathname.startsWith('/products') ? 'active' : ''}`}
+                            href="/cart"
+                            className={`mobile-nav-link ${isActive('/cart') ? 'active' : ''}`}
                             onClick={() => setMobileMenuOpen(false)}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                         >
-                            E-Commerce
+                            <span>Cart</span>
+                            {cartCount > 0 && (
+                                <span style={{
+                                    background: '#ef4444',
+                                    color: 'white',
+                                    fontSize: '11px',
+                                    fontWeight: 'bold',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    marginLeft: '8px'
+                                }}>
+                                    {cartCount}
+                                </span>
+                            )}
                         </Link>
 
 
