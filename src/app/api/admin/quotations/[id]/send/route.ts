@@ -7,7 +7,7 @@ import React from 'react';
 import path from 'path';
 
 // Initialize Resend with the provided API Key
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend initialized inside POST
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
@@ -54,6 +54,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         // 3. Send Email with Attachment
         // Using "Bizz Co Hub <onboarding@resend.dev>" as sender to ensure free-tier delivery
+        if (!process.env.RESEND_API_KEY) {
+            return NextResponse.json({ error: 'RESEND_API_KEY is missing' }, { status: 500 });
+        }
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
         const { data, error } = await resend.emails.send({
             from: 'Bizz Co Hub <onboarding@resend.dev>',

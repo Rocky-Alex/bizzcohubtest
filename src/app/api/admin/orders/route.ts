@@ -3,7 +3,7 @@ import { sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend initialized inside POST
 
 export async function GET(request: NextRequest) {
     try {
@@ -77,11 +77,13 @@ export async function POST(request: NextRequest) {
 
         // Send Order Confirmation Email
         try {
-            await resend.emails.send({
-                from: 'Bizz Co Hub <onboarding@resend.dev>',
-                to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
-                subject: `New Order Received: ${orderNumber}`,
-                html: `
+            if (process.env.RESEND_API_KEY) {
+                const resend = new Resend(process.env.RESEND_API_KEY);
+                await resend.emails.send({
+                    from: 'Bizz Co Hub <onboarding@resend.dev>',
+                    to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
+                    subject: `New Order Received: ${orderNumber}`,
+                    html: `
                     <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
                         <h2 style="color: #4f46e5;">New Order Received!</h2>
                         <p>Order <strong>${orderNumber}</strong> has been placed by <strong>${body.firstName} ${body.lastName}</strong>.</p>
@@ -121,7 +123,8 @@ export async function POST(request: NextRequest) {
                         </p>
                     </div>
                 `
-            });
+                });
+            }
         } catch (emailError) {
             console.error('Failed to send order confirmation email:', emailError);
             // Continue without failing the request, as the order is created

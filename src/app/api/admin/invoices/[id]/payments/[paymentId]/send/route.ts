@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 import path from 'path';
 
 // Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY); // Using same key as previous files
+// Resend initialized inside POST
 
 export async function POST(req: Request, { params }: { params: { id: string, paymentId: string } }) {
     try {
@@ -28,6 +28,11 @@ export async function POST(req: Request, { params }: { params: { id: string, pay
         // 2. Generate PDF Buffer (Optional, for now just sending HTML email to be fast)
         // Or if we want to attach a PDF receipt, we'd need a ReceiptPDF component.
         // For simplicity as per prompt "Sent invoice to customer mail", let's send a nice HTML receipt.
+
+        if (!process.env.RESEND_API_KEY) {
+            return NextResponse.json({ error: 'RESEND_API_KEY is missing' }, { status: 500 });
+        }
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
         // 3. Send Email
         const { data, error } = await resend.emails.send({

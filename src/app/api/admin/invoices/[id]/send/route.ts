@@ -9,7 +9,7 @@ import path from 'path';
 
 // Initialize Resend with the provided API key
 // In production, this should be in process.env.RESEND_API_KEY
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend initialized inside POST
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
@@ -57,6 +57,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         // 3. Send Email with Attachment via Resend
         // Using the user-provided sender address
+        if (!process.env.RESEND_API_KEY) {
+            return NextResponse.json({ error: 'RESEND_API_KEY is missing' }, { status: 500 });
+        }
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
         const { data, error } = await resend.emails.send({
             from: 'Bizz Co Hub <onboarding@resend.dev>',
             to: 'rishadpnpm@gmail.com', // Restricted to verified email in Resend free tier

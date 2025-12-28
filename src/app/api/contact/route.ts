@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 
 // Initialize Resend with the provided API Key
 // Note: In production, this should be in an environment variable (process.env.RESEND_API_KEY)
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend initialized inside POST
 
 export async function POST(req: Request) {
     try {
@@ -14,6 +14,11 @@ export async function POST(req: Request) {
         if (!name || !email || !message) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
+
+        if (!process.env.RESEND_API_KEY) {
+            return NextResponse.json({ error: 'RESEND_API_KEY is missing' }, { status: 500 });
+        }
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
         const { data, error } = await resend.emails.send({
             from: 'Bizz Co Hub Contact <onboarding@resend.dev>',

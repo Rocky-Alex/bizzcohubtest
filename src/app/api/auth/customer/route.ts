@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { logActivity } from '@/lib/activity-logger';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend initialized inside POST
 
 export const dynamic = 'force-dynamic';
 
@@ -55,11 +55,13 @@ export async function POST(request: NextRequest) {
 
             // Send Welcome Email
             try {
-                await resend.emails.send({
-                    from: 'Bizz Co Hub <onboarding@resend.dev>',
-                    to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
-                    subject: 'Welcome to Bizz Co Hub!',
-                    html: `
+                if (process.env.RESEND_API_KEY) {
+                    const resend = new Resend(process.env.RESEND_API_KEY);
+                    await resend.emails.send({
+                        from: 'Bizz Co Hub <onboarding@resend.dev>',
+                        to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
+                        subject: 'Welcome to Bizz Co Hub!',
+                        html: `
                         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                             <h2 style="color: #4f46e5;">Welcome, ${fullName}!</h2>
                             <p>Thank you for joining <strong>Bizz Co Hub</strong>.</p>
@@ -79,7 +81,8 @@ export async function POST(request: NextRequest) {
                             </p>
                         </div>
                     `
-                });
+                    });
+                }
             } catch (emailError) {
                 console.error('Failed to send welcome email:', emailError);
             }
