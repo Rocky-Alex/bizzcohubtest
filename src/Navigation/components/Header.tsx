@@ -31,13 +31,13 @@ export default function Header() {
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    // useEffect(() => {
+    //     const handleScroll = () => {
+    //         setScrolled(window.scrollY > 50);
+    //     };
+    //     window.addEventListener('scroll', handleScroll);
+    //     return () => window.removeEventListener('scroll', handleScroll);
+    // }, []);
 
     // Cart Sync
     useEffect(() => {

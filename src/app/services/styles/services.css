@@ -254,7 +254,7 @@
 /* Responsive */
 @media (max-width: 900px) {
     .narrative-hero h1 {
-        font-size: 2                                                                                                            rem;
+        font-size: 2 rem;
     }
 
     .narrative-container {

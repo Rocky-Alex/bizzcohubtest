@@ -1,29 +1,37 @@
-/* Navigation Bar - Clean Minimal Design */
+/* Navigation Bar - Unified Landing Page Design */
 
 .main-header {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    right: 0;
+    /* Changed from width: 100% to right: 0 to be more robust */
+    width: auto;
     z-index: 1000;
-    background: var(--bg-primary);
-    border-bottom: 1px solid var(--border);
-    transition: all 0.3s ease;
+    /* Transparent/Blur backdrop from Landing Page */
+    background: rgba(var(--bg-primary-rgb), 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid transparent;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Scrolled state style (even if logic is currently disabled, we keep the style ready) */
 .main-header.scrolled {
-    box-shadow: var(--shadow-sm);
+    background: rgba(var(--bg-primary-rgb), 0.95);
+    border-bottom-color: var(--border);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 .header-container {
-    max-width: 1800px;
+    max-width: 1600px;
+    /* Increased width */
     margin: 0 auto;
-    padding: 0 12px;
+    padding: 1rem 2rem;
+    /* Increased padding */
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 35px;
-    gap: 20px;
+    gap: 3rem;
     position: relative;
     z-index: 1001;
 }
@@ -32,17 +40,18 @@
 .logo {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.75rem;
     text-decoration: none;
     flex-shrink: 0;
     transition: transform 0.2s ease;
 }
 
 .logo-text {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 1.5rem;
+    /* Larger text */
+    font-weight: 800;
     letter-spacing: -0.025em;
-    /* Color is handled by GradientText component */
+    /* Font handled by Global/GradientText */
 }
 
 .logo:hover {
@@ -53,14 +62,13 @@
     display: block;
 }
 
-/* Desktop Navigation - Centered */
+/* Desktop Navigation */
 .main-nav {
     display: flex;
     align-items: center;
-    gap: 6px;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    gap: 2rem;
+    /* Increased gap */
+    /* Removed absolute positioning to use flex space-between */
 }
 
 .nav-link {
@@ -69,7 +77,8 @@
     gap: 4px;
     text-decoration: none;
     color: var(--text-secondary);
-    font-size: 10px;
+    font-size: 0.95rem;
+    /* Larger font */
     font-weight: 500;
     padding: 4px 0;
     transition: color 0.2s ease;
@@ -89,8 +98,9 @@
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-left: auto !important;
+    gap: 0.75rem;
+    /* Increased gap */
+    margin-left: 0;
     position: relative;
     z-index: 1002;
 }
@@ -112,11 +122,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    /* Larger buttons */
+    height: 40px;
     border: none;
     background: transparent;
-    border-radius: 6px;
+    /* Or var(--bg-secondary) if matching landing page exactly? 
+                               Landing uses specific styles, but transparent works well with blurred header */
+    border-radius: 8px;
+    /* Or var(--radius-md) */
     cursor: pointer;
     color: var(--text-secondary);
     transition: all 0.2s ease;
@@ -126,11 +140,13 @@
 .header-action-btn:hover {
     background: var(--bg-tertiary);
     color: var(--text-primary);
+    transform: translateY(-2px);
 }
 
 .header-action-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    /* Larger icons */
+    height: 20px;
 }
 
 /* Cart Badge - Prominent Design */
@@ -171,10 +187,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 20px;
+    padding: 8px 24px;
+    /* Larger padding */
     background: #6366f1;
     color: #ffffff;
     font-size: 14px;
+    /* match nav font or slightly smaller/bold */
     font-weight: 600;
     border-radius: 8px;
     text-decoration: none;
@@ -195,15 +213,40 @@
 /* Search Overlay */
 .search-overlay {
     position: fixed;
-    top: 52px;
+    top: 0;
+    /* Covers full header if needed, or offset */
     left: 0;
     right: 0;
+    bottom: 0;
+    background: rgba(var(--bg-primary-rgb), 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    /* Higher than header */
+    display: flex;
+    align-items: flex-start;
+    padding-top: 100px;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Revert to original overlay style logic but with new look? 
+   Original was sticking to top. 
+   Let's keep original structure but updated visuals. */
+.search-overlay {
+    position: fixed;
+    top: 72px;
+    /* Approx header height */
+    left: 0;
+    right: 0;
+    bottom: auto;
+    /* Not full screen */
+    height: auto;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border);
     padding: 16px 24px;
     animation: slideDown 0.2s ease;
     z-index: 999;
 }
+
 
 @keyframes slideDown {
     from {
@@ -294,6 +337,11 @@
     display: none;
     border-top: 1px solid var(--border);
     background: var(--bg-primary);
+    position: fixed;
+    top: 72px;
+    left: 0;
+    width: 100%;
+    z-index: 998;
 }
 
 .mobile-menu-content {
@@ -343,6 +391,7 @@
 @media (max-width: 1024px) {
     .header-container {
         gap: 24px;
+        padding: 1rem 1.5rem;
     }
 
     .main-nav {
@@ -365,17 +414,15 @@
 
     .header-container {
         gap: 12px;
-        padding: 0 8px;
+        padding: 0.75rem 1rem;
     }
 
     .header-actions {
         gap: 8px;
-        /* Increased from 4px to prevent miss-clicks and crowing */
     }
 
     .logo-text {
-        font-size: 18px;
-        /* Slightly smaller logo text on mobile */
+        font-size: 1.25rem;
     }
 
     .header-action-btn.theme-btn {
