@@ -198,6 +198,7 @@ export default function Header() {
                                                     src={currentUser.image_url}
                                                     alt="Profile"
                                                     fill
+                                                    sizes="32px"
                                                     style={{
                                                         objectFit: 'cover'
                                                     }}
