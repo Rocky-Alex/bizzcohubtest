@@ -9,6 +9,7 @@ if (!databaseUrl) {
 export const sql = databaseUrl
     ? neon(databaseUrl)
     : ((strings: any, ...values: any[]) => {
-        throw new Error('Database URL environment variable is not set');
+        console.warn('⚠️ SQL query ignored because Database URL is not set.');
+        return Promise.resolve([]);
     }) as any;
 

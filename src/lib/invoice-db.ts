@@ -10,5 +10,6 @@ if (!updatedDatabaseUrl) {
 export const invoiceSql = updatedDatabaseUrl
     ? neon(updatedDatabaseUrl)
     : ((strings: any, ...values: any[]) => {
-        throw new Error('Database URL environment variable is not set for Invoices');
+        console.warn('⚠️ Invoice SQL query ignored because Database URL is not set.');
+        return Promise.resolve([]);
     }) as any;
