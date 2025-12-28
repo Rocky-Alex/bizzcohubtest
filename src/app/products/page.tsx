@@ -43,11 +43,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     const allProducts = await getProducts();
 
     // 3. Derive stats and brands from the full list
-    const brands = Array.from(new Set(allProducts.map(p => p.brand))).filter(Boolean);
+    const brands = Array.from(new Set(allProducts.map((p: any) => p.brand))).filter(Boolean) as string[];
     const stats = {
         total: allProducts.length,
-        laptops: allProducts.filter(p => p.type === 'laptop').length,
-        accessories: allProducts.filter(p => p.type === 'accessory').length,
+        laptops: allProducts.filter((p: any) => p.type === 'laptop').length,
+        accessories: allProducts.filter((p: any) => p.type === 'accessory').length,
     };
 
     // 4. Get the filtered products for display (use the DAL for consistency)
@@ -82,7 +82,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                     </div>
                 ) : (
                     <div className="products-layout-grid">
-                        {products.map((product) => (
+                        {products.map((product: any) => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
