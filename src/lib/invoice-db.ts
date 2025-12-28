@@ -4,9 +4,11 @@ import { neon } from '@neondatabase/serverless';
 const updatedDatabaseUrl = process.env.INVOICE_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
 if (!updatedDatabaseUrl) {
-    console.error('❌ INVOICE_DATABASE_URL, POSTGRES_URL or DATABASE_URL environment variable is not set!');
-    throw new Error('Database URL environment variable is not set for Invoices');
+    console.warn('⚠️ INVOICE_DATABASE_URL, POSTGRES_URL or DATABASE_URL is not set! SQL queries will fail.');
 }
 
-console.log('✅ Initializing Invoice database connection...');
-export const invoiceSql = neon(updatedDatabaseUrl);
+export const invoiceSql = updatedDatabaseUrl
+    ? neon(updatedDatabaseUrl)
+    : ((strings: any, ...values: any[]) => {
+        throw new Error('Database URL environment variable is not set for Invoices');
+    }) as any;
