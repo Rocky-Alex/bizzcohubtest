@@ -98,38 +98,39 @@ export async function getProducts(options: {
         let products = query.map(transformProduct);
 
         if (category && category !== 'all') {
-            products = products.filter(p => p.category === category);
+            products = products.filter((p: any) => p.category === category);
         }
         if (brand && brand !== 'all') {
-            products = products.filter(p => p.brand === brand);
+            products = products.filter((p: any) => p.brand === brand);
         }
 
         // Filter by price range
         if (priceRange && priceRange !== 'all') {
             const [min, max] = priceRange.split('-').map(Number);
             if (max) {
-                products = products.filter(p => p.price >= min && p.price <= max);
+                products = products.filter((p: any) => p.price >= min && p.price <= max);
             } else {
-                products = products.filter(p => p.price >= min);
+                products = products.filter((p: any) => p.price >= min);
             }
         }
 
         // Sort products
+        // Sort products
         switch (sortBy) {
             case 'newest':
-                products.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                products.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 break;
             case 'oldest':
-                products.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                products.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
                 break;
             case 'price-low':
-                products.sort((a, b) => a.price - b.price);
+                products.sort((a: any, b: any) => a.price - b.price);
                 break;
             case 'price-high':
-                products.sort((a, b) => b.price - a.price);
+                products.sort((a: any, b: any) => b.price - a.price);
                 break;
             case 'name':
-                products.sort((a, b) => a.name.localeCompare(b.name));
+                products.sort((a: any, b: any) => a.name.localeCompare(b.name));
                 break;
         }
 
