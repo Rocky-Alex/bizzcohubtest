@@ -7,9 +7,10 @@ import imageKitLoader from "@/utils/imageLoader";
 interface ProductCardProps {
     product: any;
     type?: string;
+    priority?: boolean;
 }
 
-export default function ProductCard({ product, type }: ProductCardProps) {
+export default function ProductCard({ product, type, priority = false }: ProductCardProps) {
     const isDiscounted = product.originalPrice && product.originalPrice > product.price;
     const discountPercent = isDiscounted
         ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -44,6 +45,7 @@ export default function ProductCard({ product, type }: ProductCardProps) {
                         src={product.image || product.images?.[0] || '/uploads/placeholder.jpg'}
                         alt={product.name}
                         fill
+                        priority={priority}
                         className="product-image object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 250px"
                     />

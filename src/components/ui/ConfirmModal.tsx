@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './confirm-modal.css';
 
 interface ConfirmModalProps {
@@ -24,9 +26,16 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     type = 'danger',
     singleButton = false
 }) => {
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
 
-    return (
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
+    if (!isOpen || !mounted) return null;
+
+    return createPortal(
         <div className="custom-modal-overlay">
             <div className={`custom-modal-content ${type}`}>
                 <div className="icon-wrapper">
@@ -41,7 +50,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     <button className={`btn-confirm ${type}`} onClick={onConfirm}>{confirmText}</button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

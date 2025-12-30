@@ -1,8 +1,7 @@
 import { getProducts } from "@/lib/products";
-import ProductFilters from "./components/ProductFilters";
+import CategoryFilter from "./components/CategoryFilter";
+
 import ProductCard from "./components/ProductCard";
-import { Suspense } from "react";
-import LoadingSpinner from "../components/LoadingSpinner";
 import "./styles/products.css";
 import { Metadata } from 'next';
 
@@ -38,35 +37,27 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         sortBy: searchParams.sortBy || 'newest',
     };
 
-    // 2. Fetch all products once to get full brand list and filter what we need
-    // This avoids redundant DB calls while we're doing in-memory filtering anyway
-    const allProducts = await getProducts();
 
-    // 3. Derive stats and brands from the full list
-    const brands = Array.from(new Set(allProducts.map((p: any) => p.brand))).filter(Boolean) as string[];
-    const stats = {
-        total: allProducts.length,
-        laptops: allProducts.filter((p: any) => p.type === 'laptop').length,
-        accessories: allProducts.filter((p: any) => p.type === 'accessory').length,
-    };
+
+    // 2. Fetch all products to determine available categories
+    const allProducts = await getProducts();
+    const categories = Array.from(new Set(allProducts.map((p: any) => p.category))).filter(Boolean) as string[];
 
     // 4. Get the filtered products for display (use the DAL for consistency)
     const products = await getProducts(filters);
 
     return (
         <section style={{
-            padding: '40px 20px',
+            padding: '100px 20px 40px',
             background: 'var(--bg-primary)',
             minHeight: '60vh'
         }}>
             <div style={{ maxWidth: '1500px', margin: '0 auto' }}>
-                <Suspense fallback={<LoadingSpinner />}>
-                    <ProductFilters
-                        stats={stats}
-                        brands={brands}
-                        initialFilters={filters}
-                    />
-                </Suspense>
+                <CategoryFilter
+                    categories={categories}
+                    selectedCategory={filters.category}
+                />
+
 
                 {products.length === 0 ? (
                     <div style={{
@@ -82,8 +73,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                     </div>
                 ) : (
                     <div className="products-layout-grid">
-                        {products.map((product: any) => (
-                            <ProductCard key={product.id} product={product} />
+                        {products.map((product: any, index: number) => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                priority={index < 4}
+                            />
                         ))}
                     </div>
                 )}

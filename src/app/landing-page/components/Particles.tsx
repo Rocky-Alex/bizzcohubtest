@@ -117,6 +117,7 @@ const Particles: React.FC<ParticlesProps> = ({
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+    const rectRef = useRef<DOMRect | null>(null);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -143,8 +144,22 @@ const Particles: React.FC<ParticlesProps> = ({
         window.addEventListener('resize', resize, false);
         resize();
 
+
+
+        const updateRect = () => {
+            if (container) {
+                rectRef.current = container.getBoundingClientRect();
+            }
+        };
+
+        // Update rect on resize and scroll
+        window.addEventListener('resize', updateRect);
+        window.addEventListener('scroll', updateRect);
+        updateRect();
+
         const handleMouseMove = (e: MouseEvent) => {
-            const rect = container.getBoundingClientRect();
+            if (!rectRef.current) return;
+            const rect = rectRef.current;
             const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
             const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
             mouseRef.current = { x, y };
@@ -230,6 +245,8 @@ const Particles: React.FC<ParticlesProps> = ({
 
         return () => {
             window.removeEventListener('resize', resize);
+            window.removeEventListener('resize', updateRect);
+            window.removeEventListener('scroll', updateRect);
             if (moveParticlesOnHover) {
                 window.removeEventListener('mousemove', handleMouseMove);
             }
