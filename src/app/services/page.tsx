@@ -3,7 +3,7 @@ import "./styles/services.css";
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Bizz Co Hub Service Quality',
+    title: 'Professional Technology Services | Bizz Co Hub',
     description: 'Explore Bizz Co Hub\'s comprehensive IT services including premium refurbished hardware, global bulk supply, advanced repair center, and enterprise IT partnerships.',
     keywords: 'refurbished laptops, IT services, data recovery, bulk electronics, electronics repair, BizzCoHub',
 };

@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import LayoutWrapper from "../Navigation/LayoutWrapper";
 import { Toaster } from 'sonner';
-import PerformanceMonitor from "@/components/PerformanceMonitor";
-// Force HMR update
 
 export const metadata: Metadata = {
     title: "Bizz Co Hub",
@@ -41,19 +39,12 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${bebasNeue.variable}`}>
             <head>
-                {/* Preconnect to external domains for faster loading */}
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-
-                {/* Load Font Awesome */}
                 <link
                     rel="stylesheet"
                     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
                 />
             </head>
             <body>
-                <PerformanceMonitor />
                 <LayoutWrapper>
                     {children}
                 </LayoutWrapper>

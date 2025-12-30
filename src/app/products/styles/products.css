@@ -140,46 +140,4 @@ select:focus {
     .product-filter-toggle-btn-wrapper {
         display: none !important;
     }
-
-    /* Smaller nav items on mobile */
-    .product-filter-nav-item {
-        font-size: 12px !important;
-        padding: 8px 12px !important;
-        gap: 4px !important;
-    }
-
-    .product-filter-nav-item i {
-        font-size: 9px !important;
-    }
-}
-
-/* Filter Navigation Styles */
-.product-filter-nav-item {
-    color: var(--text-primary);
-    font-weight: 500;
-    font-size: 14px;
-    padding: 12px 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.2s;
-    position: relative;
-    white-space: nowrap;
-    /* Prevent wrapping inside the item */
-}
-
-.product-filter-nav-item:hover {
-    color: var(--primary);
-}
-
-.product-filter-nav-item i {
-    font-size: 10px;
-    color: var(--text-secondary);
-    transition: transform 0.2s;
-}
-
-.product-filter-nav-item:hover i {
-    color: var(--primary);
-    transform: rotate(180deg);
 }

@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Enable ISR (Incremental Static Regeneration) - revalidate every 60 seconds
-export const revalidate = 60; // Cache for 60 seconds
-export const dynamic = 'force-static'; // Generate at build time when possible
-export const fetchCache = 'force-cache'; // Cache fetch requests
-
+export const dynamic = 'force-dynamic';
 import { sql } from '@/lib/db';
 
 // Helper function to transform database product to frontend format
@@ -111,7 +106,7 @@ export async function GET(request: NextRequest) {
             query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY date_added DESC`;
         } else if (type === 'laptop') {
             // Include 'system', 'laptop', and associated categories
-            query = await sql`SELECT * FROM products WHERE type = 'system' OR type = 'laptop' OR category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'Gaming Laptops' OR category = 'MacBook' ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE type = 'system' OR type = 'laptop' OR category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook' ORDER BY date_added DESC`;
         } else if (type === 'accessory') {
             query = await sql`SELECT * FROM products WHERE type = 'accessory' OR category = 'Accessories' OR category = 'Monitor' OR category = 'Component' ORDER BY date_added DESC`;
         } else {
@@ -119,17 +114,7 @@ export async function GET(request: NextRequest) {
         }
 
         const transformedProducts = query.map(transformProduct);
-
-        // Add cache headers for better performance
-        return NextResponse.json(
-            { products: transformedProducts },
-            {
-                status: 200,
-                headers: {
-                    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-                },
-            }
-        );
+        return NextResponse.json({ products: transformedProducts }, { status: 200 });
     } catch (error: any) {
         console.error('Error fetching products:', error);
         // Return clear error if table is missing or query fails
