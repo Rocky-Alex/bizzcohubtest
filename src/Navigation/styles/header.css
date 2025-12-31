@@ -52,6 +52,13 @@
     font-weight: 800;
     letter-spacing: -0.025em;
     /* Font handled by Global/GradientText */
+
+    /* Ensure no background/border artifacts from GradientText component */
+    backdrop-filter: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
 .logo:hover {

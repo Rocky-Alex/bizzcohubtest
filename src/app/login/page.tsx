@@ -8,6 +8,7 @@ import OrbitingTechnologies from '@/components/ui/OrbitingTechnologies';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/canvasUtils';
 
+
 export default function CustomerAuthPage() {
     // We'll keep the state for logic, but visual focus is on "Login"
     const [isLogin, setIsLogin] = useState(true);
@@ -400,6 +401,8 @@ export default function CustomerAuthPage() {
                             )}
                         </button>
                     </form>
+
+
 
                     <div className="toggle-auth-mode">
                         {isLogin ? (

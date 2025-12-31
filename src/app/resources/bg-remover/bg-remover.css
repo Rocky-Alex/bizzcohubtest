@@ -1,0 +1,266 @@
+/* Advanced Editor Styles */
+.bg-remover-page {
+    width: 100vw;
+    height: 100vh;
+    background: #1e1e1e;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.editor-header {
+    height: 60px;
+    background: #252526;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    flex-shrink: 0;
+}
+
+.editor-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.editor-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.editor-sidebar {
+    width: 80px;
+    /* Collapsed icon view */
+    background: #252526;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+    gap: 1rem;
+    z-index: 10;
+    transition: width 0.2s;
+}
+
+.editor-sidebar:hover {
+    width: 200px;
+    /* Expanded view */
+    align-items: flex-start;
+    padding-left: 1rem;
+}
+
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.group-label {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+    display: none;
+    /* Hide when collapsed */
+}
+
+.editor-sidebar:hover .group-label {
+    display: block;
+}
+
+.sidebar-tool {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: transparent;
+    color: #aaa;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    /* Fill sidebar */
+    transition: all 0.2s;
+    justify-content: center;
+    /* Centered icons when collapsed */
+}
+
+.editor-sidebar:hover .sidebar-tool {
+    justify-content: flex-start;
+}
+
+.sidebar-tool:hover {
+    background: #333;
+    color: #fff;
+}
+
+.sidebar-tool.active {
+    background: #4ade801a;
+    color: #4ade80;
+}
+
+.tool-name {
+    display: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.editor-sidebar:hover .tool-name {
+    display: block;
+}
+
+.sidebar-settings {
+    margin-top: auto;
+    width: 100%;
+    padding: 1rem;
+    border-top: 1px solid #333;
+    display: none;
+    /* Hide when collapsed usually, but let's show dynamically */
+}
+
+.editor-sidebar:hover .sidebar-settings {
+    display: block;
+}
+
+.setting-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.full-width-btn {
+    width: 100%;
+    padding: 0.5rem;
+    background: #4ade80;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Canvas Area */
+.editor-canvas-area {
+    flex: 1;
+    background: #1e1e1e;
+    background-image:
+        linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
+        linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
+        linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: auto;
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload-box {
+    border: 2px dashed #444;
+    padding: 4rem;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.upload-box:hover {
+    border-color: #4ade80;
+    background: #4ade800a;
+}
+
+.canvas-wrapper-centered {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.interactive-canvas-layer {
+    position: relative;
+    display: inline-block;
+}
+
+.base-img {
+    display: block;
+    max-width: 100%;
+    max-height: 80vh;
+    pointer-events: none;
+    /* User interacts with CANVAS */
+}
+
+.overlay-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+.processing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.result-img {
+    max-width: 100%;
+    max-height: 80vh;
+}
+
+/* Common Components */
+.action-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.primary-btn {
+    background: #4ade80;
+    color: #000;
+}
+
+.secondary-btn {
+    background: #333;
+    color: #fff;
+    border: 1px solid #444;
+}

@@ -137,6 +137,10 @@ export default function Header() {
                         E-Commerce
                     </Link>
 
+                    <Link href="/resources" className={`nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}>
+                        Resources
+                    </Link>
+
                     <Link href="/services" className={`nav-link ${isActive('/services') ? 'active' : ''}`}>
                         Services
                     </Link>
@@ -296,6 +300,14 @@ export default function Header() {
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             E-Commerce
+                        </Link>
+
+                        <Link
+                            href="/resources"
+                            className={`mobile-nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            Resources
                         </Link>
 
                         <Link
