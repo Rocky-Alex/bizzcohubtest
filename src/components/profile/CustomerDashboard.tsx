@@ -136,7 +136,7 @@ export default function CustomerDashboard({ user, theme, onToggleTheme }: Custom
             <header className="v2-header">
                 <div className="header-left">
                     <h1>Welcome back, {firstName} <span className="wave">👋</span></h1>
-                    <p className="header-subtitle">Here's what's happening with your account today.</p>
+                    <p className="header-subtitle">Here&apos;s what&apos;s happening with your account today.</p>
                 </div>
                 <div className="header-right">
                     <div className="header-search">

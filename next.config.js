@@ -3,7 +3,7 @@
 const nextConfig = {
     // Disable Vercel Analytics in development to reduce console noise
     experimental: {
-        serverComponentsExternalPackages: ['@react-pdf/renderer'],
+        serverComponentsExternalPackages: ['@react-pdf/renderer', '@imgly/background-removal', 'onnxruntime-node'],
         // Optimize resource loading
         optimizePackageImports: ['framer-motion', 'react-icons'],
     },
@@ -35,6 +35,16 @@ const nextConfig = {
             config.externals.push('whatsapp-web.js');
             config.externals.push('puppeteer');
         }
+
+        // Fix for onnxruntime-web / @imgly/background-removal import.meta errors
+        config.module.rules.push({
+            test: /\.m?js$/,
+            type: "javascript/auto",
+            resolve: {
+                fullySpecified: false,
+            },
+        });
+
         // Reduce aggressive preloading in development
         config.optimization = {
             ...config.optimization,

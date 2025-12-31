@@ -407,7 +407,7 @@ export default function CustomerAuthPage() {
                     <div className="toggle-auth-mode">
                         {isLogin ? (
                             <>
-                                Don't have an account?
+                                Don&apos;t have an account?
                                 <span className="toggle-link" onClick={() => setIsLogin(false)}>
                                     Register
                                 </span>

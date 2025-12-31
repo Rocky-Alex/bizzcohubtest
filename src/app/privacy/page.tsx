@@ -91,7 +91,7 @@ export default function PrivacyPolicyPage() {
                     </div>
 
                     <div className="legal-card">
-                        <h2>7. Children's Privacy</h2>
+                        <h2>7. Children&apos;s Privacy</h2>
                         <p>
                             Our services are not directed to individuals under the age of 18. We do not knowingly
                             collect personal information from children.
@@ -102,7 +102,7 @@ export default function PrivacyPolicyPage() {
                         <h2>8. Changes to This Policy</h2>
                         <p>
                             We may update this Privacy Policy from time to time. We will notify you of any changes
-                            by posting the new Privacy Policy on this page and updating the "Last updated" date.
+                            by posting the new Privacy Policy on this page and updating the &quot;Last updated&quot; date.
                         </p>
                     </div>
 

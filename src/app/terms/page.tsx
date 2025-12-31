@@ -21,7 +21,7 @@ export default function TermsOfServicePage() {
                         <div className="legal-card">
                             <h2>1. Acceptance of Terms</h2>
                             <p>
-                                By accessing and using Bizz Co Hub's website and services, you accept and agree to be bound
+                                By accessing and using Bizz Co Hub&apos;s website and services, you accept and agree to be bound
                                 by the terms and provisions of this agreement. If you do not agree to these terms, please do
                                 not use our services.
                             </p>

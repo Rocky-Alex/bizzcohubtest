@@ -133,7 +133,7 @@ export default function CartPage() {
                                     <div className="empty-cart-message">
                                         <i className="fas fa-shopping-cart" style={{ fontSize: '4rem', color: 'var(--text-tertiary)', marginBottom: '1rem' }}></i>
                                         <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Your cart is empty</p>
-                                        <p style={{ marginBottom: '2rem' }}>Looks like you haven't added anything to your cart yet.</p>
+                                        <p style={{ marginBottom: '2rem' }}>Looks like you haven&apos;t added anything to your cart yet.</p>
                                         <Link href="/products" className="btn-gradient-animated" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 2rem', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', color: 'white', borderRadius: 'var(--radius-md)', fontWeight: 600, transition: 'all 0.3s' }}>
                                             <i className="fas fa-shopping-bag"></i>
                                             Start Shopping
@@ -158,7 +158,7 @@ export default function CartPage() {
                                 onChange={(e) => setSpecialInstructions(e.target.value)}
                             ></textarea>
                             <span className="instructions-hint">
-                                Examples: "Please gift wrap this item", "This is a gift for my mother", "Handle with extra care"
+                                Examples: &quot;Please gift wrap this item&quot;, &quot;This is a gift for my mother&quot;, &quot;Handle with extra care&quot;
                             </span>
                         </div>
                     </div>
@@ -218,13 +218,13 @@ export default function CartPage() {
                         {/* Quote Card */}
                         <div className="quote-card">
                             <p className="quote-text">
-                                "Quality is not an act, it is a habit. We ensure every refurbished device meets the highest standards of excellence."
+                                &quot;Quality is not an act, it is a habit. We ensure every refurbished device meets the highest standards of excellence.&quot;
                             </p>
                             <p className="quote-author">— Bizz Co Hub Quality Team</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

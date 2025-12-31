@@ -56,7 +56,7 @@ export default function Contact2Page() {
 
                 {/* Header */}
                 <div className="contact2-header">
-                    <h1>Let's Start a Conversation.</h1>
+                    <h1>Let&apos;s Start a Conversation.</h1>
                     <p>Connect with our expert team for inquiries, support, or partnership opportunities.</p>
                 </div>
 
