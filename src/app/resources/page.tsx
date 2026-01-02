@@ -14,7 +14,10 @@ import {
     HardDrive,
     Search,
     Monitor,
-    Keyboard
+    Keyboard,
+    Battery,
+    Volume2
+
 } from "lucide-react";
 import Link from "next/link";
 
@@ -78,6 +81,21 @@ export default function ResourcesPage() {
                         href="/resources/keyboard-test"
                         actionText="Test Keyboard"
                     />
+                    <ResourceCard
+                        title="Battery Status"
+                        description="View real-time battery charge level and charging status."
+                        icon={<Battery size={32} />}
+                        href="/resources/battery-status"
+                        actionText="Check Status"
+                    />
+                    <ResourceCard
+                        title="Audio Diagnostics"
+                        description="Test speaker stereo separation and microphone input levels."
+                        icon={<Volume2 size={32} />}
+                        href="/resources/sound-test"
+                        actionText="Test Audio"
+                    />
+
                 </div>
             </section>
 
