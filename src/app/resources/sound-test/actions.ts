@@ -8,10 +8,12 @@ export async function getAudioFiles() {
 
     try {
         if (!fs.existsSync(audioDir)) {
+            console.log('Audio directory missing:', audioDir);
             return [];
         }
 
         const files = await fs.promises.readdir(audioDir);
+        console.log(`Found ${files.length} audio files in ${audioDir}`);
 
         // Filter for audio extensions
         const audioFiles = files.filter(file =>

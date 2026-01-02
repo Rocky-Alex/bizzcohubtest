@@ -4,6 +4,9 @@ const nextConfig = {
     // Disable Vercel Analytics in development to reduce console noise
     experimental: {
         serverComponentsExternalPackages: ['@react-pdf/renderer', '@imgly/background-removal', 'onnxruntime-node'],
+        outputFileTracingIncludes: {
+            '/resources/sound-test': ['./public/Audios/**/*'],
+        },
         // Optimize resource loading
         optimizePackageImports: ['framer-motion', 'react-icons'],
     },
