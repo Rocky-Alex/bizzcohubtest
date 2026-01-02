@@ -260,7 +260,7 @@ echo 1. Generating Battery Report...
 powercfg /batteryreport /xml /output "%TEMP%\\battery_report.xml"
 
 echo 2. Uploading Data for Analysis...
-powershell -Command "$res = Invoke-RestMethod -Uri '${apiUrl}' -Method Post -InFile '%TEMP%\\battery_report.xml' -ContentType 'text/xml'; Start-Process '${resultUrl}?reportId=' + $res.id"
+powershell -Command "$res = Invoke-RestMethod -Uri '${apiUrl}' -Method Post -InFile '%TEMP%\\battery_report.xml' -ContentType 'text/xml'; $url = '${resultUrl}?reportId=' + $res.id; Start-Process $url"
 
 echo.
 echo Done! Please check your browser.
