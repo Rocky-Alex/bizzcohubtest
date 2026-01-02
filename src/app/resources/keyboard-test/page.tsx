@@ -337,14 +337,14 @@ export default function KeyboardCheckPage() {
 
     return (
         <div style={{
-            height: '100vh',
+            minHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',
             backgroundColor: '#0a0a0a', // neutral-950
             color: 'white',
-            padding: '16px',
+            padding: '96px 16px 16px 16px',
             fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            overflow: 'hidden'
+            overflowY: 'auto'
         }}>
             <header style={{
                 flex: '0 0 auto',

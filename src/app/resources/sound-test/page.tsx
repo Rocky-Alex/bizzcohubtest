@@ -64,24 +64,87 @@ export default function SoundTestPage() {
 
 const ReferenceTracks = ({ files }: { files: { name: string; path: string }[] }) => {
     const [playingFile, setPlayingFile] = useState<string | null>(null);
+    const [panMode, setPanMode] = useState<'left' | 'right' | 'both'>('both');
+
+    // Refs for Web Audio API
+    const audioCtxRef = useRef<AudioContext | null>(null);
+    const pannerRef = useRef<StereoPannerNode | null>(null);
+    const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const togglePlay = (file: { name: string; path: string }) => {
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (audioCtxRef.current) {
+                audioCtxRef.current.close();
+            }
+        };
+    }, []);
+
+    // Handle Pan Change
+    const handlePanChange = (mode: 'left' | 'right' | 'both') => {
+        setPanMode(mode);
+        if (pannerRef.current && audioCtxRef.current) {
+            const val = mode === 'left' ? -1 : mode === 'right' ? 1 : 0;
+            pannerRef.current.pan.setValueAtTime(val, audioCtxRef.current.currentTime);
+        }
+    };
+
+    const togglePlay = async (file: { name: string; path: string }) => {
+        // Stop logic
         if (playingFile === file.name) {
             audioRef.current?.pause();
             setPlayingFile(null);
-        } else {
-            if (audioRef.current) {
-                audioRef.current.pause();
-            }
-            if (!audioRef.current) {
-                audioRef.current = new Audio(file.path);
-                audioRef.current.onended = () => setPlayingFile(null);
-            } else {
-                audioRef.current.src = file.path;
-            }
-            audioRef.current.play();
+            return;
+        }
+
+        // Cleanup existing audio
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+        if (sourceRef.current) {
+            sourceRef.current.disconnect();
+            sourceRef.current = null;
+        }
+
+        // Initialize Audio Context if needed
+        if (!audioCtxRef.current) {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            audioCtxRef.current = new AudioContext();
+        }
+        if (audioCtxRef.current.state === 'suspended') {
+            await audioCtxRef.current.resume();
+        }
+
+        // Initialize Panner
+        if (!pannerRef.current) {
+            pannerRef.current = audioCtxRef.current.createStereoPanner();
+            pannerRef.current.connect(audioCtxRef.current.destination);
+        }
+
+        // Set initial pan based on current mode
+        const currentPan = panMode === 'left' ? -1 : panMode === 'right' ? 1 : 0;
+        pannerRef.current.pan.value = currentPan;
+
+        // Create new Audio element
+        const audio = new Audio(file.path);
+        audio.crossOrigin = "anonymous";
+        audioRef.current = audio;
+
+        // Create Source and connect to Panner
+        const source = audioCtxRef.current.createMediaElementSource(audio);
+        source.connect(pannerRef.current);
+        sourceRef.current = source;
+
+        // Handle end
+        audio.onended = () => setPlayingFile(null);
+
+        try {
+            await audio.play();
             setPlayingFile(file.name);
+        } catch (err) {
+            console.error("Playback failed:", err);
         }
     };
 
@@ -99,9 +162,73 @@ const ReferenceTracks = ({ files }: { files: { name: string; path: string }[] })
             flexDirection: 'column',
             gap: '24px'
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#e5e5e5' }}>
-                <Music size={24} color="#38bdf8" />
-                <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Reference Tracks</h2>
+            {/* Header and Controls */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#e5e5e5' }}>
+                    <Music size={24} color="#38bdf8" />
+                    <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Speaker Testing Reference Tracks</h2>
+                </div>
+
+                {/* Channel Controls */}
+                <div style={{
+                    display: 'flex',
+                    background: '#262626',
+                    padding: '4px',
+                    borderRadius: '12px',
+                    gap: '4px'
+                }}>
+                    <button
+                        onClick={() => handlePanChange('left')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            borderRadius: '8px',
+                            background: panMode === 'left' ? '#ec4899' : 'transparent',
+                            color: panMode === 'left' ? 'white' : '#737373',
+                            border: 'none',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        L
+                    </button>
+                    <button
+                        onClick={() => handlePanChange('both')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            borderRadius: '8px',
+                            background: panMode === 'both' ? '#8b5cf6' : 'transparent',
+                            color: panMode === 'both' ? 'white' : '#737373',
+                            border: 'none',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        L+R
+                    </button>
+                    <button
+                        onClick={() => handlePanChange('right')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            borderRadius: '8px',
+                            background: panMode === 'right' ? '#ec4899' : 'transparent',
+                            color: panMode === 'right' ? 'white' : '#737373',
+                            border: 'none',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        R
+                    </button>
+                </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -152,9 +279,6 @@ const ReferenceTracks = ({ files }: { files: { name: string; path: string }[] })
                     </div>
                 ))}
             </div>
-            <p style={{ textAlign: 'center', color: '#737373', fontSize: '12px', fontStyle: 'italic' }}>
-                (Files from /public/Audios)
-            </p>
         </div>
     );
 };
@@ -332,11 +456,18 @@ const SpeakerTester = ({ files }: { files: { name: string; path: string }[] }) =
 
 const MicrophoneTester = () => {
     const [listening, setListening] = useState(false);
+    const [recording, setRecording] = useState(false);
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [volume, setVolume] = useState(0);
+
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const rafRef = useRef<number | null>(null);
+
+    // Recording Refs
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<BlobPart[]>([]);
 
     const startMic = async () => {
         try {
@@ -360,14 +491,55 @@ const MicrophoneTester = () => {
 
     const stopMic = () => {
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+        // Stop recording if active
+        if (recording && mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+
         if (sourceRef.current) {
             sourceRef.current.mediaStream.getTracks().forEach(track => track.stop());
             sourceRef.current.disconnect();
         }
-        if (audioCtxRef.current) audioCtxRef.current.close();
+        if (audioCtxRef.current) {
+            audioCtxRef.current.close().catch(() => { });
+        }
 
         setListening(false);
+        setRecording(false);
         setVolume(0);
+    };
+
+    const startRecording = () => {
+        if (!sourceRef.current) return;
+
+        const stream = sourceRef.current.mediaStream;
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        chunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                chunksRef.current.push(e.data);
+            }
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+            const url = URL.createObjectURL(blob);
+            setAudioUrl(url);
+            setRecording(false);
+        };
+
+        mediaRecorder.start();
+        setRecording(true);
+        setAudioUrl(null); // Clear previous recording
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
     };
 
     const updateMeter = () => {
@@ -405,6 +577,7 @@ const MicrophoneTester = () => {
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Microphone Testing</h2>
             </div>
 
+            {/* Volume Visualization */}
             <div style={{
                 height: '64px',
                 background: '#262626',
@@ -415,11 +588,10 @@ const MicrophoneTester = () => {
                 alignItems: 'center',
                 padding: '0 8px'
             }}>
-                {/* Volume Bar */}
                 <div style={{
                     height: '32px',
                     width: `${volume}%`,
-                    background: 'linear-gradient(90deg, #8b5cf6, #ec4899)',
+                    background: recording ? '#ec4899' : 'linear-gradient(90deg, #8b5cf6, #ec4899)', // Red when recording
                     borderRadius: '8px',
                     transition: 'width 0.05s ease-out',
                     minWidth: '4px'
@@ -430,9 +602,16 @@ const MicrophoneTester = () => {
                         Microphone is off
                     </div>
                 )}
+                {recording && (
+                    <div style={{ position: 'absolute', right: '16px', display: 'flex', alignItems: 'center', gap: '6px', color: '#ec4899', fontSize: '12px', fontWeight: 'bold' }}>
+                        <div className="animate-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ec4899' }}></div>
+                        REC
+                    </div>
+                )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {/* Controls */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 {!listening ? (
                     <button
                         onClick={startMic}
@@ -443,22 +622,67 @@ const MicrophoneTester = () => {
                             fontSize: '16px', fontWeight: 'bold', cursor: 'pointer'
                         }}
                     >
-                        <Play size={18} /> Start Test
+                        <Play size={18} /> Start Mic
                     </button>
                 ) : (
-                    <button
-                        onClick={stopMic}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                            background: '#ef4444', color: 'white',
-                            border: 'none', padding: '12px 32px', borderRadius: '12px',
-                            fontSize: '16px', fontWeight: 'bold', cursor: 'pointer'
-                        }}
-                    >
-                        <Square size={18} fill="currentColor" /> Stop Test
-                    </button>
+                    <>
+                        <button
+                            onClick={stopMic}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                background: '#262626', color: '#e5e5e5',
+                                border: '1px solid #404040', padding: '12px 24px', borderRadius: '12px',
+                                fontSize: '14px', fontWeight: 'bold', cursor: 'pointer'
+                            }}
+                        >
+                            <Square size={16} fill="currentColor" /> Stop Mic
+                        </button>
+
+                        {!recording ? (
+                            <button
+                                onClick={startRecording}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                    background: '#ec4899', color: 'white',
+                                    border: 'none', padding: '12px 24px', borderRadius: '12px',
+                                    fontSize: '14px', fontWeight: 'bold', cursor: 'pointer'
+                                }}
+                            >
+                                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'white' }}></div> Record Clip
+                            </button>
+                        ) : (
+                            <button
+                                onClick={stopRecording}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                    background: '#be185d', color: 'white',
+                                    border: 'none', padding: '12px 24px', borderRadius: '12px',
+                                    fontSize: '14px', fontWeight: 'bold', cursor: 'pointer'
+                                }}
+                            >
+                                <Square size={14} fill="currentColor" /> Stop Rect
+                            </button>
+                        )}
+                    </>
                 )}
             </div>
+
+            {/* Playback Section */}
+            {audioUrl && (
+                <div style={{
+                    marginTop: '8px',
+                    background: '#262626',
+                    padding: '16px',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                }}>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#e5e5e5' }}>Playback Recording</div>
+                    <audio controls src={audioUrl} style={{ width: '100%', height: '32px' }} />
+                </div>
+            )}
+
         </div>
     );
 };

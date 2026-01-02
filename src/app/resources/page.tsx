@@ -16,8 +16,9 @@ import {
     Monitor,
     Keyboard,
     Battery,
-    Volume2
-
+    Volume2,
+    Video,
+    Touchpad
 } from "lucide-react";
 import Link from "next/link";
 
@@ -96,13 +97,34 @@ export default function ResourcesPage() {
                         actionText="Test Audio"
                     />
 
+                    <ResourceCard
+                        title="Webcam Diagnostics"
+                        description="Verify camera functionality, resolution, and capture test snapshots."
+                        icon={<Video size={32} />}
+                        href="/resources/camera-test"
+                        actionText="Test Camera"
+                    />
+
+                    <ResourceCard
+                        title="CPU Benchmark"
+                        description="Measure processor performance with single and multi-core synthetic tests."
+                        icon={<Cpu size={32} />}
+                        href="/resources/cpu-test"
+                        actionText="Run Speed Test"
+                    />
+
+                    <ResourceCard
+                        title="Touch Screen Test"
+                        description="Verify touch sensitivity and dead zones by dragging an icon across the screen."
+                        icon={<Touchpad size={32} />}
+                        href="/resources/touch-test"
+                        actionText="Test Touch"
+                    />
+
                 </div>
             </section>
 
             <div className="resources-grid">
-                {/* Image Background Removal */}
-
-
                 {/* Image Background Removal */}
                 <ResourceCard
                     title="Image Background Remover"
