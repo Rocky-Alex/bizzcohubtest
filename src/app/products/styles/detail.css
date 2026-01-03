@@ -1,0 +1,288 @@
+/* Product Detail Cost Display Styles */
+.price-display-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    flex-wrap: nowrap;
+}
+
+.price-current {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #000000;
+    line-height: 1;
+}
+
+.price-original {
+    font-size: 0.9rem;
+    color: #9ca3af;
+    text-decoration: line-through;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.price-badge {
+    background-color: #fef2f2;
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: fit-content;
+}
+
+/* Base Gallery Styling */
+.gallery-dot {
+    display: none;
+    /* Hidden on desktop */
+}
+
+/* Specs/About Section Defaults (Desktop) */
+.spec-category-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151;
+}
+
+.spec-key {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.spec-val {
+    font-size: 0.9rem;
+    color: #111827;
+    font-weight: 500;
+}
+
+/* Media Queries for Mobile Responsiveness */
+@media (max-width: 768px) {
+
+    /* 1. Gallery Fixes */
+    .left-column {
+        width: 100% !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .thumbnail-strip {
+        display: none !important;
+        /* Hide thumbnails on mobile */
+    }
+
+    /* Image Height Fit Fix: Remove unwanted space */
+    .main-product-image {
+        width: 100% !important;
+        height: auto !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        margin-bottom: 0;
+        min-height: 200px;
+        /* Minimal height so it doesn't collapse layout */
+    }
+
+    .main-product-image img {
+        width: auto !important;
+        /* Let width adjust */
+        height: auto !important;
+        max-width: 100% !important;
+        max-height: 280px;
+        /* Constrain height strictly to avoid huge vertical space */
+        object-fit: contain !important;
+        margin: 0 auto;
+    }
+
+    /* Dots */
+    .mobile-gallery-dots {
+        display: flex !important;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 12px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .gallery-dot {
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #e5e7eb;
+        transition: all 0.3s;
+    }
+
+    .gallery-dot.active {
+        background-color: #3b82f6;
+        /* Blue active */
+        width: 20px;
+        border-radius: 10px;
+    }
+
+    /* 2. Price Row - Force Single Line */
+    .price-display-row {
+        flex-direction: row !important;
+        align-items: baseline;
+        gap: 8px;
+        white-space: nowrap;
+        overflow-x: auto;
+    }
+
+    .price-current {
+        font-size: 1.35rem;
+        /* Large */
+    }
+
+    .price-original {
+        font-size: 0.85rem;
+        /* Small */
+    }
+
+    .price-badge {
+        font-size: 0.7rem;
+        /* Compact */
+        padding: 2px 5px;
+    }
+
+    /* 3. Action Buttons - Single Row */
+    .main-actions {
+        display: flex !important;
+        flex-direction: row !important;
+        /* Force row */
+        gap: 6px !important;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .main-actions button {
+        flex: 1;
+        /* Equal width */
+        font-size: 0.7rem !important;
+        /* Reduced text size */
+        padding: 0 4px !important;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        height: 42px;
+        /* Compact height */
+        line-height: 1;
+    }
+
+    .main-actions button i {
+        font-size: 0.9rem;
+        display: none;
+        /* Hide icons to fit text */
+    }
+
+    /* 4. Options Row */
+    .color-qty-row {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .option-section {
+        margin-bottom: 0 !important;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .color-selection {
+        justify-content: flex-start;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    .color-circle-btn {
+        width: 22px !important;
+        height: 22px !important;
+    }
+
+    .section-label {
+        font-size: 0.7rem !important;
+        margin-bottom: 2px;
+    }
+
+    /* Quantity & Icons */
+    .quantity-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+    }
+
+    .quantity-control-pill {
+        padding: 2px;
+        height: 28px;
+    }
+
+    .qty-btn {
+        width: 20px;
+        height: 100%;
+        font-size: 1rem;
+        line-height: 1;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .qty-display {
+        width: 20px;
+        font-size: 0.8rem;
+    }
+
+    .action-buttons {
+        gap: 4px;
+    }
+
+    .icon-btn-square {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+        border-radius: 6px;
+    }
+
+    /* 5. About Section (Specs) Font Reduction */
+    .spec-category-title {
+        font-size: 0.85rem !important;
+        /* Smaller Title */
+        margin-bottom: 6px !important;
+        margin-top: 10px !important;
+    }
+
+    .spec-table-row {
+        gap: 8px;
+        padding: 4px 0 !important;
+    }
+
+    .spec-key {
+        font-size: 0.75rem !important;
+        /* Smaller Key */
+        flex: 0 0 40%;
+        /* Compact key width */
+    }
+
+    .spec-val {
+        font-size: 0.75rem !important;
+        /* Smaller Val */
+    }
+
+    .tab-nav-btn {
+        font-size: 0.85rem !important;
+        padding: 8px 12px !important;
+    }
+}

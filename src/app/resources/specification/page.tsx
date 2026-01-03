@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Cpu, Activity, Zap, BarChart3, Play, Clock, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function CpuTestPage() {
+export default function SpecificationPage() {
     return (
         <div style={{
             minHeight: '100vh',
@@ -39,7 +39,7 @@ export default function CpuTestPage() {
                 gap: '40px'
             }}>
                 <h1 style={{ fontSize: '32px', fontWeight: 'bold', background: 'linear-gradient(to right, #f59e0b, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    CPU Performance Benchmark
+                    Specification & Performance Benchmark
                 </h1>
 
                 <CpuBenchmark />

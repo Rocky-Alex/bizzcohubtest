@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { SiteConfig } from "@/config/site";
 import ProductGallery from "./ProductGallery";
 import ProductTabs from "./ProductTabs";
+import "../styles/detail.css";
 
 interface ProductDetailContentProps {
     product: any;
@@ -257,7 +258,9 @@ export default function ProductDetailContent({ product }: ProductDetailContentPr
                         {product.originalPrice && product.originalPrice > product.price && (
                             <>
                                 <span className="price-original">AED {((product.originalPrice) + (totalPrice - product.price)).toLocaleString()}</span>
-                                <span className="price-save">Save AED {(product.originalPrice - product.price).toLocaleString()}</span>
+                                <span className="price-badge">
+                                    -{Math.round(((product.originalPrice - product.price) / (product.originalPrice + (totalPrice - product.price))) * 100)}%
+                                </span>
                             </>
                         )}
                     </div>

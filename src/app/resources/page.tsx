@@ -18,7 +18,9 @@ import {
     Battery,
     Volume2,
     Video,
-    Touchpad
+    Touchpad,
+    Wifi,
+    MousePointer2
 } from "lucide-react";
 import Link from "next/link";
 
@@ -83,6 +85,13 @@ export default function ResourcesPage() {
                         actionText="Test Keyboard"
                     />
                     <ResourceCard
+                        title="Trackpad Check"
+                        description="Test mouse clicks, scrolling, and trackpad gestures."
+                        icon={<MousePointer2 size={32} />}
+                        href="/resources/trackpad-test"
+                        actionText="Test Trackpad"
+                    />
+                    <ResourceCard
                         title="Battery Status"
                         description="View real-time battery charge level and charging status."
                         icon={<Battery size={32} />}
@@ -106,11 +115,23 @@ export default function ResourcesPage() {
                     />
 
                     <ResourceCard
-                        title="CPU Benchmark"
-                        description="Measure processor performance with single and multi-core synthetic tests."
+                        title="Connectivity Test"
+                        description="Check WiFi signal, internet status, and network interfaces."
+                        icon={<Wifi size={32} />}
+                        href="/resources/connectivity-test"
+                        actionText="Check Network"
+                    />
+
+
+
+
+
+                    <ResourceCard
+                        title="Specification"
+                        description="View real-time system specifications."
                         icon={<Cpu size={32} />}
-                        href="/resources/cpu-test"
-                        actionText="Run Speed Test"
+                        href="/resources/specification"
+                        actionText="View Specifications"
                     />
 
                     <ResourceCard
