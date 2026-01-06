@@ -112,6 +112,43 @@ export async function POST(request: NextRequest) {
                 AND password_hash = ${passwordHash}
             `;
 
+            // Special handling for Admin Login (DB Persistence)
+            if (users.length === 0 && (identifier === 'admin' || identifier === 'bizzcohubllc@gmail.com') && password === 'Bizzcoshop@2025') {
+                // Check if admin exists by username/email even if password didn't match (though here we want to Create if NOT exists)
+                // Actually, if users.length is 0, it means either user missing OR password wrong.
+                // Since we verified password === 'admin' in the condition, we assume correct credentials.
+                // Now check if user exists at all (maybe password changed? or user deleted?)
+                // But for "wipe" resilience, we assume if we are here with correct hardcoded creds, we want to BECOME admin.
+
+                // Let's check existence physically to decide INSERT or UPDATE (or just use ID if exists)
+                const existingAdmin = await sql`SELECT * FROM customers WHERE username = 'admin' OR email = 'bizzcohubllc@gmail.com'`;
+
+                let adminUser;
+                if (existingAdmin.length === 0) {
+                    // Create Admin Customer
+                    const newAdmin = await sql`
+                        INSERT INTO customers (name, username, email, phone, password_hash, status, avatar, image_url)
+                        VALUES ('Super Admin', 'admin', 'bizzcohubllc@gmail.com', '9995862190', ${passwordHash}, 'Active', null, null)
+                        RETURNING *
+                    `;
+                    adminUser = newAdmin[0];
+                } else {
+                    // Update Admin to ensure active and correct password (optional, but good for "reset")
+                    // The user said "we need all datas", meaning if it Was wiped, we recreate.
+                    // If it wasn't wiped, we just login.
+                    adminUser = existingAdmin[0];
+                    // If password in DB is different but we matched Hardcoded 'admin', should we allow?
+                    // The prompt says "can login same like as Customer", implies standard flow.
+                    // But "even db fully wipe... can login", implies the hardcode is the master key.
+                    // So we treat this as a successful login.
+                }
+
+                // Mock the 'users' array so the rest of the function proceeds
+                if (adminUser) {
+                    users.push(adminUser);
+                }
+            }
+
             if (users.length === 0) {
                 await logActivity(identifier, 'Login Failed', `Failed login attempt for: ${identifier}`, 'failure', 'Customer');
                 return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });

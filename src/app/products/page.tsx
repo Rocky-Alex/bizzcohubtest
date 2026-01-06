@@ -22,7 +22,7 @@ export async function generateMetadata({ searchParams }: ProductsPageProps): Pro
     const type = searchParams.type && searchParams.type !== 'all' ? searchParams.type : 'Products';
 
     return {
-        title: `${category || (type.charAt(0).toUpperCase() + type.slice(1))} | Bizz Co Hub`,
+        title: category || (type.charAt(0).toUpperCase() + type.slice(1)),
         description: `Explore our collection of ${category || 'premium refurbished electronics'}. High performance, certified quality, and competitive prices at Bizz Co Hub.`,
     };
 }

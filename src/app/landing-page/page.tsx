@@ -12,9 +12,9 @@ import "./styles/landing-page-extra.css";
 import "./styles/product-card-outline.css";
 
 export const metadata: Metadata = {
-    title: 'Bizz Co Hub | Premium Refurbished Electronics & IT Solutions',
+    title: 'Premium Refurbished Electronics & IT Solutions',
     description: 'Bizz Co Hub is your trusted partner for high-quality refurbished laptops, desktops, and enterprise IT services. Global bulk supply and advanced repair center.',
-    keywords: 'refurbished macbooks, gaming laptops, IT solutions Dubai, business laptops, refurbished phones',
+    keywords: ['refurbished macbooks', 'gaming laptops', 'IT solutions Dubai', 'business laptops', 'refurbished phones'],
 };
 
 export const dynamic = 'force-dynamic';

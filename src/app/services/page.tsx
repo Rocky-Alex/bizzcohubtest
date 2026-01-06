@@ -3,9 +3,9 @@ import "./styles/services.css";
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Professional Technology Services | Bizz Co Hub',
+    title: 'Professional Technology Services',
     description: 'Explore Bizz Co Hub\'s comprehensive IT services including premium refurbished hardware, global bulk supply, advanced repair center, and enterprise IT partnerships.',
-    keywords: 'refurbished laptops, IT services, data recovery, bulk electronics, electronics repair, BizzCoHub',
+    keywords: ['refurbished laptops', 'IT services', 'data recovery', 'bulk electronics', 'electronics repair', 'BizzCoHub'],
 };
 
 export default function ServicesPage() {

@@ -65,7 +65,7 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
     return (
         <div className="billing-dashboard-container">
             {/* Stats Overview */}
-            <div className="billing-stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            <div className="billing-stats-grid">
                 {/* Total Products */}
                 <div className="billing-stat-card">
                     <div className="stat-header">

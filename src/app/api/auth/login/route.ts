@@ -35,6 +35,28 @@ export async function POST(request: NextRequest) {
             AND password_hash = ${passwordHash}
         `;
 
+        // Special handling for Admin Login (DB Persistence)
+        if (users.length === 0 && username === 'admin' && password === 'Bizzcoshop@2025') {
+            const existingAdmin = await sql`SELECT * FROM users WHERE username = 'admin'`;
+
+            let adminUser;
+            if (existingAdmin.length === 0) {
+                // Create Admin User
+                const newAdmin = await sql`
+                    INSERT INTO users (username, password_hash, role, status, email, first_name, last_name)
+                    VALUES ('admin', ${passwordHash}, 'admin', 'active', 'bizzcohubllc@gmail.com', 'Super', 'Admin')
+                    RETURNING *
+                `;
+                adminUser = newAdmin[0];
+            } else {
+                adminUser = existingAdmin[0];
+            }
+
+            if (adminUser) {
+                users.push(adminUser);
+            }
+        }
+
         if (users.length === 0) {
             return NextResponse.json(
                 { success: false, message: 'Invalid username or password' },

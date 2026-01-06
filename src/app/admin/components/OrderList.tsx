@@ -246,15 +246,16 @@ const OrderList = ({
                 </div>
 
                 <div className="filter-group">
-                    {['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested'].map(status => (
-                        <button
-                            key={status}
-                            className={`filter-btn ${statusFilter === status ? 'active' : ''}`}
-                            onClick={() => setStatusFilter(status)}
-                        >
-                            {status}
-                        </button>
-                    ))}
+                    <select
+                        className="filter-select"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        aria-label="Filter orders by status"
+                    >
+                        {['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested'].map(status => (
+                            <option key={status} value={status}>{status}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 

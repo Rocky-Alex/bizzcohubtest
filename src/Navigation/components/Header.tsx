@@ -229,6 +229,11 @@ export default function Header() {
                                         <DropdownMenuItem onClick={() => window.location.href = '/profile?view=wishlist'}>
                                             Wishlist
                                         </DropdownMenuItem>
+                                        {(currentUser.username === 'admin' || currentUser.email === 'bizzcohubllc@gmail.com') && (
+                                            <DropdownMenuItem onClick={() => window.location.href = '/admin/login'}>
+                                                Admin Login
+                                            </DropdownMenuItem>
+                                        )}
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={confirmLogout} style={{ color: '#ef4444' }}>

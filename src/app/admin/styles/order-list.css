@@ -122,22 +122,27 @@
     gap: 0.75rem;
 }
 
-.filter-btn {
-    padding: 0.6rem 1.2rem;
+.filter-select {
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
     border: 1px solid #e5e7eb;
     background: white;
-    border-radius: 8px;
+    border-radius: 10px;
     color: #4b5563;
-    font-weight: 500;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.2s;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 180px;
 }
 
-.filter-btn.active,
-.filter-btn:hover {
-    background: #f3f4f6;
-    color: #111827;
-    border-color: #d1d5db;
+.filter-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* --- Table Styles --- */
@@ -291,4 +296,27 @@
 .btn-icon-soft.delete:hover {
     background: #fef2f2;
     color: #dc2626;
+}
+
+/* Mobile Responsive Controls */
+@media (max-width: 768px) {
+    .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .search-wrapper {
+        width: 100%;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .filter-select {
+        width: 100%;
+        min-width: auto;
+    }
 }

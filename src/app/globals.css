@@ -93,3 +93,10 @@ h6,
 .bebas-neue {
     font-family: var(--font-bebas), cursive;
 }
+
+/* Force white background for content images to support transparent PNGs in Dark Mode */
+img[src*="imagekit.io"],
+img[src*="unsplash.com"],
+img[src^="blob:"] {
+    background-color: #ffffff !important;
+}
