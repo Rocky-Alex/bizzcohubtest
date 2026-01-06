@@ -1,5 +1,17 @@
 import Link from "next/link";
 import "../privacy/styles/privacy.css";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Terms of Service',
+    description: 'Bizz Co Hub Terms of Service - Read our terms and conditions for using our products, services, shipping, returns, and warranty policies.',
+    keywords: ['terms of service', 'terms and conditions', 'Bizz Co Hub terms', 'warranty policy', 'return policy'],
+    openGraph: {
+        title: 'Terms of Service | Bizz Co Hub',
+        description: 'Read our terms and conditions for using Bizz Co Hub products and services.',
+        type: 'website',
+    },
+};
 
 export default function TermsOfServicePage() {
     return (

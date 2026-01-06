@@ -1,5 +1,17 @@
 import Link from "next/link";
 import "./styles/privacy.css";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Privacy Policy',
+    description: 'Bizz Co Hub Privacy Policy - Learn how we collect, use, and protect your personal information. Your privacy is our priority.',
+    keywords: ['privacy policy', 'data protection', 'Bizz Co Hub privacy', 'personal information'],
+    openGraph: {
+        title: 'Privacy Policy | Bizz Co Hub',
+        description: 'Learn how Bizz Co Hub collects, uses, and protects your personal information.',
+        type: 'website',
+    },
+};
 
 export default function PrivacyPolicyPage() {
     return (

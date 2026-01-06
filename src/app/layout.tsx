@@ -126,6 +126,8 @@ const bebasNeue = Bebas_Neue({
     display: 'swap',
 });
 
+import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/JsonLd';
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -138,6 +140,9 @@ export default function RootLayout({
                     rel="stylesheet"
                     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
                 />
+                <link rel="manifest" href="/manifest.json" />
+                <OrganizationJsonLd />
+                <WebSiteJsonLd />
             </head>
             <body>
                 <LayoutWrapper>
@@ -148,3 +153,4 @@ export default function RootLayout({
         </html>
     );
 }
+
