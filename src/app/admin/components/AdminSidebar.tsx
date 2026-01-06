@@ -161,24 +161,12 @@ export default function AdminSidebar({
             router.push('/activitylog');
         } else if (item.id === 'auto-refresh') {
             setShowAutoRefreshSettings(true);
-        } else if (item.id === 'email-inbox') {
-            router.push('/admin/email');
-        } else if (pathname === '/admin/email') {
-            // If on email page and clicking another item (and it's not a submenu toggle)
-            if (item.subItems) {
-                toggleMenu(item.id);
-            } else {
-                // Navigate back to admin dashboard
-                // Optionally pass the section as query param if we wanted deep linking, 
-                // but defaulting to dashboard is safe.
-                // We can manually set the section in localStorage or just go to /admin
-                router.push('/admin');
-            }
         } else if (item.subItems) {
             toggleMenu(item.id);
         } else {
             setActiveSection(item.id);
         }
+
     };
 
     const displayedItems = userRole?.toLowerCase() === 'accountant'
