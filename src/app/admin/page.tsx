@@ -31,7 +31,6 @@ const ImportCustomers = dynamic(() => import('./components/ImportCustomers'), { 
 const QuickActions = dynamic(() => import('./components/QuickActions'), { loading: () => <LoadingSpinner /> });
 const OrderList = dynamic(() => import('./components/OrderList'), { loading: () => <LoadingSpinner /> });
 const CreateOrder = dynamic(() => import('./components/CreateOrder'), { loading: () => <LoadingSpinner /> });
-const ActivityLog = dynamic(() => import('./activity-log/ActivityLog'), { loading: () => <LoadingSpinner /> });
 const ConfirmModal = dynamic(() => import('./components/ConfirmModal'));
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
@@ -620,11 +619,7 @@ export default function AdminPage() {
                 if (/^[A-Z]$/.test(char)) {
                     keySequence += char;
 
-                    if (keySequence.endsWith('ACTIVITYLOG')) {
-                        console.log('Shortcut triggered: Shift + ACTIVITYLOG -> Navigating to Activity Log');
-                        setActiveSection('activity-log');
-                        keySequence = '';
-                    }
+
                 }
             } else {
                 keySequence = '';
@@ -710,7 +705,7 @@ export default function AdminPage() {
             'quotations-new': ['Quotations', 'New Quotation'],
             'payments-all': ['Invoicing', 'Partial Payments'],
             'invoices-return': ['Billing', 'Invoice Return'],
-            'activity-log': ['Activity Log'],
+
             'email-inbox': ['Application', 'Email'],
             'quick-actions': ['Quick Actions'],
         };
@@ -815,8 +810,7 @@ export default function AdminPage() {
                         setActiveSection('customers-all');
                     }}
                 />;
-            case "activity-log":
-                return <ActivityLog />;
+
             case "customers-add":
                 return <AddCustomerForm
                     onCancel={() => setActiveSection('customers-all')}
