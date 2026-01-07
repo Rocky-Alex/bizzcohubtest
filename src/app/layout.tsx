@@ -6,10 +6,10 @@ import { Toaster } from 'sonner';
 export const metadata: Metadata = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://bizzcohub.com'),
     title: {
-        default: "Bizz Co Hub",
-        template: "%s | Bizz Co Hub",
+        default: "Bizzcohub",
+        template: "%s | Bizzcohub",
     },
-    description: "Bizz Co Hub - Premier destination for laptop and computer repairing, refurbishing, wholesale and retail, accessories sales & web design services.",
+    description: "Bizzcohub - Premier destination for laptop and computer repairing, refurbishing, wholesale and retail, accessories sales & web design services.",
     keywords: [
         "Laptop Repair",
         "Computer Repair",
@@ -20,6 +20,7 @@ export const metadata: Metadata = {
         "Bizz Co Hub",
         "Tech Services",
         "Hardware Repair",
+        "Bizzhub",
         "bizzcohub",
         "bizzcohub.com",
         "bizzco",
@@ -141,7 +142,7 @@ export default function RootLayout({
                     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
                 />
                 <link rel="manifest" href="/manifest.json" />
-                <OrganizationJsonLd />
+                <OrganizationJsonLd alternateName={['Bizzcohub', 'Bizzhub', 'Bizz Co Hub']} />
                 <WebSiteJsonLd />
             </head>
             <body>

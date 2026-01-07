@@ -12,6 +12,7 @@ interface OrganizationSchemaProps {
         areaServed?: string[];
     };
     sameAs?: string[];
+    alternateName?: string[];
 }
 
 export function OrganizationJsonLd({
@@ -25,6 +26,7 @@ export function OrganizationJsonLd({
         areaServed: ['AE', 'IN', 'QA', 'VN'],
     },
     sameAs = [],
+    alternateName = ['Bizzcohub'],
 }: OrganizationSchemaProps) {
     const schema = {
         '@context': 'https://schema.org',
@@ -38,6 +40,7 @@ export function OrganizationJsonLd({
             ...contactPoint,
         },
         sameAs,
+        alternateName,
     };
 
     return (
