@@ -3,7 +3,7 @@
 const nextConfig = {
     // Disable Vercel Analytics in development to reduce console noise
     experimental: {
-        serverComponentsExternalPackages: ['@react-pdf/renderer', '@imgly/background-removal', 'onnxruntime-node'],
+        serverComponentsExternalPackages: ['@react-pdf/renderer', '@imgly/background-removal', 'onnxruntime-node', 'systeminformation'],
         outputFileTracingIncludes: {
             '/resources/sound-test': ['./public/Audios/**/*'],
         },
@@ -38,6 +38,10 @@ const nextConfig = {
             config.externals.push('whatsapp-web.js');
             config.externals.push('puppeteer');
         }
+
+        // Fix for systeminformation optional dependencies
+        config.resolve.alias['osx-temperature-sensor'] = false;
+        config.resolve.alias['macos-temperature-sensor'] = false;
 
         // Fix for onnxruntime-web / @imgly/background-removal import.meta errors
         config.module.rules.push({
