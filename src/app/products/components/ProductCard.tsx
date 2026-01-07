@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import ProductImage from "@/components/ProductImage";
 import imageKitLoader from "@/utils/imageLoader";
 
 interface ProductCardProps {
@@ -40,9 +41,8 @@ export default function ProductCard({ product, type, priority = false }: Product
                     background: 'var(--bg-tertiary)',
                     position: 'relative'
                 }}>
-                    <Image
-                        loader={imageKitLoader}
-                        src={product.image || product.images?.[0] || '/uploads/placeholder.jpg'}
+                    <ProductImage
+                        src={product.image || product.images?.[0]}
                         alt={product.name}
                         fill
                         priority={priority}

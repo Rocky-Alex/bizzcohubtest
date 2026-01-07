@@ -10,7 +10,7 @@ interface ProductImageProps extends Omit<ImageProps, 'loader' | 'src'> {
 }
 
 export default function ProductImage({ src, fallbackSrc, alt, ...props }: ProductImageProps) {
-    const defaultPlaceholder = "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80";
+    const defaultPlaceholder = "/product-placeholder.png";
     const [imgSrc, setImgSrc] = useState<string>(src || defaultPlaceholder);
 
     useEffect(() => {
@@ -22,7 +22,7 @@ export default function ProductImage({ src, fallbackSrc, alt, ...props }: Produc
             {...props}
             src={imgSrc}
             alt={alt || "Product image"}
-            loader={imageKitLoader}
+            loader={imgSrc.startsWith('http') || imgSrc.startsWith('//') ? imageKitLoader : undefined}
             onError={() => {
                 if (imgSrc !== (fallbackSrc || defaultPlaceholder)) {
                     setImgSrc(fallbackSrc || defaultPlaceholder);
