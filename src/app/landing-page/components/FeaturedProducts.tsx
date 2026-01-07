@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import ProductImage from "@/components/ProductImage";
 import { addToCart } from "@/utils/cart";
 import { useToast } from "@/context/ToastContext";
 import imageKitLoader from "@/utils/imageLoader";
@@ -176,9 +177,8 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                         )}
                         <div className="product-image-v3">
                             <Link href={`/products/${product.type?.toLowerCase()}/${product.id}`} className="block h-full w-full">
-                                <Image
-                                    loader={imageKitLoader}
-                                    src={product.image || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80'}
+                                <ProductImage
+                                    src={product.image}
                                     alt={product.name}
                                     width={400}
                                     height={400}
