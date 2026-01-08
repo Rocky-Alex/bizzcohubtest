@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Image from "next/image";
 import imageKitLoader from "@/utils/imageLoader";
+import { Country } from 'country-state-city';
+import PhoneInputWithCountry from "@/components/ui/PhoneInputWithCountry";
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -21,6 +23,7 @@ export default function CheckoutPage() {
         firstName: "",
         lastName: "",
         email: "",
+        phoneCode: "971",
         phone: "",
         address: "",
         city: "",
@@ -55,12 +58,31 @@ export default function CheckoutPage() {
                             const firstName = nameParts[0] || '';
                             const lastName = nameParts.slice(1).join(' ') || '';
 
+
+                            // Parse phone
+                            let phoneCode = '971';
+                            let phoneNumber = '';
+                            if (u.phone) {
+                                const allC = Country.getAllCountries();
+                                const sorted = [...allC].sort((a, b) => b.phonecode.length - a.phonecode.length);
+                                const p = u.phone;
+                                const clean = p.startsWith('+') ? p.slice(1) : p;
+                                const match = sorted.find(c => clean.startsWith(c.phonecode));
+                                if (match) {
+                                    phoneCode = match.phonecode;
+                                    phoneNumber = clean.slice(match.phonecode.length);
+                                } else {
+                                    phoneNumber = clean;
+                                }
+                            }
+
                             setFormData(prev => ({
                                 ...prev,
                                 firstName: firstName,
                                 lastName: lastName,
                                 email: u.email || '',
-                                phone: u.phone || '',
+                                phone: phoneNumber,
+                                phoneCode: phoneCode,
                                 // Prefer shipping address, fallback to billing or empty
                                 address: u.shipping_address_1 || u.billing_address_1 || '',
                                 city: u.shipping_city || u.billing_city || '',
@@ -104,6 +126,7 @@ export default function CheckoutPage() {
 
             const orderData = {
                 ...formData,
+                phone: `+${formData.phoneCode}${formData.phone}`,
                 items: cartItems,
                 subtotal,
                 tax,
@@ -212,14 +235,11 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="form-group full-width">
                                         <label className="form-label">Phone Number</label>
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            className="form-input"
-                                            required
+                                        <PhoneInputWithCountry
                                             value={formData.phone}
-                                            onChange={handleInputChange}
-                                            autoComplete="tel"
+                                            countryCode={formData.phoneCode}
+                                            onChange={(code, num) => setFormData(prev => ({ ...prev, phoneCode: code, phone: num }))}
+                                            required
                                         />
                                     </div>
                                 </div>

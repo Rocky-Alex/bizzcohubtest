@@ -62,6 +62,24 @@ export default function CustomerList({
     const startIndex = (currentPage - 1) * rowsPerPage;
     const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + rowsPerPage);
 
+    const getInitials = (name: string) => {
+        if (!name) return "";
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    };
+
+    const getAvatarColor = (name: string) => {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return '#' + '00000'.substring(0, 6 - c.length) + c;
+    };
+
     return (
         <div className="customer-list-container">
             {/* Header */}
@@ -123,8 +141,7 @@ export default function CustomerList({
                                 <th>Total Invoice</th>
                                 <th>Created On <i className="fas fa-sort"></i></th>
                                 <th>Status</th>
-                                <th>Actions</th>
-                                <th></th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -135,7 +152,21 @@ export default function CustomerList({
                                     </td>
                                     <td>
                                         <div className="customer-cell">
-                                            <img src={customer.image_url || "/default-avatar.png"} alt={customer.name} className="customer-avatar" />
+                                            {customer.image_url ? (
+                                                <img src={customer.image_url} alt={customer.name} className="customer-avatar" />
+                                            ) : (
+                                                <div className="customer-avatar" style={{
+                                                    backgroundColor: getAvatarColor(customer.name),
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: 'white',
+                                                    fontWeight: 'bold',
+                                                    fontSize: '0.8rem'
+                                                }}>
+                                                    {getInitials(customer.name)}
+                                                </div>
+                                            )}
                                             <div className="customer-info">
                                                 <span>{customer.name}</span>
                                                 <span style={{ fontSize: '0.8em', color: '#666' }}>{customer.email}</span>
@@ -162,19 +193,7 @@ export default function CustomerList({
                                             {(customer.status || 'Active') === 'Active' ? <i className="fas fa-check-circle"></i> : <i className="fas fa-times-circle"></i>}
                                         </span>
                                     </td>
-                                    <td>
-                                        <div className="action-buttons">
-                                            <button className="btn-action-outline" onClick={onNavigateToNewInvoice}>
-                                                <i className="fas fa-plus-circle"></i> Invoice
-                                            </button>
-                                            <button
-                                                className="btn-action-outline"
-                                                onClick={() => setSelectedCustomerForLedger(customer)}
-                                            >
-                                                <i className="fas fa-book"></i> Ledger
-                                            </button>
-                                        </div>
-                                    </td>
+
                                     <td>
                                         <div className="menu-cell">
                                             <i

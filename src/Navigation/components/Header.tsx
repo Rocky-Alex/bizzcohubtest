@@ -105,6 +105,24 @@ export default function Header() {
 
     const isActive = (path: string) => pathname === path ? 'active' : '';
 
+    const getInitials = (name: string) => {
+        if (!name) return "";
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    };
+
+    const getAvatarColor = (name: string) => {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return '#' + '00000'.substring(0, 6 - c.length) + c;
+    };
+
     return (
         <header className={`main-header ${scrolled ? 'scrolled' : ''}`}>
             <div className="header-container">
@@ -113,8 +131,8 @@ export default function Header() {
                     <Image
                         src="/icon/nav-logo.png"
                         alt="Bizz Co Hub Logo"
-                        width={24}
-                        height={24}
+                        width={34}
+                        height={34}
                         className="logo-image"
                     />
                     <GradientText
@@ -137,9 +155,11 @@ export default function Header() {
                         E-Commerce
                     </Link>
 
-                    <Link href="/resources" className={`nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}>
-                        Resources
-                    </Link>
+                    {currentUser && (currentUser.username === 'admin' || currentUser.email === 'bizzcohubllc@gmail.com') && (
+                        <Link href="/resources" className={`nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}>
+                            Resources
+                        </Link>
+                    )}
 
                     <Link href="/services" className={`nav-link ${isActive('/services') ? 'active' : ''}`}>
                         Services
@@ -209,7 +229,20 @@ export default function Header() {
                                                 />
                                             </div>
                                         ) : (
-                                            <CircleUserRound size={24} strokeWidth={2} aria-hidden="true" />
+                                            <div style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: getAvatarColor(currentUser.name || currentUser.username || "User"),
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: 'white',
+                                                fontSize: '12px',
+                                                fontWeight: 'bold',
+                                                borderRadius: '50%'
+                                            }}>
+                                                {getInitials(currentUser.name || currentUser.username || "User")}
+                                            </div>
                                         )}
                                     </Button>
                                 </DropdownMenuTrigger>
@@ -265,155 +298,161 @@ export default function Header() {
             </div>
 
             {/* Search Overlay */}
-            {searchOpen && (
-                <div className="search-overlay">
-                    <div className="search-container-overlay">
-                        <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.35-4.35"></path>
-                        </svg>
-                        <input
-                            type="search"
-                            placeholder="Search products..."
-                            className="search-input"
-                            autoFocus
-                        />
-                        <button className="search-close" onClick={() => setSearchOpen(false)}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M18 6L6 18M6 6l12 12"></path>
+            {
+                searchOpen && (
+                    <div className="search-overlay">
+                        <div className="search-container-overlay">
+                            <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
                             </svg>
-                        </button>
+                            <input
+                                type="search"
+                                placeholder="Search products..."
+                                className="search-input"
+                                autoFocus
+                            />
+                            <button className="search-close" onClick={() => setSearchOpen(false)}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Mobile Menu */}
-            {mobileMenuOpen && (
-                <div className="mobile-menu">
-                    <div className="mobile-menu-content">
-                        <Link
-                            href="/"
-                            className={`mobile-nav-link ${isActive('/') ? 'active' : ''}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            Home
-                        </Link>
-
-                        <Link
-                            href="/products"
-                            className={`mobile-nav-link ${pathname.startsWith('/products') ? 'active' : ''}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            E-Commerce
-                        </Link>
-
-                        <Link
-                            href="/resources"
-                            className={`mobile-nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            Resources
-                        </Link>
-
-                        <Link
-                            href="/services"
-                            className={`mobile-nav-link ${isActive('/services') ? 'active' : ''}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            Services
-                        </Link>
-
-                        <Link
-                            href="/contact"
-                            className={`mobile-nav-link ${isActive('/contact') ? 'active' : ''}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            Contact
-                        </Link>
-
-                        <Link
-                            href="/cart"
-                            className={`mobile-nav-link ${isActive('/cart') ? 'active' : ''}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                        >
-                            <span>Cart</span>
-                            {cartCount > 0 && (
-                                <span style={{
-                                    background: '#ef4444',
-                                    color: 'white',
-                                    fontSize: '11px',
-                                    fontWeight: 'bold',
-                                    padding: '2px 8px',
-                                    borderRadius: '12px',
-                                    marginLeft: '8px'
-                                }}>
-                                    {cartCount}
-                                </span>
-                            )}
-                        </Link>
-
-
-                        <div className="mobile-menu-divider"></div>
-
-                        <button
-                            onClick={() => {
-                                toggleTheme();
-                                setMobileMenuOpen(false);
-                            }}
-                            className="mobile-nav-link"
-                            style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                fontSize: '15px',
-                                fontWeight: 500,
-                                padding: '12px 0'
-                            }}
-                        >
-                            {theme === 'light' ? (
-                                <>
-                                    <Moon size={18} />
-                                    <span>Dark Mode</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Sun size={18} />
-                                    <span>Light Mode</span>
-                                </>
-                            )}
-                        </button>
-
-                        <div className="mobile-menu-divider"></div>
-
-                        {currentUser ? (
-                            <button
-                                onClick={() => {
-                                    confirmLogout();
-                                    setMobileMenuOpen(false);
-                                }}
-                                className="mobile-sign-in-btn"
-                                style={{ background: '#ef4444' }} // Red for logout
-                            >
-                                Logout
-                            </button>
-                        ) : (
+            {
+                mobileMenuOpen && (
+                    <div className="mobile-menu">
+                        <div className="mobile-menu-content">
                             <Link
-                                href="/login"
-                                className="mobile-sign-in-btn"
+                                href="/"
+                                className={`mobile-nav-link ${isActive('/') ? 'active' : ''}`}
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Sign In
+                                Home
                             </Link>
-                        )}
+
+                            <Link
+                                href="/products"
+                                className={`mobile-nav-link ${pathname.startsWith('/products') ? 'active' : ''}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                E-Commerce
+                            </Link>
+
+                            {currentUser && (currentUser.username === 'admin' || currentUser.email === 'bizzcohubllc@gmail.com') && (
+                                <Link
+                                    href="/resources"
+                                    className={`mobile-nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Resources
+                                </Link>
+                            )}
+
+                            <Link
+                                href="/services"
+                                className={`mobile-nav-link ${isActive('/services') ? 'active' : ''}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Services
+                            </Link>
+
+                            <Link
+                                href="/contact"
+                                className={`mobile-nav-link ${isActive('/contact') ? 'active' : ''}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Contact
+                            </Link>
+
+                            <Link
+                                href="/cart"
+                                className={`mobile-nav-link ${isActive('/cart') ? 'active' : ''}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                            >
+                                <span>Cart</span>
+                                {cartCount > 0 && (
+                                    <span style={{
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        fontSize: '11px',
+                                        fontWeight: 'bold',
+                                        padding: '2px 8px',
+                                        borderRadius: '12px',
+                                        marginLeft: '8px'
+                                    }}>
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </Link>
+
+
+                            <div className="mobile-menu-divider"></div>
+
+                            <button
+                                onClick={() => {
+                                    toggleTheme();
+                                    setMobileMenuOpen(false);
+                                }}
+                                className="mobile-nav-link"
+                                style={{
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    fontSize: '15px',
+                                    fontWeight: 500,
+                                    padding: '12px 0'
+                                }}
+                            >
+                                {theme === 'light' ? (
+                                    <>
+                                        <Moon size={18} />
+                                        <span>Dark Mode</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sun size={18} />
+                                        <span>Light Mode</span>
+                                    </>
+                                )}
+                            </button>
+
+                            <div className="mobile-menu-divider"></div>
+
+                            {currentUser ? (
+                                <button
+                                    onClick={() => {
+                                        confirmLogout();
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className="mobile-sign-in-btn"
+                                    style={{ background: '#ef4444' }} // Red for logout
+                                >
+                                    Logout
+                                </button>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    className="mobile-sign-in-btn"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Sign In
+                                </Link>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <ConfirmModal
                 isOpen={logoutModalOpen}
@@ -425,6 +464,6 @@ export default function Header() {
                 cancelText="Cancel"
                 type="danger"
             />
-        </header>
+        </header >
     );
 }

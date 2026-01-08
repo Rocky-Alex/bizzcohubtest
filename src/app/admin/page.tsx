@@ -31,7 +31,9 @@ const ImportCustomers = dynamic(() => import('./components/ImportCustomers'), { 
 const QuickActions = dynamic(() => import('./components/QuickActions'), { loading: () => <LoadingSpinner /> });
 const OrderList = dynamic(() => import('./components/OrderList'), { loading: () => <LoadingSpinner /> });
 const CreateOrder = dynamic(() => import('./components/CreateOrder'), { loading: () => <LoadingSpinner /> });
+const ActivityLog = dynamic(() => import('./components/ActivityLog'), { loading: () => <LoadingSpinner /> });
 const ConfirmModal = dynamic(() => import('./components/ConfirmModal'));
+const UserPasswords = dynamic(() => import("./components/UserPasswords"));
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
@@ -708,6 +710,7 @@ export default function AdminPage() {
 
             'email-inbox': ['Application', 'Email'],
             'quick-actions': ['Quick Actions'],
+            'activity-log': ['System', 'Activity Log'],
         };
 
         let path = mapping[activeSection];
@@ -741,6 +744,44 @@ export default function AdminPage() {
         switch (activeSection) {
             case "dashboard":
                 return <DashboardOverview setActiveSection={setActiveSection} laptops={laptops} />;
+
+            case "user-passwords":
+                if (userRole !== 'superadmin' && username !== 'superadmin') {
+                    return (
+                        <div style={{
+                            padding: '40px',
+                            textAlign: 'center',
+                            background: 'white',
+                            borderRadius: '12px',
+                            margin: '20px',
+                            boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                        }}>
+                            <i className="fas fa-lock" style={{ fontSize: '3rem', color: '#ef4444', marginBottom: '1rem' }}></i>
+                            <h2>Access Denied</h2>
+                            <p>You do not have permission to view this section.</p>
+                        </div>
+                    );
+                }
+                return <UserPasswords />;
+
+            case "activity-log":
+                if (userRole !== 'superadmin' && username !== 'superadmin') {
+                    return (
+                        <div style={{
+                            padding: '40px',
+                            textAlign: 'center',
+                            background: 'white',
+                            borderRadius: '12px',
+                            margin: '20px',
+                            boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+                        }}>
+                            <i className="fas fa-lock" style={{ fontSize: '3rem', color: '#ef4444', marginBottom: '1rem' }}></i>
+                            <h2>Access Denied</h2>
+                            <p>You do not have permission to view this section.</p>
+                        </div>
+                    );
+                }
+                return <ActivityLog />;
 
             // --- Customers ---
 
@@ -935,6 +976,14 @@ export default function AdminPage() {
                             });
 
                             if (response.ok) {
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'Success',
+                                    message: 'Customer updated successfully!',
+                                    type: 'success',
+                                    singleButton: true,
+                                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                                });
                                 fetchCustomers();
                                 setCustomerToEdit(null);
                                 setActiveSection('customers-all');

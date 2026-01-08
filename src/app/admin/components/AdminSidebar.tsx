@@ -90,11 +90,16 @@ export default function AdminSidebar({
                 { id: "users-roles", label: "Roles and Permissions" }
             ]
         },
-        // {
-        //     id: "activity-log",
-        //     icon: "fa-history",
-        //     label: "Activity Log"
-        // },
+        {
+            id: "user-passwords",
+            icon: "fa-key",
+            label: "User Password"
+        },
+        {
+            id: "activity-log",
+            icon: "fa-history",
+            label: "Activity Log"
+        },
         {
             id: "auto-refresh",
             icon: "fa-sync-alt",
@@ -157,9 +162,7 @@ export default function AdminSidebar({
     };
 
     const handleItemClick = (item: any) => {
-        if (item.id === 'activity-log') {
-            router.push('/activitylog');
-        } else if (item.id === 'auto-refresh') {
+        if (item.id === 'auto-refresh') {
             setShowAutoRefreshSettings(true);
         } else if (item.subItems) {
             toggleMenu(item.id);
@@ -169,9 +172,21 @@ export default function AdminSidebar({
 
     };
 
-    const displayedItems = userRole?.toLowerCase() === 'accountant'
-        ? menuItems.filter(item => ['dashboard', 'orders', 'invoicing'].includes(item.id))
-        : menuItems;
+    const displayedItems = menuItems.filter(item => {
+        // Accountant restriction
+        if (userRole?.toLowerCase() === 'accountant') {
+            return ['dashboard', 'orders', 'invoicing'].includes(item.id);
+        }
+
+        // Super Admin restriction for sensitive sections
+        if (['user-passwords', 'activity-log'].includes(item.id)) {
+            // Check if user is superadmin (either by role or username handle)
+            const isSuperAdmin = userRole === 'superadmin' || username === 'superadmin';
+            return isSuperAdmin;
+        }
+
+        return true;
+    });
 
     return (
         <aside

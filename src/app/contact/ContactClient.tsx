@@ -71,7 +71,7 @@ export default function ContactClient() {
                             </div>
                             <h3>Support Center</h3>
                             <p>Technical assistance available 24/7 for our enterprise partners.</p>
-                            <p style={{ marginTop: '0.5rem', color: '#3b82f6' }}>support@bizzcohub.com</p>
+                            <p style={{ marginTop: '0.5rem', color: '#3b82f6' }}>bizzcohubllc@gmail.com</p>
                         </div>
 
                         {/* Box 2 */}
@@ -81,7 +81,7 @@ export default function ContactClient() {
                             </div>
                             <h3>Sales & Bulk</h3>
                             <p>Request quotes for bulk orders or export consignments.</p>
-                            <p style={{ marginTop: '0.5rem', color: '#10b981' }}>sales@bizzcohub.com</p>
+                            <p style={{ marginTop: '0.5rem', color: '#10b981' }}>bizzcohubllc@gmail.com</p>
                         </div>
 
                         {/* Box 3 - Location */}

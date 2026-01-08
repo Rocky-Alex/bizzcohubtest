@@ -100,6 +100,12 @@ export default function AdminLoginPage() {
                             </div>
                         </div>
 
+                        <div style={{ textAlign: 'right', marginTop: '8px', marginBottom: '16px' }}>
+                            <a href="/admin/forgot-password" style={{ color: '#aaa', fontSize: '0.85rem', textDecoration: 'none', transition: 'color 0.3s' }} onMouseOver={(e) => e.currentTarget.style.color = '#fff'} onMouseOut={(e) => e.currentTarget.style.color = '#aaa'}>
+                                Forgot Password?
+                            </a>
+                        </div>
+
                         <button type="submit" className="submit-btn" disabled={isLoading}>
                             {isLoading ? 'Logging in...' : 'Sign In'}
                         </button>

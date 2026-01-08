@@ -83,13 +83,33 @@ export async function POST(req: Request) {
     }
 }
 
+import { createHash } from 'crypto';
+
 export async function DELETE(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
+        const all = searchParams.get('all');
+        const password = req.headers.get('x-admin-password');
+
+        if (!password) {
+            return NextResponse.json({ error: 'Password is required' }, { status: 401 });
+        }
+
+        // Verify password (Master Password)
+        const MASTER_PASSWORD = 'bizzcohub@gmail.com@admin';
+
+        if (password !== MASTER_PASSWORD) {
+            return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+        }
+
+        if (all === 'true') {
+            await sql`TRUNCATE TABLE activity_logs RESTART IDENTITY CASCADE`;
+            return NextResponse.json({ message: 'All logs cleared successfully' }, { status: 200 });
+        }
 
         if (!id) {
-            return NextResponse.json({ error: 'Log ID is required' }, { status: 400 });
+            return NextResponse.json({ error: 'Log ID or all=true is required' }, { status: 400 });
         }
 
         const result = await sql`

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import "./EditUserModal.css";
 import ConfirmModal from './ConfirmModal';
 import AvatarUploader from './AvatarUploader';
+import { Country } from 'country-state-city';
+import PhoneInputWithCountry from "@/components/ui/PhoneInputWithCountry";
 
 interface User {
     id: string;
@@ -33,6 +35,7 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
         userName: "",
         email: "",
         phone: "",
+        phoneCode: "971",
         password: "",
         confirmPassword: "",
         role: "",
@@ -76,12 +79,37 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                 initialLastName = nameParts.slice(1).join(' ') || "";
             }
 
+            // Parse Phone Number
+            let initialPhone = user.phone || "";
+            let initialCode = "971";
+
+            if (initialPhone) {
+                // If starts with +, remove it temporarily for matching
+                const cleanPhone = initialPhone.startsWith('+') ? initialPhone.substring(1) : initialPhone;
+
+                const allCountries = Country.getAllCountries();
+                // Sort by length desc to match longest code first (e.g. 1 340 vs 1)
+                const sortedCountries = allCountries.sort((a, b) => b.phonecode.length - a.phonecode.length);
+
+                const match = sortedCountries.find(c => cleanPhone.startsWith(c.phonecode));
+                if (match) {
+                    initialCode = match.phonecode;
+                    initialPhone = cleanPhone.substring(match.phonecode.length);
+                } else {
+                    // Fallback, assume default code or just put everything in phone input if no match
+                    // This is tricky if no match found. 
+                    // Assume user entered raw number without code?
+                    initialPhone = cleanPhone;
+                }
+            }
+
             setFormData({
                 firstName: initialFirstName,
                 lastName: initialLastName,
                 userName: user.username || user.name, // Prefer username field, fallback to name
                 email: user.email || "",
-                phone: user.phone || "",
+                phone: initialPhone,
+                phoneCode: initialCode,
                 password: "",
                 confirmPassword: "",
                 role: user.role,
@@ -95,12 +123,55 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
         }
     }, [user, isOpen]);
 
+    // VALIDATION LOGIC
+    const [isCheckingUser, setIsCheckingUser] = useState(false);
+    const checkTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    const checkUsernameAvailability = async (username: string) => {
+        if (!username.trim()) return;
+
+        // If username hasn't changed from original, it's valid (it's their own)
+        // However, we still check via API with excludeId to be safe and consistent
+
+        setIsCheckingUser(true);
+        try {
+            // Pass excludeId to ignore the current user's record
+            const res = await fetch(`/api/admin/users/check-username?username=${encodeURIComponent(username)}&excludeId=${user?.id}`);
+            const data = await res.json();
+
+            if (res.ok) {
+                if (!data.available) {
+                    setErrors((prev: any) => ({ ...prev, userName: "Username is already taken" }));
+                } else {
+                    // Valid
+                    setErrors((prev: any) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.userName;
+                        return newErrors;
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error checking username:", error);
+        } finally {
+            setIsCheckingUser(false);
+        }
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
         // Clear error for this field
         if (errors[name]) {
             setErrors((prev: any) => ({ ...prev, [name]: "" }));
+        }
+
+        // Real-time Check for Username
+        if (name === "userName") {
+            if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
+            checkTimeoutRef.current = setTimeout(() => {
+                checkUsernameAvailability(value);
+            }, 500);
         }
     };
 
@@ -114,7 +185,11 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
 
         if (!formData.firstName.trim()) newErrors.firstName = "First Name is required";
         if (!formData.lastName.trim()) newErrors.lastName = "Last Name is required";
-        if (!formData.userName.trim()) newErrors.userName = "User Name is required";
+        if (!formData.userName.trim()) {
+            newErrors.userName = "User Name is required";
+        } else if (errors.userName === "Username is already taken") {
+            newErrors.userName = "Username is already taken";
+        }
 
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
@@ -153,7 +228,7 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                 name: `${formData.firstName} ${formData.lastName}`, // Combine as per requirement
                 role: formData.role,
                 email: formData.email,
-                phone: formData.phone,
+                phone: `+${formData.phoneCode}${formData.phone}`,
                 status: formData.status ? "Active" : "Inactive",
                 image: formData.image, // File object if present
                 avatar: imagePreview // Current preview (URL or base64)
@@ -217,7 +292,7 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                     </div>
 
                     <div className="form-group full-width">
-                        <label>User Name <span className="required">*</span></label>
+                        <label>User Name <span className="required">*</span> {isCheckingUser && <span style={{ fontSize: '0.8rem', color: '#666' }}>(Checking...)</span>}</label>
                         <input
                             type="text"
                             name="userName"
@@ -225,6 +300,7 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                             onChange={handleInputChange}
                             className={errors.userName ? "error" : ""}
                         />
+                        {errors.userName && <span className="error-message" style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>{errors.userName}</span>}
                     </div>
 
                     <div className="form-grid">
@@ -240,12 +316,15 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                         </div>
                         <div className="form-group">
                             <label>Phone Number <span className="required">*</span></label>
-                            <input
-                                type="tel"
-                                name="phone"
+                            <PhoneInputWithCountry
                                 value={formData.phone}
-                                onChange={handleInputChange}
-                                className={errors.phone ? "error" : ""}
+                                countryCode={formData.phoneCode}
+                                onChange={(code, num) => {
+                                    setFormData(prev => ({ ...prev, phoneCode: code, phone: num }));
+                                    if (errors.phone) setErrors((prev: any) => ({ ...prev, phone: "" }));
+                                }}
+                                error={!!errors.phone}
+                                required
                             />
                         </div>
                     </div>
@@ -266,7 +345,7 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                                     className="eye-btn"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    <i className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye-slash"}`}></i>
+                                    <i className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                                 </button>
                             </div>
                         </div>
@@ -285,7 +364,7 @@ export default function EditUserModal({ isOpen, onClose, onSubmit, user, roles }
                                     className="eye-btn"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 >
-                                    <i className={`fas ${showConfirmPassword ? "fa-eye-slash" : "fa-eye-slash"}`}></i>
+                                    <i className={`fas ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                                 </button>
                             </div>
                         </div>

@@ -5,6 +5,7 @@ import AddUserModal from "./AddUserModal";
 import EditUserModal from "./EditUserModal";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import "./UserManagement.css";
+import { Country } from 'country-state-city';
 
 interface User {
     id: string;
@@ -88,6 +89,29 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd, availab
         ];
         const index = name.charCodeAt(0) % colors.length;
         return colors[index];
+    };
+
+    const renderPhone = (phone: string) => {
+        if (!phone) return '-';
+        const cleanPhone = phone.startsWith('+') ? phone.substring(1) : phone;
+        const countries = Country.getAllCountries();
+        const match = countries.sort((a, b) => b.phonecode.length - a.phonecode.length)
+            .find(c => cleanPhone.startsWith(c.phonecode));
+
+        if (match) {
+            return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img
+                        src={`https://flagcdn.com/w20/${match.isoCode.toLowerCase()}.png`}
+                        alt={match.isoCode}
+                        width="20"
+                        style={{ borderRadius: '2px', objectFit: 'cover' }}
+                    />
+                    <span>{phone}</span>
+                </div>
+            );
+        }
+        return phone;
     };
 
     return (
@@ -191,7 +215,7 @@ export default function UserManagement({ users, onEdit, onDelete, onAdd, availab
                                                 <span>{user.name}</span>
                                             </div>
                                         </td>
-                                        <td>{user.phone}</td>
+                                        <td>{renderPhone(user.phone)}</td>
                                         <td>{user.email}</td>
                                         <td>{user.role}</td>
                                         <td>

@@ -23,9 +23,13 @@ export async function GET(request: NextRequest) {
 
         console.log('[Users API] Authorization passed, fetching users from database...');
 
+        // Migration: Ensure visible_password column exists
+        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS visible_password TEXT`;
+
         const users = await sql`
-            SELECT id, username, first_name, last_name, email, phone, role, status, approval_status, avatar, created_by, created_at 
+            SELECT id, username, first_name, last_name, email, phone, role, status, approval_status, avatar, created_by, created_at, visible_password 
             FROM users 
+            WHERE role != 'superadmin' AND username != 'superadmin'
             ORDER BY created_at DESC
         `;
 
@@ -67,8 +71,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Either email or phone is required' }, { status: 400 });
         }
 
-        // Check if username exists
-        const existing = await sql`SELECT id FROM users WHERE username = ${username}`;
+        // Check if username exists (Case Insensitive)
+        const existing = await sql`SELECT id FROM users WHERE LOWER(username) = LOWER(${username})`;
         if (existing.length > 0) {
             return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
         }
@@ -87,7 +91,8 @@ export async function POST(request: NextRequest) {
                 status, 
                 approval_status, 
                 created_by,
-                avatar
+                avatar,
+                visible_password
             )
             VALUES (
                 ${username}, 
@@ -100,7 +105,8 @@ export async function POST(request: NextRequest) {
                 ${status || 'active'}, 
                 'approved', 
                 'admin',
-                ${avatar || null}
+                ${avatar || null},
+                ${password}
             )
         `;
 
@@ -145,6 +151,7 @@ export async function PUT(request: NextRequest) {
                     role = ${role}, 
                     status = ${status},
                     avatar = ${avatar || null}, 
+                    visible_password = ${password},
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ${id}
             `;

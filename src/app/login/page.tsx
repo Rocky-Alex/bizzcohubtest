@@ -356,6 +356,14 @@ export default function CustomerAuthPage() {
                             </div>
                         </div>
 
+                        {isLogin && (
+                            <div style={{ textAlign: 'right', marginTop: '-10px', marginBottom: '20px' }}>
+                                <Link href="/forgot-password" className="text-sm text-blue-500 hover:text-blue-400 transition-colors">
+                                    Forgot Password?
+                                </Link>
+                            </div>
+                        )}
+
                         {!isLogin && (
                             <div className="dark-form-group">
                                 <div className="dark-input-container">

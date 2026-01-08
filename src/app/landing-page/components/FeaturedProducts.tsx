@@ -18,6 +18,9 @@ interface FeaturedProductsProps {
 }
 
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
+    // Hide section if no products
+    if (!products || products.length === 0) return null;
+
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [activeSlide, setActiveSlide] = useState(0);
     const [isDragging, setIsDragging] = useState(false);

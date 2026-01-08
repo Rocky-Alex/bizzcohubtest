@@ -358,7 +358,7 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                         setConfirmModal({
                             isOpen: true,
                             title: 'Success',
-                            message: 'Receipt sent successfully! (Sent to rishadpnpm@gmail.com for testing)',
+                            message: `Receipt sent successfully! (Sent to ${invoices.find(i => i.id === selectedInvoiceId)?.customer_email || 'customer'})`,
                             type: 'success',
                             singleButton: true,
                             onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
@@ -730,7 +730,7 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                         setConfirmModal({
                             isOpen: true,
                             title: 'Success',
-                            message: 'Invoice email sent successfully! (Sent to rishadpnpm@gmail.com for testing)',
+                            message: `Invoice email sent successfully! (Sent to ${inv.customer_email})`,
                             type: 'success',
                             singleButton: true,
                             onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))

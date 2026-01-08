@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
         }
         else if (process.env.RESEND_API_KEY) {
             try {
-                const resend = new Resend(process.env.RESEND_API_KEY);
+                const resend = new Resend(process.env.RESEND_API_KEY.trim());
                 await resend.emails.send({
                     from: 'Bizz Co Hub Admin <onboarding@resend.dev>',
                     to: ['rishadpnpm@gmail.com'], // In prod, use 'to'

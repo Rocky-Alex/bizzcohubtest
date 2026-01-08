@@ -57,11 +57,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         if (!process.env.RESEND_API_KEY) {
             return NextResponse.json({ error: 'RESEND_API_KEY is missing' }, { status: 500 });
         }
-        const resend = new Resend(process.env.RESEND_API_KEY);
+        const resend = new Resend(process.env.RESEND_API_KEY!.trim());
 
         const { data, error } = await resend.emails.send({
             from: 'Bizz Co Hub <onboarding@resend.dev>',
-            to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
+            to: [quote.customer_email], // Send to customer email
             subject: `Quotation #${quote.quotation_no} from Bizz Co Hub`,
             html: `
                 <div style="font-family: Arial, sans-serif; color: #333;">

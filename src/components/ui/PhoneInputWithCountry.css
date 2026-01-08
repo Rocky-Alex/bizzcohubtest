@@ -1,0 +1,173 @@
+.phone-input-container {
+    position: relative;
+    width: 100%;
+    font-family: inherit;
+}
+
+.phone-input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    /* Matched to .input-field */
+    border-radius: 6px;
+    /* Matched to .input-field */
+    transition: all 0.2s;
+    overflow: hidden;
+    /* Ensures children don't overflow borders */
+}
+
+.phone-input-wrapper:focus-within {
+    border-color: #7c3aed;
+    /* Matched to .input-field:focus */
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.country-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 0.6rem;
+    /* Matched to .input-field padding */
+    cursor: pointer;
+    border-right: 1px solid #e5e7eb;
+    background: #f9fafb;
+    user-select: none;
+    min-width: 90px;
+    justify-content: center;
+    height: 100%;
+}
+
+.country-trigger:hover {
+    background: #f3f4f6;
+}
+
+.selected-flag {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+}
+
+.selected-iso {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.selected-dial {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-left: 4px;
+}
+
+.phone-input-field {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0.7rem 0.8rem;
+    /* Matched to .input-field padding */
+    font-size: 0.9rem;
+    /* Matched to .input-field */
+    background: transparent;
+    color: #1f2937;
+    min-width: 0;
+}
+
+.phone-input-field::placeholder {
+    color: #d1d5db;
+    /* Matched */
+}
+
+/* Dropdown */
+.country-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    /* Match container width or fixed */
+    min-width: 300px;
+    max-height: 300px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    z-index: 50;
+    /* Ensure on top */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.country-search-box {
+    padding: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #7c3aed;
+}
+
+.countries-list {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.country-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #f9fafb;
+}
+
+.country-item:last-child {
+    border-bottom: none;
+}
+
+.country-item:hover {
+    background-color: #f9fafb;
+}
+
+.country-item.selected {
+    background-color: #f3f4f6;
+}
+
+.item-flag {
+    display: flex;
+    align-items: center;
+}
+
+.item-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-code {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+}

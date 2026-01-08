@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
             ADD COLUMN IF NOT EXISTS avatar TEXT,
             ADD COLUMN IF NOT EXISTS username VARCHAR(255),
             ADD COLUMN IF NOT EXISTS password_hash TEXT,
+            ADD COLUMN IF NOT EXISTS visible_password TEXT,
             ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP;
         `;
 
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
             ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(100),
             ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(100),
             ADD COLUMN IF NOT EXISTS username VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS visible_password TEXT,
             ADD COLUMN IF NOT EXISTS password_hash TEXT;
         `;
 
@@ -140,7 +142,8 @@ export async function POST(request: NextRequest) {
                 
                 status,
                 username,
-                password_hash
+                password_hash,
+                visible_password
             ) VALUES (
                 ${body.avatar || null}, 
                 ${body.name}, 
@@ -162,7 +165,8 @@ export async function POST(request: NextRequest) {
                 
                 'Active',
                 ${body.username || null},
-                ${passwordHash}
+                ${passwordHash},
+                ${body.password || null}
             )
             RETURNING *
         `;
@@ -210,31 +214,66 @@ export async function PUT(request: NextRequest) {
         // Frontend: billingName -> DB: billing_name
         // Frontend: image_url or avatar -> DB: image_url
 
-        const updatedCustomer = await sql`
-            UPDATE customers
-            SET
-                image_url = ${body.image_url || body.avatar}, 
-                name = ${body.name}, 
-                email = ${body.email}, 
-                phone = ${body.phone}, 
-                currency = ${body.currency}, 
-                
-                billing_name = ${body.billingName || body.billing_name}, 
-                billing_address_1 = ${body.billingAddress1 || body.billing_address_1}, 
-                billing_country = ${body.billingCountry || body.billing_country}, 
-                billing_state = ${body.billingState || body.billing_state}, 
-                billing_city = ${body.billingCity || body.billing_city}, 
-                
-                shipping_name = ${body.shippingName || body.shipping_name}, 
-                shipping_address_1 = ${body.shippingAddress1 || body.shipping_address_1}, 
-                shipping_country = ${body.shippingCountry || body.shipping_country}, 
-                shipping_state = ${body.shippingState || body.shipping_state}, 
-                shipping_city = ${body.shippingCity || body.shipping_city},
-                
-                status = ${body.status || 'Active'}
-            WHERE id = ${body.id}
-            RETURNING *
-        `;
+        let updatedCustomer;
+
+        if (body.password) {
+            const passwordHash = createHash('sha256').update(body.password).digest('hex');
+            updatedCustomer = await sql`
+                UPDATE customers
+                SET
+                    image_url = ${body.image_url || body.avatar}, 
+                    name = ${body.name}, 
+                    email = ${body.email}, 
+                    phone = ${body.phone}, 
+                    currency = ${body.currency}, 
+                    
+                    billing_name = ${body.billingName || body.billing_name}, 
+                    billing_address_1 = ${body.billingAddress1 || body.billing_address_1}, 
+                    billing_country = ${body.billingCountry || body.billing_country}, 
+                    billing_state = ${body.billingState || body.billing_state}, 
+                    billing_city = ${body.billingCity || body.billing_city}, 
+                    
+                    shipping_name = ${body.shippingName || body.shipping_name}, 
+                    shipping_address_1 = ${body.shippingAddress1 || body.shipping_address_1}, 
+                    shipping_country = ${body.shippingCountry || body.shipping_country}, 
+                    shipping_state = ${body.shippingState || body.shipping_state}, 
+                    shipping_city = ${body.shippingCity || body.shipping_city},
+                    
+                    username = ${body.username},
+                    status = ${body.status || 'Active'},
+                    password_hash = ${passwordHash},
+                    visible_password = ${body.password}
+                WHERE id = ${body.id}
+                RETURNING *
+            `;
+        } else {
+            updatedCustomer = await sql`
+                UPDATE customers
+                SET
+                    image_url = ${body.image_url || body.avatar}, 
+                    name = ${body.name}, 
+                    email = ${body.email}, 
+                    phone = ${body.phone}, 
+                    currency = ${body.currency}, 
+                    
+                    billing_name = ${body.billingName || body.billing_name}, 
+                    billing_address_1 = ${body.billingAddress1 || body.billing_address_1}, 
+                    billing_country = ${body.billingCountry || body.billing_country}, 
+                    billing_state = ${body.billingState || body.billing_state}, 
+                    billing_city = ${body.billingCity || body.billing_city}, 
+                    
+                    shipping_name = ${body.shippingName || body.shipping_name}, 
+                    shipping_address_1 = ${body.shippingAddress1 || body.shipping_address_1}, 
+                    shipping_country = ${body.shippingCountry || body.shipping_country}, 
+                    shipping_state = ${body.shippingState || body.shipping_state}, 
+                    shipping_city = ${body.shippingCity || body.shipping_city},
+                    
+                    username = ${body.username},
+                    status = ${body.status || 'Active'}
+                WHERE id = ${body.id}
+                RETURNING *
+            `;
+        }
 
         if (updatedCustomer.length === 0) {
             return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
@@ -245,7 +284,7 @@ export async function PUT(request: NextRequest) {
         await logActivity(
             'Admin',
             'Update Customer',
-            `Updated details for customer ${body.name}`,
+            body.password ? `Updated details and password for customer ${body.name}` : `Updated details for customer ${body.name}`,
             'success',
             'Admin'
         );

@@ -9,6 +9,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
+import { Country } from 'country-state-city';
+import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
 
 // Consolidated Profile Management - Fixed Syntax Error
 // Timestamp: 2025-12-23T22:30
@@ -49,6 +51,7 @@ function ProfileContent() {
         username: '',
         email: '',
         phone: '',
+        phoneCode: '971',
         image_url: '',
         currency: 'AED',
 
@@ -92,7 +95,23 @@ function ProfileContent() {
                     lastName: (u.name || '').split(' ').slice(1).join(' ') || '',
                     username: u.username || '',
                     email: u.email || '',
-                    phone: u.phone || '',
+                    phone: (() => {
+                        const allC = Country.getAllCountries();
+                        const sorted = [...allC].sort((a, b) => b.phonecode.length - a.phonecode.length);
+                        const p = u.phone || '';
+                        const clean = p.startsWith('+') ? p.slice(1) : p;
+                        const match = sorted.find(c => clean.startsWith(c.phonecode));
+                        return match ? clean.slice(match.phonecode.length) : clean;
+                    })(),
+                    phoneCode: (() => {
+                        const p = u.phone || '';
+                        if (!p) return '971';
+                        const allC = Country.getAllCountries();
+                        const sorted = [...allC].sort((a, b) => b.phonecode.length - a.phonecode.length);
+                        const clean = p.startsWith('+') ? p.slice(1) : p;
+                        const match = sorted.find(c => clean.startsWith(c.phonecode));
+                        return match ? match.phonecode : '971';
+                    })(),
                     image_url: u.image_url || '',
                     currency: u.currency || 'AED',
 
@@ -215,7 +234,9 @@ function ProfileContent() {
                 body: JSON.stringify({
                     id: userId,
                     name: `${firstName} ${lastName}`.trim(),
-                    ...rest
+                    // Override phone with concatenated version
+                    ...rest,
+                    phone: `+${formData.phoneCode}${formData.phone}`,
                 })
             });
 
@@ -300,7 +321,11 @@ function ProfileContent() {
 
                                     <div className="form-group">
                                         <label className="form-label">Mobile Number</label>
-                                        <input type="tel" className="form-input" name="phone" value={formData.phone} onChange={handleChange} />
+                                        <PhoneInputWithCountry
+                                            value={formData.phone}
+                                            countryCode={formData.phoneCode}
+                                            onChange={(code, num) => setFormData(prev => ({ ...prev, phoneCode: code, phone: num }))}
+                                        />
                                     </div>
 
                                     <div className="form-group">
