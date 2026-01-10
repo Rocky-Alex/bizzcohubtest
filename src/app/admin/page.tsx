@@ -34,7 +34,10 @@ const CreateOrder = dynamic(() => import('./components/CreateOrder'), { loading:
 const ActivityLog = dynamic(() => import('./components/ActivityLog'), { loading: () => <LoadingSpinner /> });
 const ConfirmModal = dynamic(() => import('./components/ConfirmModal'));
 const UserPasswords = dynamic(() => import("./components/UserPasswords"));
+const FeaturedProductsManage = dynamic(() => import("./components/FeaturedProductsManage"), { loading: () => <LoadingSpinner /> });
 import "./styles/admin.css";
+
+
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
 import "./styles/admin-header.css";
@@ -239,7 +242,19 @@ export default function AdminPage() {
                     console.log('Auth data:', data);
                     console.log('User role:', data.role);
 
+                    // EXTRA SECURITY: Check if session storage exists. 
+                    // If tab was closed, session storage is cleared.
+                    const isSessionActive = sessionStorage.getItem('admin_authenticated');
+
                     if (data.authenticated) {
+                        if (!isSessionActive) {
+                            console.log('Session storage missing (Tab closed?), forcing re-login...');
+                            // Force logout to clear cookies so they don't persist
+                            await fetch('/api/auth/logout', { method: 'POST' });
+                            router.push('/admin/login');
+                            return;
+                        }
+
                         setIsAuthenticated(true);
                         setUserRole(data.role || 'accountant');
                         setUsername(data.user?.name || 'Admin');
@@ -711,6 +726,7 @@ export default function AdminPage() {
             'email-inbox': ['Application', 'Email'],
             'quick-actions': ['Quick Actions'],
             'activity-log': ['System', 'Activity Log'],
+            'featured-manage': ['Featured Products'],
         };
 
         let path = mapping[activeSection];
@@ -999,6 +1015,9 @@ export default function AdminPage() {
             // --- Quick Actions ---
             case "quick-actions":
                 return <QuickActions setActiveSection={setActiveSection} />;
+
+            case "featured-manage":
+                return <FeaturedProductsManage />;
 
             // --- Inventory ---
             case "inventory-dashboard":

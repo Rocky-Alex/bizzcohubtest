@@ -65,10 +65,36 @@ export function transformProduct(dbProduct: any) {
     };
 }
 
-export async function getFeaturedProducts(limit = 4) {
+export async function getFeaturedProducts(limit = 10) {
     try {
-        const query = await sql`SELECT * FROM products ORDER BY date_added DESC LIMIT ${limit}`;
-        return query.map(transformProduct);
+        // 1. Try to fetch manual configuration
+        try {
+            // JOIN Query to strictly match Admin Panel logic
+            const products = await sql`
+                        SELECT p.* 
+                        FROM featured_products_config c
+                        INNER JOIN products p ON (
+                            TRIM(UPPER(p.product_code)) = TRIM(UPPER(c.product_code)) 
+                            OR p.id::text = c.product_code
+                        )
+                        ORDER BY c.slot_number ASC
+                     `;
+
+            // Strict Mode: If table exists, return what we found (even if empty).
+            return products.map(transformProduct);
+
+        } catch (tableError) {
+            console.log('Featured config table may not exist yet or error:', tableError);
+            // Only fallback if the system is not set up (table missing)
+            const query = await sql`
+                SELECT * FROM products 
+                WHERE (product_name NOT ILIKE '%test%' AND product_name NOT ILIKE '%sample%' AND product_name NOT ILIKE '%dummy%' AND product_name NOT ILIKE '%demo%')
+                AND (price > 0 OR offer_price > 0)
+                ORDER BY date_added DESC 
+                LIMIT ${limit}
+            `;
+            return query.map(transformProduct);
+        }
     } catch (error) {
         console.error('Error fetching featured products:', error);
         return [];

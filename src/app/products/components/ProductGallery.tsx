@@ -51,6 +51,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                         key={index}
                         className={`thumbnail-item ${selectedImage === index ? 'active' : ''}`}
                         onClick={() => setSelectedImage(index)}
+                        style={{ backgroundColor: '#ffffff' }}
                     >
                         <Image
                             src={image}
@@ -68,6 +69,7 @@ export default function ProductGallery({ images, name }: ProductGalleryProps) {
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
+                style={{ backgroundColor: '#ffffff' }}
             >
                 <Image
                     src={displayImages[selectedImage]}

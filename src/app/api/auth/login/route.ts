@@ -103,25 +103,25 @@ export async function POST(request: NextRequest) {
         cookies().set('admin_session', sessionToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             expires: expiresAt,
             path: '/',
         });
 
         // Set user role cookie
-        cookies().set('user_role', user.role, {
+        cookies().set('admin_user_role', user.role, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             expires: expiresAt,
             path: '/',
         });
 
         // Set user id cookie for session retrieval
-        cookies().set('user_id', String(user.id), {
+        cookies().set('admin_user_id', String(user.id), {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             expires: expiresAt,
             path: '/',
         });

@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
     try {
         const sessionToken = cookies().get('admin_session')?.value;
-        const userRole = cookies().get('user_role')?.value;
-        const userId = cookies().get('user_id')?.value;
+        const userRole = cookies().get('admin_user_role')?.value;
+        const userId = cookies().get('admin_user_id')?.value;
 
         if (sessionToken) {
             return NextResponse.json({

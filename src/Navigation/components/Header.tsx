@@ -31,6 +31,9 @@ export default function Header() {
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
+    // Derived state for admin check
+    const isAdminUser = currentUser && (['admin', 'sarath', 'rishadnpm'].includes(currentUser.username) || currentUser.email === 'bizzcohubllc@gmail.com');
+
     // useEffect(() => {
     //     const handleScroll = () => {
     //         setScrolled(window.scrollY > 50);
@@ -155,7 +158,7 @@ export default function Header() {
                         E-Commerce
                     </Link>
 
-                    {currentUser && (currentUser.username === 'admin' || currentUser.email === 'bizzcohubllc@gmail.com') && (
+                    {isAdminUser && (
                         <Link href="/resources" className={`nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}>
                             Resources
                         </Link>
@@ -343,7 +346,7 @@ export default function Header() {
                                 E-Commerce
                             </Link>
 
-                            {currentUser && (currentUser.username === 'admin' || currentUser.email === 'bizzcohubllc@gmail.com') && (
+                            {isAdminUser && (
                                 <Link
                                     href="/resources"
                                     className={`mobile-nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
 /* Navigation Bar - Unified Landing Page Design */
 
 .main-header {
@@ -47,11 +49,10 @@
 }
 
 .logo-text {
-    font-size: 2rem;
-    /* Larger text */
+    font-size: 1.5rem;
     font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
     letter-spacing: -0.025em;
-    /* Font handled by Global/GradientText */
 
     /* Ensure no background/border artifacts from GradientText component */
     backdrop-filter: none !important;

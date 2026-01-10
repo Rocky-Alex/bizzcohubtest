@@ -38,7 +38,7 @@ export default function ProductCard({ product, type, priority = false }: Product
                 <div className="product-card-image-wrapper" style={{
                     width: '100%',
                     overflow: 'hidden',
-                    background: 'var(--bg-tertiary)',
+                    background: '#ffffff',
                     position: 'relative'
                 }}>
                     <ProductImage

@@ -8,6 +8,8 @@ export async function POST(request: NextRequest) {
     try {
         // Delete the session cookie
         cookies().delete('admin_session');
+        cookies().delete('admin_user_role');
+        cookies().delete('admin_user_id');
 
         return NextResponse.json({
             success: true,

@@ -31,6 +31,9 @@ export default function AdminLoginPage() {
             if (response.ok && data.success) {
                 // Save admin user to localStorage for UI sync
                 localStorage.setItem('admin_user', JSON.stringify(data.user));
+                // Set Session Storage flag for "Tab Close" security
+                sessionStorage.setItem('admin_authenticated', 'true');
+
                 // Dispatch event so other components can react immediately if needed
                 window.dispatchEvent(new Event('admin-login'));
 

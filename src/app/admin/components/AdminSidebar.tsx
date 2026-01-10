@@ -27,7 +27,11 @@ export default function AdminSidebar({
     const menuItems = [
         { id: "quick-actions", icon: "fa-rocket", label: "Quick Actions" },
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
-        // {
+        {
+            id: "featured-manage",
+            icon: "fa-star",
+            label: "Featured Products"
+        },
         //     id: "application",
         //     icon: "fa-th-large",
         //     label: "Application",
