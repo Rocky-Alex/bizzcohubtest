@@ -1,0 +1,335 @@
+/* src/components/profile/profile-orders.css */
+
+.profile-orders-container {
+    width: 100%;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.orders-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--profile-text-main);
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+}
+
+/* Order List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.order-card {
+    background: var(--profile-card-bg);
+    border-radius: 20px;
+    border: 1px solid var(--profile-card-border);
+    box-shadow: var(--profile-shadow);
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
+}
+
+.order-header {
+    padding: 24px;
+    background: rgba(var(--v2-primary-rgb), 0.02);
+    border-bottom: 1px solid var(--profile-card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.order-id-group {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.order-number {
+    font-weight: 800;
+    color: var(--profile-text-main);
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.order-date {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.order-status {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--v2-yellow);
+}
+
+.status-processing {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--v2-primary);
+}
+
+.status-shipped {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--v2-indigo);
+}
+
+.status-delivered {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--v2-green);
+}
+
+.status-cancelled {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--v2-red);
+}
+
+.status-return-requested {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--v2-red);
+}
+
+.order-body {
+    padding: 24px;
+}
+
+.order-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.order-item-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed var(--profile-card-border);
+}
+
+.order-item-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.item-image {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    border: 1px solid var(--profile-card-border);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.item-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--profile-text-main);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.item-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.item-qty {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    color: var(--v2-text-muted);
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--profile-card-border);
+}
+
+.order-total {
+    display: flex;
+    flex-direction: column;
+}
+
+.total-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.total-amount {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--profile-text-main);
+}
+
+.order-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-action {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+}
+
+.btn-track {
+    background: #6366f1;
+    color: white;
+}
+
+.btn-track:hover {
+    background: #4f46e5;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--v2-text-muted);
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-danger {
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #ffe4e6;
+}
+
+.btn-danger:hover {
+    background: #fee2e2;
+}
+
+/* Tracking Modal Styles */
+.tracking-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 40px 0;
+}
+
+.tracking-steps::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: 10%;
+    width: 80%;
+    height: 3px;
+    background: var(--profile-card-border);
+    z-index: 1;
+}
+
+.step {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.step-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--profile-bg);
+    border: 3px solid var(--profile-card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--profile-text-muted);
+    transition: all 0.3s;
+}
+
+.step.active .step-icon {
+    border-color: #6366f1;
+    background: #6366f1;
+    color: white;
+    box-shadow: 0 0 0 4px #f5f3ff;
+}
+
+.step.completed .step-icon {
+    border-color: #10b981;
+    background: #10b981;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.step.active .step-label {
+    color: #6366f1;
+}
+
+.step.completed .step-label {
+    color: #10b981;
+}
+
+.empty-orders {
+    text-align: center;
+    padding: 60px 40px;
+    background: var(--profile-card-bg);
+    border-radius: 20px;
+    border: 2px dashed var(--profile-card-border);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 20px;
+}

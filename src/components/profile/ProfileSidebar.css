@@ -1,0 +1,244 @@
+/* Profile Sidebar Styles */
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    position: sticky;
+    top: 100px;
+}
+
+/* User Card */
+.sidebar-user-card {
+    background: var(--profile-card-bg);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--profile-shadow);
+    border-radius: 20px;
+    border: 1px solid var(--profile-card-border);
+}
+
+.user-avatar-container {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+}
+
+.sidebar-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.sidebar-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--profile-accent) 0%, var(--v2-indigo) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.user-greeting {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.greeting-text {
+    font-size: 0.75rem;
+    color: var(--profile-text-muted);
+    font-weight: 500;
+}
+
+.user-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--profile-text-main);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* Menu Section */
+.sidebar-menu {
+    background: var(--profile-card-bg);
+    box-shadow: var(--profile-shadow);
+    border-radius: 20px;
+    border: 1px solid var(--profile-card-border);
+    overflow: hidden;
+}
+
+.menu-group {
+    border-bottom: 1px solid var(--profile-card-border);
+}
+
+.menu-group:last-child {
+    border-bottom: none;
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    padding: 18px 24px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+    background: none;
+    border: none;
+    text-align: left;
+}
+
+.menu-icon {
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    transition: transform 0.2s;
+}
+
+.menu-header:hover .menu-icon {
+    transform: scale(1.1);
+}
+
+.menu-icon.text-blue {
+    color: var(--profile-accent);
+}
+
+.menu-icon.text-gray {
+    color: var(--profile-text-muted);
+}
+
+.menu-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--profile-text-muted);
+    text-transform: uppercase;
+    flex-grow: 1;
+    letter-spacing: 0.5px;
+}
+
+/* Submenu */
+.submenu {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 8px;
+}
+
+.submenu-item {
+    padding: 12px 24px 12px 64px;
+    font-size: 0.9rem;
+    color: var(--profile-text-muted);
+    text-decoration: none;
+    transition: all 0.2s;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+}
+
+.submenu-item:hover {
+    background-color: rgba(var(--v2-primary-rgb), 0.05);
+    color: var(--profile-accent);
+}
+
+.submenu-item.active {
+    background-color: rgba(var(--v2-primary-rgb), 0.08);
+    color: var(--profile-accent);
+    font-weight: 700;
+    border-left-color: var(--profile-accent);
+}
+
+.balance {
+    float: right;
+    color: var(--v2-green);
+    font-weight: 700;
+    background: rgba(var(--v2-primary-rgb), 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.logout-btn {
+    padding: 20px 24px;
+}
+
+.logout-btn:hover {
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.logout-btn:hover .menu-title,
+.logout-btn:hover .menu-icon {
+    color: var(--v2-red);
+}
+
+/* Mobile Responsive Horizontal Scroll */
+@media (max-width: 768px) {
+    .profile-sidebar {
+        position: static;
+        width: 100%;
+        margin-bottom: 24px;
+        gap: 16px;
+    }
+
+    .sidebar-user-card {
+        margin-bottom: 0;
+        padding: 16px;
+    }
+
+    .sidebar-menu {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 4px;
+        gap: 12px;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        scrollbar-width: none;
+        /* Firefox */
+        -ms-overflow-style: none;
+        /* IE/Edge */
+    }
+
+    .sidebar-menu::-webkit-scrollbar {
+        display: none;
+        /* Chrome/Safari */
+    }
+
+    .menu-group {
+        min-width: 280px;
+        /* Fixed width for card */
+        background: var(--profile-card-bg);
+        border: 1px solid var(--profile-card-border);
+        border-radius: 16px;
+        box-shadow: var(--profile-shadow);
+        border-bottom: 1px solid var(--profile-card-border) !important;
+        flex-shrink: 0;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .submenu {
+        flex: 1;
+        /* allow submenu to fill space */
+    }
+
+    .menu-header {
+        border-bottom: 1px solid var(--profile-card-border);
+        padding: 14px 18px;
+    }
+
+    /* Adjust submenu padding for card look */
+    .submenu-item {
+        padding-left: 18px;
+        /* Reset indentation to normal */
+    }
+}

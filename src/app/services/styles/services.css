@@ -1,0 +1,324 @@
+/* ==========================================
+   SERVICES PAGE - DESIGN 7 (NARRATIVE Z-LAYOUT)
+   ========================================== */
+
+:root {
+    --n-primary: #4079ff;
+    /* Map to global theme vars */
+    --n-text-dark: var(--text-primary);
+    --n-text-light: var(--text-secondary);
+    --n-bg: var(--bg-primary);
+    --n-section-alt: var(--bg-secondary);
+    --n-border: var(--border);
+}
+
+.services-page-wrapper {
+    background-color: var(--n-bg);
+    overflow-x: hidden;
+    color: var(--n-text-dark);
+    font-family: 'Inter', sans-serif;
+}
+
+/* --- Hero --- */
+.narrative-hero {
+    padding: 120px 24px 80px;
+    text-align: center;
+    background: radial-gradient(circle at 50% 0%, var(--bg-secondary) 0%, transparent 70%);
+}
+
+.narrative-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(3rem, 5vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+}
+
+.narrative-hero h1 span {
+    color: var(--n-primary);
+    position: relative;
+    display: inline-block;
+}
+
+.narrative-hero h1 span::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: rgba(64, 121, 255, 0.2);
+    z-index: -1;
+    border-radius: 4px;
+}
+
+.narrative-hero p {
+    font-size: 1.25rem;
+    color: var(--n-text-light);
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* --- Z-Pattern Layout --- */
+.narrative-section {
+    padding: 80px 24px;
+    border-top: 1px solid var(--n-border);
+}
+
+.narrative-section:nth-child(even) {
+    background-color: var(--n-section-alt);
+}
+
+.narrative-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+}
+
+/* Alternating Logic */
+.narrative-section:nth-child(even) .narrative-container {
+    flex-direction: row-reverse;
+}
+
+/* Content Side */
+.narrative-content {
+    flex: 1;
+}
+
+.narrative-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--n-text-dark);
+    opacity: 0.1;
+    line-height: 1;
+    margin-bottom: -1rem;
+    display: block;
+}
+
+.narrative-content h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--n-text-dark);
+    position: relative;
+}
+
+.narrative-content p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--n-text-light);
+    margin-bottom: 2rem;
+}
+
+/* List with styled checks */
+.narrative-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.narrative-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.narrative-item i {
+    color: var(--n-primary);
+    font-size: 1.1rem;
+}
+
+/* Visual Side */
+.narrative-visual {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.visual-card {
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 3rem;
+    box-shadow:
+        0 20px 40px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 450px;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid var(--n-border);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 2rem 2rem 5rem 2rem;
+}
+
+.visual-card:hover {
+    transform: scale(1.02) rotate(1deg);
+}
+
+.visual-card>i {
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    color: var(--n-primary);
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 10px 15px rgba(64, 121, 255, 0.3));
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.visual-card:hover>i {
+    transform: translateY(-10px) scale(1.1);
+}
+
+.visual-label {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--n-text-dark);
+    line-height: 1.3;
+    max-width: 90%;
+    margin-bottom: 1rem;
+}
+
+.visual-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--n-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.visual-footer i {
+    font-size: 1rem;
+    color: var(--n-primary);
+}
+
+/* --- CTA Section --- */
+.narrative-cta {
+    padding: 80px 24px;
+    text-align: center;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.narrative-cta h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.btn-white {
+    background: var(--primary);
+    color: white;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: transform 0.2s;
+}
+
+.btn-white:hover {
+    transform: translateY(-2px);
+}
+
+.narrative-header-group {
+    position: relative;
+    /* Default is stacked, no flex unless needed, but existing num has negative margin */
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .narrative-hero h1 {
+        font-size: 2 rem;
+    }
+
+    .narrative-container {
+        flex-direction: column !important;
+        gap: 3rem;
+    }
+
+    /* Side-by-side Layout for Mobile Titles */
+    .narrative-header-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 1rem;
+    }
+
+    .narrative-num {
+        font-size: 2.5rem;
+        margin-bottom: 0;
+        opacity: 0.2;
+        line-height: 0.8;
+    }
+
+    .narrative-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        line-height: 1.2;
+    }
+
+    .visual-card {
+        min-height: auto;
+        padding: 4rem 2rem 6rem;
+    }
+}
+
+/* Utilities */
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+.ml-2 {
+    margin-left: 0.5rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.text-purple {
+    color: var(--n-primary);
+}
+
+.pill {
+    background: rgba(64, 121, 255, 0.1);
+    color: var(--n-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 1rem;
+}

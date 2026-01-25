@@ -1,0 +1,340 @@
+/* ==========================================
+   CREATE INVOICE STYLES
+   ========================================== */
+
+.invoice-wrapper {
+    background: #f3f4f6;
+    min-height: 100vh;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-primary {
+    background: #0c86ea;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #0a75cc;
+}
+
+.btn-secondary {
+    background: white;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+/* --- Invoice Paper --- */
+.invoice-container {
+    background: white;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 3rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    color: #1f2937;
+}
+
+/* Header */
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #0c86ea;
+    margin-bottom: 2rem;
+}
+
+.company-branding h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.company-branding p {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.invoice-right-header {
+    text-align: right;
+}
+
+/* Addresses */
+.invoice-addresses {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.address-content {
+    flex: 1;
+    min-width: 300px;
+}
+
+.invoice-meta {
+    flex: 1;
+    text-align: right;
+    min-width: 250px;
+}
+
+.invoice-meta div {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+/* Editable Fields */
+.editable-field {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background: transparent;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.editable-field:hover {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+}
+
+.editable-field:focus {
+    background: white;
+    border-color: #0c86ea;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(12, 134, 234, 0.1);
+}
+
+.editable-field.name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Table */
+.invoice-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.invoice-items-table th {
+    background: #f0f9ff;
+    color: #0c86ea;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.9rem;
+    border-bottom: 2px solid #0c86ea;
+}
+
+.invoice-items-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+.btn-add-item {
+    background: white;
+    color: #0c86ea;
+    border: 1px dashed #0c86ea;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+}
+
+.btn-add-item:hover {
+    background: #f0f9ff;
+}
+
+/* Footer Section */
+.invoice-footer-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 3rem;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.invoice-terms {
+    flex: 1;
+    color: #6b7280;
+    font-size: 0.85rem;
+    min-width: 250px;
+}
+
+.invoice-terms h4 {
+    color: #374151;
+    font-size: 0.9rem;
+    margin: 1rem 0 0.25rem;
+}
+
+.invoice-totals {
+    width: 350px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+
+.total-row.final {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #111827;
+    border-top: 2px solid #e5e7eb;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.amount-in-words {
+    margin-top: 1rem;
+    font-style: italic;
+    color: #6b7280;
+    font-size: 0.9rem;
+    text-align: right;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 0.5rem;
+}
+
+/* Signature & Bottom */
+.signature-section {
+    margin-top: 4rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.signature-line {
+    display: block;
+    width: 200px;
+    border-top: 1px solid #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.manager-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.manager-title {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.bottom-branding {
+    margin-top: 4rem;
+    text-align: center;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1.5rem;
+}
+
+.bank-details {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+/* Suggestions Dropdown */
+.customer-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    /* consistent radius */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .invoice-container {
+        padding: 1.5rem;
+    }
+
+    .invoice-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    .invoice-right-header {
+        text-align: center;
+    }
+
+    .invoice-addresses {
+        flex-direction: column;
+    }
+
+    .address-content {
+        width: 100% !important;
+    }
+
+    .invoice-meta {
+        text-align: left;
+    }
+
+    .invoice-items-table th,
+    .invoice-items-table td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .invoice-footer-section {
+        flex-direction: column-reverse;
+    }
+
+    .invoice-totals {
+        width: 100%;
+    }
+
+    .actions-bar {
+        justify-content: center;
+    }
+}

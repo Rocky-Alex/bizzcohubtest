@@ -1,0 +1,223 @@
+.product-uploader-container {
+    width: 100%;
+}
+
+.product-upload-trigger {
+    width: 100%;
+    padding: 2rem;
+    border: 2px dashed #94a3b8;
+    /* Slate-400 */
+    border-radius: 12px;
+    background-color: #f8fafc;
+    /* Slate-50 */
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    cursor: pointer;
+    text-align: center;
+}
+
+.product-upload-trigger:hover {
+    border-color: #6366f1;
+    /* Indigo-500 */
+    background-color: #eef2ff;
+    /* Indigo-50 */
+}
+
+.product-upload-icon {
+    font-size: 2.5rem;
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.product-upload-trigger:hover .product-upload-icon {
+    color: #6366f1;
+}
+
+.product-upload-text {
+    font-weight: 500;
+    color: #475569;
+    margin: 0;
+}
+
+.product-upload-subtext {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Reusing generic Modal styles from AvatarUploader or defining specific ones */
+/* For safety, defining specific namespaced modal styles here to avoid conflicts if AvatarUploader changes */
+
+.product-crop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 10000;
+    /* High z-index */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+}
+
+.product-crop-modal {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 800px;
+    /* Wider for product images */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-crop-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+}
+
+.product-crop-header h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.product-crop-close-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.product-crop-close-btn:hover {
+    background-color: #f1f5f9;
+    color: #ef4444;
+}
+
+.product-crop-area-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    /* Taller for product details */
+    background: #1e293b;
+}
+
+.product-crop-controls {
+    padding: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.product-slider-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.product-zoom-slider {
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    outline: none;
+}
+
+.product-zoom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #6366f1;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    transition: all 0.2s;
+}
+
+.product-zoom-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.product-crop-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.btn-product-cancel {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-product-cancel:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.btn-product-save {
+    padding: 0.75rem 1.5rem;
+    background: #6366f1;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-product-save:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.4);
+}

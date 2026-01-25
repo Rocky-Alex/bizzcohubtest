@@ -1,0 +1,86 @@
+/* Radix Dropdown Styles */
+.DropdownMenuContent {
+    min-width: 200px;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: var(--shadow-xl);
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+    z-index: 2000;
+    border: 1px solid var(--border);
+}
+
+.DropdownMenuItem {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    position: relative;
+    user-select: none;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 2px;
+}
+
+.DropdownMenuItem:hover,
+.DropdownMenuItem:focus {
+    background-color: var(--bg-tertiary);
+    color: var(--primary);
+}
+
+.DropdownMenuItem[data-highlighted] {
+    background-color: var(--bg-tertiary);
+    color: var(--primary);
+}
+
+.DropdownMenuSeparator {
+    height: 1px;
+    background-color: var(--border);
+    margin: 6px 0;
+}
+
+.DropdownMenuLabel {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* Animations */
+.DropdownMenuContent[data-state='open'] {
+    animation: slideDownAndFade 0.2s ease-out forwards;
+}
+
+.DropdownMenuContent[data-state='closed'] {
+    animation: slideUpAndFade 0.2s ease-in forwards;
+}
+
+@keyframes slideDownAndFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUpAndFade {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}

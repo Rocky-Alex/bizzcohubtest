@@ -1,0 +1,48 @@
+/* Admin Global Styles */
+.admin-body {
+    display: flex;
+    min-height: 100vh;
+    padding-top: 0;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.admin-container {
+    display: flex;
+    width: 100%;
+}
+
+.admin-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    height: calc(100vh - 2.5rem - 52px);
+    /* Adjust height to prevent double scrollbar if possible */
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-header p {
+    color: var(--text-secondary);
+    margin: 0.5rem 0 0 0;
+}
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background-color: var(--bg-tertiary);
+}

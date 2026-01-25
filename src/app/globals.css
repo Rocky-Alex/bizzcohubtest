@@ -1,0 +1,118 @@
+@font-face {
+    font-family: 'Square721 BT Roman';
+    src: url('/Square721 BT Roman.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Global CSS Styles */
+
+/* Reset & Variables */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Colors - Consistent */
+    --primary: #1A2244;
+    --primary-dark: #141C3A;
+    --secondary: #4079ff;
+    --accent: #1A2244;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+
+    /* Backgrounds - Default Light */
+    --bg-primary: #FFFFFF;
+    --bg-primary-rgb: 255, 255, 255;
+    --bg-secondary: #F9FAFB;
+    --bg-tertiary: #F3F4F6;
+
+    /* Typography - Default Light */
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --text-tertiary: #9CA3AF;
+
+    /* Borders - Default Light */
+    --border: #E5E7EB;
+    --border-light: #F3F4F6;
+
+    /* Shadows - Default Light */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+}
+
+.dark {
+    /* Backgrounds */
+    --bg-primary: #0b0e14;
+    --bg-primary-rgb: 11, 14, 20;
+    --bg-secondary: #151921;
+    --bg-tertiary: #1e293b;
+
+    /* Adjusted Colors for Dark Mode */
+    --primary: #60a5fa;
+    /* Lighter blue */
+    --primary-dark: #3b82f6;
+    --secondary: #4079ff;
+    /* Blue to match brand */
+    --accent: #93c5fd;
+
+    /* Typography */
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+
+    /* Borders */
+    --border: rgba(255, 255, 255, 0.1);
+    --border-light: rgba(255, 255, 255, 0.05);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+body {
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.bebas-font {
+    font-family: var(--font-space), var(--font-inter), sans-serif;
+}
+
+.bebas-neue {
+    font-family: var(--font-bebas), cursive;
+}
+
+/* Force white background for content images to support transparent PNGs in Dark Mode */
+img[src*="imagekit.io"],
+img[src*="unsplash.com"],
+img[src^="blob:"] {
+    background-color: #ffffff !important;
+}

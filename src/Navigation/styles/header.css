@@ -1,0 +1,453 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
+/* Navigation Bar - Unified Landing Page Design */
+
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* Changed from width: 100% to right: 0 to be more robust */
+    width: auto;
+    z-index: 1000;
+    /* Transparent/Blur backdrop from Landing Page */
+    background: rgba(var(--bg-primary-rgb), 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid transparent;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrolled state style (even if logic is currently disabled, we keep the style ready) */
+.main-header.scrolled {
+    background: rgba(var(--bg-primary-rgb), 0.95);
+    border-bottom-color: var(--border);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+.header-container {
+    max-width: 1600px;
+    /* Increased width */
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    /* Increased padding */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    position: relative;
+    z-index: 1001;
+}
+
+/* Logo - Icon Only */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-family: 'Square721 BT Roman', sans-serif;
+    letter-spacing: 0.05em;
+
+    /* Ensure no background/border artifacts from GradientText component */
+    backdrop-filter: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+.logo svg {
+    display: block;
+}
+
+/* Desktop Navigation */
+.main-nav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    /* Increased gap */
+    /* Removed absolute positioning to use flex space-between */
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    /* Larger font */
+    font-weight: 500;
+    padding: 4px 0;
+    transition: color 0.2s ease;
+    position: relative;
+    white-space: nowrap;
+}
+
+.nav-link:hover {
+    color: var(--text-primary);
+}
+
+.nav-link.active {
+    color: var(--text-primary);
+}
+
+/* Header Actions - Right Side */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    /* Increased gap */
+    margin-left: 0;
+    position: relative;
+    z-index: 1002;
+}
+
+.header-action-btn.theme-btn {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: var(--text-secondary);
+}
+
+.header-action-btn.theme-btn:hover {
+    color: var(--primary);
+    background: var(--bg-tertiary);
+}
+
+.header-action-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    /* Larger buttons */
+    height: 40px;
+    border: none;
+    background: transparent;
+    /* Or var(--bg-secondary) if matching landing page exactly? 
+                               Landing uses specific styles, but transparent works well with blurred header */
+    border-radius: 8px;
+    /* Or var(--radius-md) */
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.header-action-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.header-action-btn svg {
+    width: 20px;
+    /* Larger icons */
+    height: 20px;
+}
+
+/* Cart Badge - Prominent Design */
+.cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--danger);
+    color: #ffffff;
+    font-size: 8px;
+    font-weight: 700;
+    border-radius: 9px;
+    padding: 0 5px;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+    border: 2px solid var(--bg-primary);
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Sign In Button */
+.sign-in-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 24px;
+    /* Larger padding */
+    background: #6366f1;
+    color: #ffffff;
+    font-size: 14px;
+    /* match nav font or slightly smaller/bold */
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.sign-in-btn:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+}
+
+.sign-in-btn:active {
+    transform: translateY(0);
+}
+
+/* Search Overlay */
+.search-overlay {
+    position: fixed;
+    top: 0;
+    /* Covers full header if needed, or offset */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(var(--bg-primary-rgb), 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    /* Higher than header */
+    display: flex;
+    align-items: flex-start;
+    padding-top: 100px;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Revert to original overlay style logic but with new look? 
+   Original was sticking to top. 
+   Let's keep original structure but updated visuals. */
+.search-overlay {
+    position: fixed;
+    top: 72px;
+    /* Approx header height */
+    left: 0;
+    right: 0;
+    bottom: auto;
+    /* Not full screen */
+    height: auto;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    animation: slideDown 0.2s ease;
+    z-index: 999;
+}
+
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.search-container-overlay {
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-container-overlay .search-icon {
+    position: absolute;
+    left: 16px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+}
+
+.search-container-overlay .search-input {
+    flex: 1;
+    padding: 12px 16px 12px 48px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.search-container-overlay .search-input:focus {
+    background: var(--bg-primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.search-close:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+/* Mobile Menu */
+.mobile-menu {
+    display: none;
+    border-top: 1px solid var(--border);
+    background: var(--bg-primary);
+    position: fixed;
+    top: 72px;
+    left: 0;
+    width: 100%;
+    z-index: 998;
+}
+
+.mobile-menu-content {
+    padding: 16px 24px;
+}
+
+.mobile-nav-link {
+    display: block;
+    padding: 12px 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.active {
+    color: var(--text-primary);
+}
+
+.mobile-menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+}
+
+.mobile-sign-in-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background: #6366f1;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.mobile-sign-in-btn:hover {
+    background: #4f46e5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .header-container {
+        gap: 24px;
+        padding: 1rem 1.5rem;
+    }
+
+    .main-nav {
+        gap: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-nav {
+        display: none;
+    }
+
+    .mobile-menu-btn {
+        display: flex;
+    }
+
+    .mobile-menu {
+        display: block;
+    }
+
+    .header-container {
+        gap: 12px;
+        padding: 0.75rem 1rem;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .logo-text {
+        font-size: 1.25rem;
+    }
+
+    .header-action-btn.theme-btn {
+        display: none !important;
+    }
+
+    .sign-in-btn {
+        display: none;
+    }
+
+    .header-action-btn.cart-btn {
+        display: none !important;
+    }
+}
+
+/* Smooth Rendering */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
