@@ -93,7 +93,7 @@ export default async function LandingPage() {
                         href="/products?category=Phones"
                         title="Phones"
                         description="Premium Smartphones"
-                        imageUrl="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80"
+                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/Grid%20Card/iPhone-17-Pro-Max.png"
                         isLight={true}
                         useLoader={false}
                         priority={true}
@@ -104,7 +104,7 @@ export default async function LandingPage() {
                         href="/products?category=Renewed%20Laptops"
                         title="Renewed Laptops"
                         description="High-performance computing"
-                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/category-laptops_CNlHa-lWv.jpg?updatedAt=1765186346540"
+                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/Grid%20Card/Renewedlaptop.png"
                         isLight={true}
                         priority={true}
                     />
@@ -114,7 +114,7 @@ export default async function LandingPage() {
                         href="/products?category=MacBook"
                         title="MacBook"
                         description="Power & Performance"
-                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/category-macbook.jpg?updatedAt=1765254808557"
+                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/Grid%20Card/macbook.png"
                         isLight={true}
                         width={500}
                         height={300}
@@ -125,7 +125,7 @@ export default async function LandingPage() {
                         href="/products?category=Gaming%20Laptop"
                         title="Gaming Laptops"
                         description="Dominate the Game"
-                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/gaming-laptop.png?updatedAt=1765254743460"
+                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/Grid%20Card/Gaminglaptop1.png"
                     />
 
                     {/* Desktops - Dark Theme */}
@@ -133,7 +133,7 @@ export default async function LandingPage() {
                         href="/products?category=Desktops"
                         title="Desktops"
                         description="Ultimate Power"
-                        imageUrl="https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=800&q=80"
+                        imageUrl="https://ik.imagekit.io/kxci2a0h5/landing-page/Grid%20Card/desktop.png"
                         useLoader={false}
                     />
 

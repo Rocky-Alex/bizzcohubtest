@@ -14,6 +14,7 @@ import "../styles/landing-page-extra.css";
 export default function LandingHero() {
     // Memoize the stack cards to prevent re-renders in Stack component
     const stackCards = useMemo(() => [
+
         <div key={1} style={{ width: '100%', height: '100%', position: 'relative', borderRadius: '1rem', overflow: 'hidden' }}>
             <Image
                 loader={imageKitLoader}
