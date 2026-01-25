@@ -141,7 +141,7 @@ export default function Header() {
                     <GradientText
                         colors={theme === 'dark'
                             ? ["#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff"]
-                            : ["#1A2244", "#1A2244", "#1A2244", "#1A2244", "#1A2244"]}
+                            : ["#c", "#1A2244", "#1A2244", "#1A2244", "#1A2244"]}
                         animationSpeed={3}
                         showBorder={false}
                         className="logo-text"
