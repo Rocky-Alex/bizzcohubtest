@@ -10,10 +10,8 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const query = searchParams.get('query');
 
-        let sqlQuery = db.select().from(customers).orderBy(desc(customers.createdAt));
-
+        let sqlQuery;
         if (query) {
-            // @ts-ignore - simple search
             sqlQuery = db.select().from(customers).where(
                 or(
                     ilike(customers.firstName, `%${query}%`),
@@ -21,6 +19,8 @@ export async function GET(req: NextRequest) {
                     ilike(customers.email, `%${query}%`)
                 )
             ).orderBy(desc(customers.createdAt));
+        } else {
+            sqlQuery = db.select().from(customers).orderBy(desc(customers.createdAt));
         }
 
         const data = await sqlQuery;

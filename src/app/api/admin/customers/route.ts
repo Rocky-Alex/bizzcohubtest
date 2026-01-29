@@ -40,6 +40,9 @@ export async function GET(request: NextRequest) {
         // This is safe to run repeatedly (IF NOT EXISTS)
         await sql`
             ALTER TABLE customers 
+            ADD COLUMN IF NOT EXISTS first_name VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS last_name VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS address TEXT,
             ADD COLUMN IF NOT EXISTS billing_address_1 VARCHAR(255),
             ADD COLUMN IF NOT EXISTS billing_country VARCHAR(100),
             ADD COLUMN IF NOT EXISTS billing_state VARCHAR(100),
@@ -101,6 +104,9 @@ export async function POST(request: NextRequest) {
 
         await sql`
             ALTER TABLE customers 
+            ADD COLUMN IF NOT EXISTS first_name VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS last_name VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS address TEXT,
             ADD COLUMN IF NOT EXISTS billing_address_1 VARCHAR(255),
             ADD COLUMN IF NOT EXISTS billing_country VARCHAR(100),
             ADD COLUMN IF NOT EXISTS billing_state VARCHAR(100),

@@ -128,8 +128,11 @@ export const customers = pgTable('customers', {
     id: serial('id').primaryKey(),
     imageUrl: text('image_url'),
     name: varchar('name', { length: 255 }),
+    firstName: varchar('first_name', { length: 255 }),
+    lastName: varchar('last_name', { length: 255 }),
     email: varchar('email', { length: 255 }).unique(),
     phone: varchar('phone', { length: 50 }),
+    address: text('address'),
     currency: varchar('currency', { length: 10 }),
 
     // Billing
