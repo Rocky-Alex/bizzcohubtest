@@ -224,12 +224,22 @@ export const orders = pgTable('orders', {
     taxAmount: decimal('tax_amount', { precision: 10, scale: 2 }).default('0'),
     shippingAmount: decimal('shipping_amount', { precision: 10, scale: 2 }).default('0'),
 
+    customerName: varchar('customer_name', { length: 255 }), // Added to match Admin API
+    email: varchar('email', { length: 255 }),
+    phone: varchar('phone', { length: 50 }),
+
     orderStatus: varchar('order_status', { length: 50 }).default('Pending'),
     paymentStatus: varchar('payment_status', { length: 50 }).default('Unpaid'),
     paymentMethod: varchar('payment_method', { length: 50 }),
 
     shippingAddress: text('shipping_address'),
     billingAddress: text('billing_address'),
+
+    // Additional fields mapped from Admin API usage
+    items: jsonb('items'), // For raw items snapshot if used
+    subtotal: decimal('subtotal', { precision: 10, scale: 2 }),
+    tax: decimal('tax', { precision: 10, scale: 2 }),
+    shippingCost: decimal('shipping_cost', { precision: 10, scale: 2 }),
 
     notes: text('notes'),
     createdAt: timestamp('created_at').defaultNow(),

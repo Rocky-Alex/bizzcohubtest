@@ -76,13 +76,17 @@ export async function POST(request: NextRequest) {
                 const placeholders: string[] = [];
 
                 batch.forEach((customer: any, index: number) => {
-                    const offset = index * 23; // Adjusted parameter count
+                    const offset = index * 26; // Adjusted parameter count
                     placeholders.push(`(
                         $${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, 
                         $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, 
                         $${offset + 11}, $${offset + 12}, $${offset + 13}, $${offset + 14}, $${offset + 15}, $${offset + 16},
-                        $${offset + 17}, $${offset + 18}, $${offset + 19}, $${offset + 20}, $${offset + 21}, $${offset + 22}, $${offset + 23}
+                        $${offset + 17}, $${offset + 18}, $${offset + 19}, $${offset + 20}, $${offset + 21}, $${offset + 22}, $${offset + 23},
+                        $${offset + 24}, $${offset + 25}, $${offset + 26}
                     )`);
+
+                    const firstName = customer.firstName || (customer.name ? customer.name.split(' ')[0] : null);
+                    const lastName = customer.lastName || (customer.name ? customer.name.split(' ').slice(1).join(' ') : null);
 
                     values.push(
                         customer.name,
@@ -94,20 +98,23 @@ export async function POST(request: NextRequest) {
                         customer.billingCountry || null,
                         customer.billingState || null,
                         customer.billingCity || null,
-                        customer.billingZip || null, // New
+                        customer.billingZip || null,
                         customer.shippingName || customer.name,
                         customer.shippingAddress1 || null,
                         customer.shippingCountry || null,
                         customer.shippingState || null,
                         customer.shippingCity || null,
-                        customer.shippingZip || null, // New
+                        customer.shippingZip || null,
                         customer.status || 'Active',
-                        customer.image_url || null, // distinct image_url
+                        customer.image_url || null,
                         customer.username || null,
                         customer.password_hash || null,
                         customer.created_at || new Date().toISOString(),
                         customer.deactivated_at || null,
-                        customer.avatar || null // distinct avatar
+                        customer.avatar || null,
+                        firstName,
+                        lastName,
+                        customer.address || null
                     );
                 });
 
@@ -117,7 +124,7 @@ export async function POST(request: NextRequest) {
                         billing_name, billing_address_1, billing_country, billing_state, billing_city, billing_zip,
                         shipping_name, shipping_address_1, shipping_country, shipping_state, shipping_city, shipping_zip,
                         status, image_url,
-                        username, password_hash, created_at, deactivated_at, avatar
+                        username, password_hash, created_at, deactivated_at, avatar, first_name, last_name, address
                     ) VALUES ${placeholders.join(', ')}
                 `;
                 await (sql as any).query(query, values);
@@ -149,7 +156,10 @@ export async function POST(request: NextRequest) {
                         status = ${customer.status || 'Active'},
                         username = ${customer.username || null},
                         password_hash = ${customer.password_hash || null},
-                        avatar = ${customer.avatar || null}
+                        avatar = ${customer.avatar || null},
+                        first_name = ${customer.firstName || (customer.name ? customer.name.split(' ')[0] : null)},
+                        last_name = ${customer.lastName || (customer.name ? customer.name.split(' ').slice(1).join(' ') : null)},
+                        address = ${customer.address || null}
                         ${customer.created_at ? sql`, created_at = ${customer.created_at}` : sql``}
                         ${customer.deactivated_at ? sql`, deactivated_at = ${customer.deactivated_at}` : sql``}
                     WHERE id = ${customer.id}
