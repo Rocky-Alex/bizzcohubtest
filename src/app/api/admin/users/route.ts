@@ -7,8 +7,8 @@ import { createHash } from 'crypto';
 
 // Helper to check if current user is admin
 function isAdmin() {
-    const role = cookies().get('user_role')?.value;
-    return role?.toLowerCase() === 'admin';
+    const role = cookies().get('admin_user_role')?.value;
+    return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
 }
 
 export async function GET(request: NextRequest) {
@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
         const users = await sql`
             SELECT id, username, first_name, last_name, email, phone, role, status, approval_status, avatar, created_by, created_at, visible_password 
             FROM users 
-            WHERE role != 'superadmin' AND username != 'superadmin'
             ORDER BY created_at DESC
         `;
 
@@ -171,9 +170,12 @@ export async function PUT(request: NextRequest) {
         }
 
         return NextResponse.json({ message: 'User updated successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating user:', error);
-        return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+        return NextResponse.json({
+            error: 'Failed to update user',
+            details: error.message
+        }, { status: 500 });
     }
 }
 

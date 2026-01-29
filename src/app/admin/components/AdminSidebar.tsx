@@ -40,9 +40,23 @@ export default function AdminSidebar({
         //     ]
         // },
         {
-            id: "inventory-dashboard",
+            id: "inventory",
             icon: "fa-boxes",
-            label: "Inventory"
+            label: "Inventory Manage",
+            subItems: [
+                { id: "inventory-dashboard", label: "Inventory" },
+                { id: "inventory-qc", label: "QC Inventory" },
+                { id: "purchase-lots-list", label: "Purchase Lots" },
+                { id: "purchase-lots-import", label: "Import Purchase Lot" }
+            ]
+        },
+        {
+            id: "production",
+            icon: "fa-industry",
+            label: "Production",
+            subItems: [
+                { id: "production-qc", label: "QC Checking" }
+            ]
         },
         {
             id: "orders",
@@ -180,12 +194,21 @@ export default function AdminSidebar({
     const handleItemClick = (item: any) => {
         if (item.id === 'auto-refresh') {
             setShowAutoRefreshSettings(true);
+        } else if (item.id === 'dashboard') {
+            router.push('/admin/dashboard');
+        } else if (item.id === 'featured-manage') {
+            router.push('/admin/featured-products');
+        } else if (item.id === 'user-passwords') {
+            router.push('/admin/passwords');
+        } else if (item.id === 'activity-log') {
+            router.push('/admin/activity-log');
+        } else if (item.id === 'quick-actions') {
+            router.push('/admin/quick-actions');
         } else if (item.subItems) {
             toggleMenu(item.id);
         } else {
-            setActiveSection(item.id);
+            router.push(`/admin/${item.id}`);
         }
-
     };
 
     const displayedItems = menuItems.filter(item => {
@@ -197,7 +220,7 @@ export default function AdminSidebar({
         // Super Admin restriction for sensitive sections
         if (['user-passwords', 'activity-log'].includes(item.id)) {
             // Check if user is superadmin (either by role or username handle)
-            const isSuperAdmin = userRole === 'superadmin' || username === 'superadmin';
+            const isSuperAdmin = userRole?.toLowerCase() === 'super admin' || username === 'superadmin';
             return isSuperAdmin;
         }
 
@@ -245,17 +268,41 @@ export default function AdminSidebar({
                                             key={sub.id}
                                             className={`sub-nav-item ${activeSection === sub.id ? "active" : ""}`}
                                             onClick={() => {
-                                                if (sub.id === 'email-inbox') {
+                                                const id = sub.id;
+                                                if (id === 'email-inbox') {
                                                     router.push('/admin/email');
+                                                } else if (id.startsWith('inventory-') || id.startsWith('products-') || id.startsWith('purchase-lots-')) {
+                                                    router.push(`/admin/inventory?section=${id}`);
+                                                } else if (id.startsWith('production-')) {
+                                                    router.push(`/admin/production?section=${id}`);
+                                                } else if (id === 'users-all') {
+                                                    router.push('/admin/users');
+                                                } else if (id === 'users-roles') {
+                                                    router.push('/admin/users/roles');
+                                                } else if (id === 'customers-all') {
+                                                    router.push('/admin/customers');
+                                                } else if (id === 'invoicing-dashboard') {
+                                                    router.push('/admin/billing');
+                                                } else if (id === 'invoicing-all') {
+                                                    router.push('/admin/billing/invoices');
+                                                } else if (id === 'quotations-all') {
+                                                    router.push('/admin/billing/quotations');
+                                                } else if (id === 'invoicing-new') {
+                                                    router.push('/admin/billing/invoices/new');
+                                                } else if (id === 'quotations-new') {
+                                                    router.push('/admin/billing/quotations/new');
+                                                } else if (id === 'payments-all') {
+                                                    router.push('/admin/billing/payments');
+                                                } else if (id === 'invoices-return') {
+                                                    router.push('/admin/billing/returns');
+                                                } else if (id === 'orders-all') {
+                                                    router.push('/admin/orders');
+                                                } else if (id === 'orders-create') {
+                                                    router.push('/admin/orders/create');
+                                                } else if (id === 'orders-returns') {
+                                                    router.push('/admin/orders/returns');
                                                 } else {
-                                                    if (pathname === '/admin/email') {
-                                                        router.push('/admin');
-                                                        // A small timeout might be needed if state isn't persisted, 
-                                                        // but usually setActiveSection logic happens in parent or we assume default
-                                                        setTimeout(() => setActiveSection(sub.id), 100);
-                                                    } else {
-                                                        setActiveSection(sub.id);
-                                                    }
+                                                    router.push(`/admin/${id.replace('-', '/')}`);
                                                 }
                                             }}
                                         >

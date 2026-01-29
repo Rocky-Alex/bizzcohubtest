@@ -4,8 +4,8 @@ import { cookies } from 'next/headers';
 
 // Helper to check if current user is admin
 function isAdmin() {
-    const role = cookies().get('user_role')?.value;
-    return role?.toLowerCase() === 'admin';
+    const role = cookies().get('admin_user_role')?.value;
+    return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
 }
 
 export async function GET(request: NextRequest) {
@@ -24,23 +24,22 @@ export async function GET(request: NextRequest) {
             )
         `;
 
-        // Fetch roles
+        // Check for missing default roles and add them
+        const defaultRoles = ['Super Admin', 'admin', 'Accountant', 'Customer', 'staff', 'Salesman'];
+
+        for (const roleName of defaultRoles) {
+            await sql`
+                INSERT INTO roles (name, created_at) 
+                VALUES (${roleName}, ${new Date().toISOString()})
+                ON CONFLICT (name) DO NOTHING
+            `;
+        }
+
+        // Fetch roles (now includes defaults)
         const roles = await sql`SELECT * FROM roles ORDER BY created_at ASC`;
 
-        // If no roles exist, seed default ones
-        if (roles.length === 0) {
-            const defaultRoles = ['Admin', 'Salesman', 'Accountant'];
-            for (const roleName of defaultRoles) {
-                await sql`
-                    INSERT INTO roles (name, created_at) 
-                    VALUES (${roleName}, ${new Date().toISOString()})
-                    ON CONFLICT (name) DO NOTHING
-                `;
-            }
-            // Fetch again
-            const seededRoles = await sql`SELECT * FROM roles ORDER BY created_at ASC`;
-            return NextResponse.json({ roles: seededRoles });
-        }
+        // (We don't need the empty check anymore since we force seed above)
+
 
         return NextResponse.json({ roles });
     } catch (error: any) {

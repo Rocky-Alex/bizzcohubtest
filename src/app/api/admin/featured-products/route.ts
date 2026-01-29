@@ -22,16 +22,16 @@ export async function GET() {
             SELECT 
                 c.slot_number, 
                 c.product_code,
-                p.product_name,
-                p.primary_image_url,
-                p.base_price,
-                p.offer_price,
+                p.name as product_name,
+                p.image_url as primary_image_url,
+                p.sell_price as base_price,
+                p.sell_price as offer_price,
                 p.stock_quantity,
-                p.id as product_id
+                p.product_id
             FROM featured_products_config c
             LEFT JOIN products p ON (
-                TRIM(UPPER(p.product_code)) = TRIM(UPPER(c.product_code)) 
-                OR p.id::text = c.product_code
+                TRIM(UPPER(p.sku)) = TRIM(UPPER(c.product_code)) 
+                OR p.product_id::text = c.product_code
             )
             ORDER BY c.slot_number ASC
         `;

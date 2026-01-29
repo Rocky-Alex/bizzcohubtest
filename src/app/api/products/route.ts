@@ -3,12 +3,9 @@ export const dynamic = 'force-dynamic';
 import { sql } from '@/lib/db';
 
 // Helper function to transform database product to frontend format
+// Helper function to transform database product to frontend format
 function transformProduct(dbProduct: any) {
     // Parse images - comma-separated URLs from ImageKit or single image
-    // New schema uses 'primary_image_url' and 'all_images_urls' (implicit), 
-    // but we might reuse 'image' or map accordingly.
-
-    // Use all_images_urls if available (comma separated), otherwise fall back to primary/legacy
     let images: string[] = [];
     const allImages = dbProduct.all_images_urls || '';
     const rawImage = dbProduct.primary_image_url || dbProduct.image_url || dbProduct.image || '';
@@ -29,15 +26,15 @@ function transformProduct(dbProduct: any) {
 
     // Map new schema fields to frontend expected fields
     return {
-        id: dbProduct.id || dbProduct.product_code || dbProduct.code, // Fallback
-        productCode: dbProduct.product_code || dbProduct.code,
-        name: dbProduct.product_name || dbProduct.name,
+        id: dbProduct.product_id || dbProduct.id || dbProduct.product_code || dbProduct.code,
+        productCode: dbProduct.sku || dbProduct.product_code || dbProduct.code,
+        name: dbProduct.name || dbProduct.product_name,
         brand: dbProduct.brand || dbProduct.category,
-        price: parseFloat(dbProduct.offer_price || dbProduct.base_price || dbProduct.price || 0),
-        originalPrice: parseFloat(dbProduct.base_price || dbProduct.price || 0),
+        price: parseFloat(dbProduct.sell_price || dbProduct.offer_price || dbProduct.base_price || dbProduct.price || 0),
+        originalPrice: parseFloat(dbProduct.buy_price || dbProduct.base_price || dbProduct.price || 0),
         type: (dbProduct.type === 'system' ? 'laptop' : dbProduct.type) || 'laptop',
         images: images,
-        createdAt: dbProduct.date_added || dbProduct.created_at,
+        createdAt: dbProduct.created_at || dbProduct.date_added,
         stock: parseInt(dbProduct.stock_quantity || dbProduct.stock || dbProduct.quantity || 0),
         description: dbProduct.features || dbProduct.description || dbProduct.about || '',
         features: dbProduct.features || '',
@@ -55,7 +52,7 @@ function transformProduct(dbProduct: any) {
             Screen: dbProduct.screen_size || dbProduct.screen || '',
             'Screen Resolution': dbProduct.screen_resolution || '',
             'Resolution Pixel': dbProduct.screen_resolution_pixel || '',
-            'Display Type': dbProduct.display_type || '', // Added Display Type mapping
+            'Display Type': dbProduct.display_type || '',
             Graphics: dbProduct.graphics_card || dbProduct.graphics || '',
             'Graphics Type': dbProduct.graphics_card_type || '',
             'Graphics Storage': dbProduct.graphics_storage || '',
@@ -81,13 +78,12 @@ export async function GET(request: NextRequest) {
 
         let query;
         if (code) {
-            // Try matching product_code or code
-            // Note: DB schema upgrade adds 'product_code' but legacy might use 'code'
-            query = await sql`SELECT * FROM products WHERE product_code = ${code} OR code = ${code}`;
+            // Try matching sku (exact match)
+            query = await sql`SELECT * FROM products WHERE sku = ${code}`;
             if (query.length === 0) {
-                // Try id if code is numeric
+                // Try product_id if code is numeric
                 if (!isNaN(Number(code))) {
-                    query = await sql`SELECT * FROM products WHERE id = ${code}`;
+                    query = await sql`SELECT * FROM products WHERE product_id = ${Number(code)}`;
                 }
             }
 
@@ -98,19 +94,18 @@ export async function GET(request: NextRequest) {
         }
 
         // List query
-        // We use date_added for sorting
         if (type && categoryFilter) {
-            // e.g. type=laptop, category=Dell
-            query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY date_added DESC`;
+            // e.g. type=laptop, category=Dell (ignoring type param as column missing, using categoryFilter)
+            query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY created_at DESC`;
         } else if (categoryFilter) {
-            query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE category = ${categoryFilter} ORDER BY created_at DESC`;
         } else if (type === 'laptop') {
             // Include 'system', 'laptop', and associated categories
-            query = await sql`SELECT * FROM products WHERE type = 'system' OR type = 'laptop' OR category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook' ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE (category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook') ORDER BY created_at DESC`;
         } else if (type === 'accessory') {
-            query = await sql`SELECT * FROM products WHERE type = 'accessory' OR category = 'Accessories' OR category = 'Monitor' OR category = 'Component' ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE (category = 'Accessories' OR category = 'Monitor' OR category = 'Component') ORDER BY created_at DESC`;
         } else {
-            query = await sql`SELECT * FROM products ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products ORDER BY created_at DESC`;
         }
 
         const transformedProducts = query.map(transformProduct);

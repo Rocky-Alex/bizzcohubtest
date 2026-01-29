@@ -31,13 +31,13 @@ export async function POST(request: NextRequest) {
         // Query the database
         const users = await sql`
             SELECT * FROM users 
-            WHERE username = ${username} 
+            WHERE LOWER(username) = LOWER(${username}) 
             AND password_hash = ${passwordHash}
         `;
 
         // Special handling for Admin Login (DB Persistence)
-        if (users.length === 0 && username === 'admin' && password === 'Bizzcoshop@2025') {
-            const existingAdmin = await sql`SELECT * FROM users WHERE username = 'admin'`;
+        if (users.length === 0 && username.toLowerCase() === 'admin' && password === 'Bizzcohub@2025') {
+            const existingAdmin = await sql`SELECT * FROM users WHERE LOWER(username) = 'admin'`;
 
             let adminUser;
             if (existingAdmin.length === 0) {
@@ -50,6 +50,11 @@ export async function POST(request: NextRequest) {
                 adminUser = newAdmin[0];
             } else {
                 adminUser = existingAdmin[0];
+                // Update password if mismatch
+                if (adminUser.password_hash !== passwordHash) {
+                    await sql`UPDATE users SET password_hash = ${passwordHash} WHERE id = ${adminUser.id}`;
+                    adminUser.password_hash = passwordHash;
+                }
             }
 
             if (adminUser) {
@@ -58,8 +63,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Special handling for Super Admin (Hidden User)
-        if (users.length === 0 && username === 'superadmin' && password === 'bizzcohubrishu0226@2025') {
-            const existing = await sql`SELECT * FROM users WHERE username = 'superadmin'`;
+        if (users.length === 0 && username.toLowerCase() === 'superadmin' && password === 'Rishu0226@Bizzcohub') {
+            const existing = await sql`SELECT * FROM users WHERE LOWER(username) = 'superadmin'`;
             let superUser;
             if (existing.length === 0) {
                 // Create Super Admin

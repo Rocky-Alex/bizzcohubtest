@@ -20,12 +20,12 @@ export function transformProduct(dbProduct: any) {
     }
 
     return {
-        id: dbProduct.id || dbProduct.product_code || dbProduct.code,
-        productCode: dbProduct.product_code || dbProduct.code,
+        id: dbProduct.product_id || dbProduct.id || dbProduct.product_code || dbProduct.code,
+        productCode: dbProduct.sku || dbProduct.product_code || dbProduct.code,
         name: dbProduct.product_name || dbProduct.name,
         brand: dbProduct.brand || dbProduct.category,
-        price: parseFloat(dbProduct.offer_price || dbProduct.base_price || dbProduct.price || 0),
-        originalPrice: parseFloat(dbProduct.base_price || dbProduct.price || 0),
+        price: parseFloat(dbProduct.sell_price || dbProduct.offer_price || dbProduct.base_price || dbProduct.price || 0),
+        originalPrice: parseFloat(dbProduct.buy_price || dbProduct.base_price || dbProduct.price || 0),
         type: (dbProduct.type === 'system' ? 'laptop' : dbProduct.type) || 'laptop',
         images: images,
         image: images[0] || '',
@@ -74,8 +74,8 @@ export async function getFeaturedProducts(limit = 10) {
                         SELECT p.* 
                         FROM featured_products_config c
                         INNER JOIN products p ON (
-                            TRIM(UPPER(p.product_code)) = TRIM(UPPER(c.product_code)) 
-                            OR p.id::text = c.product_code
+                            TRIM(UPPER(p.sku)) = TRIM(UPPER(c.product_code)) 
+                            OR p.product_id::text = c.product_code
                         )
                         ORDER BY c.slot_number ASC
                      `;
@@ -88,9 +88,9 @@ export async function getFeaturedProducts(limit = 10) {
             // Only fallback if the system is not set up (table missing)
             const query = await sql`
                 SELECT * FROM products 
-                WHERE (product_name NOT ILIKE '%test%' AND product_name NOT ILIKE '%sample%' AND product_name NOT ILIKE '%dummy%' AND product_name NOT ILIKE '%demo%')
-                AND (price > 0 OR offer_price > 0)
-                ORDER BY date_added DESC 
+                WHERE (name NOT ILIKE '%test%' AND name NOT ILIKE '%sample%' AND name NOT ILIKE '%dummy%' AND name NOT ILIKE '%demo%')
+                AND (sell_price > 0)
+                ORDER BY created_at DESC 
                 LIMIT ${limit}
             `;
             return query.map(transformProduct);
@@ -114,11 +114,11 @@ export async function getProducts(options: {
 
         let query;
         if (type === 'laptop') {
-            query = await sql`SELECT * FROM products WHERE (type = 'system' OR type = 'laptop' OR category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook') ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE (category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook') ORDER BY created_at DESC`;
         } else if (type === 'accessory') {
-            query = await sql`SELECT * FROM products WHERE (type = 'accessory' OR category = 'Accessories' OR category = 'Monitor' OR category = 'Component') ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE (category = 'Accessories' OR category = 'Monitor' OR category = 'Component') ORDER BY created_at DESC`;
         } else {
-            query = await sql`SELECT * FROM products ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products ORDER BY created_at DESC`;
         }
 
         let products = query.map(transformProduct);
@@ -173,13 +173,13 @@ export async function getProducts(options: {
 
 export async function getProductById(id: string) {
     try {
-        // Try matching product_code or id
-        const query = await sql`SELECT * FROM products WHERE id = ${id} OR product_code = ${id} LIMIT 1`;
+        // Try matching sku (string comparison)
+        const query = await sql`SELECT * FROM products WHERE sku = ${id} LIMIT 1`;
 
         if (query.length === 0) {
-            // Try numeric id if possible
+            // Try numeric product_id if possible
             if (!isNaN(Number(id))) {
-                const numericQuery = await sql`SELECT * FROM products WHERE id = ${Number(id)} LIMIT 1`;
+                const numericQuery = await sql`SELECT * FROM products WHERE product_id = ${Number(id)} LIMIT 1`;
                 if (numericQuery.length > 0) return transformProduct(numericQuery[0]);
             }
             return null;

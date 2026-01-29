@@ -189,23 +189,35 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
                         </div>
                     </div>
 
-                    <div className="quick-action-card" onClick={() => setActiveSection('reports-inventory')}>
-                        <div className="quick-action-icon" style={{ background: '#ffedd5', color: '#c2410c' }}>
-                            <i className="fas fa-file-alt"></i>
+                    <div className="quick-action-card" onClick={() => setActiveSection('droplist-updates')}>
+                        <div className="quick-action-icon" style={{ background: '#ecfccb', color: '#65a30d' }}>
+                            <i className="fas fa-clipboard-list"></i>
                         </div>
                         <div className="quick-action-content">
-                            <span className="quick-action-title">Inventory Report</span>
-                            <span className="quick-action-desc">View stock analytics</span>
+                            <span className="quick-action-title">DropList Updates</span>
+                            <span className="quick-action-desc">Update Drop List Status</span>
                         </div>
                     </div>
+
+
 
                     <div className="quick-action-card" onClick={() => setActiveSection('products-import')}>
                         <div className="quick-action-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
                             <i className="fas fa-file-import"></i>
                         </div>
                         <div className="quick-action-content">
-                            <span className="quick-action-title">Import / Export</span>
-                            <span className="quick-action-desc">Manage data via CSV/Excel</span>
+                            <span className="quick-action-title">Import Products</span>
+                            <span className="quick-action-desc">Bulk add items to catalog</span>
+                        </div>
+                    </div>
+
+                    <div className="quick-action-card" onClick={() => setActiveSection('purchase-lots-import')}>
+                        <div className="quick-action-icon" style={{ background: '#dcfce7', color: '#16a34a' }}>
+                            <i className="fas fa-file-excel"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">Import Purchase Lot</span>
+                            <span className="quick-action-desc">Import from Excel into Inventory</span>
                         </div>
                     </div>
                 </div>

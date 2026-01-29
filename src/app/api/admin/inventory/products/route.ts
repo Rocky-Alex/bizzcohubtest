@@ -11,9 +11,20 @@ const getSql = () => {
     return neon(dbUrl);
 };
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const sku = searchParams.get('sku');
         const sql = getSql();
+
+        if (sku) {
+            const products = await sql`SELECT * FROM products WHERE sku = ${sku} OR product_code = ${sku} LIMIT 1`;
+            if (products.length === 0) {
+                return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+            }
+            return NextResponse.json(products[0]);
+        }
+
         const products = await sql`SELECT * FROM products ORDER BY date_added DESC LIMIT 50`;
 
         return NextResponse.json(products);
@@ -219,7 +230,7 @@ export async function PUT(req: Request) {
         const {
             id, // We need the ID to identify which product to update
             productName,
-            // productCode, // Generally shouldn't update product code, or handle carefully
+            productCode, // Allow updating product code
             brand,
             model,
             series,
@@ -290,6 +301,7 @@ export async function PUT(req: Request) {
         const result = await sql`
             UPDATE products SET
                 product_name = ${productName},
+                product_code = ${productCode},
                 type = ${type},
                 brand = ${brand},
                 model = ${model},
