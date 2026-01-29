@@ -174,6 +174,7 @@ export const products = pgTable('products', {
     buyPrice: decimal('buy_price', { precision: 10, scale: 2 }),
 
     stockQuantity: integer('stock_quantity').default(0),
+    lowStockThreshold: integer('low_stock_threshold').default(5),
     description: text('description'),
 
     // Images

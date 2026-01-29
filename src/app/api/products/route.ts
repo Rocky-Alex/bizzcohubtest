@@ -120,6 +120,44 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// POST is superseded by /api/admin/inventory/products, but keeping this for public API compatibility if needed.
-// For now, removing POST/PUT/DELETE from here to avoid confusion and use the Admin API.
-// If valid usage exists, it should be updated to matches schema as well.
+// POST method for simple product creation (e.g. from /inventory/new)
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const {
+            name,
+            sku,
+            category,
+            description,
+            buyPrice,
+            sellPrice,
+            stockQuantity,
+            lowStockThreshold,
+            imageUrl
+        } = body;
+
+        if (!name) {
+            return NextResponse.json({ error: 'Product name is required' }, { status: 400 });
+        }
+
+        // Use ddl/schema fields
+        const result = await sql`
+            INSERT INTO products (
+                product_name, sku, category, description, 
+                buy_price, sell_price, stock_quantity, low_stock_threshold,
+                image_url, created_at, updated_at
+            ) VALUES (
+                ${name}, ${sku}, ${category}, ${description}, 
+                ${buyPrice}, ${sellPrice}, ${stockQuantity}, ${lowStockThreshold || 5},
+                ${imageUrl}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            )
+            RETURNING product_id, sku
+        `;
+
+        return NextResponse.json({ product: result[0] }, { status: 201 });
+
+    } catch (error: any) {
+        console.error('Error creating product:', error);
+        return NextResponse.json({ error: 'Failed to create product', details: error.message }, { status: 500 });
+    }
+}

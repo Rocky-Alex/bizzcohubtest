@@ -75,7 +75,8 @@ export async function POST(req: Request) {
             ramVariants,
             storageVariants,
             type,
-            displayType // Added displayType
+            displayType, // Added displayType
+            lowStockThreshold // Added lowStockThreshold
         } = body;
 
         // Ensure new columns exist for variants (Simple auto-migration)
@@ -148,14 +149,14 @@ export async function POST(req: Request) {
         const result = await sql`
             INSERT INTO products (
                 product_code, product_name, type, brand, model, series, category, badge, condition_status,
-                base_price, offer_price, discount_percent, stock_quantity,
+                base_price, offer_price, discount_percent, stock_quantity, low_stock_threshold,
                 processor, processor_gen, processor_speed, ram, ram_type, storage, storage_type, graphics_card, graphics_card_type, graphics_storage, screen_size, screen_resolution, screen_resolution_pixel, display_type, wireless_type, operating_system, optical_drive, colors,
                 features, primary_image_url, all_images_urls,
                 ram_variants, storage_variants
             )
             VALUES (
                 ${finalProductCode}, ${productName}, ${type}, ${brand}, ${model}, ${series}, ${category}, ${badge}, ${conditionStatus},
-                ${basePrice}, ${offerPrice}, ${discountPercent}, ${stockQuantity},
+                ${basePrice}, ${offerPrice}, ${discountPercent}, ${stockQuantity}, ${lowStockThreshold || 5},
                 ${processorName}, ${processorGen}, ${processorSpeed}, ${ram}, ${ramType}, ${storage}, ${storageType}, ${graphicsCard}, ${graphicsType}, ${graphicsStorage || null}, ${screenSize}, ${screenResolution}, ${screenResolutionPixel}, ${displayType}, ${wirelessType}, ${operatingSystem}, ${opticalDrive}, ${colors},
                 ${features}, ${primaryImageUrl}, ${allImagesString},
                 ${ramVariantsJson}::jsonb, ${storageVariantsJson}::jsonb
@@ -263,7 +264,8 @@ export async function PUT(req: Request) {
             ramVariants,
             storageVariants,
             type,
-            displayType // Added displayType
+            displayType, // Added displayType
+            lowStockThreshold
         } = body;
 
         if (!id) {
@@ -313,6 +315,7 @@ export async function PUT(req: Request) {
                 offer_price = ${offerPrice},
                 discount_percent = ${discountPercent},
                 stock_quantity = ${stockQuantity},
+                low_stock_threshold = ${lowStockThreshold},
                 processor = ${processorName},
                 processor_gen = ${processorGen},
                 processor_speed = ${processorSpeed},
