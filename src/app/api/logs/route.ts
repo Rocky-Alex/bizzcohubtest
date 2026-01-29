@@ -6,14 +6,16 @@ import { desc, eq } from "drizzle-orm";
 export async function GET(req: NextRequest) {
     try {
         const logs = await db.select({
-            logId: activityLogs.logId,
+            id: activityLogs.id,
             action: activityLogs.action,
-            ipAddress: activityLogs.ipAddress,
+            details: activityLogs.details,
+            ip: activityLogs.ip,
             timestamp: activityLogs.timestamp,
-            user: users.fullName
+            userName: activityLogs.userName,
+            role: activityLogs.role,
+            status: activityLogs.status
         })
             .from(activityLogs)
-            .leftJoin(users, eq(activityLogs.userId, users.userId))
             .orderBy(desc(activityLogs.timestamp));
 
         return NextResponse.json(logs);

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         if (isNaN(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
         const product = await db.query.products.findFirst({
-            where: eq(products.productId, id),
+            where: eq(products.id, id),
             with: {
                 serials: true, // Include serials if needed, or fetch separately
             }
@@ -30,7 +30,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || !["Super Admin", "admin"].includes(session.user.role)) {
+        const user = session?.user as any; // Cast to any to access role
+        if (!user || !["Super Admin", "admin"].includes(user.role)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -47,7 +48,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
         const updated = await db.update(products)
             .set({ ...updates, updatedAt: new Date() })
-            .where(eq(products.productId, id))
+            .where(eq(products.id, id))
             .returning();
 
         return NextResponse.json(updated[0]);
@@ -60,7 +61,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user.role !== "Super Admin") {
+        const user = session?.user as any;
+        if (!user || user.role !== "Super Admin") {
             return NextResponse.json({ error: "Unauthorized. Only Super Admin can delete." }, { status: 401 });
         }
 
@@ -71,7 +73,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         // For now, simple check or try/catch FK constraint error.
 
         try {
-            await db.delete(products).where(eq(products.productId, id));
+            await db.delete(products).where(eq(products.id, id));
             return NextResponse.json({ success: true });
         } catch (fkError) {
             return NextResponse.json({ error: "Cannot delete product. It may be part of existing orders." }, { status: 400 });

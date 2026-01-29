@@ -14,7 +14,7 @@ import { authOptions } from "@/lib/auth-options";
 export async function GET(req: NextRequest) {
     try {
         const _users = await db.select({
-            userId: users.userId,
+            userId: users.id,
             fullName: users.fullName,
             email: users.email,
             role: users.role,

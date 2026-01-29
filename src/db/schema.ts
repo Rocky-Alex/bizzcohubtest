@@ -339,6 +339,17 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     items: many(orderItems),
 }));
 
+export const productsRelations = relations(products, ({ many }) => ({
+    serials: many(productSerials),
+}));
+
+export const productSerialsRelations = relations(productSerials, ({ one }) => ({
+    product: one(products, {
+        fields: [productSerials.productId],
+        references: [products.id],
+    }),
+}));
+
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     order: one(orders, {
         fields: [orderItems.orderId],
@@ -347,6 +358,10 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     product: one(products, {
         fields: [orderItems.productId],
         references: [products.id],
+    }),
+    serial: one(productSerials, {
+        fields: [orderItems.serialId],
+        references: [productSerials.id],
     }),
 }));
 
