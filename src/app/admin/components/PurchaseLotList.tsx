@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { toast } from 'sonner';
 import ConfirmModal from './ConfirmModal';
+
 
 interface PurchaseLot {
     lotId: number;
@@ -21,6 +23,7 @@ interface PurchaseLotListProps {
 }
 
 export default function PurchaseLotList({ onViewDetail }: PurchaseLotListProps) {
+    const router = useRouter(); // Initialized router
     const [lots, setLots] = useState<PurchaseLot[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -87,48 +90,134 @@ export default function PurchaseLotList({ onViewDetail }: PurchaseLotListProps) 
 
     return (
         <div style={{ padding: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', position: 'relative' }}>
+                <div style={{ flex: 1 }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>
                         {viewStatus === 'active' ? 'Purchase Inventory Lots' : 'Finished Lots'}
                     </h2>
+                </div>
+
+                <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+                    <div style={{
+                        display: 'flex',
+                        background: '#f1f5f9',
+                        padding: '4px',
+                        borderRadius: '12px',
+                        position: 'relative',
+                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(255,255,255,0.5)',
+                        border: '1px solid #e2e8f0'
+                    }}>
+                        {/* Sliding Background */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '4px',
+                            bottom: '4px',
+                            left: viewStatus === 'active' ? '4px' : 'calc(50% + 2px)',
+                            width: 'calc(50% - 6px)',
+                            background: '#ffffff',
+                            borderRadius: '8px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05)',
+                            transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            pointerEvents: 'none', // Allow clicks to pass through to text
+                            zIndex: 0
+                        }} />
+
+                        {/* Options */}
+                        <div
+                            onClick={() => setViewStatus('active')}
+                            style={{
+                                padding: '6px 20px',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                zIndex: 1,
+                                color: viewStatus === 'active' ? '#0f172a' : '#64748b',
+                                transition: 'color 0.2s',
+                                userSelect: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
+                        >
+                            <i className="fas fa-list-ul" style={{ fontSize: '0.8em' }}></i>
+                            Active
+                        </div>
+                        <div
+                            onClick={() => setViewStatus('completed')}
+                            style={{
+                                padding: '6px 20px',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                zIndex: 1,
+                                color: viewStatus === 'completed' ? '#0f172a' : '#64748b',
+                                transition: 'color 0.2s',
+                                userSelect: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
+                        >
+                            <i className="fas fa-check-circle" style={{ fontSize: '0.8em' }}></i>
+                            Finished
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <button
-                        onClick={() => setViewStatus(prev => prev === 'active' ? 'completed' : 'active')}
+                        onClick={() => router.push('/admin/inventory?section=purchase-lots-import')}
                         style={{
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.85rem',
-                            borderRadius: '20px',
-                            border: '1px solid #cbd5e1',
-                            background: viewStatus === 'completed' ? '#0f172a' : 'white',
-                            color: viewStatus === 'completed' ? 'white' : '#64748b',
-                            cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '6px',
+                            padding: '6px 16px',
+                            height: '40px', // Match height visual balance
+                            borderRadius: '12px', // Match toggle radius
+                            background: 'white',
+                            color: '#0f172a',
+                            border: '1px solid #e2e8f0',
                             fontWeight: 600,
-                            transition: 'all 0.2s'
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '0.85rem',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f8fafc';
+                            e.currentTarget.style.borderColor = '#cbd5e1';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'white';
+                            e.currentTarget.style.borderColor = '#e2e8f0';
                         }}
                     >
-                        {viewStatus === 'active' ? (
-                            <><i className="fas fa-history"></i> Show Finished</>
-                        ) : (
-                            <><i className="fas fa-list"></i> Show Active</>
-                        )}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: '#eff6ff', borderRadius: '50%',
+                            width: '24px', height: '24px',
+                            color: '#2563eb'
+                        }}>
+                            <i className="fas fa-plus" style={{ fontSize: '0.75rem' }}></i>
+                        </div>
+                        Import Lot
                     </button>
-                </div>
-                <div style={{ position: 'relative', width: '300px' }}>
-                    <i className="fas fa-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
-                    <input
-                        type="text"
-                        placeholder="Search by supplier or invoice..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '0.6rem 1rem 0.6rem 2.5rem',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                            outline: 'none'
-                        }}
-                    />
+                    <div style={{ position: 'relative', width: '300px' }}>
+                        <i className="fas fa-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}></i>
+                        <input
+                            type="text"
+                            placeholder="Search by supplier or invoice..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.6rem 1rem 0.6rem 2.5rem',
+                                borderRadius: '8px',
+                                border: '1px solid #e2e8f0',
+                                outline: 'none'
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 

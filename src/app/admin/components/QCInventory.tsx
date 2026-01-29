@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { QRCodeCanvas } from 'qrcode.react';
 
 interface QCItem {
     id: number;
@@ -61,6 +62,7 @@ export default function QCInventory() {
             <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 <tr>
                     <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>ID</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>QR Code</th>
                     <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Product Name</th>
                     <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>SKU / Serial</th>
                     <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Specs</th>
@@ -73,6 +75,21 @@ export default function QCInventory() {
                 {items.map((item, index) => (
                     <tr key={item.id} style={{ borderBottom: index < items.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background 0.2s' }}>
                         <td style={{ padding: '1rem', color: '#64748b' }}>#{item.id}</td>
+                        <td style={{ padding: '1rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 'fit-content' }}>
+                                <div style={{ background: 'white', padding: '4px', borderRadius: '4px', display: 'flex', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+                                    <QRCodeCanvas
+                                        value={`BCH-${999 + item.id}`}
+                                        size={48}
+                                        level={"H"}
+                                        marginSize={0}
+                                    />
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
+                                    BCH-{999 + item.id}
+                                </div>
+                            </div>
+                        </td>
                         <td style={{ padding: '1rem', color: '#1e293b', fontWeight: 500 }}>
                             {item.product_name}
                             <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.2rem' }}>{item.brand} {item.model}</div>
@@ -122,6 +139,8 @@ export default function QCInventory() {
                 <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                     <tr>
                         <th style={{ padding: '0.8rem', textAlign: 'left', color: '#475569', fontWeight: 600, minWidth: '60px' }}>ID</th>
+                        <th style={{ padding: '0.8rem', textAlign: 'left', color: '#475569', fontWeight: 600, minWidth: '80px' }}>QR Code</th>
+                        <th style={{ padding: '0.8rem', textAlign: 'left', color: '#475569', fontWeight: 600, minWidth: '100px' }}>Detailed ID</th>
                         <th style={{ padding: '0.8rem', textAlign: 'left', color: '#475569', fontWeight: 600, minWidth: '150px' }}>SKU / Serial</th>
                         <th style={{ padding: '0.8rem', textAlign: 'left', color: '#475569', fontWeight: 600, minWidth: '200px' }}>Product Name</th>
                         <th style={{ padding: '0.8rem', textAlign: 'left', color: '#475569', fontWeight: 600, minWidth: '100px' }}>Brand</th>
@@ -142,6 +161,17 @@ export default function QCInventory() {
                     {items.map((item, index) => (
                         <tr key={item.id} style={{ borderBottom: index < items.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background 0.2s' }}>
                             <td style={{ padding: '0.8rem', color: '#64748b' }}>#{item.id}</td>
+                            <td style={{ padding: '0.8rem' }}>
+                                <div style={{ background: 'white', padding: '2px', borderRadius: '4px', display: 'inline-block', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+                                    <QRCodeCanvas
+                                        value={`BCH-${999 + item.id}`}
+                                        size={35}
+                                        level={"H"}
+                                        marginSize={0}
+                                    />
+                                </div>
+                            </td>
+                            <td style={{ padding: '0.8rem', color: '#334155', fontWeight: 600 }}>BCH-{999 + item.id}</td>
                             <td style={{ padding: '0.8rem', fontFamily: 'monospace', color: '#334155' }}>{item.sku || '-'}</td>
                             <td style={{ padding: '0.8rem', color: '#1e293b', fontWeight: 500 }}>{item.product_name}</td>
                             <td style={{ padding: '0.8rem', color: '#334155' }}>{item.brand || '-'}</td>

@@ -58,9 +58,82 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
         type: 'danger'
     });
 
+    const [dropLists, setDropLists] = useState<{
+        brands: string[];
+        series: string[];
+        models: string[];
+        ram: string[];
+        storage: string[];
+        processors: string[];
+    }>({
+        brands: [],
+        series: [],
+        models: [],
+        ram: [],
+        storage: [],
+        processors: [
+            'Intel Core i3', 'Intel Core i5', 'Intel Core i7', 'Intel Core i9',
+            'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'AMD Ryzen 9',
+            'Apple M1', 'Apple M1 Pro', 'Apple M1 Max', 'Apple M2', 'Apple M3'
+        ]
+    });
+
     useEffect(() => {
         loadSuppliers();
+        fetchDropLists();
     }, []);
+
+    const fetchDropLists = async () => {
+        try {
+            // Fetch Laptop Models
+            const laptopRes = await fetch('/api/admin/inventory/droplists?category=Laptop');
+            const laptopData = await laptopRes.json();
+
+            // Fetch RAM, Storage, Graphics
+            const ramRes = await fetch('/api/admin/inventory/droplists?category=RAM');
+            const ramData = await ramRes.json();
+
+            const storageRes = await fetch('/api/admin/inventory/droplists?category=Storage');
+            const storageData = await storageRes.json();
+
+            const processorRes = await fetch('/api/admin/inventory/droplists?category=Processor');
+            const processorData = await processorRes.json();
+
+            if (laptopData.success) {
+                const laptops = laptopData.data as any[];
+                setDropLists(prev => ({
+                    ...prev,
+                    brands: Array.from(new Set(laptops.map(l => l.brand))).filter(Boolean).sort() as string[],
+                    series: Array.from(new Set(laptops.map(l => l.series))).filter(Boolean).sort() as string[],
+                    models: Array.from(new Set(laptops.map(l => l.model))).filter(Boolean).sort() as string[],
+                }));
+            }
+
+            if (ramData.success) {
+                setDropLists(prev => ({
+                    ...prev,
+                    ram: (ramData.data as any[]).map(r => r.value).sort()
+                }));
+            }
+
+            if (storageData.success) {
+                setDropLists(prev => ({
+                    ...prev,
+                    storage: (storageData.data as any[]).map(s => s.value).sort()
+                }));
+            }
+
+            if (processorData.success) {
+                setDropLists(prev => ({
+                    ...prev,
+                    processors: (processorData.data as any[]).map(p => p.value).sort()
+                }));
+            }
+
+        } catch (error) {
+            console.error('Failed to fetch drop lists', error);
+        }
+    };
 
     const loadSuppliers = async () => {
         try {
@@ -605,7 +678,16 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
                                         {Object.keys(row).map((key) => (
                                             <td key={key} style={{ padding: '0.25rem 0.5rem' }}>
                                                 <input
-                                                    list={key === 'Category' ? "categoryOptions" : undefined}
+                                                    list={
+                                                        key === 'Category' ? "categoryOptions" :
+                                                            key === 'Brand' ? "brandOptions" :
+                                                                key === 'Series' ? "seriesOptions" :
+                                                                    key === 'Model' ? "modelOptions" :
+                                                                        (key.includes('RAM') || key.includes('Memory')) ? "ramOptions" :
+                                                                            (key.includes('Storage') || key.includes('HDD') || key.includes('SSD')) ? "storageOptions" :
+                                                                                (key.includes('Processor') || key.includes('CPU')) ? "processorOptions" :
+                                                                                    undefined
+                                                    }
                                                     value={row[key]}
                                                     onChange={(e) => handleItemChange(i, key, e.target.value)}
                                                     placeholder={key === 'Category' ? "Select..." : undefined}
@@ -669,6 +751,36 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
                 <option value="MacBook" />
                 <option value="Accessories" />
                 <option value="Gaming Laptop" />
+            </datalist>
+            <datalist id="brandOptions">
+                {dropLists.brands.map(b => (
+                    <option key={b} value={b} />
+                ))}
+            </datalist>
+            <datalist id="seriesOptions">
+                {dropLists.series.map(s => (
+                    <option key={s} value={s} />
+                ))}
+            </datalist>
+            <datalist id="modelOptions">
+                {dropLists.models.map(m => (
+                    <option key={m} value={m} />
+                ))}
+            </datalist>
+            <datalist id="ramOptions">
+                {dropLists.ram.map(r => (
+                    <option key={r} value={r} />
+                ))}
+            </datalist>
+            <datalist id="storageOptions">
+                {dropLists.storage.map(s => (
+                    <option key={s} value={s} />
+                ))}
+            </datalist>
+            <datalist id="processorOptions">
+                {dropLists.processors.map(p => (
+                    <option key={p} value={p} />
+                ))}
             </datalist>
         </div>
     );

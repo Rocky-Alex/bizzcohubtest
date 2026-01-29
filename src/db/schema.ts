@@ -101,12 +101,15 @@ export const purchaseLotItemsRelations = relations(purchaseLotItems, ({ one }) =
 export const qcInventory = pgTable('qc_inventory', {
     id: serial('id').primaryKey(),
     lotId: integer('lot_id').references(() => purchaseLots.lotId),
+    purchaseLotItemId: integer('purchase_lot_item_id'),
     productId: integer('product_id').references(() => products.id),
     sku: varchar('sku', { length: 100 }), // Serial Number
     productName: varchar('product_name', { length: 255 }),
     brand: varchar('brand', { length: 100 }),
     series: varchar('series', { length: 100 }),
     model: varchar('model', { length: 100 }),
+    processor: varchar('processor', { length: 100 }),
+    processorGen: varchar('processor_gen', { length: 100 }),
     ram: varchar('ram', { length: 100 }),
     storage: varchar('storage', { length: 100 }),
     graphics: varchar('graphics', { length: 100 }), // Graphics Card
@@ -123,13 +126,34 @@ export const qcInventory = pgTable('qc_inventory', {
 
 export const customers = pgTable('customers', {
     id: serial('id').primaryKey(),
-    firstName: varchar('first_name', { length: 255 }),
-    lastName: varchar('last_name', { length: 255 }),
+    imageUrl: text('image_url'),
+    name: varchar('name', { length: 255 }),
     email: varchar('email', { length: 255 }).unique(),
     phone: varchar('phone', { length: 50 }),
-    address: text('address'),
-    city: varchar('city', { length: 100 }),
-    country: varchar('country', { length: 100 }),
+    currency: varchar('currency', { length: 10 }),
+
+    // Billing
+    billingName: varchar('billing_name', { length: 255 }),
+    billingAddress1: varchar('billing_address_1', { length: 255 }),
+    billingCountry: varchar('billing_country', { length: 100 }),
+    billingState: varchar('billing_state', { length: 100 }),
+    billingCity: varchar('billing_city', { length: 100 }),
+    billingZip: varchar('billing_zip', { length: 20 }),
+
+    // Shipping
+    shippingName: varchar('shipping_name', { length: 255 }),
+    shippingAddress1: varchar('shipping_address_1', { length: 255 }),
+    shippingCountry: varchar('shipping_country', { length: 100 }),
+    shippingState: varchar('shipping_state', { length: 100 }),
+    shippingCity: varchar('shipping_city', { length: 100 }),
+    shippingZip: varchar('shipping_zip', { length: 20 }),
+
+    status: varchar('status', { length: 20 }).default('Active'),
+    avatar: text('avatar'),
+    username: varchar('username', { length: 255 }),
+    passwordHash: text('password_hash'),
+    visiblePassword: text('visible_password'),
+    deactivatedAt: timestamp('deactivated_at'),
     createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -271,11 +295,12 @@ export const accountingLedger = pgTable('accounting_ledger', {
 
 export const activityLogs = pgTable('activity_logs', {
     id: serial('id').primaryKey(),
-    user: varchar('user', { length: 255 }),
-    role: varchar('role', { length: 50 }),
-    action: varchar('action', { length: 255 }),
+    userName: text('user_name').notNull(),
+    action: text('action').notNull(),
     details: text('details'),
-    status: varchar('status', { length: 50 }), // success, error
+    status: text('status'),
+    role: text('role'),
+    ip: text('ip'),
     timestamp: timestamp('timestamp').defaultNow(),
 });
 
@@ -317,4 +342,66 @@ export const roles = pgTable('roles', {
     name: varchar('name', { length: 255 }).unique().notNull(),
     permissions: jsonb('permissions').default({}),
     createdAt: timestamp('created_at').defaultNow(),
+});
+
+// --- Laptop Drop Lists ---
+
+// --- Laptop Drop Lists ---
+
+// User requested strict "laptopmodels" table
+export const laptopModels = pgTable('laptopmodels', {
+    id: serial('id').primaryKey(),
+    brand: varchar('brand', { length: 100 }),
+    series: varchar('series', { length: 100 }),
+    model: varchar('model', { length: 100 }),
+});
+
+export const ramOptions = pgTable('ram_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const storageOptions = pgTable('storage_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const graphicsOptions = pgTable('graphics_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const processorOptions = pgTable('processor_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const processorGenOptions = pgTable('processor_gen_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const screenSizeOptions = pgTable('screen_size_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const screenResolutionOptions = pgTable('screen_resolution_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const keyboardTypeOptions = pgTable('keyboard_type_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const keyboardBacklitOptions = pgTable('keyboard_backlit_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
+});
+
+export const conditionStatusOptions = pgTable('condition_status_options', {
+    id: serial('id').primaryKey(),
+    value: varchar('value', { length: 100 }).notNull(),
 });
