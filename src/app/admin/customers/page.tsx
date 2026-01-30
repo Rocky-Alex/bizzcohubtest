@@ -67,18 +67,77 @@ export default function CustomersPage() {
         }
     };
 
+    const handleSave = async (data: any) => {
+        try {
+            let imageUrl = data.image_url || null;
+
+            // Handle image upload if a new file was selected
+            if (data.image && data.image instanceof File) {
+                const formData = new FormData();
+                formData.append('file', data.image);
+                formData.append('folder', 'Customers');
+                formData.append('fileName', (data.name || 'customer').replace(/\s+/g, '_'));
+
+                const uploadResponse = await fetch('/api/imagekit/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (uploadResponse.ok) {
+                    const uploadData = await uploadResponse.json();
+                    imageUrl = uploadData.url;
+                }
+            }
+
+            const method = view === 'edit' ? 'PUT' : 'POST';
+            const payload = {
+                ...data,
+                id: view === 'edit' ? customerToEdit.id : undefined,
+                avatar: imageUrl,
+                image_url: imageUrl
+            };
+
+            const response = await fetch('/api/admin/customers', {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                toast.success(`Customer ${view === 'edit' ? 'updated' : 'added'} successfully`);
+                setView('list');
+                setCustomerToEdit(null);
+                fetchCustomers();
+            } else {
+                const error = await response.json();
+                toast.error(`Error: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error saving customer:', error);
+            toast.error("Failed to save customer");
+        }
+    };
+
     if (view === 'add' || view === 'edit') {
         return (
             <AddCustomerForm
                 onCancel={() => { setView('list'); setCustomerToEdit(null); }}
-                onSubmit={() => { setView('list'); setCustomerToEdit(null); fetchCustomers(); }}
+                onSubmit={handleSave}
                 editData={customerToEdit}
             />
         );
     }
 
     if (view === 'import') {
-        return <ImportCustomers onBack={() => setView('list')} />;
+        return (
+            <ImportCustomers
+                onCancel={() => setView('list')}
+                onSuccess={() => {
+                    setView('list');
+                    fetchCustomers();
+                }}
+            />
+        );
     }
 
     return (

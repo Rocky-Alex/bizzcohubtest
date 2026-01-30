@@ -7,20 +7,20 @@ import PhoneInputWithCountry from '@/components/ui/PhoneInputWithCountry';
 interface AddCustomerFormProps {
     onCancel: () => void;
     onSubmit: (data: any) => void;
-    initialData?: any;
+    editData?: any;
 }
 
-export default function AddCustomerForm({ onCancel, onSubmit, initialData }: AddCustomerFormProps) {
+export default function AddCustomerForm({ onCancel, onSubmit, editData }: AddCustomerFormProps) {
     const [formData, setFormData] = useState({
         // Basic
-        firstName: initialData?.name ? initialData.name.split(' ')[0] : '',
-        lastName: initialData?.name ? initialData.name.split(' ').slice(1).join(' ') : '',
-        username: initialData?.username || '',
+        firstName: editData?.name ? editData.name.split(' ')[0] : '',
+        lastName: editData?.name ? editData.name.split(' ').slice(1).join(' ') : '',
+        username: editData?.username || '',
         password: '',
         confirmPassword: '',
-        email: initialData?.email || '',
+        email: editData?.email || '',
         phone: (() => {
-            const p = initialData?.phone || '';
+            const p = editData?.phone || '';
             const allC = Country.getAllCountries();
             // Sort by length desc to match longest code first
             const sorted = [...allC].sort((a, b) => b.phonecode.length - a.phonecode.length);
@@ -29,7 +29,7 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
             return match ? clean.slice(match.phonecode.length) : clean;
         })(),
         phoneCode: (() => {
-            const p = initialData?.phone || '';
+            const p = editData?.phone || '';
             if (!p) return '971'; // Default UAE
             const allC = Country.getAllCountries();
             const sorted = [...allC].sort((a, b) => b.phonecode.length - a.phonecode.length);
@@ -37,21 +37,21 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
             const match = sorted.find(c => clean.startsWith(c.phonecode));
             return match ? match.phonecode : '971';
         })(),
-        currency: initialData?.currency || '',
+        currency: editData?.currency || '',
 
         // Billing
-        billingName: initialData?.billing_name || '',
-        billingAddress1: initialData?.billing_address_1 || '',
-        billingCountry: initialData?.billing_country || '',
-        billingState: initialData?.billing_state || '',
-        billingCity: initialData?.billing_city || '',
+        billingName: editData?.billing_name || '',
+        billingAddress1: editData?.billing_address_1 || '',
+        billingCountry: editData?.billing_country || '',
+        billingState: editData?.billing_state || '',
+        billingCity: editData?.billing_city || '',
 
         // Shipping
-        shippingName: initialData?.shipping_name || '',
-        shippingAddress1: initialData?.shipping_address_1 || '',
-        shippingCountry: initialData?.shipping_country || '',
-        shippingState: initialData?.shipping_state || '',
-        shippingCity: initialData?.shipping_city || ''
+        shippingName: editData?.shipping_name || '',
+        shippingAddress1: editData?.shipping_address_1 || '',
+        shippingCountry: editData?.shipping_country || '',
+        shippingState: editData?.shipping_state || '',
+        shippingCity: editData?.shipping_city || ''
     });
 
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -72,7 +72,7 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
 
         // We already set checking=true in handleChange, keep it true until done.
         try {
-            const excludeId = initialData?.id;
+            const excludeId = editData?.id;
             const url = `/api/admin/customers/check-username?username=${encodeURIComponent(username)}${excludeId ? `&excludeId=${excludeId}` : ''}`;
             const res = await fetch(url);
             const data = await res.json();
@@ -137,7 +137,7 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
     return (
         <div className="add-customer-container">
             <div className="add-customer-header">
-                <h2>{initialData ? 'Edit Customer' : 'Add Customer'}</h2>
+                <h2>{editData ? 'Edit Customer' : 'Add Customer'}</h2>
             </div>
 
             {/* Basic Details */}
@@ -145,7 +145,7 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
                 <h3 className="section-title">Basic Details</h3>
 
                 <AvatarUploader
-                    currentImage={initialData?.image_url}
+                    currentImage={editData?.image_url}
                     onImageSelected={(file) => setImageFile(file)}
                     aspect={1}
                 />
@@ -205,7 +205,7 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
                     </div>
                 </div>
 
-                {!initialData && (
+                {!editData && (
                     <div className="form-grid-3">
                         <div>
                             <label className="input-label">Password <span className="required">*</span></label>
@@ -335,7 +335,7 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
                 <button className="btn-cancel-form" onClick={onCancel}>Cancel</button>
                 <button className="btn-create-submit" onClick={() => {
                     // Validation
-                    if (!initialData) {
+                    if (!editData) {
                         if (formData.password !== formData.confirmPassword) {
                             alert("Passwords do not match!");
                             return;
@@ -350,9 +350,9 @@ export default function AddCustomerForm({ onCancel, onSubmit, initialData }: Add
                     // Combine First and Last Name
                     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
                     const fullPhone = `+${formData.phoneCode}${formData.phone}`;
-                    onSubmit({ ...formData, name: fullName, phone: fullPhone, image: imageFile });
+                    onSubmit({ ...formData, name: fullName, phone: fullPhone, image: imageFile, image_url: editData?.image_url });
                 }}>
-                    {initialData ? 'Save Changes' : 'Create New'}
+                    {editData ? 'Save Changes' : 'Create New'}
                 </button>
             </div>
         </div>
