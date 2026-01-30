@@ -14,5 +14,5 @@ export const sql = client || ((strings: any, ...values: any[]) => {
     return Promise.resolve([]);
 }) as any;
 
-export const db = drizzle(client!);
+export const db = drizzle(client || neon("postgres://user:pass@host/db"));
 

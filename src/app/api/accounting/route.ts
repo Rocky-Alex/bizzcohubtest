@@ -5,6 +5,8 @@ import { desc, eq, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
     try {
         const transactions = await db.select().from(accountingLedger).orderBy(desc(accountingLedger.transactionDate));
