@@ -6,7 +6,7 @@ import {
     Upload, Download, X, Image as ImageIcon, Sparkles,
     Pencil, Eraser, Wand2, Crop, Check
 } from "lucide-react";
-import { removeBackground } from "@imgly/background-removal";
+// import { removeBackground } from "@imgly/background-removal";
 
 type ToolType = 'object-select' | 'quick-select' | 'magic-wand' | 'pen' | 'eraser' | 'crop' | null;
 
@@ -81,6 +81,7 @@ export default function BackgroundRemoverPage() {
         if (!originalImage || !maskCanvasRef.current || !originalImageRef.current) return;
         setIsProcessing(true);
         try {
+            const { removeBackground } = await import("@imgly/background-removal");
             const blob = await removeBackground(originalImage);
             const img = new Image();
             img.src = URL.createObjectURL(blob);
