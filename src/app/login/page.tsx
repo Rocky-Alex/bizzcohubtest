@@ -6,7 +6,7 @@ import './login.css';
 import { toast } from 'sonner';
 import OrbitingTechnologies from '@/components/ui/OrbitingTechnologies';
 import Cropper from 'react-easy-crop';
-import getCroppedImg from '@/utils/canvasUtils';
+import getCroppedImg from '@/utils/cropImage';
 
 
 export default function CustomerAuthPage() {

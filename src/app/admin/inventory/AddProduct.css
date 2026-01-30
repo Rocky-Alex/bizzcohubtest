@@ -1,0 +1,612 @@
+/* AddProduct.css */
+.add-product-container {
+    background-color: var(--bg-primary);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    padding: 1.5rem;
+    width: 100%;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.add-product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.add-product-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.add-product-header h2 i {
+    color: var(--primary);
+    font-size: 1.5rem;
+}
+
+.form-section {
+    margin-bottom: 2.5rem;
+    position: relative;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+.form-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.75rem;
+}
+
+.form-section-title i {
+    color: var(--text-tertiary);
+    font-size: 0.9em;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: var(--bg-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+}
+
+.btn-secondary {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--text-tertiary);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Input group for prices with currency symbol */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-tertiary);
+    pointer-events: none;
+}
+
+.input-with-icon input {
+    padding-left: 3.5rem;
+    width: 100%;
+}
+
+/* Image Upload Styles */
+.image-upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-secondary);
+}
+
+.image-upload-area:hover {
+    border-color: var(--primary);
+    background: var(--bg-tertiary);
+}
+
+.image-upload-area i {
+    font-size: 2.5rem;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+}
+
+.image-upload-area p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.image-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.image-preview-card {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+}
+
+.image-preview-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview-card .remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+
+.image-preview-card .remove-btn:hover {
+    background: rgba(255, 0, 0, 1);
+}
+
+.image-preview-card.uploading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .add-product-container {
+        padding: 1.5rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Custom Combobox Styles */
+.custom-combobox {
+    position: relative;
+    width: 100%;
+}
+
+.combobox-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 4px;
+    box-shadow: var(--shadow-md);
+    z-index: 50;
+    max-height: 250px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0.5rem;
+}
+
+.combobox-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    transition: background-color 0.2s;
+}
+
+.combobox-item:hover {
+    background-color: var(--bg-secondary);
+    color: var(--primary);
+}
+
+.combobox-item.active {
+    background-color: var(--bg-tertiary);
+    color: var(--primary);
+}
+
+.currency-symbol {
+    position: absolute;
+    left: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.9rem;
+    pointer-events: none;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Variant Configuration Styles */
+/* Variant Configuration Styles */
+.variant-group {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.variant-group:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.variant-group h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.variant-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 50px;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.variant-input-row:hover {
+    background: var(--bg-primary);
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Fix form-group inside row to remove bottom margin spread */
+.variant-input-row .form-group {
+    margin-bottom: 0;
+}
+
+/* Remove Button - Clean Icon Style */
+.variant-remove-btn {
+    width: 38px;
+    height: 42px;
+    /* Matched to typical input height */
+    border-radius: 8px;
+    border: 1px solid #fee2e2;
+    background: #fef2f2;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.variant-remove-btn:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+    transform: scale(1.05);
+}
+
+/* Add Variant Button - Dashed Full Width */
+.add-variant-btn {
+    width: 100%;
+    padding: 1rem;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-tertiary);
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+.add-variant-btn:hover {
+    border-color: var(--border-light);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.add-variant-btn i {
+    font-size: 1.1em;
+}
+
+/* Clear Button Style */
+.btn-clear {
+    background-color: #fff;
+    border: 1px solid #fee2e2;
+    color: #ef4444;
+    margin-right: auto !important;
+    /* Force push to left if in flex container */
+}
+
+.btn-clear:hover {
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+@media (max-width: 768px) {
+    .variant-input-row {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+        gap: 1.5rem;
+    }
+
+    .variant-remove-btn {
+        width: 100%;
+        margin-top: 0;
+        height: 42px;
+    }
+}
+
+/* Custom Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    /* Ensure it's above everything */
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-xl);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    transform: scale(0.95);
+    animation: modalPop 0.2s ease-out forwards;
+}
+
+@keyframes modalPop {
+    to {
+        transform: scale(1);
+    }
+}
+
+.modal-icon {
+    width: 64px;
+    height: 64px;
+    background: #fee2e2;
+    color: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    margin: 0 auto 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.modal-message {
+    color: #6b7280;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-cancel-modal {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-cancel-modal:hover {
+    background: #f3f4f6;
+}
+
+.btn-confirm-danger {
+    background: #ef4444;
+    border: 1px solid #ef4444;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-confirm-danger:hover {
+    background: #dc2626;
+}
+
+/* Product Type Toggle */
+.product-type-toggle {
+    display: flex;
+    background: var(--bg-secondary);
+    padding: 0.25rem;
+    border-radius: 8px;
+    gap: 0.5rem;
+}
+
+.type-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.type-btn.active {
+    background: var(--bg-primary);
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.modal-icon.success {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.btn-confirm-success {
+    background: #16a34a;
+    border: 1px solid #16a34a;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-confirm-success:hover {
+    background: #15803d;
+}

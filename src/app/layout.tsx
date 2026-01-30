@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import LayoutWrapper from "../Navigation/LayoutWrapper";
+import LayoutWrapper from "../NHF/Navigation/LayoutWrapper";
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {

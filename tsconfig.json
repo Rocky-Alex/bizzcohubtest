@@ -26,9 +26,11 @@
                 "./src/*"
             ]
         },
+        "baseUrl": ".",
         "types": [
             "node",
-            "react"
+            "react",
+            "react-dom"
         ]
     },
     "include": [
