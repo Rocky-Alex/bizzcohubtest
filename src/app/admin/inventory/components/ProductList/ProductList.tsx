@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './ProductList.css';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ConfirmModal from '../shared/ConfirmModal';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
+import ConfirmModal from '@/app/admin/shared/ConfirmModal';
 
 interface ProductListProps {
     setActiveSection: (section: string) => void;
@@ -167,7 +167,7 @@ export default function ProductList({ setActiveSection, onEdit }: ProductListPro
                     </button>
                 </div>
                 <div className="header-actions">
-                    <button className="btn-primary" onClick={() => setActiveSection('products-add')}>
+                    <button className="btn-primary" onClick={() => setActiveSection('add-product')}>
                         <i className="fas fa-plus"></i> Add Product
                     </button>
                 </div>

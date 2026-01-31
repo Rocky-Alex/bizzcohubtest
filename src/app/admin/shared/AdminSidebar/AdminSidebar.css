@@ -11,8 +11,6 @@
     --sidebar-primary: var(--primary);
 
     width: var(--sidebar-width-expanded);
-    flex-shrink: 0;
-    flex-grow: 0;
     background-color: var(--sidebar-bg);
     border-right: 1px solid var(--sidebar-border);
     display: flex;
@@ -21,7 +19,7 @@
     position: sticky;
     top: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100;
+    z-index: 1100;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
 }

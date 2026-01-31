@@ -158,7 +158,74 @@ async function main() {
             )
         `;
 
-        console.log('✅ Migration completed successfully');
+
+        console.log('migrating purchase_lots...');
+        await sql`
+            CREATE TABLE IF NOT EXISTS purchase_lots (
+                id SERIAL PRIMARY KEY,
+                lot_number VARCHAR(100),
+                supplier_name VARCHAR(255),
+                invoice_number VARCHAR(100),
+                invoice_date DATE,
+                total_cost NUMERIC(15, 2),
+                status VARCHAR(50) DEFAULT 'Active',
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
+        console.log('migrating purchase_lot_items...');
+        await sql`
+            CREATE TABLE IF NOT EXISTS purchase_lot_items (
+                id SERIAL PRIMARY KEY,
+                lot_id INTEGER REFERENCES purchase_lots(id) ON DELETE CASCADE,
+                product_name VARCHAR(255),
+                sku VARCHAR(100),
+                quantity INTEGER DEFAULT 0,
+                unit_cost NUMERIC(15, 2) DEFAULT 0,
+                brand VARCHAR(100),
+                model VARCHAR(100),
+                series VARCHAR(100),
+                processor VARCHAR(100),
+                processor_gen VARCHAR(100),
+                ram VARCHAR(50),
+                storage VARCHAR(50),
+                product_type VARCHAR(100),
+                description TEXT,
+                metadata JSONB,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
+        console.log('migrating inventory_qc...');
+        await sql`
+            CREATE TABLE IF NOT EXISTS inventory_qc (
+                id SERIAL PRIMARY KEY,
+                lot_id INTEGER REFERENCES purchase_lots(id),
+                purchase_lot_item_id INTEGER REFERENCES purchase_lot_items(id),
+                product_id INTEGER, -- Link to main products table if synced
+                sku VARCHAR(100),
+                product_name VARCHAR(255),
+                brand VARCHAR(100),
+                model VARCHAR(100),
+                series VARCHAR(100),
+                processor VARCHAR(100),
+                processor_gen VARCHAR(100),
+                ram VARCHAR(50),
+                storage VARCHAR(50),
+                graphics_card VARCHAR(255),
+                screen_size VARCHAR(50),
+                screen_resolution VARCHAR(100),
+                keyboard_type VARCHAR(100),
+                keyboard_backlit VARCHAR(50),
+                condition_status VARCHAR(50),
+                status VARCHAR(50) DEFAULT 'Passed',
+                notes TEXT,
+                created_by VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
     } catch (error) {
         console.error('❌ Migration failed:', error);
     }

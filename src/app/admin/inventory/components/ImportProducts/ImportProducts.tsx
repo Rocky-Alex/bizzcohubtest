@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
-import ConfirmModal from '../shared/ConfirmModal';
+import ConfirmModal from '@/app/admin/shared/ConfirmModal';
 
 interface ImportProductsProps {
     onCancel: () => void;

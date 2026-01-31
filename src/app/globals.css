@@ -116,3 +116,44 @@ img[src*="unsplash.com"],
 img[src^="blob:"] {
     background-color: #ffffff !important;
 }
+
+/* Modern Input Style for Selection Columns */
+.modern-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background-color: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+}
+
+.modern-input:hover {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.modern-input:focus {
+    background-color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15), 0 0 0 4px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+.modern-input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.modern-input:disabled {
+    background-color: #f1f5f9;
+    color: #cbd5e1;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+    box-shadow: none;
+    transform: none;
+}

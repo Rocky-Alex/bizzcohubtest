@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './AddProduct.css';
 import ProductImageUploader from '@/components/ui/ProductImageUploader';
+import SearchableDropdown from '@/components/ui/SearchableDropdown';
 
 interface AddProductProps {
     onCancel: () => void;
@@ -15,76 +16,6 @@ interface AddProductProps {
 
 
 
-const SearchableDropdown = ({
-    name,
-    value,
-    onChange,
-    options,
-    placeholder
-}: {
-    name: string;
-    value: string;
-    onChange: (e: { target: { name: string; value: string } }) => void;
-    options: string[];
-    placeholder?: string;
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [filteredOptions, setFilteredOptions] = useState(options);
-    const wrapperRef = useRef<HTMLDivElement>(null);
-
-    React.useEffect(() => {
-        setFilteredOptions(
-            options.filter(opt =>
-                opt.toLowerCase().includes(value.toLowerCase())
-            )
-        );
-    }, [value, options]);
-
-    React.useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleSelect = (option: string) => {
-        onChange({ target: { name, value: option } });
-        setIsOpen(false);
-    };
-
-    return (
-        <div className="custom-combobox" ref={wrapperRef}>
-            <input
-                type="text"
-                name={name}
-                value={value}
-                onChange={(e) => {
-                    onChange(e);
-                    setIsOpen(true);
-                }}
-                onFocus={() => setIsOpen(true)}
-                placeholder={placeholder}
-                autoComplete="off"
-            />
-            {isOpen && filteredOptions.length > 0 && (
-                <ul className="combobox-dropdown">
-                    {filteredOptions.map((option, idx) => (
-                        <li
-                            key={idx}
-                            className="combobox-item"
-                            onClick={() => handleSelect(option)}
-                        >
-                            {option}
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
-    );
-};
 
 // Helper Component for Multi-Select Dropdown
 const MultiSelectDropdown = ({
@@ -238,6 +169,79 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
         features: initialData?.features || '',
         primaryImageUrl: initialData?.primary_image_url || ''
     });
+
+    const [dropLists, setDropLists] = useState<{
+        laptop: any[];
+        ram: string[];
+        storage: string[];
+        graphics: string[];
+    }>({
+        laptop: [],
+        ram: [],
+        storage: [],
+        graphics: []
+    });
+
+    // Fetch all drop lists on mount
+    useEffect(() => {
+        const fetchAllDropLists = async () => {
+            try {
+                const [resLaptops, resRam, resStorage, resGraphics] = await Promise.all([
+                    fetch('/api/admin/inventory/droplists?category=Laptop'),
+                    fetch('/api/admin/inventory/droplists?category=RAM'),
+                    fetch('/api/admin/inventory/droplists?category=Storage'),
+                    fetch('/api/admin/inventory/droplists?category=Graphics')
+                ]);
+
+                const [dLaptops, dRam, dStorage, dGraphics] = await Promise.all([
+                    resLaptops.json(),
+                    resRam.json(),
+                    resStorage.json(),
+                    resGraphics.json()
+                ]);
+
+                setDropLists({
+                    laptop: dLaptops.success ? dLaptops.data : [],
+                    ram: dRam.success ? dRam.data.map((i: any) => i.value) : [],
+                    storage: dStorage.success ? dStorage.data.map((i: any) => i.value) : [],
+                    graphics: dGraphics.success ? dGraphics.data.map((i: any) => i.value) : []
+                });
+            } catch (error) {
+                console.error('Failed to fetch drop lists', error);
+            }
+        };
+        fetchAllDropLists();
+    }, []);
+
+    const availableBrands = React.useMemo(() => {
+        const brands = Array.from(new Set(dropLists.laptop.map(l => l.brand))).filter(Boolean) as string[];
+        return brands.sort();
+    }, [dropLists.laptop]);
+
+    const availableSeries = React.useMemo(() => {
+        if (!formData.brand) return [];
+        const series = Array.from(new Set(
+            dropLists.laptop
+                .filter(l => l.brand === formData.brand)
+                .map(l => l.series)
+        )).filter(Boolean) as string[];
+        return series.sort();
+    }, [formData.brand, dropLists.laptop]);
+
+    const availableModels = React.useMemo(() => {
+        if (!formData.brand) return [];
+        const models = Array.from(new Set(
+            dropLists.laptop
+                .filter(l => {
+                    const brandMatch = l.brand === formData.brand;
+                    const seriesMatch = !formData.series || l.series === formData.series;
+                    return brandMatch && seriesMatch;
+                })
+                .map(l => l.model)
+        )).filter(Boolean) as string[];
+        return models.sort();
+    }, [formData.brand, formData.series, dropLists.laptop]);
+
 
     // Auto-generate Product Code
     const generateProductCode = React.useCallback(async () => {
@@ -439,10 +443,22 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: ['basePrice', 'offerPrice', 'stockQuantity'].includes(name) ? parseFloat(value) || 0 : value
-        }));
+        setFormData(prev => {
+            const newData = {
+                ...prev,
+                [name]: ['basePrice', 'offerPrice', 'stockQuantity'].includes(name) ? parseFloat(value) || 0 : value
+            };
+
+            // Clear dependent fields if parent changes
+            if (name === 'brand') {
+                newData.series = '';
+                newData.model = '';
+            } else if (name === 'series') {
+                newData.model = '';
+            }
+
+            return newData;
+        });
     };
 
 
@@ -778,28 +794,28 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                 name="brand"
                                 value={formData.brand}
                                 onChange={handleChange as any}
-                                options={['Apple', 'Dell', 'HP', 'Lenovo', 'Asus', 'Acer', 'Microsoft', 'Razer', 'MSI', 'Samsung', 'Sony']}
-                                placeholder="e.g. Dell, HP, Apple"
+                                options={availableBrands}
+                                placeholder="Select Brand"
                             />
                         </div>
                         <div className="form-group">
                             <label>Series</label>
-                            <input
-                                type="text"
+                            <SearchableDropdown
                                 name="series"
                                 value={formData.series}
-                                onChange={handleChange}
-                                placeholder="e.g. XPS, Latitude, Legion"
+                                onChange={handleChange as any}
+                                options={availableSeries}
+                                placeholder="Select Series"
                             />
                         </div>
                         <div className="form-group">
                             <label>Model</label>
-                            <input
-                                type="text"
+                            <SearchableDropdown
                                 name="model"
                                 value={formData.model}
-                                onChange={handleChange}
-                                placeholder="e.g. XPS 9510"
+                                onChange={handleChange as any}
+                                options={availableModels}
+                                placeholder="Select Model"
                             />
                         </div>
                         <div className="form-group">
@@ -952,7 +968,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                         name="ram"
                                         value={formData.ram}
                                         onChange={handleChange as any}
-                                        options={['4GB', '8GB', '16GB', '32GB', '64GB', '128GB']}
+                                        options={dropLists.ram}
                                         placeholder="Select RAM Size"
                                     />
                                 </div>
@@ -985,7 +1001,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                         name="storage"
                                         value={formData.storage}
                                         onChange={handleChange as any}
-                                        options={['256GB', '512GB', '1TB', '2TB', '4TB', '8TB']}
+                                        options={dropLists.storage}
                                         placeholder="Select Storage Size"
                                     />
                                 </div>
@@ -1018,20 +1034,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                         name="graphicsCard"
                                         value={formData.graphicsCard}
                                         onChange={handleChange as any}
-                                        options={[
-                                            'Integrated Graphics',
-                                            'Shared Graphics',
-                                            'Intel Iris Xe Graphics',
-                                            'Intel UHD Graphics',
-                                            'NVIDIA GeForce RTX 2050',
-                                            'NVIDIA GeForce RTX 3050',
-                                            'NVIDIA GeForce RTX 3060',
-                                            'NVIDIA GeForce RTX 4050',
-                                            'NVIDIA GeForce RTX 4060',
-                                            'NVIDIA GeForce RTX 4070',
-                                            'NVIDIA GeForce RTX 4080',
-                                            'NVIDIA GeForce RTX 4090'
-                                        ]}
+                                        options={dropLists.graphics}
                                         placeholder="e.g. NVIDIA RTX 3050"
                                     />
                                 </div>
@@ -1247,7 +1250,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                                 name={`ramSize-${idx}`}
                                                 value={variant.size}
                                                 onChange={(e) => updateRamVariant(idx, 'size', e.target.value)}
-                                                options={['4GB', '8GB', '16GB', '32GB', '64GB', '128GB']}
+                                                options={dropLists.ram}
                                                 placeholder="Size"
                                             />
                                         </div>
@@ -1303,7 +1306,7 @@ export default function AddProduct({ onCancel, onSuccess, initialData }: AddProd
                                                 name={`storageSize-${idx}`}
                                                 value={variant.size}
                                                 onChange={(e) => updateStorageVariant(idx, 'size', e.target.value)}
-                                                options={['256GB', '512GB', '1TB', '2TB', '4TB', '8TB']}
+                                                options={dropLists.storage}
                                                 placeholder="Size"
                                             />
                                         </div>

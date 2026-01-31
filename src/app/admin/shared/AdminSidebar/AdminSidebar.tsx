@@ -4,8 +4,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import AutoRefreshSettings from "./AutoRefreshSettings";
+import "./AdminSidebar.css";
+
 
 interface AdminSidebarProps {
+    activeSection: string;
+    setActiveSection: (section: string) => void;
     onLogout: () => void;
     userRole?: string;
     username?: string;
@@ -13,6 +17,8 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({
+    activeSection,
+    setActiveSection,
     onLogout,
     userRole = 'accountant',
     username = 'Admin',
@@ -36,9 +42,23 @@ export default function AdminSidebar({
         //     ]
         // },
         {
-            id: "inventory-dashboard",
+            id: "inventory",
             icon: "fa-boxes",
-            label: "Inventory"
+            label: "Inventory Manage",
+            subItems: [
+                { id: "inventory-dashboard", label: "Inventory" },
+                { id: "inventory-qc", label: "QC Inventory" },
+                { id: "purchase-lots-list", label: "Purchase Lots" },
+                { id: "purchase-lots-import", label: "Import Purchase Lot" }
+            ]
+        },
+        {
+            id: "production",
+            icon: "fa-industry",
+            label: "Production",
+            subItems: [
+                { id: "production-qc", label: "QC Checking" }
+            ]
         },
         {
             id: "orders",
@@ -173,54 +193,23 @@ export default function AdminSidebar({
         );
     };
 
-    const handleSubItemClick = (sub: any) => {
-        if (sub.id === 'email-inbox') {
-            router.push('/admin/email');
-        } else {
-            // Map sub IDs to routes
-            const routeMap: Record<string, string> = {
-                'orders-all': '/admin/orders',
-                'orders-create': '/admin/orders',
-                'orders-returns': '/admin/orders',
-                'customers-all': '/admin/customers',
-                'customers-groups': '/admin/customers',
-                'accounts-dashboard': '/admin/accounts',
-                'accounts-items': '/admin/accounts',
-                'accounts-sales': '/admin/accounts',
-                'accounts-purchases': '/admin/accounts',
-                'accounts-reports': '/admin/accounts',
-                'reports-sales': '/admin/reports',
-                'invoicing-dashboard': '/admin/billing',
-                'invoicing-all': '/admin/billing',
-                'quotations-all': '/admin/billing',
-                'invoicing-new': '/admin/billing',
-                'quotations-new': '/admin/billing',
-                'payments-all': '/admin/billing',
-                'invoices-return': '/admin/billing',
-                'users-all': '/admin/users',
-                'users-roles': '/admin/users',
-            };
-
-            const target = routeMap[sub.id] || `/admin/${sub.id.replace(/-/g, '/')}`;
-            router.push(target);
-        }
-    };
-
-    const handleMainItemClick = (item: any) => {
+    const handleItemClick = (item: any) => {
         if (item.id === 'auto-refresh') {
             setShowAutoRefreshSettings(true);
+        } else if (item.id === 'dashboard') {
+            router.push('/admin/dashboard');
+        } else if (item.id === 'featured-manage') {
+            router.push('/admin/featured-products');
+        } else if (item.id === 'user-passwords') {
+            router.push('/admin/passwords');
+        } else if (item.id === 'activity-log') {
+            router.push('/admin/activity-log');
+        } else if (item.id === 'quick-actions') {
+            router.push('/admin/quick-actions');
         } else if (item.subItems) {
             toggleMenu(item.id);
         } else {
-            const routeMap: Record<string, string> = {
-                'dashboard': '/admin/dashboard',
-                'quick-actions': '/admin/quick-actions',
-                'inventory-dashboard': '/admin/inventory',
-                'user-passwords': '/admin/passwords',
-                'activity-log': '/admin/activity-log',
-                'featured-manage': '/admin/featured'
-            };
-            router.push(routeMap[item.id] || `/admin/${item.id}`);
+            router.push(`/admin/${item.id}`);
         }
     };
 
@@ -233,59 +222,12 @@ export default function AdminSidebar({
         // Super Admin restriction for sensitive sections
         if (['user-passwords', 'activity-log'].includes(item.id)) {
             // Check if user is superadmin (either by role or username handle)
-            const isSuperAdmin = userRole === 'superadmin' || username === 'superadmin';
+            const isSuperAdmin = userRole?.toLowerCase() === 'super admin' || username === 'superadmin';
             return isSuperAdmin;
         }
 
         return true;
     });
-
-    // Helper to check if a main item or its subitems are active
-    const isMainItemActive = (item: any) => {
-        const routeMap: Record<string, string> = {
-            'dashboard': '/admin/dashboard',
-            'quick-actions': '/admin/quick-actions',
-            'inventory-dashboard': '/admin/inventory',
-            'user-passwords': '/admin/passwords',
-            'activity-log': '/admin/activity-log',
-            'featured-manage': '/admin/featured',
-            'orders': '/admin/orders',
-            'customers': '/admin/customers',
-            'accounts': '/admin/accounts',
-            'invoicing': '/admin/billing',
-            'users': '/admin/users'
-        };
-        const targetRoute = routeMap[item.id];
-        if (pathname === targetRoute) return true;
-
-        // Check subitems
-        if (item.subItems) {
-            const subRouteMap: Record<string, string> = {
-                'orders-all': '/admin/orders',
-                'orders-create': '/admin/orders',
-                'orders-returns': '/admin/orders',
-                'customers-all': '/admin/customers',
-                'customers-groups': '/admin/customers',
-                'accounts-dashboard': '/admin/accounts',
-                'accounts-items': '/admin/accounts',
-                'accounts-sales': '/admin/accounts',
-                'accounts-purchases': '/admin/accounts',
-                'accounts-reports': '/admin/accounts',
-                'reports-sales': '/admin/reports',
-                'invoicing-dashboard': '/admin/billing',
-                'invoicing-all': '/admin/billing',
-                'quotations-all': '/admin/billing',
-                'invoicing-new': '/admin/billing',
-                'quotations-new': '/admin/billing',
-                'payments-all': '/admin/billing',
-                'invoices-return': '/admin/billing',
-                'users-all': '/admin/users',
-                'users-roles': '/admin/users',
-            };
-            return item.subItems.some((sub: any) => pathname === subRouteMap[sub.id]);
-        }
-        return false;
-    };
 
     return (
         <aside
@@ -305,14 +247,14 @@ export default function AdminSidebar({
             <nav className="sidebar-menu">
                 <div className="menu-label">MAIN MENU</div>
                 {displayedItems.map((item) => {
-                    const isActive = isMainItemActive(item);
+                    const isActive = activeSection === item.id || (item.subItems && item.subItems.some((sub: any) => sub.id === activeSection));
                     const isExpanded = expandedMenus.includes(item.id);
 
                     return (
                         <div key={item.id} className="nav-item-wrapper">
                             <button
                                 className={`nav-item ${isActive ? "active" : ""}`}
-                                onClick={() => handleMainItemClick(item)}
+                                onClick={() => handleItemClick(item)}
                             >
                                 <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
                                 <span className="nav-text">{item.label}</span>
@@ -323,41 +265,52 @@ export default function AdminSidebar({
 
                             {item.subItems && (
                                 <div className={`sub-menu ${isExpanded ? 'expanded' : ''}`}>
-                                    {item.subItems.map((sub: any) => {
-                                        const subRouteMap: Record<string, string> = {
-                                            'orders-all': '/admin/orders',
-                                            'orders-create': '/admin/orders',
-                                            'orders-returns': '/admin/orders',
-                                            'customers-all': '/admin/customers',
-                                            'customers-groups': '/admin/customers',
-                                            'accounts-dashboard': '/admin/accounts',
-                                            'accounts-items': '/admin/accounts',
-                                            'accounts-sales': '/admin/accounts',
-                                            'accounts-purchases': '/admin/accounts',
-                                            'accounts-reports': '/admin/accounts',
-                                            'reports-sales': '/admin/reports',
-                                            'invoicing-dashboard': '/admin/billing',
-                                            'invoicing-all': '/admin/billing',
-                                            'quotations-all': '/admin/billing',
-                                            'invoicing-new': '/admin/billing',
-                                            'quotations-new': '/admin/billing',
-                                            'payments-all': '/admin/billing',
-                                            'invoices-return': '/admin/billing',
-                                            'users-all': '/admin/users',
-                                            'users-roles': '/admin/users',
-                                        };
-                                        const isSubActive = pathname === subRouteMap[sub.id];
-
-                                        return (
-                                            <button
-                                                key={sub.id}
-                                                className={`sub-nav-item ${isSubActive ? "active" : ""}`}
-                                                onClick={() => handleSubItemClick(sub)}
-                                            >
-                                                <span className="sub-nav-text">{sub.label}</span>
-                                            </button>
-                                        );
-                                    })}
+                                    {item.subItems.map((sub: any) => (
+                                        <button
+                                            key={sub.id}
+                                            className={`sub-nav-item ${activeSection === sub.id ? "active" : ""}`}
+                                            onClick={() => {
+                                                const id = sub.id;
+                                                if (id === 'email-inbox') {
+                                                    router.push('/admin/email');
+                                                } else if (id.startsWith('inventory-') || id.startsWith('products-') || id.startsWith('purchase-lots-')) {
+                                                    router.push(`/admin/inventory?section=${id}`);
+                                                } else if (id.startsWith('production-')) {
+                                                    router.push(`/admin/production?section=${id}`);
+                                                } else if (id === 'users-all') {
+                                                    router.push('/admin/users');
+                                                } else if (id === 'users-roles') {
+                                                    router.push('/admin/users/roles');
+                                                } else if (id === 'customers-all') {
+                                                    router.push('/admin/customers');
+                                                } else if (id === 'invoicing-dashboard') {
+                                                    router.push('/admin/billing');
+                                                } else if (id === 'invoicing-all') {
+                                                    router.push('/admin/billing/invoices');
+                                                } else if (id === 'quotations-all') {
+                                                    router.push('/admin/billing/quotations');
+                                                } else if (id === 'invoicing-new') {
+                                                    router.push('/admin/billing/invoices/new');
+                                                } else if (id === 'quotations-new') {
+                                                    router.push('/admin/billing/quotations/new');
+                                                } else if (id === 'payments-all') {
+                                                    router.push('/admin/billing/payments');
+                                                } else if (id === 'invoices-return') {
+                                                    router.push('/admin/billing/returns');
+                                                } else if (id === 'orders-all') {
+                                                    router.push('/admin/orders');
+                                                } else if (id === 'orders-create') {
+                                                    router.push('/admin/orders/create');
+                                                } else if (id === 'orders-returns') {
+                                                    router.push('/admin/orders/returns');
+                                                } else {
+                                                    router.push(`/admin/${id.replace('-', '/')}`);
+                                                }
+                                            }}
+                                        >
+                                            <span className="sub-nav-text">{sub.label}</span>
+                                        </button>
+                                    ))}
                                 </div>
                             )}
                         </div>
