@@ -297,19 +297,19 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                     <div className="company-branding">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                             <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
-                            <h1 style={{ margin: 0, fontSize: '2.2rem', color: '#0c86eaff' }}>Bizz Co Hub</h1>
+                            <h1 style={{ margin: 0, fontSize: '2.2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
                         </div>
-                        <p style={{ color: '#0c86eaff' }}>Professional Solutions for Modern Business</p>
+                        <p style={{ color: '#1A2244' }}>Premium Refurbished Electronics and Professional IT Services</p>
                     </div>
 
                     {isTaxable && (
                         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '60px' }}>
-                            <p style={{ color: '#0c86eaff', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
+                            <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
                         </div>
                     )}
 
                     <div className="invoice-right-header">
-                        <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#0c86eaff', letterSpacing: '2px', textTransform: 'uppercase' }}>QUOTATION INVOICE</h1>
+                        <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#1A2244', letterSpacing: '2px', textTransform: 'uppercase' }}>QUOTATION INVOICE</h1>
                     </div>
 
                 </div>
@@ -461,7 +461,7 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                     </div>
 
                     <div className="invoice-meta" style={{ textAlign: 'right' }}>
-                        <div style={{ marginBottom: '0.5rem' }}>Quotation No <strong style={{ color: '#0c86eaff' }}>#{quotationNo}</strong></div>
+                        <div style={{ marginBottom: '0.5rem' }}>Quotation No <strong style={{ color: '#1A2244' }}>#{quotationNo}</strong></div>
                         <div style={{ marginBottom: '0.5rem' }}>Created Date : <input type="date" value={createdDate} onChange={e => setCreatedDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
                         <div>Due Date : <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="editable-field" style={{ width: 'auto', display: 'inline-block', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '0.2rem' }} /></div>
                         <div style={{ marginTop: '0.5rem' }}>
@@ -485,11 +485,11 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                 <table className="invoice-items-table">
                     <thead>
                         <tr>
-                            <th style={{ width: '40%' }}>Job Description</th>
-                            <th style={{ width: '10%', textAlign: 'center' }}>Qty</th>
-                            <th style={{ width: '15%', textAlign: 'right' }}>Cost</th>
-                            <th style={{ width: '15%', textAlign: 'right' }}>Discount</th>
-                            <th style={{ width: '15%', textAlign: 'right' }}>Total</th>
+                            <th style={{ width: '40%', color: '#1A2244' }}>Job Description</th>
+                            <th style={{ width: '10%', textAlign: 'center', color: '#1A2244' }}>Qty</th>
+                            <th style={{ width: '15%', textAlign: 'right', color: '#1A2244' }}>Cost</th>
+                            <th style={{ width: '15%', textAlign: 'right', color: '#1A2244' }}>Discount</th>
+                            <th style={{ width: '15%', textAlign: 'right', color: '#1A2244' }}>Total</th>
                             <th style={{ width: '5%' }}></th>
                         </tr>
                     </thead>
@@ -551,9 +551,9 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                 {/* Footer Totals */}
                 <div className="invoice-footer-section">
                     <div className="invoice-terms">
-                        <h4>Terms and Conditions</h4>
+                        <h4 style={{ color: '#1A2244' }}>Terms and Conditions</h4>
                         <p>Valid for 7 days from the date of quotation.</p>
-                        <h4>Notes</h4>
+                        <h4 style={{ color: '#1A2244' }}>Notes</h4>
                         <p>Please quote quotation number when remitting funds.</p>
                     </div>
 
@@ -613,8 +613,8 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                     <div style={{ display: 'inline-block', textAlign: 'center' }}>
 
                         <span className="signature-line"></span>
-                        <h5 className="manager-name">Muhammed Rishad</h5>
-                        <p className="manager-title">Assistant Manager</p>
+                        <h5 className="manager-name" style={{ color: '#1A2244' }}>Muhammed Rishad</h5>
+                        <p className="manager-title">Accountant</p>
                     </div>
                 </div>
 
@@ -622,10 +622,10 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                 <div className="bottom-branding">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
                         <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '32px', height: 'auto' }} />
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0c86eaff' }}>Bizz Co Hub</h3>
+                        <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h3>
                     </div>
                     <div className="bank-details">
-                        Professional Solutions for Modern Business
+                        Premium Refurbished Electronics and Professional IT Services
                     </div>
                 </div>
             </div>

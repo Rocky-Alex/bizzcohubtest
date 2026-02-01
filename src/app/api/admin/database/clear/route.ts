@@ -16,7 +16,14 @@ const ALLOWED_TABLES = [
     'orders',
     'customers',
     'users',
-    'invoices',
+    'settings',
+    'admin_emails',
+    'inventory_qc',
+    'purchase_lots',
+    'purchase_lot_items',
+    'invoice_items',
+    'quotation_items',
+    'roles',
     'quotations',
     'invoice_payments',
     'wishlist',
@@ -85,6 +92,31 @@ export async function POST(request: NextRequest) {
                     break;
                 case 'quotations':
                     await sql`DELETE FROM quotations`;
+                    await sql`DELETE FROM quotation_items`;
+                    break;
+                case 'purchase_lots':
+                    await sql`DELETE FROM purchase_lots`;
+                    try { await sql`DELETE FROM purchase_lot_items`; } catch (e) { } // Attempt cleanup
+                    break;
+                case 'purchase_lot_items':
+                    await sql`DELETE FROM purchase_lot_items`;
+                    break;
+                case 'inventory_qc':
+                    await sql`DELETE FROM inventory_qc`;
+                    break;
+                case 'admin_emails':
+                    await sql`DELETE FROM admin_emails`;
+                    break;
+                case 'settings':
+                    await sql`DELETE FROM settings`;
+                    break;
+                case 'roles':
+                    await sql`DELETE FROM roles`;
+                    break;
+                case 'invoice_items':
+                    await sql`DELETE FROM invoice_items`;
+                    break;
+                case 'quotation_items':
                     await sql`DELETE FROM quotation_items`;
                     break;
                 case 'invoice_payments':

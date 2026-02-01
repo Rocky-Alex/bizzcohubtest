@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 
 export default function DatabasePage() {
-    type Section = "Inventory" | "Sales" | "People" | "Billing" | "System";
+    type Section = "Inventory" | "Sales" | "People" | "Billing" | "System" | "Purchases";
 
     interface TableInfo {
         name: string;
@@ -15,7 +15,12 @@ export default function DatabasePage() {
     const SECTIONS: Record<Section, TableInfo[]> = {
         Inventory: [
             { name: "Products", description: "All product inventory and details", tableName: "products" },
-            { name: "Featured Products", description: "Configuration for featured products on homepage", tableName: "featured_products_config" }
+            { name: "Featured Products", description: "Configuration for featured products on homepage", tableName: "featured_products_config" },
+            { name: "Inventory QC", description: "Quality control records", tableName: "inventory_qc" }
+        ],
+        Purchases: [
+            { name: "Purchase Lots", description: "Batch purchase records", tableName: "purchase_lots" },
+            { name: "Purchase Items", description: "Individual items in purchase lots", tableName: "purchase_lot_items" }
         ],
         Sales: [
             { name: "Orders", description: "Customer orders and transactions", tableName: "orders" }
@@ -23,15 +28,20 @@ export default function DatabasePage() {
         People: [
             { name: "Customers", description: "Registered customer profiles", tableName: "customers" },
             { name: "Users", description: "Admin and staff user accounts", tableName: "users" },
+            { name: "Roles", description: "User roles and permissions", tableName: "roles" },
             { name: "Wishlist", description: "Customer product wishlists", tableName: "wishlist" }
-        ],
-        System: [
-            { name: "Activity Logs", description: "System usage history", tableName: "activity_logs" }
         ],
         Billing: [
             { name: "Invoices", description: "All generated invoice records", tableName: "invoices" },
+            { name: "Invoice Items", description: "Line items for invoices", tableName: "invoice_items" },
             { name: "Quotations", description: "All quotation records", tableName: "quotations" },
+            { name: "Quotation Items", description: "Line items for quotations", tableName: "quotation_items" },
             { name: "Payments", description: "Recorded invoice payments", tableName: "invoice_payments" }
+        ],
+        System: [
+            { name: "Activity Logs", description: "System usage history", tableName: "activity_logs" },
+            { name: "Admin Emails", description: "Sent email records", tableName: "admin_emails" },
+            { name: "Settings", description: "System configuration settings", tableName: "settings" }
         ]
     };
 
@@ -122,6 +132,7 @@ export default function DatabasePage() {
                                     {section === 'People' && <i className="fas fa-users"></i>}
                                     {section === 'Billing' && <i className="fas fa-file-invoice-dollar"></i>}
                                     {section === 'System' && <i className="fas fa-cog"></i>}
+                                    {section === 'Purchases' && <i className="fas fa-truck-loading"></i>}
                                 </span>
                                 {section}
                             </button>

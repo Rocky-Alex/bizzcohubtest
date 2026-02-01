@@ -184,7 +184,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
                                     <img src="${window.location.origin}/icon/nav-logo.png" alt="Logo" style="width: 30px; height: auto;" />
                                     <h1 style="margin: 0; font-size: 1.8rem; color: #0c86eaff; font-weight: 700;">Bizz Co Hub</h1>
                                 </div>
-                                <p style="margin: 0; color: #0c86eaff; font-size: 0.8rem;">Professional Solutions for Modern Business</p>
+                                <p style="margin: 0; color: #0c86eaff; font-size: 0.8rem;">Premium Refurbished Electronics and Professional IT Services</p>
                             </div>
                             
 
@@ -294,7 +294,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
                                 <h3 style="margin: 0; font-size: 1.2rem; color: #0c86eaff;">Bizz Co Hub</h3>
                             </div>
                             <div style="font-size: 0.8rem; color: #6b7280;">
-                                Professional Solutions for Modern Business
+                                Premium Refurbished Electronics and Professional IT Services
                             </div>
                         </div>
                     </div>
@@ -533,7 +533,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
                                         <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '30px', height: 'auto' }} />
                                         <h1 style={{ margin: 0, fontSize: '1.8rem', color: '#0c86eaff', fontWeight: 700 }}>Bizz Co Hub</h1>
                                     </div>
-                                    <p style={{ margin: 0, color: '#0c86eaff', fontSize: '0.8rem' }}>Professional Solutions for Modern Business</p>
+                                    <p style={{ margin: 0, color: '#0c86eaff', fontSize: '0.8rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
                                 </div>
 
 
@@ -635,7 +635,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
                                     <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0c86eaff' }}>Bizz Co Hub</h3>
                                 </div>
                                 <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                                    Professional Solutions for Modern Business
+                                    Premium Refurbished Electronics and Professional IT Services
                                 </div>
                             </div>
 

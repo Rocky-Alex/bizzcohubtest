@@ -462,7 +462,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                                 <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '30px', height: 'auto' }} />
                                                 <h1 style={{ margin: 0, fontSize: '1.8rem', color: '#0c86eaff', fontWeight: 700 }}>Bizz Co Hub</h1>
                                             </div>
-                                            <p style={{ margin: 0, color: '#0c86eaff', fontSize: '0.8rem' }}>Professional Solutions for Modern Business</p>
+                                            <p style={{ margin: 0, color: '#0c86eaff', fontSize: '0.8rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
                                         </div>
 
                                         {viewData.invoice.is_taxable && (
@@ -600,7 +600,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                             <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0c86eaff' }}>Bizz Co Hub</h3>
                                         </div>
                                         <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                                            Professional Solutions for Modern Business
+                                            Premium Refurbished Electronics and Professional IT Services
                                         </div>
                                     </div>
 

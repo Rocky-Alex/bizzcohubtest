@@ -289,7 +289,7 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl }) => {
                             )}
                             <Text style={styles.logoText}>Bizz Co Hub</Text>
                         </View>
-                        <Text style={styles.tagline}>Professional Solutions for Modern Business</Text>
+                        <Text style={styles.tagline}>Premium Refurbished Electronics and Professional IT Services</Text>
                     </View>
 
                     <View style={styles.headerCenter}>
@@ -411,7 +411,7 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl }) => {
                         )}
                         <Text style={{ color: '#0c86ea', fontWeight: 'bold' }}>Bizz Co Hub</Text>
                     </View>
-                    <Text style={{ color: '#666', fontSize: 8 }}>Professional Solutions for Modern Business</Text>
+                    <Text style={{ color: '#666', fontSize: 8 }}>Premium Refurbished Electronics and Professional IT Services</Text>
                 </View>
 
             </Page>
