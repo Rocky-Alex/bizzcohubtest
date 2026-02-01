@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import InvoicingDashboard from "../invoicing/InvoicingDashboard";
 import InvoiceList from "../invoicing/InvoiceList";
 import CreateInvoice from "../invoicing/CreateInvoice";
@@ -10,7 +11,13 @@ import PartialPaymentsList from "../accounts/PartialPaymentsList";
 import InvoiceReturn from "../invoicing/InvoiceReturn";
 
 export default function BillingPage() {
-    const [view, setView] = useState<'dashboard' | 'invoices-all' | 'invoices-new' | 'invoices-edit' | 'quotations-all' | 'quotations-new' | 'quotations-edit' | 'payments' | 'returns'>('dashboard');
+    const searchParams = useSearchParams();
+    const viewParam = searchParams.get('view');
+    const [view, setView] = useState<'dashboard' | 'invoices-all' | 'invoices-new' | 'invoices-edit' | 'quotations-all' | 'quotations-new' | 'quotations-edit' | 'payments' | 'returns'>((viewParam as any) || 'dashboard');
+
+    useEffect(() => {
+        if (viewParam) setView(viewParam as any);
+    }, [viewParam]);
     const [dataToEdit, setDataToEdit] = useState<any>(null);
 
     const handleSetActiveSection = (section: string) => {

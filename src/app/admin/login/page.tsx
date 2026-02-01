@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
                 // Dispatch event so other components can react immediately if needed
                 window.dispatchEvent(new Event('admin-login'));
 
-                router.push('/admin');
+                router.push('/admin/dashboard');
             } else {
                 toast.error(data.message || 'Invalid username or password');
             }

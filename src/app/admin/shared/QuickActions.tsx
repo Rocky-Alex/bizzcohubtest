@@ -13,14 +13,7 @@ export default function QuickActions({ setActiveSection }: QuickActionsProps) {
                 { id: "auto-refresh", label: "Auto Refresh", icon: "fa-sync-alt", color: "#6b7280" }
             ]
         },
-        {
-            title: "Inventory & Products",
-            actions: [
-                { id: "inventory-dashboard", label: "Inv. Dashboard", icon: "fa-boxes", color: "#10b981" },
-                { id: "products-add", label: "Add Product", icon: "fa-plus-circle", color: "#3b82f6" },
-                { id: "products-import", label: "Import Products", icon: "fa-file-import", color: "#8b5cf6" }
-            ]
-        },
+
         {
             title: "Order Management",
             actions: [

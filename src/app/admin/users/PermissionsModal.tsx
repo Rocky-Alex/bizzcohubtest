@@ -45,7 +45,7 @@ const SECTIONS = [
         title: "Reports",
         modules: [
             { id: "reports_sales", name: "Sales Report" },
-            { id: "reports_inventory", name: "Inventory Report" }
+
         ]
     },
     {
@@ -62,13 +62,7 @@ const SECTIONS = [
             { id: "accessories_add", name: "Add Accessory" }
         ]
     },
-    {
-        title: "Laptop Gaming Refurbished Laptop",
-        modules: [
-            { id: "products_list", name: "Product List" },
-            { id: "products_add", name: "Add Product" }
-        ]
-    }
+
 ];
 
 export default function PermissionsModal({ isOpen, onClose, roleName, initialPermissions, onSave }: PermissionsModalProps) {

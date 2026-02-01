@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import AdminSidebar from "./shared/AdminSidebar/AdminSidebar";
+import { useRouter, usePathname } from "next/navigation";
+import AdminSidebar from "./shared/AdminSidebar";
 import AdminHeader from "./shared/AdminHeader";
 import ConfirmModal from "./shared/ConfirmModal";
 import { useTheme } from "@/context/ThemeContext";
 import "./styles/admin.css";
+import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
 import "./styles/admin-header.css";
 import "./styles/mobile-responsive.css";
@@ -25,8 +26,6 @@ export default function AdminLayout({
     const [username, setUsername] = useState("Admin");
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
-    const [activeSection, setActiveSection] = useState("dashboard");
-    const searchParams = useSearchParams();
 
     // Modal State for global use (like Logout)
     const [confirmModal, setConfirmModal] = useState({
@@ -72,23 +71,6 @@ export default function AdminLayout({
         checkAuth();
     }, [router]);
 
-    // Sync activeSection with URL
-    useEffect(() => {
-        const section = searchParams.get('section');
-        if (section) {
-            setActiveSection(section);
-        } else {
-            // Derive from pathname
-            const segments = pathname.split('/');
-            const lastSegment = segments[segments.length - 1];
-            if (lastSegment && lastSegment !== 'admin') {
-                setActiveSection(lastSegment);
-            } else if (pathname === '/admin') {
-                setActiveSection('dashboard');
-            }
-        }
-    }, [pathname, searchParams]);
-
     const handleLogout = () => {
         setConfirmModal({
             isOpen: true,
@@ -126,8 +108,6 @@ export default function AdminLayout({
                 userRole={userRole}
                 username={username}
                 mobileOpen={isMobileSidebarOpen}
-                activeSection={activeSection}
-                setActiveSection={setActiveSection}
             />
 
             <div className="admin-main">

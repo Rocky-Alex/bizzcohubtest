@@ -8,6 +8,8 @@ interface CreateInvoiceProps {
     initialData?: any; // For editing
 }
 
+const DEFAULT_CUSTOMERS: any[] = [];
+
 interface InvoiceItem {
     id: number;
     description: string;
@@ -17,7 +19,7 @@ interface InvoiceItem {
     product_code?: string;
 }
 
-export default function CreateInvoice({ setActiveSection, customers = [], initialData }: CreateInvoiceProps) {
+export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CUSTOMERS, initialData }: CreateInvoiceProps) {
     // --- State ---
     const [isEditing, setIsEditing] = useState(false);
     const [originalId, setOriginalId] = useState<number | null>(null);
@@ -40,6 +42,21 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
     const [invoiceNo, setInvoiceNo] = useState("INV0001");
     const [createdDate, setCreatedDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+
+    // Move fetchNextInvoiceNo to component scope to allow calling from error handler
+    const fetchNextInvoiceNo = async () => {
+        try {
+            const response = await fetch('/api/admin/invoices/next-number');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.nextInvoiceNo) {
+                    setInvoiceNo(data.nextInvoiceNo);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch next invoice number:', error);
+        }
+    };
 
     // Initialize/Fetch Data
     useEffect(() => {
@@ -96,19 +113,6 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
                 }
             } else {
                 // New Invoice Logic
-                const fetchNextInvoiceNo = async () => {
-                    try {
-                        const response = await fetch('/api/admin/invoices/next-number');
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.nextInvoiceNo) {
-                                setInvoiceNo(data.nextInvoiceNo);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch next invoice number:', error);
-                    }
-                };
                 fetchNextInvoiceNo();
             }
         };
@@ -339,14 +343,30 @@ export default function CreateInvoice({ setActiveSection, customers = [], initia
                 });
             } else {
                 const error = await response.json();
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: `Failed to ${isEditing ? 'update' : 'save'} invoice: ` + error.error,
-                    type: 'danger',
-                    singleButton: true,
-                    onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
-                });
+
+                // Handle duplicate invoice number
+                if (response.status === 409) {
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Invoice Number Exists',
+                        message: 'The invoice number has already been used. We have updated it to the next available number. Please click "Save Invoice" again.',
+                        type: 'info',
+                        singleButton: true,
+                        onConfirm: () => {
+                            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                            fetchNextInvoiceNo(); // Fetch new number
+                        }
+                    });
+                } else {
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Error',
+                        message: `Failed to ${isEditing ? 'update' : 'save'} invoice: ` + error.error,
+                        type: 'danger',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
             }
         } catch (error) {
             console.error('Error saving invoice:', error);

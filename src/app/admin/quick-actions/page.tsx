@@ -10,7 +10,7 @@ export default function QuickActionsPage() {
     const handleSetActiveSection = (section: string) => {
         // Map section to route
         const routeMap: Record<string, string> = {
-            'products-add': '/admin/inventory',
+
             'orders-create': '/admin/orders',
             'invoicing-new': '/admin/billing',
             'customers-add': '/admin/customers',

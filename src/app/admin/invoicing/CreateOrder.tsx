@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import SearchableDropdown from '@/components/ui/SearchableDropdown';
 import '../styles/create-order.css';
 import AddCustomerForm from '../customers/AddCustomerForm';
 
@@ -42,6 +41,96 @@ const GPU_RAM_OPTIONS = ['2GB', '4GB', '6GB', '8GB', '10GB', '12GB', '16GB', '24
 const DISPLAY_TYPE_OPTIONS = ['Touch', 'Non-Touch', 'Bazel Touch', 'Glass Touch'];
 const CHARGER_OPTIONS = ['Original Charger', 'Compatible Charger', 'No Charger'];
 
+const SearchableDropdown = ({
+    name,
+    value,
+    onChange,
+    options,
+    placeholder
+}: {
+    name: string;
+    value: string;
+    onChange: (e: { target: { name: string; value: string } }) => void;
+    options: string[];
+    placeholder?: string;
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [filteredOptions, setFilteredOptions] = useState(options);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setFilteredOptions(
+            options.filter(opt => opt.toLowerCase().includes(value.toLowerCase()))
+        );
+    }, [value, options]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleSelect = (option: string) => {
+        onChange({ target: { name, value: option } });
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="custom-combobox" ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+            <input
+                type="text"
+                name={name}
+                value={value}
+                onChange={(e) => {
+                    onChange(e as any);
+                    setIsOpen(true);
+                }}
+                onFocus={() => setIsOpen(true)}
+                placeholder={placeholder}
+                autoComplete="new-password"
+                className="co-input"
+            />
+            {isOpen && filteredOptions.length > 0 && (
+                <ul className="combobox-dropdown" style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    background: 'white',
+                    border: '1px solid #ddd',
+                    borderRadius: '0 0 6px 6px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    listStyle: 'none',
+                    padding: 0,
+                    margin: 0,
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                }}>
+                    {filteredOptions.map((option, idx) => (
+                        <li
+                            key={idx}
+                            onClick={() => handleSelect(option)}
+                            style={{
+                                padding: '8px 12px',
+                                cursor: 'pointer',
+                                borderBottom: '1px solid #eee'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                        >
+                            {option}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+};
 
 const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => void, initialData?: any }) => {
     // --- State ---

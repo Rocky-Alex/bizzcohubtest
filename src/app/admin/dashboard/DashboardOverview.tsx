@@ -472,20 +472,7 @@ export default function DashboardOverview({
 
             {/* Middle Row: Summary Cards */}
             <div className="dashboard-middle-row">
-                <div className="summary-data-card">
-                    <div className="summary-card-header">
-                        <span className="summary-card-title">Total Products</span>
-                        <i className="fas fa-box summary-card-icon"></i>
-                    </div>
-                    <div className="summary-card-main">
-                        <span className="summary-main-value">{formatNumber(aggregatedStats.products)}</span>
-                        <span className="summary-badge">+45% <i className="fas fa-arrow-up" style={{ fontSize: '0.7em' }}></i></span>
-                    </div>
-                    <div className="summary-card-footer" onClick={() => setActiveSection('products-list')}>
-                        View Inventory
-                    </div>
-                    <div className="corner-decoration purple"></div>
-                </div>
+
 
                 <div className="summary-data-card">
                     <div className="summary-card-header">
