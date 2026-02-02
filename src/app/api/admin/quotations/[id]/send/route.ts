@@ -60,9 +60,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         const resend = new Resend(process.env.RESEND_API_KEY!.trim());
 
         const { data, error } = await resend.emails.send({
-            from: 'Bizz Co Hub <onboarding@resend.dev>',
+            from: 'BIZZ CO HUB LLC <onboarding@resend.dev>',
             to: [quote.customer_email], // Send to customer email
-            subject: `Quotation #${quote.quotation_no} from Bizz Co Hub`,
+            subject: `Quotation #${quote.quotation_no} from BIZZ CO HUB LLC`,
             html: `
                 <div style="font-family: Arial, sans-serif; color: #333;">
                     <h2>Hello ${quote.customer_name},</h2>
@@ -71,7 +71,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
                     <p><strong>Valid Until:</strong> ${new Date(quote.due_date).toLocaleDateString()}</p>
                     <br/>
                     <p>Best regards,</p>
-                    <p><strong>Bizz Co Hub Team</strong></p>
+                    <p><strong>BIZZ CO HUB LLC Team</strong></p>
                 </div>
             `,
             attachments: [

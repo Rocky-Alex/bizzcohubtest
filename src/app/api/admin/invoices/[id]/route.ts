@@ -71,7 +71,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         const {
             invoiceNo, customerId, customerName, customerAddress, customerEmail, customerPhone,
             createdDate, dueDate, subTotal, discountTotal, taxRate, taxAmount, totalAmount,
-            paymentType, status, isTaxable, isDiscountable, advanceReceived, items
+            paymentType, status, isTaxable, isDiscountable, showTerms, advanceReceived, items,
+            notes, terms // Add notes and terms
         } = body;
 
         // Validation
@@ -118,7 +119,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
                 status = ${status || 'Pending'},
                 is_taxable = ${isTaxable},
                 is_discountable = ${isDiscountable},
-                advance_received = ${advanceReceived || 0}
+                show_terms = ${showTerms},
+                advance_received = ${advanceReceived || 0},
+                notes = ${notes || null},
+                terms_and_conditions = ${terms || null}
             WHERE id = ${id}
             RETURNING id
         `;

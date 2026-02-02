@@ -101,7 +101,11 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                     const formData = new FormData();
                     formData.append('file', updatedUser.image);
                     formData.append('folder', 'Profile_Pictures/Users');
-                    formData.append('fileName', updatedUser.username ? updatedUser.username.replace(/\s+/g, '_') : 'user_avatar');
+                    const extension = updatedUser.image.name.split('.').pop();
+                    const baseName = updatedUser.username ? updatedUser.username.replace(/\s+/g, '_') : 'user_avatar';
+                    const fileName = extension ? `${baseName}.${extension}` : baseName;
+
+                    formData.append('fileName', fileName);
 
                     const uploadResponse = await fetch('/api/imagekit/upload', {
                         method: 'POST',

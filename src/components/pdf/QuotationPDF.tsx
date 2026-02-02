@@ -2,6 +2,12 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { ToWords } from 'to-words';
 
+// Register fonts
+Font.register({
+    family: 'Square721 BT Roman',
+    src: '/Square721 BT Roman.ttf',
+});
+
 const styles = StyleSheet.create({
     page: {
         fontFamily: 'Helvetica',
@@ -14,7 +20,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: 40,
+        marginBottom: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#1A2244',
+        paddingBottom: 10,
     },
     headerLeft: {
         flexDirection: 'column',
@@ -25,20 +34,21 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     logoText: {
-        color: '#0c86ea',
+        color: '#1A2244',
         fontSize: 20,
         fontWeight: 'bold',
         marginLeft: 10,
+        fontFamily: 'Square721 BT Roman',
     },
     tagline: {
-        color: '#0c86ea',
+        color: '#1A2244',
         fontSize: 9,
     },
-    headerCenter: { marginTop: 10 },
-    taxId: { color: '#0c86ea', fontSize: 10 },
+    headerCenter: { marginTop: 35 },
+    taxId: { color: '#1A2244', fontSize: 10 },
     headerRight: { alignItems: 'flex-end' },
     invoiceTitle: {
-        color: '#0c86ea',
+        color: '#1A2244',
         fontSize: 28, // Slightly smaller to fit QUOTATION INVOICE if needed
         fontWeight: 'bold',
     },
@@ -63,7 +73,7 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 4,
     },
-    tableHeaderCell: { color: '#666', fontWeight: 'bold', fontSize: 9 },
+    tableHeaderCell: { color: '#1A2244', fontWeight: 'bold', fontSize: 9 },
     tableCell: { fontSize: 9, color: '#333' },
     tableRow: {
         flexDirection: 'row',
@@ -110,7 +120,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     signatureName: { fontWeight: 'bold', fontSize: 10 },
-    signatureRole: { fontSize: 8, color: '#666' },
+    signatureRole: { fontSize: 8, color: '#1A2244' },
     footer: {
         position: 'absolute',
         bottom: 30,
@@ -159,13 +169,15 @@ const QuotationPDF: React.FC<QuotationPDFProps> = ({ quotation, items, logoUrl }
                     <View style={styles.headerLeft}>
                         <View style={styles.logoRow}>
                             {logoUrl ? (
-                                <Image src={logoUrl} style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                <Image src={logoUrl} style={{ width: 40, height: 40, objectFit: 'contain' }} />
                             ) : (
-                                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#0c86ea' }} />
+                                <View style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: '#1A2244' }} />
                             )}
-                            <Text style={styles.logoText}>Bizz Co Hub</Text>
+                            <Text style={styles.logoText}>BIZZ CO HUB LLC</Text>
                         </View>
                         <Text style={styles.tagline}>Premium Refurbished Electronics and Professional IT Services</Text>
+                        <Text style={styles.tagline}>Sharjah Media City, Sharjah, UAE</Text>
+                        <Text style={styles.tagline}>Ph: +971 52 714 6582 | +971 55 614 8279</Text>
                     </View>
                     <View style={styles.headerCenter}>
                         {/* Tax ID moved to header or bill to? Let's keep consistent with PDF design */}
@@ -218,9 +230,9 @@ const QuotationPDF: React.FC<QuotationPDFProps> = ({ quotation, items, logoUrl }
                         <View style={styles.tableRow} key={index}>
                             <Text style={[styles.tableCell, styles.colDesc]}>{item.description}</Text>
                             <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
-                            <Text style={[styles.tableCell, styles.colCost]}>{Number(item.unit_price).toFixed(0)}</Text>
-                            <Text style={[styles.tableCell, styles.colDisc]}>{Number(item.discount || 0).toFixed(0)}</Text>
-                            <Text style={[styles.tableCell, styles.colTotal]}>{Number(item.total).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colCost]}>AED {Number(item.unit_price).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colDisc]}>AED {Number(item.discount || 0).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colTotal]}>AED {Number(item.total).toFixed(0)}</Text>
                         </View>
                     ))}
                 </View>
@@ -233,25 +245,25 @@ const QuotationPDF: React.FC<QuotationPDFProps> = ({ quotation, items, logoUrl }
                     <View style={styles.totalsColumn}>
                         <View style={styles.totalRow}>
                             <Text style={styles.totalLabel}>Sub Total</Text>
-                            <Text style={styles.totalValue}>${subTotal.toFixed(0)}</Text>
+                            <Text style={styles.totalValue}>AED {subTotal.toFixed(0)}</Text>
                         </View>
                         {quotation.is_taxable ? (
                             <View style={styles.totalRow}>
                                 <Text style={styles.totalLabel}>VAT (5%)</Text>
-                                <Text style={styles.totalValue}>${taxAmount.toFixed(0)}</Text>
+                                <Text style={styles.totalValue}>AED {taxAmount.toFixed(0)}</Text>
                             </View>
                         ) : null}
                         <View style={styles.grandTotalRow}>
                             <Text style={styles.grandTotalLabel}>Total Amount</Text>
-                            <Text style={styles.grandTotalValue}>${totalAmount.toFixed(0)}</Text>
+                            <Text style={styles.grandTotalValue}>AED {totalAmount.toFixed(0)}</Text>
                         </View>
-                        <Text style={styles.amountInWords}>Amount in Words : Dollar {totalAmount} Only</Text>
+                        <Text style={styles.amountInWords}>Amount in Words :  {totalAmount} Dirhams Only</Text>
                     </View>
                 </View>
 
                 <View style={styles.signatureSection}>
                     <Text style={styles.signatureName}>Muhammed Rishad</Text>
-                    <Text style={styles.signatureRole}>Assistant Manager</Text>
+                    <Text style={styles.signatureRole}>Accountant</Text>
                 </View>
 
                 <View style={styles.footer}>
@@ -259,9 +271,9 @@ const QuotationPDF: React.FC<QuotationPDFProps> = ({ quotation, items, logoUrl }
                         {logoUrl ? (
                             <Image src={logoUrl} style={{ width: 14, height: 14, objectFit: 'contain', marginRight: 5 }} />
                         ) : (
-                            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#0c86ea', marginRight: 5 }} />
+                            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#1A2244', marginRight: 5 }} />
                         )}
-                        <Text style={{ color: '#0c86ea', fontWeight: 'bold' }}>Bizz Co Hub</Text>
+                        <Text style={{ color: '#1A2244', fontWeight: 'bold' }}>BIZZ CO HUB LLC</Text>
                     </View>
                     <Text style={{ color: '#666', fontSize: 8 }}>Premium Refurbished Electronics and Professional IT Services</Text>
                 </View>

@@ -30,6 +30,11 @@ export default function Header() {
     const [cartCount, setCartCount] = useState(0);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+    const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+        setImageError(false);
+    }, [currentUser?.image_url]);
 
     // Derived state for admin check
     const isAdminUser = currentUser && (['admin', 'sarath', 'rishadnpm'].includes(currentUser.username) || currentUser.email === 'bizzcohubllc@gmail.com');
@@ -220,7 +225,7 @@ export default function Header() {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button size="icon" variant="outline" aria-label="Open account menu" className="header-action-btn" style={{ border: 'none', background: 'transparent', padding: 0, overflow: 'hidden', width: '28px', height: '28px', borderRadius: '50%' }}>
-                                        {currentUser.image_url ? (
+                                        {currentUser.image_url && !imageError ? (
                                             <div className="profile-img-container" style={{ position: 'relative', width: '100%', height: '100%' }}>
                                                 <Image
                                                     loader={imageKitLoader}
@@ -231,6 +236,7 @@ export default function Header() {
                                                     style={{
                                                         objectFit: 'cover'
                                                     }}
+                                                    onError={() => setImageError(true)}
                                                 />
                                             </div>
                                         ) : (

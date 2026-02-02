@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-invoice.css';
 import ConfirmModal from '../shared/ConfirmModal';
@@ -17,6 +19,12 @@ interface InvoiceItem {
     cost: number;
     discount: number;
     product_code?: string;
+}
+
+interface TermItem {
+    id: string;
+    text: string;
+    checked: boolean;
 }
 
 export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CUSTOMERS, initialData }: CreateInvoiceProps) {
@@ -60,15 +68,24 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
     // Initialize/Fetch Data
     useEffect(() => {
-        const loadData = async () => {
+        const loadInitialData = async () => {
+            // Always fetch customers to ensure the list is fresh
+            try {
+                const custRes = await fetch('/api/admin/customers');
+                if (custRes.ok) {
+                    const custData = await custRes.json();
+                    setAllCustomers(custData.customers || []);
+                }
+            } catch (err) {
+                console.error("Failed to load customers", err);
+            }
+
             if (initialData) {
                 setIsEditing(true);
                 setOriginalId(initialData.id);
                 setInvoiceNo(initialData.invoice_no);
                 setCreatedDate(new Date(initialData.created_date).toISOString().split('T')[0]);
                 setDueDate(new Date(initialData.due_date).toISOString().split('T')[0]);
-                // Set other basic fields provided they exist in initialData
-                // But generally, we should fetch the latest full data to be safe and get items
 
                 try {
                     const res = await fetch(`/api/admin/invoices/${initialData.id}`);
@@ -94,13 +111,50 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                         setTaxRate(Number(inv.tax_rate) || 0);
                         setIsTaxable(inv.is_taxable);
                         setIsDiscountable(inv.is_discountable);
+                        setIsTaxable(inv.is_taxable);
+                        setIsDiscountable(inv.is_discountable);
+                        const loadedNotes = inv.notes ? inv.notes.split('\n').filter((l: string) => l.trim().length > 0) : [];
+                        const loadedTerms = inv.terms_and_conditions ? inv.terms_and_conditions.split('\n').filter((l: string) => l.trim().length > 0) : [];
+
+                        // Helper to merge loaded lines with defaults or create new ones
+                        const mergeWithDefaults = (loaded: string[], defaults: string[]) => {
+                            const merged: TermItem[] = [];
+                            // First add all loaded items as checked
+                            loaded.forEach(text => {
+                                const cleanText = text.replace(/^•\s*/, '');
+                                merged.push({ id: Math.random().toString(36).substr(2, 9), text: cleanText, checked: true });
+                            });
+                            // Then add any defaults that are NOT in loaded (unchecked)
+                            defaults.forEach(def => {
+                                const cleanDef = def.replace(/^•\s*/, '');
+                                if (!loaded.some(l => l.includes(cleanDef))) {
+                                    merged.push({ id: Math.random().toString(36).substr(2, 9), text: cleanDef, checked: false });
+                                }
+                            });
+                            return merged;
+                        };
+
+                        // If editing, try to smart merge. If no prev data, use defaults all checked.
+                        // Actually, if editing, we only know what was saved. 
+                        // To keep it simple: Show what was saved. Add "Add Line" button for more.
+                        // But user wants "defaults" available.
+                        // Let's just use the Defaults if loaded is empty, else use loaded.
+                        // Wait, user might want to see the unchecked defaults too? 
+                        // Let's implement basic parsing for now:
+
+                        setTermsList(loadedTerms.length > 0 ?
+                            loadedTerms.map((t: string) => ({ id: Math.random().toString(36).substr(2, 9), text: t.replace(/^•\s*/, ''), checked: true }))
+                            : DEFAULT_TERMS.map(t => ({ id: Math.random().toString(36).substr(2, 9), text: t.replace(/^•\s*/, ''), checked: true }))
+                        );
+
+                        setNotesList(loadedNotes.length > 0 ?
+                            loadedNotes.map((t: string) => ({ id: Math.random().toString(36).substr(2, 9), text: t.replace(/^•\s*/, ''), checked: true }))
+                            : DEFAULT_NOTES.map(t => ({ id: Math.random().toString(36).substr(2, 9), text: t.replace(/^•\s*/, ''), checked: true }))
+                        );
 
                         // Map items
                         const mappedItems = itemsData.map((d: any) => ({
-                            id: d.id, // Keep DB id? Or mapped id? 
-                            // If I keep DB id, I need to handle new items having local IDs (numbers) vs DB ids.
-                            // For simplicity, I'll map them to the shape InvoiceItem requires. 
-                            // InvoiceItem.id is number.
+                            id: d.id,
                             description: d.description,
                             qty: Number(d.quantity),
                             cost: Number(d.unit_price),
@@ -112,16 +166,19 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                     console.error("Error fetching invoice details for edit", err);
                 }
             } else {
-                // New Invoice Logic
                 fetchNextInvoiceNo();
             }
         };
-        loadData();
+        loadInitialData();
     }, [initialData]);
 
+    const [allCustomers, setAllCustomers] = useState<any[]>([]);
     const [customerSearch, setCustomerSearch] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+    const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+    const [quickAddData, setQuickAddData] = useState({ name: '', email: '', phone: '', address: '' });
+    const [isSavingCustomer, setIsSavingCustomer] = useState(false);
 
     const searchRef = useRef<HTMLDivElement>(null);
 
@@ -142,18 +199,71 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
     }, []);
 
     useEffect(() => {
-        if (customers) {
+        if (allCustomers && Array.isArray(allCustomers)) {
             if (!customerSearch) {
-                setFilteredCustomers(customers);
+                setFilteredCustomers(allCustomers);
             } else {
-                const filtered = customers.filter(c =>
+                const filtered = allCustomers.filter(c =>
                     (c.name && c.name.toLowerCase().includes(customerSearch.toLowerCase())) ||
                     (c.email && c.email.toLowerCase().includes(customerSearch.toLowerCase()))
                 );
                 setFilteredCustomers(filtered);
             }
+        } else {
+            setFilteredCustomers([]);
         }
-    }, [customerSearch, customers]);
+    }, [customerSearch, allCustomers]);
+
+    const handleQuickAdd = async () => {
+        if (!quickAddData.name) {
+            alert("Customer name is required");
+            return;
+        }
+
+        setIsSavingCustomer(true);
+        try {
+            const res = await fetch('/api/admin/customers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: quickAddData.name,
+                    email: quickAddData.email,
+                    phone: quickAddData.phone,
+                    billingAddress1: quickAddData.address,
+                    currency: 'AED', // Default
+                    username: quickAddData.name.toLowerCase().replace(/\s+/g, '_') + Math.floor(Math.random() * 1000),
+                    password: 'Password123!', // Default password
+                })
+            });
+
+            if (res.ok) {
+                const newCustomer = await res.json();
+                // Refresh customer list
+                const custRes = await fetch('/api/admin/customers');
+                if (custRes.ok) {
+                    const custData = await custRes.json();
+                    setAllCustomers(custData.customers || []);
+                }
+
+                // Select the new customer
+                handleCustomerSelect({
+                    ...quickAddData,
+                    id: newCustomer.id,
+                    shipping_address_1: quickAddData.address
+                });
+                setShowQuickAddModal(false);
+                setQuickAddData({ name: '', email: '', phone: '', address: '' });
+            } else {
+                const err = await res.json();
+                alert("Failed to save customer: " + (err.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error("Error saving customer:", err);
+            alert("An error occurred while saving the customer");
+        } finally {
+            setIsSavingCustomer(false);
+        }
+    };
 
     const handleCustomerSelect = (customer: any) => {
         setToDetails({
@@ -183,6 +293,26 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
     const [taxRate, setTaxRate] = useState(5); // 5%
     const [isTaxable, setIsTaxable] = useState(true);
     const [isDiscountable, setIsDiscountable] = useState(true);
+
+    const DEFAULT_TERMS = [
+        "Please pay within 7 days from the date of invoice.",
+        "Goods sold are not returnable or exchangeable.",
+        "Warranty void if serial number/seal is tampered.",
+        "No warranty for physical damage, liquid damage, or burn.",
+        "Cheques should be inclusive of 5% VAT."
+    ];
+    const DEFAULT_NOTES = [
+        "Please quote invoice number when remitting funds.",
+        "Bank transfer details available upon request.",
+        "Thank you for your business!"
+    ];
+
+    const [termsList, setTermsList] = useState<TermItem[]>(
+        DEFAULT_TERMS.map((t, i) => ({ id: `def-t-${i}`, text: t, checked: true }))
+    );
+    const [notesList, setNotesList] = useState<TermItem[]>(
+        DEFAULT_NOTES.map((t, i) => ({ id: `def-n-${i}`, text: t, checked: true }))
+    );
 
     const [productCodeInput, setProductCodeInput] = useState("");
     const [inventoryProducts, setInventoryProducts] = useState<any[]>([]);
@@ -305,6 +435,8 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 status: 'Pending',
                 isTaxable,
                 isDiscountable,
+                notes: notesList.filter(t => t.checked).map(t => `• ${t.text}`).join('\n'), // Prepend bullet on save
+                terms: termsList.filter(t => t.checked).map(t => `• ${t.text}`).join('\n'),
                 advanceReceived,
                 items: items.map(item => ({
                     description: item.description,
@@ -396,13 +528,13 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                             <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
                             <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
                         </div>
-                        <p style={{ color: '#1A2244', margin: 0 }}>Premium Refurbished Electronics and Professional IT Services</p>
-                        <p style={{ color: '#1A2244', margin: 0 }}>Sharjah Media City, Sharjah, UAE</p>
-                        <p style={{ color: '#1A2244', margin: 0 }}>Phone: +971 52 714 6582 | +971 55 614 8279</p>
+                        <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
+                        <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Sharjah Media City, Sharjah, UAE</p>
+                        <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
                     </div>
 
                     {isTaxable && (
-                        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: '1rem' }}>
+                        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '62px' }}>
                             <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
                         </div>
                     )}
@@ -454,7 +586,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                                     }}
                                 ></i>
                             </div>
-                            {showSuggestions && filteredCustomers.length > 0 && (
+                            {showSuggestions && (
                                 <div className="customer-suggestions" style={{
                                     position: 'absolute',
                                     top: '100%',
@@ -464,41 +596,73 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                                     border: '1px solid #e5e7eb',
                                     borderRadius: '6px',
                                     zIndex: 10,
-                                    maxHeight: '200px',
+                                    maxHeight: '250px',
                                     overflowY: 'auto',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                                     marginTop: '4px'
                                 }}>
-                                    {filteredCustomers.map(c => (
-                                        <div
-                                            key={c.id}
-                                            onClick={() => handleCustomerSelect(c)}
-                                            style={{
-                                                padding: '0.6rem',
-                                                cursor: 'pointer',
-                                                borderBottom: '1px solid #f3f4f6',
-                                                fontSize: '0.9rem',
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
+                                    {/* Add Button at Top */}
+                                    <div
+                                        onClick={() => {
+                                            setQuickAddData(prev => ({ ...prev, name: customerSearch }));
+                                            setShowQuickAddModal(true);
+                                            setShowSuggestions(false);
+                                        }}
+                                        style={{
+                                            padding: '0.75rem 1rem',
+                                            cursor: 'pointer',
+                                            background: '#f8fafc',
+                                            borderBottom: '1px solid #e2e8f0',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.75rem',
+                                            color: '#1A2244',
+                                            fontWeight: 600
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                    >
+                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1A224422', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <i className="fas fa-plus" style={{ fontSize: '0.8rem', color: '#1A2244' }}></i>
+                                        </div>
+                                        <span>Add New Customer "{customerSearch}"</span>
+                                    </div>
 
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <img
-                                                    src={c.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&color=fff&size=32`}
-                                                    alt={c.name}
-                                                    style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
-                                                />
-                                                <div>
-                                                    <div style={{ fontWeight: 500, color: '#1f2937' }}>{c.name}</div>
-                                                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{c.email}</div>
+                                    {filteredCustomers.length > 0 ? (
+                                        filteredCustomers.map(c => (
+                                            <div
+                                                key={c.id}
+                                                onClick={() => handleCustomerSelect(c)}
+                                                style={{
+                                                    padding: '0.75rem 1rem',
+                                                    cursor: 'pointer',
+                                                    borderBottom: '1px solid #f3f4f6',
+                                                    fontSize: '0.9rem',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <img
+                                                        src={c.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&color=fff&size=32`}
+                                                        alt={c.name}
+                                                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                                                    />
+                                                    <div>
+                                                        <div style={{ fontWeight: 500, color: '#1f2937' }}>{c.name}</div>
+                                                        <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{c.email}</div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: '1rem', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                                            No customers found matching "{customerSearch}"
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -635,7 +799,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                                     />
                                 </td>
                                 <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                                    ${calculateRowTotal(item).toFixed(0)}
+                                    AED {calculateRowTotal(item).toFixed(0)}
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                     {items.length > 1 && (
@@ -739,15 +903,80 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
                 {/* Footer Totals */}
                 <div className="invoice-footer-section">
-                    <div className="invoice-terms">
-                        <h4 style={{ color: '#1A2244' }}>Terms and Conditions</h4>
-                        <p>Please pay within 7 days from the date of invoice.</p>
-                        <h4 style={{ color: '#1A2244' }}>Notes</h4>
-                        <p>Please quote invoice number when remitting funds.</p>
+                    <div className="invoice-terms" style={{ width: '400px' }}>
+                        <h4 style={{ color: '#1A2244', marginBottom: '0.5rem' }}>Terms and Conditions</h4>
+                        <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.5rem', background: 'white', marginBottom: '1rem' }}>
+                            {termsList.map(item => (
+                                <div key={item.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={item.checked}
+                                        onChange={e => {
+                                            setTermsList(termsList.map(t => t.id === item.id ? { ...t, checked: e.target.checked } : t));
+                                        }}
+                                        style={{ marginRight: '0.5rem', accentColor: '#ea580c' }}
+                                    />
+                                    <input
+                                        value={item.text}
+                                        onChange={e => {
+                                            setTermsList(termsList.map(t => t.id === item.id ? { ...t, text: e.target.value } : t));
+                                        }}
+                                        style={{ flex: 1, border: 'none', background: 'transparent', fontSize: '0.9rem', color: '#4b5563', outline: 'none' }}
+                                    />
+                                    <i
+                                        className="fas fa-trash"
+                                        onClick={() => setTermsList(termsList.filter(t => t.id !== item.id))}
+                                        style={{ color: '#ef4444', cursor: 'pointer', marginLeft: '0.5rem', fontSize: '0.8rem' }}
+                                    ></i>
+                                </div>
+                            ))}
+                            <div
+                                onClick={() => setTermsList([...termsList, { id: Math.random().toString(36).substr(2, 9), text: "", checked: true }])}
+                                style={{ color: '#ea580c', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginTop: '0.5rem' }}
+                            >
+                                + Add Term
+                            </div>
+                        </div>
+
+                        <h4 style={{ color: '#1A2244', marginBottom: '0.5rem' }}>Notes</h4>
+                        <div style={{ border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.5rem', background: 'white' }}>
+                            {notesList.map(item => (
+                                <div key={item.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={item.checked}
+                                        onChange={e => {
+                                            setNotesList(notesList.map(t => t.id === item.id ? { ...t, checked: e.target.checked } : t));
+                                        }}
+                                        style={{ marginRight: '0.5rem', accentColor: '#ea580c' }}
+                                    />
+                                    <input
+                                        value={item.text}
+                                        onChange={e => {
+                                            setNotesList(notesList.map(t => t.id === item.id ? { ...t, text: e.target.value } : t));
+                                        }}
+                                        style={{ flex: 1, border: 'none', background: 'transparent', fontSize: '0.9rem', color: '#4b5563', outline: 'none' }}
+                                    />
+                                    <i
+                                        className="fas fa-trash"
+                                        onClick={() => setNotesList(notesList.filter(t => t.id !== item.id))}
+                                        style={{ color: '#ef4444', cursor: 'pointer', marginLeft: '0.5rem', fontSize: '0.8rem' }}
+                                    ></i>
+                                </div>
+                            ))}
+                            <div
+                                onClick={() => setNotesList([...notesList, { id: Math.random().toString(36).substr(2, 9), text: "", checked: true }])}
+                                style={{ color: '#ea580c', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, marginTop: '0.5rem' }}
+                            >
+                                + Add Note
+                            </div>
+                        </div>
                     </div>
 
                     <div className="invoice-totals">
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginBottom: '1rem' }}>
+
+                            {/* Terms checkbox moved to left side */}
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#4b5563', cursor: 'pointer' }}>
                                 <input
                                     type="checkbox"
@@ -761,18 +990,18 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                         {(isDiscountable || isTaxable) && (
                             <div className="total-row">
                                 <span>Sub Total</span>
-                                <span>${calculatedSubTotal.toFixed(0)}</span>
+                                <span>AED {calculatedSubTotal.toFixed(0)}</span>
                             </div>
                         )}
                         {isTaxable && (
                             <div className="total-row">
                                 <span>VAT ({taxRate}%)</span>
-                                <span>${vatAmount.toFixed(0)}</span>
+                                <span>AED {vatAmount.toFixed(0)}</span>
                             </div>
                         )}
                         <div className="total-row final">
                             <span>Total Amount</span>
-                            <span style={{ color: '#ea580c' }}>${finalTotal.toFixed(0)}</span>
+                            <span style={{ color: '#ea580c' }}>AED {finalTotal.toFixed(0)}</span>
                         </div>
 
                         <div className="total-row">
@@ -788,11 +1017,11 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
                         <div className="total-row" style={{ fontWeight: 600, color: '#dc2626', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
                             <span>Balance Due</span>
-                            <span>${balanceDue.toFixed(0)}</span>
+                            <span>AED {balanceDue.toFixed(0)}</span>
                         </div>
 
                         <div className="amount-in-words">
-                            Amount in Words : Dollar {finalTotal} Only
+                            Amount in Words :  {finalTotal} Dirhams Only
                         </div>
                     </div>
                 </div>
@@ -827,6 +1056,81 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 type={confirmModal.type}
                 singleButton={confirmModal.singleButton}
             />
+
+            {/* Quick Add Customer Modal */}
+            {showQuickAddModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white', padding: '2rem', borderRadius: '12px', width: '400px',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                    }}>
+                        <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', color: '#1A2244' }}>Quick Add Customer</h2>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Full Name</label>
+                            <input
+                                type="text"
+                                value={quickAddData.name}
+                                onChange={e => setQuickAddData({ ...quickAddData, name: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Email</label>
+                            <input
+                                type="email"
+                                value={quickAddData.email}
+                                onChange={e => setQuickAddData({ ...quickAddData, email: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Phone</label>
+                            <input
+                                type="text"
+                                value={quickAddData.phone}
+                                onChange={e => setQuickAddData({ ...quickAddData, phone: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Address</label>
+                            <textarea
+                                value={quickAddData.address}
+                                onChange={e => setQuickAddData({ ...quickAddData, address: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px', minHeight: '80px' }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button
+                                onClick={() => setShowQuickAddModal(false)}
+                                style={{ flex: 1, padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px', background: 'white' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleQuickAdd}
+                                disabled={isSavingCustomer}
+                                style={{
+                                    flex: 1, padding: '0.75rem', border: 'none', borderRadius: '8px',
+                                    background: '#1A2244', color: 'white', fontWeight: 600,
+                                    opacity: isSavingCustomer ? 0.7 : 1
+                                }}
+                            >
+                                {isSavingCustomer ? 'Saving...' : 'Add Customer'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

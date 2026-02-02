@@ -269,14 +269,24 @@ export default function InvoiceReturn({ setActiveSection }: InvoiceReturnProps) 
 
             {invoice && (
                 <div className="invoice-container" style={{ marginTop: '0' }}>
-                    <div className="invoice-header">
-                        <div className="invoice-right-header">
-                            <h1 style={{ margin: 0, fontSize: '2rem', color: '#0c86eaff' }}>RETURN</h1>
-                            <p>Original Invoice: #{invoice.invoice_no}</p>
+                    <div className="invoice-header" style={{ position: 'relative', borderBottom: '2px solid #1A2244', paddingBottom: '0.5rem', marginBottom: '2rem' }}>
+                        <div className="company-branding">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
+                                <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
+                                <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
+                            </div>
+                            <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
+                            <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Sharjah Media City, Sharjah, UAE</p>
+                            <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
                         </div>
-                        <div className="invoice-meta" style={{ textAlign: 'right' }}>
-                            <div>Date: {new Date(invoice.created_date).toLocaleDateString()}</div>
-                            <div>Customer: <strong>{invoice.customer_name}</strong></div>
+
+                        <div className="invoice-right-header" style={{ textAlign: 'right' }}>
+                            <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244' }}>RETURN</h1>
+                            <p style={{ margin: 0 }}>Original Invoice: #{invoice.invoice_no}</p>
+                            <div style={{ marginTop: '0.5rem' }}>
+                                <div>Date: {new Date(invoice.created_date).toLocaleDateString()}</div>
+                                <div>Customer: <strong>{invoice.customer_name}</strong></div>
+                            </div>
                         </div>
                     </div>
 
@@ -297,7 +307,7 @@ export default function InvoiceReturn({ setActiveSection }: InvoiceReturnProps) 
                                         {item.product_code && <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Code: {item.product_code}</div>}
                                     </td>
                                     <td style={{ textAlign: 'center' }}>{item.quantity}</td>
-                                    <td style={{ textAlign: 'right' }}>${Number(item.unit_price).toFixed(2)}</td>
+                                    <td style={{ textAlign: 'right' }}>AED {Number(item.unit_price).toFixed(2)}</td>
                                     <td style={{ textAlign: 'center' }}>
                                         <input
                                             type="number"

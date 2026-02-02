@@ -61,7 +61,11 @@ export default function UsersPage() {
                 const formData = new FormData();
                 formData.append('file', item.image);
                 formData.append('folder', 'Profile_Pictures/Users');
-                formData.append('fileName', (item.name || 'user').replace(/\s+/g, '_'));
+                const extension = item.image.name.split('.').pop();
+                const baseName = (item.name || 'user').replace(/\s+/g, '_');
+                const fileName = extension ? `${baseName}.${extension}` : baseName;
+
+                formData.append('fileName', fileName);
 
                 const uploadResponse = await fetch('/api/imagekit/upload', {
                     method: 'POST',

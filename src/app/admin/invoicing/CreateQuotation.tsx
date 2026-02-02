@@ -42,7 +42,18 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
 
     // Initialize/Fetch Data
     useEffect(() => {
-        const loadData = async () => {
+        const loadInitialData = async () => {
+            // Always fetch customers to ensure the list is fresh
+            try {
+                const custRes = await fetch('/api/admin/customers');
+                if (custRes.ok) {
+                    const custData = await custRes.json();
+                    setAllCustomers(custData || []);
+                }
+            } catch (err) {
+                console.error("Failed to load customers", err);
+            }
+
             if (initialData) {
                 setIsEditing(true);
                 setOriginalId(initialData.id);
@@ -54,7 +65,7 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                     const res = await fetch(`/api/admin/quotations/${initialData.id}`);
                     if (res.ok) {
                         const data = await res.json();
-                        const q = data.quotation; // Assuming API returns { quotation: ..., items: ... }
+                        const q = data.quotation;
                         const itemsData = data.items;
 
                         setQuotationNo(q.quotation_no);
@@ -89,7 +100,6 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                     console.error("Error fetching quotation details for edit", err);
                 }
             } else {
-                // New Quotation Logic
                 const fetchNextQuotationNo = async () => {
                     try {
                         const response = await fetch('/api/admin/quotations/next-number');
@@ -106,12 +116,16 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                 fetchNextQuotationNo();
             }
         };
-        loadData();
+        loadInitialData();
     }, [initialData]);
 
+    const [allCustomers, setAllCustomers] = useState<any[]>([]);
     const [customerSearch, setCustomerSearch] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+    const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+    const [quickAddData, setQuickAddData] = useState({ name: '', email: '', phone: '', address: '' });
+    const [isSavingCustomer, setIsSavingCustomer] = useState(false);
 
     const searchRef = useRef<HTMLDivElement>(null);
 
@@ -129,18 +143,69 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
     }, []);
 
     useEffect(() => {
-        if (customers) {
+        if (allCustomers) {
             if (!customerSearch) {
-                setFilteredCustomers(customers);
+                setFilteredCustomers(allCustomers);
             } else {
-                const filtered = customers.filter(c =>
+                const filtered = allCustomers.filter(c =>
                     (c.name && c.name.toLowerCase().includes(customerSearch.toLowerCase())) ||
                     (c.email && c.email.toLowerCase().includes(customerSearch.toLowerCase()))
                 );
                 setFilteredCustomers(filtered);
             }
         }
-    }, [customerSearch, customers]);
+    }, [customerSearch, allCustomers]);
+
+    const handleQuickAdd = async () => {
+        if (!quickAddData.name) {
+            alert("Customer name is required");
+            return;
+        }
+
+        setIsSavingCustomer(true);
+        try {
+            const res = await fetch('/api/admin/customers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: quickAddData.name,
+                    email: quickAddData.email,
+                    phone: quickAddData.phone,
+                    billingAddress1: quickAddData.address,
+                    currency: 'AED', // Default
+                    username: quickAddData.name.toLowerCase().replace(/\s+/g, '_') + Math.floor(Math.random() * 1000),
+                    password: 'Password123!', // Default password
+                })
+            });
+
+            if (res.ok) {
+                const newCustomer = await res.json();
+                // Refresh customer list
+                const custRes = await fetch('/api/admin/customers');
+                if (custRes.ok) {
+                    const custData = await custRes.json();
+                    setAllCustomers(custData || []);
+                }
+
+                // Select the new customer
+                handleCustomerSelect({
+                    ...quickAddData,
+                    id: newCustomer.id,
+                    shipping_address_1: quickAddData.address
+                });
+                setShowQuickAddModal(false);
+                setQuickAddData({ name: '', email: '', phone: '', address: '' });
+            } else {
+                const err = await res.json();
+                alert("Failed to save customer: " + (err.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error("Error saving customer:", err);
+            alert("An error occurred while saving the customer");
+        } finally {
+            setIsSavingCustomer(false);
+        }
+    };
 
     const handleCustomerSelect = (customer: any) => {
         setToDetails({
@@ -303,7 +368,7 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                     </div>
 
                     {isTaxable && (
-                        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '60px' }}>
+                        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '80px' }}>
                             <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
                         </div>
                     )}
@@ -355,7 +420,7 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                                     }}
                                 ></i>
                             </div>
-                            {showSuggestions && filteredCustomers.length > 0 && (
+                            {showSuggestions && (
                                 <div className="customer-suggestions" style={{
                                     position: 'absolute',
                                     top: '100%',
@@ -365,41 +430,73 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                                     border: '1px solid #e5e7eb',
                                     borderRadius: '6px',
                                     zIndex: 10,
-                                    maxHeight: '200px',
+                                    maxHeight: '250px',
                                     overflowY: 'auto',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                                     marginTop: '4px'
                                 }}>
-                                    {filteredCustomers.map(c => (
-                                        <div
-                                            key={c.id}
-                                            onClick={() => handleCustomerSelect(c)}
-                                            style={{
-                                                padding: '0.6rem',
-                                                cursor: 'pointer',
-                                                borderBottom: '1px solid #f3f4f6',
-                                                fontSize: '0.9rem',
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center'
+                                    {/* Add Button at Top */}
+                                    <div
+                                        onClick={() => {
+                                            setQuickAddData(prev => ({ ...prev, name: customerSearch }));
+                                            setShowQuickAddModal(true);
+                                            setShowSuggestions(false);
+                                        }}
+                                        style={{
+                                            padding: '0.75rem 1rem',
+                                            cursor: 'pointer',
+                                            background: '#f8fafc',
+                                            borderBottom: '1px solid #e2e8f0',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.75rem',
+                                            color: '#1A2244',
+                                            fontWeight: 600
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                    >
+                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1A224422', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <i className="fas fa-plus" style={{ fontSize: '0.8rem', color: '#1A2244' }}></i>
+                                        </div>
+                                        <span>Add New Customer "{customerSearch}"</span>
+                                    </div>
 
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <img
-                                                    src={c.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&color=fff&size=32`}
-                                                    alt={c.name}
-                                                    style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
-                                                />
-                                                <div>
-                                                    <div style={{ fontWeight: 500, color: '#1f2937' }}>{c.name}</div>
-                                                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{c.email}</div>
+                                    {filteredCustomers.length > 0 ? (
+                                        filteredCustomers.map(c => (
+                                            <div
+                                                key={c.id}
+                                                onClick={() => handleCustomerSelect(c)}
+                                                style={{
+                                                    padding: '0.75rem 1rem',
+                                                    cursor: 'pointer',
+                                                    borderBottom: '1px solid #f3f4f6',
+                                                    fontSize: '0.9rem',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <img
+                                                        src={c.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random&color=fff&size=32`}
+                                                        alt={c.name}
+                                                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                                                    />
+                                                    <div>
+                                                        <div style={{ fontWeight: 500, color: '#1f2937' }}>{c.name}</div>
+                                                        <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{c.email}</div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: '1rem', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                                            No customers found matching "{customerSearch}"
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -531,7 +628,7 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                                     />
                                 </td>
                                 <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                                    ${calculateRowTotal(item).toFixed(0)}
+                                    AED {calculateRowTotal(item).toFixed(0)}
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                     {items.length > 1 && (
@@ -572,18 +669,18 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                         {(isDiscountable || isTaxable) && (
                             <div className="total-row">
                                 <span>Sub Total</span>
-                                <span>${calculatedSubTotal.toFixed(0)}</span>
+                                <span>AED {calculatedSubTotal.toFixed(0)}</span>
                             </div>
                         )}
                         {isTaxable && (
                             <div className="total-row">
                                 <span>VAT ({taxRate}%)</span>
-                                <span>${vatAmount.toFixed(0)}</span>
+                                <span>AED {vatAmount.toFixed(0)}</span>
                             </div>
                         )}
                         <div className="total-row final">
                             <span>Total Amount</span>
-                            <span style={{ color: '#ea580c' }}>${finalTotal.toFixed(0)}</span>
+                            <span style={{ color: '#ea580c' }}>AED {finalTotal.toFixed(0)}</span>
                         </div>
 
                         <div className="total-row">
@@ -599,11 +696,11 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
 
                         <div className="total-row" style={{ fontWeight: 600, color: '#dc2626', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
                             <span>Balance Due</span>
-                            <span>${balanceDue.toFixed(0)}</span>
+                            <span>AED {balanceDue.toFixed(0)}</span>
                         </div>
 
                         <div className="amount-in-words">
-                            Amount in Words : Dollar {finalTotal} Only
+                            Amount in Words :  {finalTotal} Dirhams Only
                         </div>
                     </div>
                 </div>
@@ -638,6 +735,81 @@ export default function CreateQuotation({ setActiveSection, customers = [], init
                 type={confirmModal.type}
                 singleButton={confirmModal.singleButton}
             />
+
+            {/* Quick Add Customer Modal */}
+            {showQuickAddModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white', padding: '2rem', borderRadius: '12px', width: '400px',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                    }}>
+                        <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', color: '#1A2244' }}>Quick Add Customer</h2>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Full Name</label>
+                            <input
+                                type="text"
+                                value={quickAddData.name}
+                                onChange={e => setQuickAddData({ ...quickAddData, name: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Email</label>
+                            <input
+                                type="email"
+                                value={quickAddData.email}
+                                onChange={e => setQuickAddData({ ...quickAddData, email: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Phone</label>
+                            <input
+                                type="text"
+                                value={quickAddData.phone}
+                                onChange={e => setQuickAddData({ ...quickAddData, phone: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem' }}>Address</label>
+                            <textarea
+                                value={quickAddData.address}
+                                onChange={e => setQuickAddData({ ...quickAddData, address: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px', minHeight: '80px' }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button
+                                onClick={() => setShowQuickAddModal(false)}
+                                style={{ flex: 1, padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px', background: 'white' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleQuickAdd}
+                                disabled={isSavingCustomer}
+                                style={{
+                                    flex: 1, padding: '0.75rem', border: 'none', borderRadius: '8px',
+                                    background: '#1A2244', color: 'white', fontWeight: 600,
+                                    opacity: isSavingCustomer ? 0.7 : 1
+                                }}
+                            >
+                                {isSavingCustomer ? 'Saving...' : 'Add Customer'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

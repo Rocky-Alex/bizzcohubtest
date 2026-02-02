@@ -1,9 +1,11 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { ToWords } from 'to-words';
-
-// Register a font if we needed custom ones, but Helvetica is standard
-// Font.register({ family: 'Roboto', src: '...' });
+// Register fonts
+Font.register({
+    family: 'Square721 BT Roman',
+    src: '/Square721%20BT%20Roman.ttf',
+});
 
 const styles = StyleSheet.create({
     page: {
@@ -18,7 +20,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: 40,
+        marginBottom: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#1A2244',
+        paddingBottom: 10,
     },
     headerLeft: {
         flexDirection: 'column',
@@ -29,27 +34,26 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     logoText: {
-        color: '#0c86ea',
+        color: '#1A2244',
         fontSize: 20,
         fontWeight: 'bold',
         marginLeft: 10,
+        fontFamily: 'Square721 BT Roman',
     },
     tagline: {
-        color: '#0c86ea',
+        color: '#1A2244',
         fontSize: 9,
     },
-    headerCenter: {
-        marginTop: 10,
-    },
+    headerCenter: { marginTop: 25 },
     taxId: {
-        color: '#0c86ea',
+        color: '#1A2244',
         fontSize: 10,
     },
     headerRight: {
         alignItems: 'flex-end',
     },
     invoiceTitle: {
-        color: '#0c86ea',
+        color: '#1A2244',
         fontSize: 32,
         fontWeight: 'bold',
     },
@@ -99,7 +103,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
     tableHeaderCell: {
-        color: '#666',
+        color: '#1A2244',
         fontWeight: 'bold',
         fontSize: 9,
     },
@@ -138,8 +142,8 @@ const styles = StyleSheet.create({
     },
     sectionContent: {
         color: '#666',
-        lineHeight: 1.4,
-        marginBottom: 10,
+        lineHeight: .9,
+        marginBottom: 5,
     },
     totalsColumn: {
         width: '40%',
@@ -218,7 +222,7 @@ const styles = StyleSheet.create({
     },
     signatureRole: {
         fontSize: 8,
-        color: '#666',
+        color: '#1A2244',
     },
 
     // Footer
@@ -283,24 +287,24 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl }) => {
                     <View style={styles.headerLeft}>
                         <View style={styles.logoRow}>
                             {logoUrl ? (
-                                <Image src={logoUrl} style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                <Image src={logoUrl} style={{ width: 40, height: 40, objectFit: 'contain' }} />
                             ) : (
-                                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#0c86ea' }} />
+                                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#1A2244' }} />
                             )}
-                            <Text style={styles.logoText}>Bizz Co Hub</Text>
+                            <Text style={styles.logoText}>BIZZ CO HUB LLC</Text>
                         </View>
                         <Text style={styles.tagline}>Premium Refurbished Electronics and Professional IT Services</Text>
-                    </View>
-
-                    <View style={styles.headerCenter}>
-                        {invoice.is_taxable ? (
-                            <Text style={styles.taxId}>TAX : 123456789123456</Text>
-                        ) : null}
+                        <Text style={styles.tagline}>Sharjah Media City, Sharjah, UAE</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 2 }}>
+                            <Text style={styles.tagline}>Ph: +971 52 714 6582 | +971 55 614 8279</Text>
+                            {invoice.is_taxable ? (
+                                <Text style={{ ...styles.taxId, marginLeft: 20 }}>TAX : 123456789123456</Text>
+                            ) : null}
+                        </View>
                     </View>
 
                     <View style={styles.headerRight}>
                         <Text style={styles.invoiceTitle}>INVOICE</Text>
-                        <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>#{invoice.invoice_no}</Text>
                     </View>
                 </View>
 
@@ -315,6 +319,10 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl }) => {
                     </View>
 
                     <View style={styles.dateColumn}>
+                        <View style={styles.dateRow}>
+                            <Text style={styles.dateLabel}>Invoice #:</Text>
+                            <Text style={styles.dateValue}>{invoice.invoice_no}</Text>
+                        </View>
                         <View style={styles.dateRow}>
                             <Text style={styles.dateLabel}>Date:</Text>
                             <Text style={styles.dateValue}>{new Date(invoice.created_date || invoice.created_at).toLocaleDateString()}</Text>
@@ -346,9 +354,9 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl }) => {
                         <View style={styles.tableRow} key={index}>
                             <Text style={[styles.tableCell, styles.colDesc]}>{item.description}</Text>
                             <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
-                            <Text style={[styles.tableCell, styles.colCost]}>{Number(item.unit_price).toFixed(0)}</Text>
-                            <Text style={[styles.tableCell, styles.colDisc]}>{Number(item.discount || 0).toFixed(0)}</Text>
-                            <Text style={[styles.tableCell, styles.colTotal]}>{Number(item.total).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colCost]}>AED {Number(item.unit_price).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colDisc]}>AED {Number(item.discount || 0).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colTotal]}>AED {Number(item.total).toFixed(0)}</Text>
                         </View>
                     ))}
                 </View>
@@ -357,47 +365,48 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl }) => {
                 <View style={styles.bottomSection}>
                     <View style={styles.termsColumn}>
                         <Text style={styles.sectionTitle}>Terms and Conditions</Text>
-                        <Text style={styles.sectionContent}>Please pay within 7 days from the date of invoice.</Text>
+                        <Text style={styles.sectionContent}>
+                            {invoice.terms_and_conditions || ''}
+                        </Text>
 
                         <Text style={styles.sectionTitle}>Notes</Text>
-                        {invoice.notes ? (
-                            <Text style={styles.sectionContent}>{invoice.notes}</Text>
-                        ) : null}
-                        <Text style={styles.sectionContent}>Please quote invoice number when remitting funds.</Text>
+                        <Text style={styles.sectionContent}>
+                            {invoice.notes || ''}
+                        </Text>
                     </View>
 
                     <View style={styles.totalsColumn}>
                         <View style={styles.totalRow}>
                             <Text style={styles.totalLabel}>Sub Total</Text>
-                            <Text style={styles.totalValue}>${subTotal.toFixed(0)}</Text>
+                            <Text style={styles.totalValue}>AED {subTotal.toFixed(0)}</Text>
                         </View>
                         {invoice.is_taxable ? (
                             <View style={styles.totalRow}>
                                 <Text style={styles.totalLabel}>VAT ({taxRate}%)</Text>
-                                <Text style={styles.totalValue}>${taxAmount.toFixed(0)}</Text>
+                                <Text style={styles.totalValue}>AED {taxAmount.toFixed(0)}</Text>
                             </View>
                         ) : null}
                         <View style={styles.grandTotalRow}>
                             <Text style={styles.grandTotalLabel}>Total Amount</Text>
-                            <Text style={styles.grandTotalValue}>${totalAmount.toFixed(0)}</Text>
+                            <Text style={styles.grandTotalValue}>AED {totalAmount.toFixed(0)}</Text>
                         </View>
                         <View style={styles.totalRow}>
                             <Text style={styles.totalLabel}>Advance Paid</Text>
-                            <Text style={styles.totalValue}>${advancePaid.toFixed(0)}</Text>
+                            <Text style={styles.totalValue}>AED {advancePaid.toFixed(0)}</Text>
                         </View>
                         <View style={styles.balanceDueRow}>
                             <Text style={styles.balanceDueLabel}>Balance Due</Text>
-                            <Text style={styles.balanceDueValue}>${balanceDue.toFixed(0)}</Text>
+                            <Text style={styles.balanceDueValue}>AED {balanceDue.toFixed(0)}</Text>
                         </View>
 
-                        <Text style={styles.amountInWords}>Amount in Words : Dollar {totalAmount} Only</Text>
+                        <Text style={styles.amountInWords}>Amount in Words :  {totalAmount} Dirhams Only</Text>
                     </View>
                 </View>
 
                 {/* Signature */}
                 <View style={styles.signatureSection}>
                     <Text style={styles.signatureName}>Muhammed Rishad</Text>
-                    <Text style={styles.signatureRole}>Assistant Manager</Text>
+                    <Text style={styles.signatureRole}>Accountant</Text>
                 </View>
 
                 {/* Footer */}
@@ -407,9 +416,9 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl }) => {
                         {logoUrl ? (
                             <Image src={logoUrl} style={{ width: 14, height: 14, objectFit: 'contain', marginRight: 5 }} />
                         ) : (
-                            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#0c86ea', marginRight: 5 }} />
+                            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#1A2244', marginRight: 5 }} />
                         )}
-                        <Text style={{ color: '#0c86ea', fontWeight: 'bold' }}>Bizz Co Hub</Text>
+                        <Text style={{ color: '#1A2244', fontWeight: 'bold' }}>BIZZ CO HUB LLC</Text>
                     </View>
                     <Text style={{ color: '#666', fontSize: 8 }}>Premium Refurbished Electronics and Professional IT Services</Text>
                 </View>

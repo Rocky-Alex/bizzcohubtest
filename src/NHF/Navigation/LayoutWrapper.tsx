@@ -16,6 +16,20 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     // Strict Security: Logout Admin if they leave the admin section
     // Requirement: "If one exits the Admin section... then Re-login should be mandatory"
     // We achieve this by clearing the admin session whenever the user visits a non-admin page.
+    // Force hard refresh on navigation change to ensure clean state and cover loading issues
+    useEffect(() => {
+        const lastPath = sessionStorage.getItem('last_nav_path');
+        if (lastPath && lastPath !== pathname) {
+            sessionStorage.setItem('last_nav_path', pathname);
+            window.location.reload();
+        } else {
+            sessionStorage.setItem('last_nav_path', pathname || '');
+        }
+    }, [pathname]);
+
+    // Strict Security: Logout Admin if they leave the admin section
+    // Requirement: "If one exits the Admin section... then Re-login should be mandatory"
+    // We achieve this by clearing the admin session whenever the user visits a non-admin page.
     useEffect(() => {
         if (!isAdmin) {
             const storedAdmin = localStorage.getItem('admin_user');

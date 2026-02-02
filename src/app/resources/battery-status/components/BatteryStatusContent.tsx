@@ -225,14 +225,24 @@ export default function BatteryStatusContent() {
                 return isNaN(num) ? val : num.toLocaleString();
             };
 
+            const rawDesign = extract('DesignCapacity');
+            const rawFull = extract('FullChargeCapacity');
+            const designVal = parseInt(rawDesign);
+            const fullVal = parseInt(rawFull);
+            let health = 0;
+            if (!isNaN(designVal) && !isNaN(fullVal) && designVal > 0) {
+                health = Math.round((fullVal / designVal) * 100);
+            }
+
             const details = {
                 name: "Primary",
                 manufacturer: extract('Manufacturer'),
                 serialNumber: extract('SerialNumber'),
                 chemistry: extract('Chemistry'),
-                designCapacity: `${formatNum(extract('DesignCapacity'))} mWh`,
-                fullChargeCapacity: `${formatNum(extract('FullChargeCapacity'))} mWh`,
-                cycleCount: extract('CycleCount')
+                designCapacity: `${formatNum(rawDesign)} mWh`,
+                fullChargeCapacity: `${formatNum(rawFull)} mWh`,
+                cycleCount: extract('CycleCount'),
+                healthPercentage: health
             };
 
             setClientDetails(details);
@@ -456,6 +466,17 @@ pause
 
                                 <div style={{ color: '#a3a3a3', fontWeight: '500' }}>CYCLE COUNT</div>
                                 <div style={{ color: '#eab308', fontFamily: 'monospace', fontWeight: 'bold' }}>{clientDetails.cycleCount}</div>
+
+                                <div style={{ width: '100%', height: '1px', background: '#262626', gridColumn: '1 / -1' }}></div>
+
+                                <div style={{ color: '#a3a3a3', fontWeight: '500' }}>BATTERY HEALTH</div>
+                                <div style={{
+                                    color: clientDetails.healthPercentage >= 80 ? '#22c55e' : (clientDetails.healthPercentage >= 50 ? '#eab308' : '#ef4444'),
+                                    fontFamily: 'monospace',
+                                    fontWeight: 'bold'
+                                }}>
+                                    {clientDetails.healthPercentage}%
+                                </div>
                             </div>
                         </div>
                     )}

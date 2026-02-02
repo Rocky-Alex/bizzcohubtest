@@ -157,8 +157,8 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                     <style>
                         body { font-family: 'Arial', sans-serif; padding: 40px; }
                         .receipt-box { max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
-                        .header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-                        h2 { color: #0c86ea; margin: 0; }
+                        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1A2244; padding-bottom: 10px; }
+                        h2 { color: #1A2244; margin: 0; }
                         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                         td { padding: 10px; border-bottom: 1px solid #eee; }
                         .label { color: #666; }
@@ -170,7 +170,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                     <div class="receipt-box">
                         <div class="header">
                             <h2>PAYMENT RECEIPT</h2>
-                            <p>Bizz Co Hub</p>
+                            <p style="color: #1A2244; font-weight: bold;">BIZZ CO HUB LLC</p>
                         </div>
                         <p><strong>Customer:</strong> ${pay.customer_name}</p>
                         <p><strong>Invoice #:</strong> ${pay.invoice_no}</p>
@@ -414,7 +414,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                             </button>
                             <button
                                 onClick={submitEdit}
-                                style={{ width: '100%', padding: '0.75rem', background: '#0c86ea', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                                style={{ width: '100%', padding: '0.75rem', background: '#1A2244', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
                             >
                                 Save Changes
                             </button>
@@ -445,34 +445,26 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                 <div style={{ padding: '3rem', textAlign: 'center' }}>Loading details...</div>
                             ) : viewData ? (
                                 <div style={{ padding: '3rem', color: '#1f2937', fontFamily: "'Inter', sans-serif" }}>
-                                    <button
-                                        onClick={() => setShowViewModal(false)}
-                                        style={{
-                                            position: 'absolute', top: '1rem', right: '1rem',
-                                            background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#6b7280'
-                                        }}
-                                    >
-                                        &times;
-                                    </button>
-
                                     {/* Header */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', position: 'relative' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', borderBottom: '2px solid #1A2244', paddingBottom: '0.5rem', position: 'relative' }}>
                                         <div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                                <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '30px', height: 'auto' }} />
-                                                <h1 style={{ margin: 0, fontSize: '1.8rem', color: '#0c86eaff', fontWeight: 700 }}>Bizz Co Hub</h1>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
+                                                <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '40px', height: 'auto' }} />
+                                                <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontWeight: 700, fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
                                             </div>
-                                            <p style={{ margin: 0, color: '#0c86eaff', fontSize: '0.8rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
+                                            <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
+                                            <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Sharjah Media City, Sharjah, UAE</p>
+                                            <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
                                         </div>
 
                                         {viewData.invoice.is_taxable && (
-                                            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '10px', color: '#0c86eaff', fontWeight: 500 }}>
+                                            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '62px', color: '#1A2244', fontWeight: 500 }}>
                                                 TAX : 123456789123456
                                             </div>
                                         )}
 
                                         <div>
-                                            <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#0c86eaff', letterSpacing: '1px', fontWeight: 700 }}>INVOICE</h1>
+                                            <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#1A2244', letterSpacing: '1px', fontWeight: 700 }}>INVOICE</h1>
                                         </div>
                                     </div>
 
@@ -511,11 +503,11 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                     <table style={{ width: '100%', marginBottom: '3rem', borderCollapse: 'collapse' }}>
                                         <thead>
                                             <tr style={{ background: '#f8fafc' }}>
-                                                <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', color: '#64748b', fontWeight: 600, border: 'none' }}>Job Description</th>
-                                                <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#64748b', fontWeight: 600, border: 'none' }}>Qty</th>
-                                                <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#64748b', fontWeight: 600, border: 'none' }}>Cost</th>
-                                                <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#64748b', fontWeight: 600, border: 'none' }}>Discount</th>
-                                                <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.8rem', color: '#64748b', fontWeight: 600, border: 'none' }}>Total</th>
+                                                <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', color: '#1A2244', fontWeight: 600, border: 'none' }}>Job Description</th>
+                                                <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#1A2244', fontWeight: 600, border: 'none' }}>Qty</th>
+                                                <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#1A2244', fontWeight: 600, border: 'none' }}>Cost</th>
+                                                <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', color: '#1A2244', fontWeight: 600, border: 'none' }}>Discount</th>
+                                                <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.8rem', color: '#1A2244', fontWeight: 600, border: 'none' }}>Total</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -535,14 +527,14 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         {/* Left: Terms & Notes */}
                                         <div style={{ maxWidth: '45%' }}>
-                                            <h4 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Terms and Conditions</h4>
+                                            <h4 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1A2244' }}>Terms and Conditions</h4>
                                             <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '1rem' }}>Please pay within 7 days from the date of invoice.</p>
 
-                                            <h4 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Notes</h4>
+                                            <h4 style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1A2244' }}>Notes</h4>
                                             {viewData.invoice.notes && (
                                                 <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.25rem' }}>{viewData.invoice.notes}</p>
                                             )}
-                                            <p style={{ fontSize: '0.8rem', color: '#6b7280' }}>Please quote invoice number when remitting funds.</p>
+                                            <p style={{ fontSize: '0.8rem', color: '#6b7280' }}>Please quote invoice number when remitting funds</p>
                                         </div>
 
                                         {/* Right: Totals */}
@@ -579,7 +571,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                             </div>
 
                                             <div style={{ fontSize: '0.8rem', color: '#9ca3af', textAlign: 'right', fontStyle: 'italic' }}>
-                                                Amount in Words : Dollar {Number(viewData.invoice.total_amount)} Only
+                                                Amount in Words :  ${Number(viewData.invoice.total_amount)} Dirhams Only
                                             </div>
                                         </div>
                                     </div>
@@ -588,8 +580,8 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                     <div style={{ marginTop: '4rem', textAlign: 'right' }}>
                                         <div style={{ display: 'inline-block', textAlign: 'center' }}>
                                             <div style={{ width: '150px', borderBottom: '1px solid #000', marginBottom: '0.5rem' }}></div>
-                                            <h5 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>Muhammed Rishad</h5>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280' }}>Assistant Manager</p>
+                                            <h5 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#1A2244' }}>Muhammed Rishad</h5>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280' }}>Accountant</p>
                                         </div>
                                     </div>
 
@@ -597,7 +589,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                                     <div style={{ position: 'absolute', bottom: '2rem', left: 0, width: '100%', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                                             <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '24px', height: 'auto' }} />
-                                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0c86eaff' }}>Bizz Co Hub</h3>
+                                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h3>
                                         </div>
                                         <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
                                             Premium Refurbished Electronics and Professional IT Services

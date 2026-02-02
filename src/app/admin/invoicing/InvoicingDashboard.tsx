@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import './InvoicingDashboard.css';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
@@ -181,7 +183,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         style={{
                             display: 'flex', alignItems: 'center', gap: '0.5rem',
                             padding: '0.6rem 1rem',
-                            backgroundColor: '#0c86ea', border: 'none', borderRadius: '8px',
+                            backgroundColor: '#1A2244', border: 'none', borderRadius: '8px',
                             color: '#fff', fontSize: '0.9rem', fontWeight: 600,
                             cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                         }}

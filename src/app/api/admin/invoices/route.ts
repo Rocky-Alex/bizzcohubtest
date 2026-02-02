@@ -45,7 +45,10 @@ export async function POST(req: Request) {
             status,
             isTaxable,
             isDiscountable,
+            showTerms,
             items,
+            notes, // Add notes
+            terms, // Add terms
             advanceReceived // New field
         } = body;
 
@@ -55,7 +58,13 @@ export async function POST(req: Request) {
         }
 
         // DDL removed for performance.
-
+        // Ensure new column exists
+        try {
+            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS show_terms BOOLEAN DEFAULT TRUE`;
+            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS terms_and_conditions TEXT`;
+        } catch (e) {
+            console.log('Migration note (invoices):', e);
+        }
 
         // Insert Invoice
         const invoiceResult = await sql`
@@ -63,13 +72,13 @@ export async function POST(req: Request) {
                 invoice_no, customer_id, customer_name, customer_address, 
                 customer_email, customer_phone, created_date, due_date, 
                 sub_total, discount_total, tax_rate, tax_amount, total_amount, 
-                payment_type, status, is_taxable, is_discountable, advance_received, notes
+                payment_type, status, is_taxable, is_discountable, show_terms, advance_received, notes, terms_and_conditions
             ) VALUES (
                 ${invoiceNo}, ${customerId || null}, ${customerName}, ${customerAddress}, 
                 ${customerEmail}, ${customerPhone}, ${createdDate}, ${dueDate}, 
                 ${subTotal}, ${discountTotal}, ${taxRate}, ${taxAmount}, ${totalAmount}, 
-                ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}, ${advanceReceived || 0},
-                ${body.notes || null}
+                ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}, ${showTerms}, ${advanceReceived || 0},
+                ${notes || null}, ${terms || null}
             ) RETURNING id
         `;
 

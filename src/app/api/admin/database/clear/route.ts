@@ -21,6 +21,7 @@ const ALLOWED_TABLES = [
     'inventory_qc',
     'purchase_lots',
     'purchase_lot_items',
+    'invoices',
     'invoice_items',
     'quotation_items',
     'roles',

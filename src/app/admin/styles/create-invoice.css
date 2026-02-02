@@ -53,12 +53,16 @@
 /* --- Invoice Paper --- */
 .invoice-container {
     background: white;
-    max-width: 1000px;
+    width: 210mm;
+    /* max-width: 100%; Remove max-width to enforce A4 check if it fits your specific need, usually width: 210mm is explicit */
+    min-height: 297mm;
     margin: 0 auto;
     padding: 3rem;
     border-radius: 8px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     color: #1f2937;
+    box-sizing: border-box;
+    /* Ensure padding is included in width */
 }
 
 /* Header */

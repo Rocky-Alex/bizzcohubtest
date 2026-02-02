@@ -58,7 +58,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         // 3. Send Email
         const targetEmail = invoice.customer_email.trim();
-        const subject = `Invoice #${invoice.invoice_no} from Bizz Co Hub`;
+        const subject = `Invoice #${invoice.invoice_no} from BIZZ CO HUB LLC`;
         const htmlContent = `
             <div style="font-family: Arial, sans-serif; color: #333;">
                 <h2>Hello ${invoice.customer_name},</h2>
@@ -67,7 +67,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
                 <p><strong>Due Date:</strong> ${new Date(invoice.due_date).toLocaleDateString()}</p>
                 <br/>
                 <p>Best regards,</p>
-                <p><strong>Bizz Co Hub Team</strong></p>
+                <p><strong>BIZZ CO HUB LLC Team</strong></p>
             </div>
         `;
         const attachments = [
@@ -88,7 +88,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             // Note: 'from' address must be verified in Resend dashboard or use onboarding@resend.dev
             // If strictly using onboarding, we can only send to the registered admin email.
             const { data, error } = await resend.emails.send({
-                from: 'Bizz Co Hub <onboarding@resend.dev>',
+                from: 'BIZZ CO HUB LLC <onboarding@resend.dev>',
                 to: targetEmail,
                 subject: subject,
                 html: htmlContent,
@@ -130,7 +130,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             });
 
             await transporter.sendMail({
-                from: `"Bizz Co Hub" <${smtpUser}>`,
+                from: `"BIZZ CO HUB LLC" <${smtpUser}>`,
                 to: targetEmail,
                 subject: subject,
                 html: htmlContent,
