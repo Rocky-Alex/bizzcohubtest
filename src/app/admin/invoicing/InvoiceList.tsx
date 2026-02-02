@@ -27,7 +27,7 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
     React.useEffect(() => {
         const fetchInvoices = async () => {
             try {
-                const response = await fetch('/api/admin/invoices');
+                const response = await fetch('/api/admin/invoices', { cache: 'no-store' });
                 if (response.ok) {
                     const data = await response.json();
                     setInvoices(data.invoices || []);
@@ -103,7 +103,7 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
         setLoadingDetails(true);
         setShowViewModal(true);
         try {
-            const res = await fetch(`/api/admin/invoices/${id}`);
+            const res = await fetch(`/api/admin/invoices/${id}`, { cache: 'no-store' });
             if (res.ok) {
                 const data = await res.json();
                 setViewData(data);
@@ -485,7 +485,7 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
     const handlePrint = async (id: number) => {
         try {
             // Fetch Data
-            const res = await fetch(`/api/admin/invoices/${id}`);
+            const res = await fetch(`/api/admin/invoices/${id}`, { cache: 'no-store' });
             if (!res.ok) throw new Error('Failed to fetch invoice details');
             const data = await res.json();
             const { invoice, items } = data;
@@ -641,10 +641,10 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div style="max-width: 45%;">
                                 <h4 style="font-size: 0.7rem; font-weight: 700; margin-bottom: 0.20rem; color: #1A2244;">Terms and Conditions</h4>
-                                <p style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.20rem; white-space: pre-line; line-height: .7rem;">${invoice.terms_and_conditions || ''}</p>
+                                <p style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.20rem; white-space: pre-line; line-height: .9rem;">${invoice.terms_and_conditions || ''}</p>
                                 
                                 <h4 style="font-size: 0.7rem; font-weight: 700; margin-bottom: 0.20rem; color: #1A2244;">Notes</h4>
-                                <p style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.20rem; white-space: pre-line; line-height: .7rem;">${invoice.notes || ''}</p>
+                                <p style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.20rem; white-space: pre-line; line-height: .9rem;">${invoice.notes || ''}</p>
                             </div>
 
                             <div style="width: 300px;">
@@ -860,7 +860,7 @@ export default function InvoiceList({ setActiveSection, onEdit }: { setActiveSec
                                 <td style={{ padding: '1rem', fontWeight: 500, color: '#111827' }}>{inv.invoice_no}</td>
                                 <td style={{ padding: '1rem', color: '#4b5563' }}>{new Date(inv.created_date).toLocaleDateString()}</td>
                                 <td style={{ padding: '1rem', color: '#4b5563' }}>{inv.customer_name}</td>
-                                <td style={{ padding: '1rem', fontWeight: 500 }}>${Number(inv.total_amount).toFixed(2)}</td>
+                                <td style={{ padding: '1rem', fontWeight: 500 }}>AED {Number(inv.total_amount).toFixed(2)}</td>
                                 <td style={{ padding: '1rem' }}>
                                     <select
                                         value={inv.status}

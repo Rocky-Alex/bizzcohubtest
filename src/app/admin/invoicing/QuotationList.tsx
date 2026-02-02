@@ -14,7 +14,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
     React.useEffect(() => {
         const fetchQuotations = async () => {
             try {
-                const response = await fetch('/api/admin/quotations');
+                const response = await fetch('/api/admin/quotations', { cache: 'no-store' });
                 if (response.ok) {
                     const data = await response.json();
                     setQuotations(data.quotations || []);
@@ -83,7 +83,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
         setLoadingDetails(true);
         setShowViewModal(true);
         try {
-            const res = await fetch(`/api/admin/quotations/${id}`);
+            const res = await fetch(`/api/admin/quotations/${id}`, { cache: 'no-store' });
             if (res.ok) {
                 const data = await res.json();
                 setViewData(data);
@@ -142,7 +142,7 @@ export default function QuotationList({ setActiveSection, onEdit }: { setActiveS
 
     const handlePrint = async (id: number) => {
         try {
-            const res = await fetch(`/api/admin/quotations/${id}`);
+            const res = await fetch(`/api/admin/quotations/${id}`, { cache: 'no-store' });
             if (!res.ok) throw new Error('Failed to fetch quotation details');
             const data = await res.json();
             const { quotation, items } = data;

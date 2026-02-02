@@ -62,6 +62,12 @@ export default function DashboardOverview({
         overdueAmt: number;
         products: number;
         recentInvoices: any[];
+        trends: {
+            sales: number;
+            quotations: number;
+            customers: number;
+            invoices: number;
+        };
     }>({
         invoices: 0,
         customers: 0,
@@ -76,13 +82,19 @@ export default function DashboardOverview({
         outstandingAmt: 0,
         overdueAmt: 0,
         products: 0,
-        recentInvoices: []
+        recentInvoices: [],
+        trends: {
+            sales: 0,
+            quotations: 0,
+            customers: 0,
+            invoices: 0
+        }
     });
     const [loading, setLoading] = useState(false);
 
     // --- State ---
     const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
-    const [selectedDateRange, setSelectedDateRange] = useState("This Month");
+    const [selectedDateRange, setSelectedDateRange] = useState("Last 30 Days");
 
     // State for Custom Range Picker
     const [customStartDate, setCustomStartDate] = useState<Date>(new Date());
@@ -91,7 +103,7 @@ export default function DashboardOverview({
     // State for Applied Filter - Default to This Month
     const [appliedStartDate, setAppliedStartDate] = useState<Date>(() => {
         const d = new Date();
-        d.setDate(1);
+        d.setDate(d.getDate() - 30);
         return d;
     });
     const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
@@ -203,7 +215,7 @@ export default function DashboardOverview({
 
     // Helper to format currency
     const formatCurrency = (val: number) => {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'AED', maximumFractionDigits: 0 }).format(val).replace('AED', 'AED ');
     };
 
     const formatNumber = (val: number) => {
@@ -212,6 +224,17 @@ export default function DashboardOverview({
 
     const getAvatarUrl = (name: string) => {
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=32`;
+    };
+
+    const renderTrendBadge = (value: number) => {
+        if (!value) return <span className="summary-badge neutral">0%</span>;
+        const isPositive = value > 0;
+        return (
+            <span className={`summary-badge ${isPositive ? 'positive' : 'negative'}`}>
+                {isPositive ? '+' : ''}{value.toFixed(1)}%
+                <i className={`fas fa-arrow-${isPositive ? 'up' : 'down'}`} style={{ fontSize: '0.7em', marginLeft: '2px' }}></i>
+            </span>
+        );
     };
 
     // --- Render Helpers ---
@@ -480,8 +503,12 @@ export default function DashboardOverview({
                         <i className="fas fa-chart-line summary-card-icon"></i>
                     </div>
                     <div className="summary-card-main">
-                        <span className="summary-main-value">{formatNumber(aggregatedStats.sales > 1000 ? Math.floor(aggregatedStats.sales / 1000) : aggregatedStats.sales)}K</span>
-                        <span className="summary-badge">+45% <i className="fas fa-arrow-up" style={{ fontSize: '0.7em' }}></i></span>
+                        <span className="summary-main-value">
+                            {aggregatedStats.sales >= 1000
+                                ? (aggregatedStats.sales / 1000).toFixed(1) + 'K'
+                                : formatNumber(aggregatedStats.sales)}
+                        </span>
+                        {renderTrendBadge(aggregatedStats.trends.sales)}
                     </div>
                     <div className="summary-card-footer" onClick={() => setActiveSection('orders-all')}>
                         View Invoices
@@ -496,12 +523,27 @@ export default function DashboardOverview({
                     </div>
                     <div className="summary-card-main">
                         <span className="summary-main-value">{formatNumber(aggregatedStats.quotations)}</span>
-                        <span className="summary-badge">+45% <i className="fas fa-arrow-up" style={{ fontSize: '0.7em' }}></i></span>
+                        {renderTrendBadge(aggregatedStats.trends.quotations)}
                     </div>
-                    <div className="summary-card-footer" onClick={() => setActiveSection('orders-all')}>
+                    <div className="summary-card-footer" onClick={() => setActiveSection('quotations-all')}>
                         View All
                     </div>
                     <div className="corner-decoration orange"></div>
+                </div>
+
+                <div className="summary-data-card">
+                    <div className="summary-card-header">
+                        <span className="summary-card-title">New Customers</span>
+                        <i className="fas fa-users-plus summary-card-icon"></i>
+                    </div>
+                    <div className="summary-card-main">
+                        <span className="summary-main-value">{formatNumber(aggregatedStats.customers)}</span>
+                        {renderTrendBadge(aggregatedStats.trends.customers)}
+                    </div>
+                    <div className="summary-card-footer" onClick={() => setActiveSection('customers-all')}>
+                        View All
+                    </div>
+                    <div className="corner-decoration purple"></div>
                 </div>
             </div>
 

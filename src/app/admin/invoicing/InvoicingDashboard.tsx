@@ -206,7 +206,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                     </div>
                     <div className="stat-content">
                         <h3>Total Paid Invoice</h3>
-                        <p className="stat-value">${stats.totalReceived.toFixed(2)}</p>
+                        <p className="stat-value">AED {stats.totalReceived.toFixed(2)}</p>
                     </div>
                 </div>
 
@@ -219,7 +219,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                     </div>
                     <div className="stat-content">
                         <h3>Total Credit Invoice</h3>
-                        <p className="stat-value">${stats.totalCreditAmount.toFixed(2)}</p>
+                        <p className="stat-value">AED {stats.totalCreditAmount.toFixed(2)}</p>
                     </div>
                 </div>
 
@@ -259,7 +259,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                     </div>
                     <div className="stat-content">
                         <h3>Total Overdue Invoice</h3>
-                        <p className="stat-value">${stats.overdueAmount.toFixed(2)}</p>
+                        <p className="stat-value">AED {stats.overdueAmount.toFixed(2)}</p>
                     </div>
                 </div>
 
@@ -336,7 +336,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: 600, color: '#1f2937' }}>${Number(tx.total_amount || 0).toFixed(2)}</div>
+                                        <div style={{ fontWeight: 600, color: '#1f2937' }}>AED {Number(tx.total_amount || 0).toFixed(2)}</div>
                                         <div style={{
                                             fontSize: '0.75rem',
                                             fontWeight: 500,

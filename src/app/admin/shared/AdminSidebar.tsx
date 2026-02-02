@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import AutoRefreshSettings from "./AutoRefreshSettings";
 
 interface AdminSidebarProps {
@@ -20,8 +20,8 @@ export default function AdminSidebar({
 }: AdminSidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const menuItems = [
-        { id: "quick-actions", icon: "fa-rocket", label: "Quick Actions" },
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
         {
             id: "featured-manage",
@@ -199,7 +199,9 @@ export default function AdminSidebar({
             };
 
             const target = routeMap[sub.id] || `/admin/${sub.id.replace(/-/g, '/')}`;
-            if (pathname === target) {
+            const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+
+            if (currentFullUrl === target) {
                 window.location.reload();
             } else {
                 router.push(target);
@@ -215,7 +217,6 @@ export default function AdminSidebar({
         } else {
             const routeMap: Record<string, string> = {
                 'dashboard': '/admin/dashboard',
-                'quick-actions': '/admin/quick-actions',
 
                 'user-passwords': '/admin/passwords',
                 'activity-log': '/admin/activity-log',
@@ -223,7 +224,9 @@ export default function AdminSidebar({
                 'database': '/admin/database'
             };
             const target = routeMap[item.id] || `/admin/${item.id}`;
-            if (pathname === target) {
+            const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+
+            if (currentFullUrl === target) {
                 window.location.reload();
             } else {
                 router.push(target);
@@ -251,7 +254,6 @@ export default function AdminSidebar({
     const isMainItemActive = (item: any) => {
         const routeMap: Record<string, string> = {
             'dashboard': '/admin/dashboard',
-            'quick-actions': '/admin/quick-actions',
 
             'user-passwords': '/admin/passwords',
             'activity-log': '/admin/activity-log',
