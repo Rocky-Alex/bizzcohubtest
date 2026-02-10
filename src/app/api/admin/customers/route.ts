@@ -3,7 +3,7 @@ import { sql } from '@/lib/db';
 import { createHash } from 'crypto';
 import { logActivity } from '@/lib/activity-logger';
 
-export async function GET(request: NextRequest) {
+export async function GET(): Promise<NextResponse> {
     try {
         // Create table if not exists
         // Note: For development, we might want to drop if schema changes, but normally migration tools handle this.
@@ -57,16 +57,17 @@ export async function GET(request: NextRequest) {
             ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP;
         `;
 
-        const customers = await sql`SELECT * FROM customers ORDER BY created_at DESC`;
+        const customers = await sql`SELECT * FROM customers ORDER BY created_at DESC` as unknown as any[];
 
         return NextResponse.json({ customers });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching customers:', error);
-        return NextResponse.json({ error: 'Failed to fetch customers', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to fetch customers', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
 
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
                 ${body.password || null}
             )
             RETURNING *
-        `;
+        ` as unknown as any[];
 
         await logActivity(
             'Admin',
@@ -180,13 +181,14 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json({ customer: newCustomer[0] });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating customer:', error);
-        return NextResponse.json({ error: 'Failed to create customer', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to create customer', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
 
@@ -201,7 +203,7 @@ export async function PUT(request: NextRequest) {
                 SET status = ${body.status}
                 WHERE id = ${body.id}
                 RETURNING *
-            `;
+            ` as unknown as any[];
             return NextResponse.json({ customer: updatedCustomer[0] });
         }
 
@@ -214,7 +216,7 @@ export async function PUT(request: NextRequest) {
         // Frontend: billingName -> DB: billing_name
         // Frontend: image_url or avatar -> DB: image_url
 
-        let updatedCustomer;
+        let updatedCustomer: any[];
 
         if (body.password) {
             const passwordHash = createHash('sha256').update(body.password).digest('hex');
@@ -245,7 +247,7 @@ export async function PUT(request: NextRequest) {
                     visible_password = ${body.password}
                 WHERE id = ${body.id}
                 RETURNING *
-            `;
+            ` as unknown as any[];
         } else {
             updatedCustomer = await sql`
                 UPDATE customers
@@ -272,7 +274,7 @@ export async function PUT(request: NextRequest) {
                     status = ${body.status || 'Active'}
                 WHERE id = ${body.id}
                 RETURNING *
-            `;
+            ` as unknown as any[];
         }
 
         if (updatedCustomer.length === 0) {
@@ -291,13 +293,14 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json({ customer: updatedCustomer[0] });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating customer:', error);
-        return NextResponse.json({ error: 'Failed to update customer', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to update customer', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -317,8 +320,9 @@ export async function DELETE(request: NextRequest) {
         );
 
         return NextResponse.json({ message: 'Customer deleted successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting customer:', error);
-        return NextResponse.json({ error: 'Failed to delete customer', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to delete customer', details: errorMessage }, { status: 500 });
     }
 }

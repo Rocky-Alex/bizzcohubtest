@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 import { logActivity } from '@/lib/activity-logger';
+import { Quotation, QuotationItem } from '@/types';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
 
         const quotationResult = await sql`
             SELECT * FROM quotations WHERE id = ${id}
-        `;
+        ` as unknown as Quotation[];
 
         if (quotationResult.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
@@ -16,18 +17,17 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
         const itemsResult = await sql`
             SELECT * FROM quotation_items WHERE quotation_id = ${id}
-        `;
-
-
+        ` as unknown as QuotationItem[];
 
         return NextResponse.json({ quotation: quotationResult[0], items: itemsResult }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching quotation details:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
         const { status } = await req.json();
@@ -41,7 +41,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             SET status = ${status}
             WHERE id = ${id}
             RETURNING id, status
-        `;
+        ` as unknown as { id: number, status: string }[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
@@ -57,13 +57,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
         return NextResponse.json({ message: 'Status updated successfully', quotation: result[0] }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating quotation status:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
         const body = await req.json();
@@ -99,7 +100,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
                 advance_received = ${advanceReceived || 0}
             WHERE id = ${id}
             RETURNING id
-        `;
+        ` as unknown as { id: number }[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
@@ -127,13 +128,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
         return NextResponse.json({ message: 'Quotation updated successfully' }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating quotation:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
 
@@ -141,7 +143,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
             DELETE FROM quotations
             WHERE id = ${id}
             RETURNING id
-        `;
+        ` as unknown as { id: number }[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
@@ -156,8 +158,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
         );
 
         return NextResponse.json({ message: 'Quotation deleted successfully' }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting quotation:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const id = params.id;
 
@@ -20,23 +20,24 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
         const payments = await sql`
             SELECT * FROM invoice_payments WHERE invoice_id = ${id} ORDER BY payment_date DESC, created_at DESC
-        `;
+        ` as unknown as any[];
 
         return NextResponse.json({ payments }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching payments:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const id = params.id;
         const body = await req.json();
         const { amount, date, method, notes } = body;
 
-        if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
             return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
         }
 
@@ -47,14 +48,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         `;
 
         // 2. Recalculate Total Paid and Update Invoice
-        // We sum up ALL payments in invoice_payments table + any initial advance that might not be in that table? 
-        // Ideally, we should sync 'advance_received' to be the SUM of invoice_payments.
-        // For simplicity and robustness, let's assume 'advance_received' stores the TOTAL PAID.
-        // But if we have legacy 'advance_received' without payment records, we might double count if we aren't careful.
-        // Strategy: We will update 'advance_received' by adding the NEW amount.
-
         // Fetch current invoice to get total and current advance
-        const invResult = await sql`SELECT total_amount, advance_received FROM invoices WHERE id = ${id}`;
+        const invResult = await sql`SELECT total_amount, advance_received FROM invoices WHERE id = ${id}` as unknown as any[];
         if (invResult.length === 0) {
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
         }
@@ -82,8 +77,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             newPaid
         }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error recording payment:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

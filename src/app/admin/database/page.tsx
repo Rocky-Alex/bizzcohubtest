@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import ConfirmModal from "../shared/ConfirmModal";
+import DatabaseTransferTool from "./components/DatabaseTransferTool";
 
 export default function DatabasePage() {
     type Section = "Inventory" | "Sales" | "People" | "Billing" | "System" | "Purchases";
@@ -108,6 +109,7 @@ export default function DatabasePage() {
     // Actions State
     const [clearingTable, setClearingTable] = useState<string | null>(null);
     const [deletingRowId, setDeletingRowId] = useState<string | null>(null);
+    const [isTransferring, setIsTransferring] = useState(false);
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -172,6 +174,7 @@ export default function DatabasePage() {
     };
 
     const getLevel = () => {
+        if (currentNav.type === 'transfer-tool') return 'transfer-tool';
         if (currentNav.type === 'collections') return 'sections';
         if (currentNav.table) return 'data';
         if (currentNav.subsectionId) return 'tables';
@@ -313,6 +316,44 @@ export default function DatabasePage() {
         }
     };
 
+    const handleTransfer = async (direction: 'main-to-local' | 'local-to-main') => {
+        const title = direction === 'main-to-local' ? 'Transfer Main to Local' : 'Transfer Local to Main';
+        const message = `This will copy all data from the ${direction === 'main-to-local' ? 'Main' : 'Local'} database to the ${direction === 'main-to-local' ? 'Local' : 'Main'} database. ALL EXISTING DATA in the destination database will be WIPED and replaced. This cannot be undone. Do you want to proceed?`;
+
+        setConfirmModal({
+            isOpen: true,
+            title,
+            message,
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                setIsTransferring(true);
+                const toastId = toast.loading('Initializing database transfer...');
+                try {
+                    const response = await fetch('/api/admin/database/transfer', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ direction })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        toast.success('Database transfer completed successfully!', { id: toastId });
+                        if (activeTable) fetchTableData(activeTable.tableName, 1);
+                    } else {
+                        toast.error(data.error || 'Transfer failed', { id: toastId });
+                    }
+                } catch (error) {
+                    console.error('Transfer error:', error);
+                    toast.error('An unexpected error occurred during transfer', { id: toastId });
+                } finally {
+                    setIsTransferring(false);
+                }
+            }
+        });
+    };
+
     const currentSubsections = activeSection ? SCHEMA[activeSection] : [];
     const activeSubsection = currentSubsections.find(sub => sub.id === activeSubsectionId);
 
@@ -335,6 +376,10 @@ export default function DatabasePage() {
 
         if (currentNav.table) {
             crumbs.push({ label: currentNav.table.name, action: () => { } });
+        }
+
+        if (currentNav.type === 'transfer-tool') {
+            crumbs.push({ label: 'Data Sync Tool', action: () => { } });
         }
 
         return (
@@ -457,11 +502,11 @@ export default function DatabasePage() {
                                 targets = SCHEMA[activeSection].flatMap(sub => sub.tables.map(t => t.tableName));
                                 label = activeSection;
                             } else {
-                                // Root Level
-                                targets = Object.values(SCHEMA).flatMap(subs =>
-                                    subs.flatMap(sub => sub.tables.map(t => t.tableName))
-                                );
-                                label = "Entire Database";
+                                // Root Level: Clear Business Data Only (Exclude People)
+                                targets = (Object.keys(SCHEMA) as Section[])
+                                    .filter(key => key !== 'People')
+                                    .flatMap(key => SCHEMA[key].flatMap(sub => sub.tables.map(t => t.tableName)));
+                                label = "Business Data (Everything except People)";
                             }
 
                             if (targets.length > 0) {
@@ -489,7 +534,7 @@ export default function DatabasePage() {
                         }}
                     >
                         <i className="fas fa-trash-alt"></i>
-                        {activeTable ? 'Clear Table' : (activeSubsection ? `Clear Category` : (activeSection ? `Clear ${activeSection}` : 'Wipe Database'))}
+                        {activeTable ? 'Clear Table' : (activeSubsection ? `Clear Category` : (activeSection ? `Clear ${activeSection}` : 'Clear Business Data'))}
                     </button>
                 </div>
             </header>
@@ -523,18 +568,149 @@ export default function DatabasePage() {
                                 <p style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '0.5rem' }}>Select a collection to begin exploring structures.</p>
                             </div>
 
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                                gap: '1rem'
-                            }}>
-                                {(Object.keys(SCHEMA) as Section[]).map((section) => (
+
+                            {/* BUSINESS OPERATIONS GROUP */}
+                            <div style={{ marginBottom: '3rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ width: '4px', height: '24px', background: '#2563eb', borderRadius: '2px' }}></div>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.01em', margin: 0 }}>
+                                        Business Operations
+                                    </h2>
+                                </div>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                                    gap: '1rem'
+                                }}>
+                                    {['Inventory', 'Purchases', 'Sales', 'Billing', 'System'].map((sectionKey) => {
+                                        const section = sectionKey as Section;
+                                        return (
+                                            <button
+                                                key={section}
+                                                onClick={() => navigateTo({ section })}
+                                                style={{
+                                                    padding: '2rem 2rem', background: 'white', borderRadius: '24px',
+                                                    border: '1px solid #e2e8f0', textAlign: 'left', cursor: 'pointer',
+                                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                    display: 'flex', flexDirection: 'column', gap: '1.5rem',
+                                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                                    position: 'relative', overflow: 'hidden'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(-6px)';
+                                                    e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.15)';
+                                                    e.currentTarget.style.borderColor = '#2563eb';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                                                    e.currentTarget.style.borderColor = '#e2e8f0';
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '56px', height: '56px', borderRadius: '18px',
+                                                    background: '#eff6ff', display: 'flex', alignItems: 'center',
+                                                    justifyContent: 'center', fontSize: '1.5rem', color: '#2563eb'
+                                                }}>
+                                                    {section === 'Inventory' && <i className="fas fa-boxes"></i>}
+                                                    {section === 'Sales' && <i className="fas fa-shopping-cart"></i>}
+                                                    {section === 'Billing' && <i className="fas fa-file-invoice-dollar"></i>}
+                                                    {section === 'System' && <i className="fas fa-cog"></i>}
+                                                    {section === 'Purchases' && <i className="fas fa-truck-loading"></i>}
+                                                </div>
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em' }}>{section}</h3>
+                                                    <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '0.4rem', lineHeight: '1.5' }}>
+                                                        {SCHEMA[section].length} categories
+                                                    </p>
+                                                </div>
+                                                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2563eb', fontWeight: '700', fontSize: '0.8rem' }}>
+                                                    View <i className="fas fa-arrow-right"></i>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* PEOPLE & CRM GROUP */}
+                            <div style={{ marginBottom: '3rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ width: '4px', height: '24px', background: '#ec4899', borderRadius: '2px' }}></div>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.01em', margin: 0 }}>
+                                        People & CRM
+                                    </h2>
+                                </div>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                                    gap: '1rem'
+                                }}>
+                                    {['People'].map((sectionKey) => {
+                                        const section = sectionKey as Section;
+                                        return (
+                                            <button
+                                                key={section}
+                                                onClick={() => navigateTo({ section })}
+                                                style={{
+                                                    padding: '2rem 2rem', background: 'white', borderRadius: '24px',
+                                                    border: '1px solid #e2e8f0', textAlign: 'left', cursor: 'pointer',
+                                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                    display: 'flex', flexDirection: 'column', gap: '1.5rem',
+                                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                                    position: 'relative', overflow: 'hidden'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(-6px)';
+                                                    e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.15)';
+                                                    e.currentTarget.style.borderColor = '#ec4899';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+                                                    e.currentTarget.style.borderColor = '#e2e8f0';
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '56px', height: '56px', borderRadius: '18px',
+                                                    background: '#fdf2f8', display: 'flex', alignItems: 'center',
+                                                    justifyContent: 'center', fontSize: '1.5rem', color: '#db2777'
+                                                }}>
+                                                    <i className="fas fa-users"></i>
+                                                </div>
+                                                <div>
+                                                    <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em' }}>{section}</h3>
+                                                    <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '0.4rem', lineHeight: '1.5' }}>
+                                                        {SCHEMA[section].length} categories
+                                                    </p>
+                                                </div>
+                                                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#db2777', fontWeight: '700', fontSize: '0.8rem' }}>
+                                                    View <i className="fas fa-arrow-right"></i>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* TOOLS GROUP */}
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ width: '4px', height: '24px', background: '#0891b2', borderRadius: '2px' }}></div>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.01em', margin: 0 }}>
+                                        Utilities
+                                    </h2>
+                                </div>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                                    gap: '1rem'
+                                }}>
                                     <button
-                                        key={section}
-                                        onClick={() => navigateTo({ section })}
+                                        onClick={() => navigateTo({ type: 'transfer-tool' })}
                                         style={{
-                                            padding: '2rem 2rem', background: 'white', borderRadius: '24px',
-                                            border: '1px solid #e2e8f0', textAlign: 'left', cursor: 'pointer',
+                                            padding: '2rem 2rem', background: '#ecfeff', borderRadius: '24px',
+                                            border: '1px solid #cffafe', textAlign: 'left', cursor: 'pointer',
                                             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                                             display: 'flex', flexDirection: 'column', gap: '1.5rem',
                                             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
@@ -543,39 +719,39 @@ export default function DatabasePage() {
                                         onMouseEnter={(e) => {
                                             e.currentTarget.style.transform = 'translateY(-6px)';
                                             e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.15)';
-                                            e.currentTarget.style.borderColor = '#2563eb';
+                                            e.currentTarget.style.borderColor = '#0891b2';
                                         }}
                                         onMouseLeave={(e) => {
                                             e.currentTarget.style.transform = 'translateY(0)';
                                             e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
-                                            e.currentTarget.style.borderColor = '#e2e8f0';
+                                            e.currentTarget.style.borderColor = '#cffafe';
                                         }}
                                     >
                                         <div style={{
-                                            width: '62px', height: '62px', borderRadius: '20px',
-                                            background: '#eff6ff', display: 'flex', alignItems: 'center',
-                                            justifyContent: 'center', fontSize: '1.75rem', color: '#2563eb'
+                                            width: '56px', height: '56px', borderRadius: '18px',
+                                            background: '#cffafe', display: 'flex', alignItems: 'center',
+                                            justifyContent: 'center', fontSize: '1.5rem', color: '#0891b2'
                                         }}>
-                                            {section === 'Inventory' && <i className="fas fa-boxes"></i>}
-                                            {section === 'Sales' && <i className="fas fa-shopping-cart"></i>}
-                                            {section === 'People' && <i className="fas fa-users"></i>}
-                                            {section === 'Billing' && <i className="fas fa-file-invoice-dollar"></i>}
-                                            {section === 'System' && <i className="fas fa-cog"></i>}
-                                            {section === 'Purchases' && <i className="fas fa-truck-loading"></i>}
+                                            <i className="fas fa-exchange-alt"></i>
                                         </div>
                                         <div>
-                                            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em' }}>{section}</h3>
-                                            <p style={{ fontSize: '1rem', color: '#64748b', marginTop: '0.5rem', lineHeight: '1.5' }}>
-                                                Manage {SCHEMA[section].length} categories including {SCHEMA[section][0]?.label || 'various data points'}.
+                                            <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#164e63', letterSpacing: '-0.02em' }}>Database Transfer</h3>
+                                            <p style={{ fontSize: '0.9rem', color: '#0e7490', marginTop: '0.4rem', lineHeight: '1.5' }}>
+                                                Sync Local & Main DB
                                             </p>
                                         </div>
-                                        <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2563eb', fontWeight: '700', fontSize: '0.8rem' }}>
-                                            Explore Tables <i className="fas fa-arrow-right"></i>
+                                        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0891b2', fontWeight: '700', fontSize: '0.8rem' }}>
+                                            Open Tool <i className="fas fa-arrow-right"></i>
                                         </div>
                                     </button>
-                                ))}
+                                </div>
                             </div>
                         </div>
+                    )}
+
+                    {/* LEVEL: TRANSFER TOOL */}
+                    {currentLevel === 'transfer-tool' && (
+                        <DatabaseTransferTool onBack={goBack} />
                     )}
 
                     {/* LEVEL 1: CATEGORIES */}
@@ -838,7 +1014,7 @@ export default function DatabasePage() {
                         </div>
                     )}
                 </div>
-            </main>
+            </main >
 
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
@@ -848,7 +1024,7 @@ export default function DatabasePage() {
                 onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                 type={confirmModal.type}
             />
-        </div>
+        </div >
     );
 }
 

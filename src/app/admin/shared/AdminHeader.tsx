@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import ViewUserModal from "../users/ViewUserModal";
 import EditUserModal from "../users/EditUserModal";
 import { toast } from "sonner";
@@ -184,6 +185,72 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                 <div className="header-search">
                     <i className="fas fa-search search-icon"></i>
                     <input type="text" placeholder="Search..." className="search-input" />
+                </div>
+            </div>
+
+            <div className="header-toggle-wrapper" style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', marginLeft: '1rem' }}>
+                <div style={{
+                    background: theme === 'dark' ? '#1e293b' : '#f1f5f9',
+                    padding: '4px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    position: 'relative',
+                    border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`
+                }}>
+                    {(() => {
+                        const router = useRouter();
+                        const pathname = usePathname();
+                        const searchParams = useSearchParams();
+                        const isProduction = searchParams.get('workspace') === 'production' ||
+                            pathname?.startsWith('/admin/production') ||
+                            pathname?.startsWith('/admin/purchase') ||
+                            pathname?.startsWith('/admin/inventory');
+
+                        return (
+                            <>
+                                <button
+                                    onClick={() => router.push('/admin/dashboard')}
+                                    style={{
+                                        padding: '6px 16px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: !isProduction ? (theme === 'dark' ? '#3b82f6' : '#fff') : 'transparent',
+                                        color: !isProduction ? (theme === 'dark' ? '#fff' : '#0f172a') : '#64748b',
+                                        fontWeight: 600,
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        boxShadow: !isProduction ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    Admin Panel
+                                </button>
+                                <button
+                                    onClick={() => router.push('/admin/dashboard?workspace=production')}
+                                    style={{
+                                        padding: '6px 16px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: isProduction ? (theme === 'dark' ? '#3b82f6' : '#fff') : 'transparent',
+                                        color: isProduction ? (theme === 'dark' ? '#fff' : '#0f172a') : '#64748b',
+                                        fontWeight: 600,
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        boxShadow: isProduction ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    Production
+                                </button>
+                            </>
+                        );
+                    })()}
                 </div>
             </div>
 

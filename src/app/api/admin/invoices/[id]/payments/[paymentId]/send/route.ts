@@ -7,13 +7,13 @@ import nodemailer from 'nodemailer';
 // Initialize Resend
 // Resend initialized inside POST
 
-export async function POST(req: Request, { params }: { params: { id: string, paymentId: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string, paymentId: string } }): Promise<NextResponse> {
     try {
         const { id: invoiceId, paymentId } = params;
 
         // 1. Fetch Data
-        const invoiceResult = await sql`SELECT * FROM invoices WHERE id = ${invoiceId}`;
-        const paymentResult = await sql`SELECT * FROM invoice_payments WHERE id = ${paymentId}`;
+        const invoiceResult = await sql`SELECT * FROM invoices WHERE id = ${invoiceId}` as unknown as any[];
+        const paymentResult = await sql`SELECT * FROM invoice_payments WHERE id = ${paymentId}` as unknown as any[];
 
         if (invoiceResult.length === 0 || paymentResult.length === 0) {
             return NextResponse.json({ error: 'Invoice or Payment not found' }, { status: 404 });
@@ -80,7 +80,7 @@ export async function POST(req: Request, { params }: { params: { id: string, pay
         // Option A: Use Resend if configured
         if (process.env.RESEND_API_KEY) {
             const resend = new Resend(process.env.RESEND_API_KEY.trim());
-            const { data, error } = await resend.emails.send({
+            const { error } = await resend.emails.send({
                 from: 'Bizz Co Hub <onboarding@resend.dev>',
                 to: [targetEmail], // Send to customer email
                 subject: subject,
@@ -125,8 +125,9 @@ export async function POST(req: Request, { params }: { params: { id: string, pay
 
         return NextResponse.json({ message: 'Receipt sent successfully' });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error sending receipt:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

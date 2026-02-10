@@ -3,12 +3,13 @@ import { sql } from '@/lib/db';
 import { cookies } from 'next/headers';
 
 // Helper to check if current user is admin
-function isAdmin() {
+// Helper to check if current user is admin
+function isAdmin(): boolean {
     const role = cookies().get('user_role')?.value;
     return role?.toLowerCase() === 'admin';
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
         `;
 
         // Fetch roles
-        const roles = await sql`SELECT * FROM roles ORDER BY created_at ASC`;
+        const roles = await sql`SELECT * FROM roles ORDER BY created_at ASC` as unknown as any[];
 
         // If no roles exist, seed default ones
         if (roles.length === 0) {
@@ -38,18 +39,19 @@ export async function GET(request: NextRequest) {
                 `;
             }
             // Fetch again
-            const seededRoles = await sql`SELECT * FROM roles ORDER BY created_at ASC`;
+            const seededRoles = await sql`SELECT * FROM roles ORDER BY created_at ASC` as unknown as any[];
             return NextResponse.json({ roles: seededRoles });
         }
 
         return NextResponse.json({ roles });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching roles:', error);
-        return NextResponse.json({ error: 'Failed to fetch roles', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to fetch roles', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -67,19 +69,20 @@ export async function POST(request: NextRequest) {
             INSERT INTO roles (name, permissions, created_at)
             VALUES (${name}, ${permissions || {}}, ${new Date().toISOString()})
             RETURNING *
-        `;
+        ` as unknown as any[];
 
         return NextResponse.json({ role: newRole[0] });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating role:', error);
-        if (error.code === '23505') { // Unique violation
+        if (typeof error === 'object' && error !== null && 'code' in error && error.code === '23505') { // Unique violation
             return NextResponse.json({ error: 'Role already exists' }, { status: 400 });
         }
-        return NextResponse.json({ error: 'Failed to create role', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to create role', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -95,7 +98,7 @@ export async function DELETE(request: NextRequest) {
         // Optional: Check if role is used by any user? 
         // For now, allow delete. User might need to handle reassignment.
         // Also prevent deleting 'Admin'?
-        const role = await sql`SELECT name FROM roles WHERE id = ${id}`;
+        const role = await sql`SELECT name FROM roles WHERE id = ${id}` as unknown as { name: string }[];
         if (role.length > 0 && role[0].name.toLowerCase() === 'admin') {
             return NextResponse.json({ error: 'Cannot delete Admin role' }, { status: 403 });
         }
@@ -103,8 +106,9 @@ export async function DELETE(request: NextRequest) {
         await sql`DELETE FROM roles WHERE id = ${id}`;
 
         return NextResponse.json({ message: 'Role deleted successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting role:', error);
-        return NextResponse.json({ error: 'Failed to delete role', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to delete role', details: errorMessage }, { status: 500 });
     }
 }

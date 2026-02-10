@@ -7,7 +7,7 @@ const getSql = () => {
     return neon(dbUrl);
 };
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     try {
         const sql = getSql();
         // Ensure table exists
@@ -34,15 +34,16 @@ export async function GET() {
                 OR p.id::text = c.product_code
             )
             ORDER BY c.slot_number ASC
-        `;
+        ` as unknown as any[];
         return NextResponse.json({ slots: rows });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching featured config:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const sql = getSql();
         const body = await req.json();
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
 
         await sql`DELETE FROM featured_products_config`;
 
-        for (const slot of slots) {
+        for (const slot of slots as { slot_number: number, product_code: string }[]) {
             // Trim whitespace to ensure clean matching
             if (slot.product_code && slot.product_code.trim() !== '') {
                 await sql`INSERT INTO featured_products_config (slot_number, product_code) 
@@ -69,8 +70,9 @@ export async function POST(req: Request) {
 
         // Return success
         return NextResponse.json({ message: 'Configuration saved' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error saving featured config:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

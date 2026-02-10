@@ -9,12 +9,14 @@ import path from 'path';
 // Initialize Resend with the provided API Key
 // Resend initialized inside POST
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+import fs from 'fs';
+
+export async function POST(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const id = params.id;
 
         // 1. Fetch Quotation Data
-        const quotationResult = await sql`SELECT * FROM quotations WHERE id = ${id}`;
+        const quotationResult = await sql`SELECT * FROM quotations WHERE id = ${id}` as unknown as any[];
         if (quotationResult.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
         }
@@ -24,32 +26,32 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             return NextResponse.json({ error: 'Customer email not found' }, { status: 400 });
         }
 
-        const itemsResult = await sql`SELECT * FROM quotation_items WHERE quotation_id = ${id}`;
+        const itemsResult = await sql`SELECT * FROM quotation_items WHERE quotation_id = ${id}` as unknown as any[];
 
         // 2. Generate PDF
         const logoPath = path.join(process.cwd(), 'public', 'icon', 'nav-logo.png');
         let logoUrl = '';
 
         try {
-            const fs = require('fs');
             if (fs.existsSync(logoPath)) {
                 const logoBuffer = fs.readFileSync(logoPath);
                 logoUrl = `data:image/png;base64,${logoBuffer.toString('base64')}`;
             } else {
                 console.warn('Logo file not found at:', logoPath);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             console.error('Error reading logo file:', err);
         }
 
-        let pdfBuffer;
+        let pdfBuffer: Buffer;
         try {
             pdfBuffer = await renderToBuffer(
                 React.createElement(QuotationPDF, { quotation: quote, items: itemsResult, logoUrl: logoUrl }) as any
             );
-        } catch (pdfError: any) {
+        } catch (pdfError: unknown) {
             console.error('PDF Generation Error:', pdfError);
-            return NextResponse.json({ error: 'Failed to generate PDF: ' + pdfError.message }, { status: 500 });
+            const errorMessage = pdfError instanceof Error ? pdfError.message : 'An unknown error occurred';
+            return NextResponse.json({ error: 'Failed to generate PDF: ' + errorMessage }, { status: 500 });
         }
 
         // 3. Send Email with Attachment
@@ -89,8 +91,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         return NextResponse.json({ message: 'Email sent successfully via Resend', id: data?.id }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

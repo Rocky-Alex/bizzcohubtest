@@ -5,7 +5,7 @@ import { invoiceSql as sql } from '@/lib/invoice-db';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     try {
         // Query to find the latest invoice number
         // We look for invoice_no starting with 'INV' 
@@ -16,7 +16,7 @@ export async function GET() {
             WHERE invoice_no LIKE 'INV%' 
             ORDER BY id DESC 
             LIMIT 1
-        `;
+        ` as unknown as { invoice_no: string }[];
 
         let nextInvoiceNo = 'INV0001';
 
@@ -41,7 +41,7 @@ export async function GET() {
         }
 
         return NextResponse.json({ nextInvoiceNo });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching next invoice number:', error);
         return NextResponse.json({ error: 'Failed to fetch next invoice number' }, { status: 500 });
     }

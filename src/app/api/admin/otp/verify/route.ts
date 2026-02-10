@@ -4,7 +4,7 @@ import crypto from 'crypto';
 
 const SECRET = process.env.NEXTAUTH_SECRET || "temp-secret-key-change-me";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const { otp1, otp2, signature, expiry } = await req.json();
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: "Invalid OTPs" }, { status: 400 });
         }
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("OTP Verification Error:", error);
         return NextResponse.json({ success: false, message: "Verification failed" }, { status: 500 });
     }

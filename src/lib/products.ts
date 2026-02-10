@@ -1,36 +1,37 @@
 import { sql } from '@/lib/db';
+import { Product, DatabaseProduct } from '@/types';
 
-export function transformProduct(dbProduct: any) {
+export function transformProduct(dbProduct: DatabaseProduct): Product {
     let images: string[] = [];
     const allImages = dbProduct.all_images_urls || '';
     const rawImage = dbProduct.primary_image_url || dbProduct.image_url || dbProduct.image || '';
 
     if (allImages) {
-        if (allImages.includes(',')) {
+        if (typeof allImages === 'string' && allImages.includes(',')) {
             images = allImages.split(',').map((img: string) => img.trim()).filter((img: string) => img);
         } else {
-            images = [allImages];
+            images = [String(allImages)];
         }
     } else if (rawImage) {
-        if (rawImage.includes(',')) {
+        if (typeof rawImage === 'string' && rawImage.includes(',')) {
             images = rawImage.split(',').map((img: string) => img.trim()).filter((img: string) => img);
         } else {
-            images = [rawImage];
+            images = [String(rawImage)];
         }
     }
 
     return {
-        id: dbProduct.id || dbProduct.product_code || dbProduct.code,
-        productCode: dbProduct.product_code || dbProduct.code,
-        name: dbProduct.product_name || dbProduct.name,
-        brand: dbProduct.brand || dbProduct.category,
-        price: parseFloat(dbProduct.offer_price || dbProduct.base_price || dbProduct.price || 0),
-        originalPrice: parseFloat(dbProduct.base_price || dbProduct.price || 0),
+        id: dbProduct.id || dbProduct.product_code || dbProduct.code || '',
+        productCode: dbProduct.product_code || dbProduct.code || '',
+        name: dbProduct.product_name || dbProduct.name || '',
+        brand: dbProduct.brand || dbProduct.category || '',
+        price: parseFloat(String(dbProduct.offer_price || dbProduct.base_price || dbProduct.price || 0)),
+        originalPrice: parseFloat(String(dbProduct.base_price || dbProduct.price || 0)),
         type: (dbProduct.type === 'system' ? 'laptop' : dbProduct.type) || 'laptop',
         images: images,
         image: images[0] || '',
-        createdAt: dbProduct.date_added || dbProduct.created_at,
-        stock: parseInt(dbProduct.stock_quantity || dbProduct.stock || dbProduct.quantity || 0),
+        createdAt: dbProduct.date_added || dbProduct.created_at || '',
+        stock: parseInt(String(dbProduct.stock_quantity || dbProduct.stock || dbProduct.quantity || 0)),
         description: dbProduct.features || dbProduct.description || dbProduct.about || '',
         features: dbProduct.features || '',
         badge: dbProduct.badge || '',
@@ -65,7 +66,7 @@ export function transformProduct(dbProduct: any) {
     };
 }
 
-export async function getFeaturedProducts(limit = 10) {
+export async function getFeaturedProducts(limit = 10): Promise<Product[]> {
     try {
         // 1. Try to fetch manual configuration
         try {
@@ -78,7 +79,7 @@ export async function getFeaturedProducts(limit = 10) {
                             OR p.id::text = c.product_code
                         )
                         ORDER BY c.slot_number ASC
-                     `;
+                     ` as unknown as DatabaseProduct[];
 
             // Strict Mode: If table exists, return what we found (even if empty).
             return products.map(transformProduct);
@@ -92,7 +93,7 @@ export async function getFeaturedProducts(limit = 10) {
                 AND (price > 0 OR offer_price > 0)
                 ORDER BY date_added DESC 
                 LIMIT ${limit}
-            `;
+            ` as unknown as DatabaseProduct[];
             return query.map(transformProduct);
         }
     } catch (error) {
@@ -108,55 +109,54 @@ export async function getProducts(options: {
     priceRange?: string,
     sortBy?: string,
     limit?: number
-} = {}) {
+} = {}): Promise<Product[]> {
     try {
         const { type, category, brand, priceRange, sortBy, limit } = options;
 
-        let query;
+        let query: DatabaseProduct[];
         if (type === 'laptop') {
-            query = await sql`SELECT * FROM products WHERE (type = 'system' OR type = 'laptop' OR category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook') ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE (type = 'system' OR type = 'laptop' OR category = 'Laptops' OR category = 'Computers' OR category = 'Renewed Laptops' OR category = 'Gaming Laptop' OR category = 'MacBook') ORDER BY date_added DESC` as unknown as DatabaseProduct[];
         } else if (type === 'accessory') {
-            query = await sql`SELECT * FROM products WHERE (type = 'accessory' OR category = 'Accessories' OR category = 'Monitor' OR category = 'Component') ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products WHERE (type = 'accessory' OR category = 'Accessories' OR category = 'Monitor' OR category = 'Component') ORDER BY date_added DESC` as unknown as DatabaseProduct[];
         } else {
-            query = await sql`SELECT * FROM products ORDER BY date_added DESC`;
+            query = await sql`SELECT * FROM products ORDER BY date_added DESC` as unknown as DatabaseProduct[];
         }
 
         let products = query.map(transformProduct);
 
         if (category && category !== 'all') {
-            products = products.filter((p: any) => p.category === category);
+            products = products.filter((p: Product) => p.category === category);
         }
         if (brand && brand !== 'all') {
-            products = products.filter((p: any) => p.brand === brand);
+            products = products.filter((p: Product) => p.brand === brand);
         }
 
         // Filter by price range
         if (priceRange && priceRange !== 'all') {
             const [min, max] = priceRange.split('-').map(Number);
             if (max) {
-                products = products.filter((p: any) => p.price >= min && p.price <= max);
+                products = products.filter((p: Product) => p.price >= min && p.price <= max);
             } else {
-                products = products.filter((p: any) => p.price >= min);
+                products = products.filter((p: Product) => p.price >= min);
             }
         }
 
         // Sort products
-        // Sort products
         switch (sortBy) {
             case 'newest':
-                products.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                products.sort((a: Product, b: Product) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 break;
             case 'oldest':
-                products.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                products.sort((a: Product, b: Product) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
                 break;
             case 'price-low':
-                products.sort((a: any, b: any) => a.price - b.price);
+                products.sort((a: Product, b: Product) => a.price - b.price);
                 break;
             case 'price-high':
-                products.sort((a: any, b: any) => b.price - a.price);
+                products.sort((a: Product, b: Product) => b.price - a.price);
                 break;
             case 'name':
-                products.sort((a: any, b: any) => a.name.localeCompare(b.name));
+                products.sort((a: Product, b: Product) => a.name.localeCompare(b.name));
                 break;
         }
 
@@ -171,15 +171,15 @@ export async function getProducts(options: {
     }
 }
 
-export async function getProductById(id: string) {
+export async function getProductById(id: string): Promise<Product | null> {
     try {
         // Try matching product_code or id
-        const query = await sql`SELECT * FROM products WHERE id = ${id} OR product_code = ${id} LIMIT 1`;
+        const query = await sql`SELECT * FROM products WHERE id = ${id} OR product_code = ${id} LIMIT 1` as unknown as DatabaseProduct[];
 
         if (query.length === 0) {
             // Try numeric id if possible
             if (!isNaN(Number(id))) {
-                const numericQuery = await sql`SELECT * FROM products WHERE id = ${Number(id)} LIMIT 1`;
+                const numericQuery = await sql`SELECT * FROM products WHERE id = ${Number(id)} LIMIT 1` as unknown as DatabaseProduct[];
                 if (numericQuery.length > 0) return transformProduct(numericQuery[0]);
             }
             return null;

@@ -4,14 +4,15 @@ export const maxDuration = 10; // Set max duration to 10 seconds for Vercel
 import { sql } from '@/lib/db';
 import { cookies } from 'next/headers';
 import { createHash } from 'crypto';
+import { User } from '@/types';
 
 // Helper to check if current user is admin
-function isAdmin() {
+function isAdmin(): boolean {
     const role = cookies().get('user_role')?.value;
     return role?.toLowerCase() === 'admin';
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(): Promise<NextResponse> {
     try {
         console.log('[Users API] GET request received');
         console.log('[Users API] Checking admin authorization...');
@@ -31,30 +32,23 @@ export async function GET(request: NextRequest) {
             FROM users 
             WHERE role != 'superadmin' AND username != 'superadmin'
             ORDER BY created_at DESC
-        `;
+        ` as unknown as User[];
 
         console.log('[Users API] Query executed successfully');
         console.log('[Users API] Number of users fetched:', users.length);
-        console.log('[Users API] Sample user data:', users[0] || 'No users found');
 
         return NextResponse.json({ users });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[Users API] Error fetching users:', error);
-        console.error('[Users API] Error details:', {
-            message: error.message,
-            code: error.code,
-            name: error.name,
-            stack: error.stack
-        });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         return NextResponse.json({
             error: 'Failed to fetch users',
-            details: error.message,
-            code: error.code
+            details: errorMessage
         }, { status: 500 });
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -72,7 +66,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if username exists (Case Insensitive)
-        const existing = await sql`SELECT id FROM users WHERE LOWER(username) = LOWER(${username})`;
+        const existing = await sql`SELECT id FROM users WHERE LOWER(username) = LOWER(${username})` as unknown as { id: number }[];
         if (existing.length > 0) {
             return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
         }
@@ -111,22 +105,17 @@ export async function POST(request: NextRequest) {
         `;
 
         return NextResponse.json({ message: 'User created successfully' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating user:', error);
-        console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint
-        });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         return NextResponse.json({
             error: 'Failed to create user',
-            details: error.message
+            details: errorMessage
         }, { status: 500 });
     }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -171,13 +160,14 @@ export async function PUT(request: NextRequest) {
         }
 
         return NextResponse.json({ message: 'User updated successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error updating user:', error);
-        return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to update user', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -195,8 +185,9 @@ export async function DELETE(request: NextRequest) {
         await sql`DELETE FROM users WHERE id = ${id}`;
 
         return NextResponse.json({ message: 'User deleted successfully' });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error deleting user:', error);
-        return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to delete user', details: errorMessage }, { status: 500 });
     }
 }

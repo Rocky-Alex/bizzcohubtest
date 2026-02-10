@@ -4,7 +4,7 @@ import { invoiceSql } from '@/lib/invoice-db';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request) {
+export async function POST(): Promise<NextResponse> {
     try {
         console.log('Starting data clearance...');
 
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         try {
             await sql`TRUNCATE TABLE activity_logs RESTART IDENTITY CASCADE`;
             console.log('Activity logs cleared.');
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error clearing activity_logs:', error);
         }
 
@@ -20,14 +20,14 @@ export async function POST(req: Request) {
         try {
             await invoiceSql`TRUNCATE TABLE invoice_items, quotation_items, invoices, quotations RESTART IDENTITY CASCADE`;
             // Attempt only if invoiceSql is different or just to be safe if tables exist there
-        } catch (e) {
+        } catch (e: unknown) {
             console.log('Note: Invoice tables truncation (invoiceSql) skipped/error:', e);
         }
 
         try {
             // Fallback for same DB
             await sql`TRUNCATE TABLE invoice_items, quotation_items, invoices, quotations RESTART IDENTITY CASCADE`;
-        } catch (e) {
+        } catch (e: unknown) {
             console.log('Note: Invoice tables truncation (sql) skipped/error:', e);
         }
 
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         try {
             await sql`TRUNCATE TABLE orders, products, customers RESTART IDENTITY CASCADE`;
             console.log('Orders, products, customers cleared.');
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error clearing inventory/orders:', error);
         }
 
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
                 AND username != 'admin'
             `;
             console.log('Non-admin users deleted.');
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error clearing users:', error);
         }
 
@@ -56,8 +56,9 @@ export async function POST(req: Request) {
             message: 'All data cleared successfully, except Admin accounts.'
         }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Detailed clearance error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

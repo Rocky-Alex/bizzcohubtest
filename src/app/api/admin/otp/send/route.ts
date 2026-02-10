@@ -10,7 +10,7 @@ const EMAIL_2 = "bizzcohubllc@gmail.com";
 
 const SECRET = process.env.NEXTAUTH_SECRET || "temp-secret-key-change-me";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request): Promise<NextResponse> {
     try {
         console.log("Debug Env:", {
             user: process.env.EMAIL_USER ? 'Is Set' : 'NOT SET',
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
             </div>`
         );
 
-        const results = await Promise.all([p1, p2]);
+        const results = await Promise.all([p1, p2]) as { success: boolean, error?: string }[];
 
         const failed = results.filter(r => !r.success);
         if (failed.length > 0) {
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
             expiry
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("OTP Generation Error:", error);
         return NextResponse.json({ success: false, message: "Failed to send OTPs" }, { status: 500 });
     }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url);
         const username = searchParams.get('username');
@@ -11,23 +11,19 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ available: false, error: 'Username is required' }, { status: 400 });
         }
 
-        let query;
-
-        if (excludeId) {
-            query = sql`SELECT id FROM users WHERE LOWER(username) = LOWER(${username}) AND id != ${excludeId}`;
-        } else {
-            query = sql`SELECT id FROM users WHERE LOWER(username) = LOWER(${username})`;
-        }
-
-        const existing = await query;
+        const existing = await (excludeId
+            ? sql`SELECT id FROM users WHERE LOWER(username) = LOWER(${username}) AND id != ${excludeId}`
+            : sql`SELECT id FROM users WHERE LOWER(username) = LOWER(${username})`
+        ) as unknown as { id: number }[];
 
         if (existing.length > 0) {
             return NextResponse.json({ available: false });
         }
 
         return NextResponse.json({ available: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error checking username:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

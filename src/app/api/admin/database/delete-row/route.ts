@@ -5,7 +5,7 @@ import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
-function isAdmin() {
+function isAdmin(): boolean {
     const cookieStore = cookies();
     const role = cookieStore.get('admin_user_role')?.value || cookieStore.get('user_role')?.value;
     return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
@@ -32,7 +32,7 @@ const ALLOWED_TABLES = [
     'invoices'
 ];
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -45,14 +45,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing tableName or id' }, { status: 400 });
         }
 
-        if (!ALLOWED_TABLES.includes(tableName)) {
+        if (!ALLOWED_TABLES.includes(tableName as string)) {
             return NextResponse.json({ error: `Invalid table name: ${tableName}` }, { status: 400 });
         }
 
         // Special check for users
         if (tableName === 'users' && (id === 'superadmin' || id === 1)) {
             // Check if it's the superadmin record
-            const user = await sql`SELECT username FROM users WHERE id = ${id} OR username = 'superadmin'`;
+            const user = await sql`SELECT username FROM users WHERE id = ${id} OR username = 'superadmin'` as unknown as { username: string }[];
             if (user.length > 0 && user[0].username === 'superadmin') {
                 return NextResponse.json({ error: 'Cannot delete superadmin' }, { status: 403 });
             }
@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'Row deleted successfully' });
     } catch (error: unknown) {
         console.error('[Database API] Error deleting row:', error);
-        return NextResponse.json({ error: 'Failed to delete row', details: (error as Error).message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to delete row', details: errorMessage }, { status: 500 });
     }
 }

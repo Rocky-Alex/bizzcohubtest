@@ -29,7 +29,7 @@ const gmailConfig = {
 
 // Function to sync emails from Gmail
 // Function to sync emails from Gmail
-async function syncGmail(config: { user: string | null, password: string | null }) {
+async function syncGmail(config: { user: string | null, password: string | null }): Promise<{ success: boolean, message: string }> {
     if (!config.user || !config.password) return { success: false, message: 'No credentials' };
 
     let debugLog = `Starting sync for ${config.user}... `;
@@ -93,7 +93,7 @@ async function syncGmail(config: { user: string | null, password: string | null 
                     WHERE subject = ${subject} 
                     AND sender_email = ${senderEmail} 
                     AND created_at > NOW() - INTERVAL '1 year'
-                `;
+                ` as unknown as any[];
 
                 if (exists.length === 0) {
                     await sql`
@@ -110,13 +110,14 @@ async function syncGmail(config: { user: string | null, password: string | null 
 
         connection.end();
         return { success: true, message: `Synced ${insertedCount} new emails (checked last 200). Log: ${debugLog}` };
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("Gmail Sync Error:", e);
-        return { success: false, message: `Sync Error: ${e.message}. Log: ${debugLog}` };
+        const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+        return { success: false, message: `Sync Error: ${errorMessage}. Log: ${debugLog}` };
     }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url);
         const folder = searchParams.get('folder') || 'inbox';
@@ -132,7 +133,7 @@ export async function GET(request: NextRequest) {
 
         console.log("Sync Status:", syncResult);
 
-        let emails;
+        let emails: any[];
         const currentUser = gmailConfig.user;
 
         // Show ALL emails if logged in, prioritized by recent sync
@@ -148,7 +149,7 @@ export async function GET(request: NextRequest) {
                         OR sender_email ILIKE ${'%' + currentUser + '%'}
                     )
                     ORDER BY created_at DESC
-                `;
+                ` as unknown as any[];
             } else {
                 emails = await sql`
                     SELECT * FROM admin_emails 
@@ -158,7 +159,7 @@ export async function GET(request: NextRequest) {
                         OR sender_email ILIKE ${'%' + currentUser + '%'}
                     )
                     ORDER BY created_at DESC
-                `;
+                ` as unknown as any[];
             }
         } else {
             // Not logged in (or using env vars as fallback, but getGmailConfig handles that)
@@ -169,13 +170,13 @@ export async function GET(request: NextRequest) {
                     WHERE (subject ILIKE ${'%' + search + '%'} OR sender_name ILIKE ${'%' + search + '%'} OR body ILIKE ${'%' + search + '%'})
                     AND folder = ${folder}
                     ORDER BY created_at DESC
-                `;
+                ` as unknown as any[];
             } else {
                 emails = await sql`
                     SELECT * FROM admin_emails 
                     WHERE folder = ${folder}
                     ORDER BY created_at DESC
-                `;
+                ` as unknown as any[];
             }
         }
 
@@ -183,17 +184,17 @@ export async function GET(request: NextRequest) {
         let inboxCount, starredCount, sentCount, draftsCount, trashCount;
 
         if (currentUser) {
-            inboxCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'inbox' AND is_read = false AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))`;
-            starredCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE is_starred = true AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))`;
-            sentCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'sent' AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))`;
-            draftsCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'drafts' AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))`;
-            trashCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'trash' AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))`;
+            inboxCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'inbox' AND is_read = false AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))` as unknown as { count: string }[];
+            starredCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE is_starred = true AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))` as unknown as { count: string }[];
+            sentCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'sent' AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))` as unknown as { count: string }[];
+            draftsCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'drafts' AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))` as unknown as { count: string }[];
+            trashCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'trash' AND (LOWER(recipient_email) = LOWER(${currentUser}) OR LOWER(sender_email) = LOWER(${currentUser}))` as unknown as { count: string }[];
         } else {
-            inboxCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'inbox' AND is_read = false`;
-            starredCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE is_starred = true`;
-            sentCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'sent'`;
-            draftsCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'drafts'`;
-            trashCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'trash'`;
+            inboxCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'inbox' AND is_read = false` as unknown as { count: string }[];
+            starredCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE is_starred = true` as unknown as { count: string }[];
+            sentCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'sent'` as unknown as { count: string }[];
+            draftsCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'drafts'` as unknown as { count: string }[];
+            trashCount = await sql`SELECT COUNT(*) FROM admin_emails WHERE folder = 'trash'` as unknown as { count: string }[];
         }
 
         return NextResponse.json({
@@ -207,17 +208,17 @@ export async function GET(request: NextRequest) {
                 trash: Number(trashCount[0].count)
             }
         });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
         const { to, subject, message, isDraft } = body;
 
-        let status = 'sent';
         let folder = 'sent';
 
         if (isDraft) {
@@ -229,7 +230,7 @@ export async function POST(request: NextRequest) {
                 ) VALUES (
                     'Me', 'admin@bizzcohub.com', ${to}, ${subject}, ${message}, ${message.substring(0, 50)}, 'drafts', true, ARRAY[]::text[], 'https://ui-avatars.com/api/?name=Me', NOW()
                 ) RETURNING *
-            `;
+            ` as unknown as any[];
             return NextResponse.json({ success: true, email: draft[0] });
         }
 
@@ -253,10 +254,11 @@ export async function POST(request: NextRequest) {
                     text: message, // Fallback
                     html: message
                 });
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Gmail Send Error:", err);
+                const errorMessage = err instanceof Error ? err.message : 'Check credentials or App Password app settings.';
                 return NextResponse.json({
-                    error: `Gmail Error: ${err.message || 'Check credentials or App Password app settings.'}`
+                    error: `Gmail Error: ${errorMessage}`
                 }, { status: 401 });
             }
         }
@@ -269,7 +271,7 @@ export async function POST(request: NextRequest) {
                     subject: subject,
                     html: message
                 });
-            } catch (err) {
+            } catch (err: unknown) {
                 console.error("Resend error:", err);
                 // Can decide to fail or just save as sent with error log
             }
@@ -285,16 +287,17 @@ export async function POST(request: NextRequest) {
             ) VALUES (
                 'Me', ${sender}, ${to}, ${subject}, ${message}, ${message.substring(0, 50)}, 'sent', true, ARRAY[]::text[], 'https://ui-avatars.com/api/?name=Me', NOW()
             ) RETURNING *
-        `;
+        ` as unknown as any[];
 
         return NextResponse.json({ success: true, email: sentEmail[0] });
 
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
         const { id, action, value } = body;
@@ -308,7 +311,8 @@ export async function PUT(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

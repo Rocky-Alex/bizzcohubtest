@@ -5,28 +5,21 @@ import { Resend } from 'resend';
 
 // Resend initialized inside POST
 
-export async function GET(request: NextRequest) {
+export async function GET(): Promise<NextResponse> {
     try {
-        // DDL removed for performance
-
-
-        const orders = await sql`SELECT * FROM orders ORDER BY created_at DESC`;
-
+        const orders = await sql`SELECT * FROM orders ORDER BY created_at DESC` as unknown as any[];
         return NextResponse.json({ orders });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching orders:', error);
-        return NextResponse.json({ error: 'Failed to fetch orders', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to fetch orders', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
-
         const orderNumber = `ORD-${Date.now()}`;
-
-        // DDL removed for performance
-
 
         const newOrder = await sql`
             INSERT INTO orders (
@@ -48,7 +41,7 @@ export async function POST(request: NextRequest) {
                 customer_id
             ) VALUES (
                 ${orderNumber},
-                ${body.firstName + ' ' + body.lastName},
+                ${(body.firstName || '') + ' ' + (body.lastName || '')},
                 ${body.email},
                 ${body.phone},
                 ${body.address},
@@ -65,7 +58,7 @@ export async function POST(request: NextRequest) {
                 ${body.customerId || null}
             )
             RETURNING *
-        `;
+        ` as unknown as any[];
 
         await logActivity(
             'Admin',
@@ -79,6 +72,7 @@ export async function POST(request: NextRequest) {
         try {
             if (process.env.RESEND_API_KEY) {
                 const resend = new Resend(process.env.RESEND_API_KEY);
+                const items = Array.isArray(body.items) ? body.items : [];
                 await resend.emails.send({
                     from: 'Bizz Co Hub <onboarding@resend.dev>',
                     to: ['rishadpnpm@gmail.com'], // Restricted to verified email in Resend free tier
@@ -91,20 +85,20 @@ export async function POST(request: NextRequest) {
                         <div style="background: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0;">
                             <h3 style="margin-top: 0;">Order Summary</h3>
                             <table style="width: 100%; border-collapse: collapse;">
-                                ${body.items.map((item: any) => `
+                                ${items.map((item: any) => `
                                     <tr>
                                         <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
                                             ${item.name} x ${item.quantity}
                                         </td>
                                         <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">
-                                            $${(item.price * item.quantity).toFixed(2)}
+                                            $${(Number(item.price || 0) * Number(item.quantity || 0)).toFixed(2)}
                                         </td>
                                     </tr>
                                 `).join('')}
                                 <tr>
                                     <td style="padding: 12px 0; font-weight: bold;">Total</td>
                                     <td style="padding: 12px 0; text-align: right; font-weight: bold; font-size: 1.1em;">
-                                        $${Number(body.total).toFixed(2)}
+                                        $${Number(body.total || 0).toFixed(2)}
                                     </td>
                                 </tr>
                             </table>
@@ -131,13 +125,14 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ order: newOrder[0] });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating order:', error);
-        return NextResponse.json({ error: 'Failed to create order', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to create order', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
         const { id, status, ...updateFields } = body;
@@ -148,10 +143,7 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
         }
 
-        // DDL removed for performance
-
-
-        let updatedOrder;
+        let updatedOrder: any[] = [];
 
         if (status && Object.keys(updateFields).length === 0) {
             // Just status update
@@ -160,11 +152,9 @@ export async function PUT(request: NextRequest) {
                 SET status = ${status}, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ${id}
                 RETURNING *
-            `;
+            ` as unknown as any[];
         } else {
             // Full Update
-            // Note: For simplicity, we are updating the main fields. 
-            // In a real app, you might want more granular control or separate endpoints.
             updatedOrder = await sql`
                 UPDATE orders 
                 SET 
@@ -180,7 +170,7 @@ export async function PUT(request: NextRequest) {
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ${id}
                 RETURNING *
-            `;
+            ` as unknown as any[];
         }
 
         if (updatedOrder.length === 0) {
@@ -197,13 +187,14 @@ export async function PUT(request: NextRequest) {
         );
 
         return NextResponse.json({ order: updatedOrder[0] });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[Orders API] Error updating order:', error);
-        return NextResponse.json({ error: 'Failed to update order', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to update order', details: errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -212,7 +203,7 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
         }
 
-        const result = await sql`DELETE FROM orders WHERE id = ${id} RETURNING id`;
+        const result = await sql`DELETE FROM orders WHERE id = ${id} RETURNING id` as unknown as any[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -227,8 +218,9 @@ export async function DELETE(request: NextRequest) {
         );
 
         return NextResponse.json({ message: 'Order deleted successfully', id });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting order:', error);
-        return NextResponse.json({ error: 'Failed to delete order', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to delete order', details: errorMessage }, { status: 500 });
     }
 }

@@ -3,7 +3,7 @@ import { invoiceSql as sql } from '@/lib/invoice-db';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const body = await req.json();
         const { invoiceId, returnedItems } = body;
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
         // Process each returned item
         for (const item of returnedItems) {
-            const { itemId, productCode, qty } = item;
+            const { productCode, qty } = item;
 
             if (qty > 0 && productCode) {
                 // Update Inventory
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
         // Optionally update invoice status or add a note
         // Let's add a note to the invoice saying "Return Processed"
-        const note = `\n[${new Date().toISOString().split('T')[0]}] Return Processed: ${returnedItems.map((i: any) => `${i.qty}x ${i.productCode}`).join(', ')}`;
+        const note = `\n[${new Date().toISOString().split('T')[0]}] Return Processed: ${returnedItems.map((i: Record<string, any>) => `${i.qty}x ${i.productCode}`).join(', ')}`;
 
         await sql`
             UPDATE invoices 
@@ -39,8 +39,9 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ message: 'Return processed successfully' }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error processing return:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

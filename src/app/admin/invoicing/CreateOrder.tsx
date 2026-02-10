@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import SearchableDropdown from '@/components/ui/SearchableDropdown';
 import '../styles/create-order.css';
 import AddCustomerForm from '../customers/AddCustomerForm';
+import { toast } from 'sonner';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface Product {
     id: number;
@@ -41,96 +44,29 @@ const GPU_RAM_OPTIONS = ['2GB', '4GB', '6GB', '8GB', '10GB', '12GB', '16GB', '24
 const DISPLAY_TYPE_OPTIONS = ['Touch', 'Non-Touch', 'Bazel Touch', 'Glass Touch'];
 const CHARGER_OPTIONS = ['Original Charger', 'Compatible Charger', 'No Charger'];
 
-const SearchableDropdown = ({
-    name,
-    value,
-    onChange,
-    options,
-    placeholder
-}: {
-    name: string;
-    value: string;
-    onChange: (e: { target: { name: string; value: string } }) => void;
-    options: string[];
-    placeholder?: string;
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [filteredOptions, setFilteredOptions] = useState(options);
-    const wrapperRef = useRef<HTMLDivElement>(null);
+const GRAPHICS_OPTIONS = [
+    'Integrated / Shared',
+    '2GB',
+    '4GB',
+    '6GB',
+    '8GB',
+    '10GB',
+    '12GB',
+    '16GB',
+    '20GB',
+    '24GB'
+];
 
-    useEffect(() => {
-        setFilteredOptions(
-            options.filter(opt => opt.toLowerCase().includes(value.toLowerCase()))
-        );
-    }, [value, options]);
+const CONDITION_OPTIONS = [
+    'Brand New',
+    'Open Box',
+    'Grade A',
+    'Grade B',
+    'Grade C',
+    'Refurbished',
+    'Used'
+];
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleSelect = (option: string) => {
-        onChange({ target: { name, value: option } });
-        setIsOpen(false);
-    };
-
-    return (
-        <div className="custom-combobox" ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
-            <input
-                type="text"
-                name={name}
-                value={value}
-                onChange={(e) => {
-                    onChange(e as any);
-                    setIsOpen(true);
-                }}
-                onFocus={() => setIsOpen(true)}
-                placeholder={placeholder}
-                autoComplete="new-password"
-                className="co-input"
-            />
-            {isOpen && filteredOptions.length > 0 && (
-                <ul className="combobox-dropdown" style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    background: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '0 0 6px 6px',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    zIndex: 1000,
-                    listStyle: 'none',
-                    padding: 0,
-                    margin: 0,
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                }}>
-                    {filteredOptions.map((option, idx) => (
-                        <li
-                            key={idx}
-                            onClick={() => handleSelect(option)}
-                            style={{
-                                padding: '8px 12px',
-                                cursor: 'pointer',
-                                borderBottom: '1px solid #eee'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                        >
-                            {option}
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
-    );
-};
 
 const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => void, initialData?: any }) => {
     // --- State ---
@@ -145,7 +81,11 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
     const [customerAddress, setCustomerAddress] = useState('');
     const [productCode, setProductCode] = useState('');
     const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
-    const [deliveryDate, setDeliveryDate] = useState('');
+    const [deliveryDate, setDeliveryDate] = useState(() => {
+        const date = new Date();
+        date.setDate(date.getDate() + 4);
+        return date.toISOString().split('T')[0];
+    });
 
     // Customer Data State
     const [customers, setCustomers] = useState<any[]>([]);
@@ -172,6 +112,110 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
     // Product Data State
     const [existingProducts, setExistingProducts] = useState<any[]>([]);
 
+    // --- Master Data State ---
+    const [brandList, setBrandList] = useState<string[]>([]);
+    const [seriesList, setSeriesList] = useState<string[]>([]);
+    const [modelList, setModelList] = useState<string[]>([]);
+
+    const [processorList, setProcessorList] = useState<string[]>([]);
+    const [generationList, setGenerationList] = useState<string[]>([]);
+    const [ramList, setRamList] = useState<string[]>([]);
+    const [storageList, setStorageList] = useState<string[]>([]);
+    const [graphicsList, setGraphicsList] = useState<string[]>([]);
+    const [conditionList, setConditionList] = useState<string[]>([]);
+
+    // Update Delivery Date when Order Date changes
+    useEffect(() => {
+        if (orderDate) {
+            const date = new Date(orderDate);
+            date.setDate(date.getDate() + 4);
+            setDeliveryDate(date.toISOString().split('T')[0]);
+        }
+    }, [orderDate]);
+
+    useEffect(() => {
+        fetchMasterData();
+    }, []);
+
+    useEffect(() => {
+        if (isAddItemModalOpen) {
+            fetchBrands();
+        }
+    }, [isAddItemModalOpen]);
+
+    const fetchMasterData = async () => {
+        try {
+            const categories = ['Processor', 'Generation', 'RAM', 'Storage', 'Graphics', 'Condition'];
+            const promises = categories.map(cat =>
+                fetch(`/api/admin/inventory/droplists?category=${cat}`).then(r => r.json())
+            );
+
+            const results = await Promise.all(promises);
+
+            // 0: Processor, 1: Generation, 2: RAM, 3: Storage, 4: Graphics, 5: Condition
+            if (results[0]?.success) setProcessorList(results[0].data.map((i: any) => i.value));
+            if (results[1]?.success) setGenerationList(results[1].data.map((i: any) => i.value));
+            if (results[2]?.success) setRamList(results[2].data.map((i: any) => i.value));
+            if (results[3]?.success) setStorageList(results[3].data.map((i: any) => i.value));
+            if (results[4]?.success) setGraphicsList(results[4].data.map((i: any) => i.value));
+            if (results[5]?.success) setConditionList(results[5].data.map((i: any) => i.value));
+
+        } catch (error) {
+            console.error("Error fetching master data:", error);
+        }
+    };
+
+    const fetchBrands = async () => {
+        try {
+            const res = await fetch('/api/admin/inventory/droplists?category=Brand');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    setBrandList(data.data.map((item: any) => item.value));
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch brands", error);
+        }
+    };
+
+    // Series and Model fetching remains the same
+    const fetchSeries = async (brandName: string) => {
+        if (!brandName) {
+            setSeriesList([]);
+            return;
+        }
+        try {
+            const res = await fetch(`/api/admin/inventory/droplists?category=Series&parent=${encodeURIComponent(brandName)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    setSeriesList(data.data.map((item: any) => item.value));
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch series", error);
+        }
+    };
+
+    const fetchModels = async (seriesName: string) => {
+        if (!seriesName) {
+            setModelList([]);
+            return;
+        }
+        try {
+            const res = await fetch(`/api/admin/inventory/droplists?category=Model&parent=${encodeURIComponent(seriesName)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    setModelList(data.data.map((item: any) => item.value));
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch models", error);
+        }
+    };
+
     const [modal, setModal] = useState({
         isOpen: false,
         title: '',
@@ -180,6 +224,204 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
         singleButton: true,
         onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
     });
+
+    // --- New State for Multi-Tab Product Add ---
+    const [activeTab, setActiveTab] = useState<'qr' | 'lot'>('qr');
+    const qrInputRef = useRef<HTMLInputElement>(null);
+
+    // --- Confirmation Modal State ---
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [pendingItem, setPendingItem] = useState<any>(null);
+
+    // Lot & Model State
+    const [lotOptions, setLotOptions] = useState<any[]>([]);
+    const [selectedLot, setSelectedLot] = useState('');
+    const [lotLoading, setLotLoading] = useState(false);
+
+    // Model Selection State
+    const [modelOptions, setModelOptions] = useState<string[]>([]);
+    const [selectedModel, setSelectedModel] = useState('');
+    const [lotProducts, setLotProducts] = useState<any[]>([]); // Initial products from fetch
+
+    // Omni-Search State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleSearchChange = (query: string) => {
+        setSearchQuery(query);
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+        if (query.length < 2) {
+            setSearchResults([]);
+            return;
+        }
+
+        searchTimeoutRef.current = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/admin/inventory/search?q=${encodeURIComponent(query)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success) {
+                        setSearchResults(data.results);
+                    }
+                }
+            } catch (err) {
+                console.error("Search error:", err);
+            }
+        }, 300);
+    };
+
+    const handleSearchResultSelect = async (result: any) => {
+        setSearchQuery('');
+        setSearchResults([]);
+
+        // Handle based on type
+        if (result.type === 'qc_item') {
+            // Add unique QC item directly
+            const newCartItem: CartItem = {
+                id: Date.now(),
+                name: result.label, // Product Name
+                price: 0,
+                image: '/placeholder.svg',
+                description: `QC ID: ${result.id}, Condition: ${result.detail}`,
+                stock: 1,
+                quantity: 1,
+                brand: result.brand,
+                series: result.series, // might be undefined in search result, but acceptable
+                model: result.model,
+                processor: result.processor,
+                generation: '', // abbreviated details
+                ram: result.ram,
+                ssd: result.storage,
+                graphics: '',
+                acStatus: 'Original Charger'
+            };
+            setCart(prev => [...prev, newCartItem]);
+        } else if (result.type === 'product_master') {
+            // Add generic product
+            // Fetch full details if needed, or map from result
+            // For now mapping from result assuming key fields exist, or fetch full
+            const newCartItem: CartItem = {
+                id: Date.now(),
+                name: result.label,
+                price: 0,
+                image: '/placeholder.svg',
+                description: result.detail,
+                stock: 1,
+                quantity: 1,
+                brand: result.brand,
+                series: '',
+                model: '',
+                processor: '',
+                generation: '',
+                ram: '',
+                ssd: '',
+                graphics: '',
+                acStatus: 'Original Charger'
+            };
+            // Try to find if we have full details in existingProducts?
+            // Better to re-fetch if this search result is scant.
+            // For MVP, adding basic.
+            setCart(prev => [...prev, newCartItem]);
+        } else if (result.type === 'lot') {
+            // Switch to Lot Tab and select this lot
+            setActiveTab('lot');
+            // Wait for tab switch?
+            setTimeout(() => {
+                handleLotChange(result.code); // code is lotNumber
+            }, 100);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'qr' && qrInputRef.current) {
+            qrInputRef.current.focus();
+        }
+    }, [activeTab]);
+
+    // Fetch Lots on Component Mount
+    useEffect(() => {
+        fetchLots();
+    }, []);
+
+    const fetchLots = async () => {
+        try {
+            // Assuming an endpoint exists or using dummy for now until backend ready
+            const res = await fetch('/api/admin/purchase/lots');
+            if (res.ok) {
+                const data = await res.json();
+                setLotOptions(data.lots || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch lots:", error);
+        }
+    };
+
+    const handleLotChange = async (lotNumber: string) => {
+        setSelectedLot(lotNumber);
+        setSelectedModel('');
+        setModelOptions([]);
+        setLotLoading(true);
+
+        // Find lotId
+        const selectedLotObj = lotOptions.find(l => l.lotNumber === lotNumber);
+        if (!selectedLotObj) {
+            console.error("Lot map error");
+            setLotLoading(false);
+            return;
+        }
+
+        try {
+            // Fetch items for this lot using ID
+            const res = await fetch(`/api/admin/purchase/lots/details?id=${selectedLotObj.lotId}`);
+            if (res.ok) {
+                const data = await res.json();
+                // data.lot.items
+                const items = data.lot?.items || [];
+                setLotProducts(items);
+                // Extract unique models
+                const models = Array.from(new Set(items.map((i: any) => i.model).filter(Boolean))) as string[];
+                setModelOptions(models);
+            }
+        } catch (err) {
+            console.error("Error fetching lot details:", err);
+        } finally {
+            setLotLoading(false);
+        }
+    };
+
+    const handleAddFromLot = () => {
+        if (!selectedLot || !selectedModel) return;
+
+        // Find a representative item for Specs (first match)
+        // In real scenario, user might pick specific units, but requirement says "Model" base.
+        const product = lotProducts.find(p => p.model === selectedModel);
+
+        if (product) {
+            const newCartItem: CartItem = {
+                id: Date.now(),
+                name: `${product.brand} ${product.series} ${product.model}`.trim(),
+                price: product.unitCost || product.unit_cost || 0, // Use unit_cost/cost
+                image: '/placeholder.svg',
+                description: '',
+                stock: 1, // Logic needed
+                quantity: 1,
+                // Map specs
+                brand: product.brand,
+                series: product.series,
+                model: product.model,
+                processor: product.processor,
+                generation: product.processorGen || product.generation || '',
+                ram: product.ram || '',
+                ssd: product.storage || product.ssd || '',
+                graphics: product.graphics || '',
+                acStatus: 'Original Charger'
+            };
+            setCart(prev => [...prev, newCartItem]);
+            // Optional: reset selection or keep for rapid add
+        }
+    };
 
     // --- Init ---
     // --- Init ---
@@ -254,9 +496,21 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
     }, [cart]);
 
     // --- Handlers ---
-    const handleAddItemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAddItemChange = (e: React.ChangeEvent<HTMLInputElement> | { target: { name: string, value: string } }) => {
         const { name, value } = e.target;
         setNewItem(prev => ({ ...prev, [name]: value }));
+
+        // Cascade Logic
+        if (name === 'brand') {
+            setNewItem(prev => ({ ...prev, brand: value, series: '', model: '' }));
+            fetchSeries(value);
+            setSeriesList([]);
+            setModelList([]);
+        } else if (name === 'series') {
+            setNewItem(prev => ({ ...prev, series: value, model: '' }));
+            fetchModels(value);
+            setModelList([]);
+        }
     };
 
     const handleConfirmAddItem = () => {
@@ -416,41 +670,137 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
         }
     };
 
-    const handleAddProductByCode = () => {
+    // --- Editing State ---
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+    const handleAddProductByCode = async () => {
         if (!productCode) return;
-        const product = existingProducts.find(p => p.productCode === productCode);
+        const normalizedInput = productCode.trim().toLowerCase();
+
+        // 1. Try Local Search (Generic Products)
+        let product = existingProducts.find(p => {
+            const pCode = (p.productCode || '').toString().toLowerCase();
+            const pId = String(p.id).toLowerCase();
+            return pCode === normalizedInput || pId === normalizedInput;
+        });
+
         if (product) {
-            const newCartItem: CartItem = {
-                id: Date.now(),
-                name: product.name,
-                price: product.price,
-                image: product.images && product.images.length > 0 ? product.images[0] : '/placeholder.svg',
-                description: product.description || '',
-                stock: product.stock,
-                quantity: 1,
-                // Map specs
-                brand: product.brand,
-                series: product.specifications?.Series,
-                model: product.specifications?.Model,
-                processor: product.specifications?.Processor,
-                generation: product.specifications?.['Processor Generation'],
-                ram: product.specifications?.RAM,
-                ssd: product.specifications?.Storage,
-                graphics: product.specifications?.Graphics,
-                acStatus: product.specifications?.['AC Status'] || 'Original Charger' // Default or fetch
-            };
-            setCart(prev => [...prev, newCartItem]);
+            addToCartAsGeneric(product);
             setProductCode('');
-        } else {
-            setModal({
-                isOpen: true,
-                title: 'Product Not Found',
-                message: 'The product code you entered does not exist.',
-                type: 'danger',
-                singleButton: true,
-                onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
-            });
+            return;
         }
+
+        console.log(`Product ${normalizedInput} not found locally, checking QC & Server...`);
+
+        // 2. Try QC Inventory (Unique Items) - PRIMARY for used items
+        try {
+            const res = await fetch(`/api/admin/inventory/qc?sku=${encodeURIComponent(normalizedInput)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    const qcItem = data.data[0]; // Take the first match
+
+                    const newItemObj = {
+                        id: Date.now(),
+                        name: qcItem.product_name || `${qcItem.brand} ${qcItem.model}`,
+                        brand: qcItem.brand || '',
+                        series: qcItem.series || '',
+                        model: qcItem.model || '',
+                        processor: qcItem.processor || '',
+                        generation: qcItem.processor_gen || '',
+                        ram: qcItem.ram || '',
+                        ssd: qcItem.storage || '',
+                        graphics: qcItem.graphics || '',
+                        condition: qcItem.condition_status || '',
+                        acStatus: 'Original Charger',
+                        quantity: 1,
+                        price: 0,
+                        image: '/placeholder.svg'
+                    };
+
+                    // Add directly to cart
+                    setCart(prev => [...prev, newItemObj]);
+                    setProductCode('');
+                    toast.success("Item added! Click 'Edit' in table to change specs.");
+                    return;
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching QC item:", err);
+        }
+
+        // 3. Fallback to Server Generic Product Search
+        try {
+            const res = await fetch(`/api/products?code=${encodeURIComponent(normalizedInput)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.product) {
+                    setExistingProducts(prev => [...prev, data.product]); // Cache it
+                    addToCartAsGeneric(data.product);
+                    setProductCode('');
+                    return;
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching product by code:", err);
+        }
+
+        // Not Found
+        console.warn(`Product not found for code: "${productCode}" (normalized: "${normalizedInput}")`);
+        setModal({
+            isOpen: true,
+            title: 'Product Not Found',
+            message: `The product code "${productCode}" does not exist in Inventory or Product Catalog.`,
+            type: 'danger',
+            singleButton: true,
+            onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+        });
+        setProductCode('');
+    };
+
+    const handleEditItem = (index: number) => {
+        setEditingIndex(index);
+        setPendingItem({ ...cart[index] });
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleUpdateItem = () => {
+        if (editingIndex === null || !pendingItem) return;
+
+        setCart(prev => {
+            const newCart = [...prev];
+            newCart[editingIndex] = pendingItem;
+            return newCart;
+        });
+
+        setIsConfirmModalOpen(false);
+        setPendingItem(null);
+        setEditingIndex(null);
+        toast.success("Item updated successfully");
+    };
+
+    const addToCartAsGeneric = (product: any) => {
+        const newCartItem: CartItem = {
+            id: Date.now(),
+            name: product.name,
+            price: product.price,
+            image: product.images && product.images.length > 0 ? product.images[0] : '/placeholder.svg',
+            description: product.description || '',
+            stock: product.stock,
+            quantity: 1,
+            // Map specs
+            brand: product.brand,
+            series: product.specifications?.Series,
+            model: product.specifications?.Model,
+            processor: product.specifications?.Processor,
+            generation: product.specifications?.['Processor Generation'],
+            ram: product.specifications?.RAM,
+            ssd: product.specifications?.Storage,
+            graphics: product.specifications?.Graphics,
+            acStatus: product.specifications?.['AC Status'] || 'Original Charger'
+        };
+        setCart(prev => [...prev, newCartItem]);
+        setProductCode('');
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -636,6 +986,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                                     <label>Order Date</label>
                                     <input
                                         type="date"
+                                        lang="en-GB"
                                         value={orderDate}
                                         onChange={(e) => setOrderDate(e.target.value)}
                                         className="co-input"
@@ -645,10 +996,10 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                                     <label>Delivery Date</label>
                                     <input
                                         type="date"
+                                        lang="en-GB"
                                         value={deliveryDate}
                                         onChange={(e) => setDeliveryDate(e.target.value)}
                                         className="co-input"
-                                        placeholder="mm/dd/yyyy"
                                     />
                                 </div>
                             </div>
@@ -656,23 +1007,161 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                     </div>
                 </div>
 
-                {/* Product Search Bar */}
-                <div className="co-product-bar">
-                    <div className="co-control-group full-width">
-                        <label>Add Product by Code</label>
-                        <div className="input-with-button">
-                            <SearchableDropdown
-                                name="productCode"
-                                value={productCode}
-                                onChange={(e) => setProductCode(e.target.value)}
-                                options={existingProducts.map(p => p.productCode || `Product-${p.id}`)}
-                                placeholder="Select or Enter Product Code"
-                            />
-                            <button type="button" className="btn-add-customer" onClick={handleAddProductByCode}>
-                                <i className="fas fa-plus"></i> Add to Cart
-                            </button>
-                        </div>
+                {/* Product Addition Section */}
+                <div className="co-product-section" style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: '1.5rem', border: '1px solid #e2e8f0' }}>
+                    <div className="co-tabs" style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
+                        <button
+                            type="button"
+                            className={`co-tab ${activeTab === 'qr' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('qr')}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                border: 'none',
+                                background: 'transparent',
+                                borderBottom: activeTab === 'qr' ? '2px solid #3b82f6' : '2px solid transparent',
+                                color: activeTab === 'qr' ? '#3b82f6' : '#64748b',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontSize: '0.95rem'
+                            }}
+                        >
+                            <i className="fas fa-qrcode" style={{ marginRight: '0.5rem' }}></i> Scan QR
+                        </button>
+                        <button
+                            type="button"
+                            className={`co-tab ${activeTab === 'lot' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('lot')}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                border: 'none',
+                                background: 'transparent',
+                                borderBottom: activeTab === 'lot' ? '2px solid #3b82f6' : '2px solid transparent',
+                                color: activeTab === 'lot' ? '#3b82f6' : '#64748b',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontSize: '0.95rem'
+                            }}
+                        >
+                            <i className="fas fa-layer-group" style={{ marginRight: '0.5rem' }}></i> By Lot No
+                        </button>
                     </div>
+
+                    {/* Tab Content */}
+                    <div className="co-tab-content" style={{ minHeight: '120px' }}>
+                        {/* QR SCAN MODE */}
+                        {activeTab === 'qr' && (
+                            <div className="co-tab-pane" style={{ animation: 'fadeIn 0.3s ease' }}>
+                                <div className="co-control-group full-width" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                                    <label style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '0.5rem', display: 'block', textAlign: 'center' }}>
+                                        Scan Product QR Code / Barcode
+                                    </label>
+                                    <div className="input-with-button" style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            ref={qrInputRef}
+                                            type="text"
+                                            value={productCode}
+                                            onChange={(e) => setProductCode(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    handleAddProductByCode();
+                                                }
+                                            }}
+                                            className="co-input"
+                                            placeholder="Click here and scan..."
+                                            style={{
+                                                fontSize: '1.2rem',
+                                                padding: '1rem',
+                                                textAlign: 'center',
+                                                letterSpacing: '0.05em',
+                                                border: '2px dashed #cbd5e1',
+                                                borderRadius: '8px'
+                                            }}
+                                            autoFocus
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn-add-customer"
+                                            onClick={handleAddProductByCode}
+                                            style={{ padding: '0 2rem', fontSize: '1rem' }}
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                    <p style={{ textAlign: 'center', marginTop: '0.8rem', fontSize: '0.85rem', color: '#94a3b8' }}>
+                                        <i className="fas fa-info-circle"></i> Scanner should be configured to append 'Enter' after scan.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* LOT SELECTION MODE */}
+                        {activeTab === 'lot' && (
+                            <div className="co-tab-pane" style={{ animation: 'fadeIn 0.3s ease' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 100px', gap: '1rem', alignItems: 'end' }}>
+                                    <div className="co-control-group">
+                                        <label>Select Lot Number</label>
+                                        <SearchableDropdown
+                                            name="lot_selection"
+                                            value={selectedLot}
+                                            onChange={(e) => handleLotChange(e.target.value)}
+                                            options={lotOptions.map(l => l.lotNumber)}
+                                            placeholder="Choose Lot..."
+                                        />
+                                    </div>
+                                    <div className="co-control-group">
+                                        <label>Select Model</label>
+                                        <SearchableDropdown
+                                            name="model_selection"
+                                            value={selectedModel}
+                                            onChange={(e) => setSelectedModel(e.target.value)}
+                                            options={modelOptions}
+                                            placeholder={!selectedLot ? "Select Lot first" : "Choose Model..."}
+                                            disabled={!selectedLot}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn-add-customer"
+                                        onClick={() => {
+                                            if (!selectedLot || !selectedModel) return;
+
+                                            // Create pending item from selection
+                                            const newItemObj = {
+                                                id: Date.now(),
+                                                name: `${selectedLot} - ${selectedModel}`,
+                                                brand: '',
+                                                series: '',
+                                                model: selectedModel,
+                                                processor: '',
+                                                generation: '',
+                                                ram: '',
+                                                ssd: '',
+                                                graphics: '',
+                                                condition: '',
+                                                acStatus: 'Original Charger',
+                                                quantity: 1,
+                                                price: 0,
+                                                image: '/placeholder.svg'
+                                            };
+
+                                            setCart(prev => [...prev, newItemObj]);
+                                            toast.success("Item added! Click 'Edit' in table to change specs.");
+                                        }}
+                                        disabled={!selectedLot || !selectedModel}
+                                        style={{ height: '42px', marginBottom: '1px' }}
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                                {lotLoading && <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem' }}>Loading lot details...</p>}
+                            </div>
+                        )}
+
+
+                    </div>
+
+
                 </div>
 
                 {/* Items Table */}
@@ -694,51 +1183,91 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                             </tr>
                         </thead>
                         <tbody>
-                            {cart.map((item, index) => (
-                                <tr key={item.id}>
-                                    <td>{String(index + 1).padStart(2, '0')}</td>
-                                    <td>
-                                        <div className="co-item-cell">
-                                            <img src={item.image || '/placeholder.svg'} alt="" className="co-item-thumb" />
-                                            <div className="co-item-info">
-                                                <span className="name">{item.brand} {item.series} {item.model}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>{item.processor}</td>
-                                    <td>{item.generation}</td>
-                                    <td>{item.ram}</td>
-                                    <td>{item.ssd}</td>
-                                    <td>{item.graphics}</td>
-                                    <td>{item.acStatus}</td>
-                                    <td>
-                                        <div className="co-qty-control">
-                                            <button type="button" onClick={() => updateQty(item.id, -1)}>-</button>
-                                            <span>{item.quantity}</span>
-                                            <button type="button" onClick={() => updateQty(item.id, 1)}>+</button>
-                                        </div>
-                                    </td>
-                                    <td>AED {item.price}</td>
-                                    <td>
-                                        <button type="button" className="co-action-btn delete" onClick={() => removeItem(item.id)}>
-                                            <i className="fas fa-trash"></i>
-                                        </button>
+                            {cart.length === 0 ? (
+                                <tr>
+                                    <td colSpan={11} style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                                        No items added yet. Use the tabs above to add products.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                cart.map((item, index) => (
+                                    <tr key={item.id}>
+                                        <td>{String(index + 1).padStart(2, '0')}</td>
+                                        <td>
+                                            <div className="co-item-cell">
+                                                <img src={item.image || '/placeholder.svg'} alt="" className="co-item-thumb" />
+                                                <div className="co-item-info">
+                                                    <span className="name">{item.brand} {item.series} {item.model}</span>
+                                                    <span className="code" style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.name}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{item.processor}</td>
+                                        <td>{item.generation}</td>
+                                        <td>{item.ram}</td>
+                                        <td>{item.ssd}</td>
+                                        <td>{item.graphics}</td>
+                                        <td>
+                                            <select
+                                                value={item.acStatus || 'Original Charger'}
+                                                onChange={(e) => {
+                                                    const updatedCart = [...cart];
+                                                    updatedCart[index].acStatus = e.target.value;
+                                                    setCart(updatedCart);
+                                                }}
+                                                className="co-table-select"
+                                                style={{ padding: '0.2rem', fontSize: '0.85rem', width: '100%' }}
+                                            >
+                                                {CHARGER_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <div className="co-qty-control">
+                                                <button type="button" onClick={() => updateQty(item.id, -1)}>-</button>
+                                                <span>{item.quantity}</span>
+                                                <button type="button" onClick={() => updateQty(item.id, 1)}>+</button>
+                                            </div>
+                                        </td>
+                                        <td>AED {item.price}</td>
+                                        <td style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleEditItem(index)}
+                                                className="btn-icon"
+                                                title="Edit Item"
+                                                style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn-icon delete"
+                                                onClick={() => removeItem(item.id)}
+                                                title="Remove Item"
+                                                style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
 
-                    {/* Add Item Trigger */}
+                    {/* Manual Add Item Trigger (Fallback) */}
                     <div className="co-add-row-trigger">
+                        <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic', marginRight: '1rem' }}>
+                            Need to add something manually?
+                        </span>
                         <button type="button" className="btn-add-item" onClick={() => setIsAddItemModalOpen(true)}>
-                            Add Item +
+                            Manual Entry +
                         </button>
                     </div>
-                </div>
+                </div >
 
                 {/* Summary & Actions - Bottom */}
-                <div className="co-footer">
+                < div className="co-footer" >
                     <div className="co-totals">
                         <div className="msg">
                             {/* Optional Note field could go here */}
@@ -758,155 +1287,291 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                             </button>
                         </div>
                     </div>
-                </div>
+                </div >
 
-            </form>
+            </form >
 
             {/* --- Modal Overlay --- */}
-            {isAddItemModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content add-item-modal">
-                        <div className="modal-header">
-                            <h3>Add Item</h3>
-                            <button type="button" className="close-btn" onClick={() => setIsAddItemModalOpen(false)}>&times;</button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="ai-grid">
-                                {/* Left Column */}
-                                <div className="ai-col">
-                                    <div className="ai-group">
-                                        <label>Brand</label>
-                                        <SearchableDropdown
-                                            name="brand"
-                                            value={newItem.brand}
-                                            onChange={handleAddItemChange as any}
-                                            options={BRAND_OPTIONS}
-                                            placeholder="Brand"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Series</label>
-                                        <input
-                                            name="series"
-                                            value={newItem.series}
-                                            onChange={handleAddItemChange}
-                                            className="co-input"
-                                            placeholder="Series"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Model</label>
-                                        <input
-                                            name="model"
-                                            value={newItem.model}
-                                            onChange={handleAddItemChange}
-                                            className="co-input"
-                                            placeholder="Model"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Processor Name</label>
-                                        <SearchableDropdown
-                                            name="processorName"
-                                            value={newItem.processorName}
-                                            onChange={handleAddItemChange as any}
-                                            options={PROCESSOR_OPTIONS}
-                                            placeholder="Processor Name"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Processor Generation</label>
-                                        <SearchableDropdown
-                                            name="processorGen"
-                                            value={newItem.processorGen}
-                                            onChange={handleAddItemChange as any}
-                                            options={GEN_OPTIONS}
-                                            placeholder="Processor Generation"
-                                        />
-                                    </div>
-                                </div>
-                                {/* Right Column */}
-                                <div className="ai-col">
-                                    <div className="ai-group">
-                                        <label>Memory Size</label>
-                                        <SearchableDropdown
-                                            name="memorySize"
-                                            value={newItem.memorySize}
-                                            onChange={handleAddItemChange as any}
-                                            options={RAM_OPTIONS}
-                                            placeholder="Memory Size"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Storage Size</label>
-                                        <SearchableDropdown
-                                            name="storageSize"
-                                            value={newItem.storageSize}
-                                            onChange={handleAddItemChange as any}
-                                            options={STORAGE_OPTIONS}
-                                            placeholder="Storage Size"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Graphics Card Ram Size</label>
-                                        <SearchableDropdown
-                                            name="graphicsCardRam"
-                                            value={newItem.graphicsCardRam}
-                                            onChange={handleAddItemChange as any}
-                                            options={GPU_RAM_OPTIONS}
-                                            placeholder="Graphics Card Ram Size"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Display Type</label>
-                                        <SearchableDropdown
-                                            name="displayType"
-                                            value={newItem.displayType}
-                                            onChange={handleAddItemChange as any}
-                                            options={DISPLAY_TYPE_OPTIONS}
-                                            placeholder="Display Type"
-                                        />
-                                    </div>
-                                    <div className="ai-group">
-                                        <label>Charger</label>
-                                        <SearchableDropdown
-                                            name="charger"
-                                            value={newItem.charger}
-                                            onChange={handleAddItemChange as any}
-                                            options={CHARGER_OPTIONS}
-                                            placeholder="Charger"
-                                        />
-                                    </div>
-                                </div>
+            {
+                isAddItemModalOpen && (
+                    <div className="modal-overlay">
+                        <div className="modal-content add-item-modal">
+                            <div className="modal-header">
+                                <h3>Add Item</h3>
+                                <button type="button" className="close-btn" onClick={() => setIsAddItemModalOpen(false)}>&times;</button>
                             </div>
-                            {/* Price & Qty Row (Required for Order) */}
-                            <div className="ai-footer-row">
-                                <div className="ai-group" style={{ flex: 1 }}>
-                                    <label>Price (AED) *</label>
-                                    <input type="number" name="price" value={newItem.price} onChange={handleAddItemChange} className="co-input" placeholder="0.00" required />
+                            <div className="modal-body">
+                                <div className="ai-grid">
+                                    {/* Left Column */}
+                                    <div className="ai-col">
+                                        <div className="ai-group">
+                                            <label>Brand</label>
+                                            <SearchableDropdown
+                                                name="brand"
+                                                value={newItem.brand}
+                                                onChange={handleAddItemChange as any}
+                                                options={brandList}
+                                                placeholder="Select Brand..."
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Series</label>
+                                            <SearchableDropdown
+                                                name="series"
+                                                value={newItem.series}
+                                                onChange={handleAddItemChange as any}
+                                                options={seriesList}
+                                                placeholder={!newItem.brand ? "Select Brand first" : "Select Series..."}
+                                                disabled={!newItem.brand}
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Model</label>
+                                            <SearchableDropdown
+                                                name="model"
+                                                value={newItem.model}
+                                                onChange={handleAddItemChange as any}
+                                                options={modelList}
+                                                placeholder={!newItem.series ? "Select Series first" : "Select Model..."}
+                                                disabled={!newItem.series}
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Processor Name</label>
+                                            <SearchableDropdown
+                                                name="processorName"
+                                                value={newItem.processorName}
+                                                onChange={handleAddItemChange as any}
+                                                options={PROCESSOR_OPTIONS}
+                                                placeholder="Processor Name"
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Processor Generation</label>
+                                            <SearchableDropdown
+                                                name="processorGen"
+                                                value={newItem.processorGen}
+                                                onChange={handleAddItemChange as any}
+                                                options={GEN_OPTIONS}
+                                                placeholder="Processor Generation"
+                                            />
+                                        </div>
+                                    </div>
+                                    {/* Right Column */}
+                                    <div className="ai-col">
+                                        <div className="ai-group">
+                                            <label>Memory Size</label>
+                                            <SearchableDropdown
+                                                name="memorySize"
+                                                value={newItem.memorySize}
+                                                onChange={handleAddItemChange as any}
+                                                options={RAM_OPTIONS}
+                                                placeholder="Memory Size"
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Storage Size</label>
+                                            <SearchableDropdown
+                                                name="storageSize"
+                                                value={newItem.storageSize}
+                                                onChange={handleAddItemChange as any}
+                                                options={STORAGE_OPTIONS}
+                                                placeholder="Storage Size"
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Graphics Card Ram Size</label>
+                                            <SearchableDropdown
+                                                name="graphicsCardRam"
+                                                value={newItem.graphicsCardRam}
+                                                onChange={handleAddItemChange as any}
+                                                options={GPU_RAM_OPTIONS}
+                                                placeholder="Graphics Card Ram Size"
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Display Type</label>
+                                            <SearchableDropdown
+                                                name="displayType"
+                                                value={newItem.displayType}
+                                                onChange={handleAddItemChange as any}
+                                                options={DISPLAY_TYPE_OPTIONS}
+                                                placeholder="Display Type"
+                                            />
+                                        </div>
+                                        <div className="ai-group">
+                                            <label>Charger</label>
+                                            <SearchableDropdown
+                                                name="charger"
+                                                value={newItem.charger}
+                                                onChange={handleAddItemChange as any}
+                                                options={CHARGER_OPTIONS}
+                                                placeholder="Charger"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="ai-group" style={{ width: '100px' }}>
-                                    <label>Qty</label>
-                                    <input type="number" name="quantity" value={newItem.quantity} onChange={handleAddItemChange} className="co-input" min="1" />
+                                {/* Price & Qty Row (Required for Order) */}
+                                <div className="ai-footer-row">
+                                    <div className="ai-group" style={{ flex: 1 }}>
+                                        <label>Price (AED) *</label>
+                                        <input type="number" name="price" value={newItem.price} onChange={handleAddItemChange} className="co-input" placeholder="0.00" required />
+                                    </div>
+                                    <div className="ai-group" style={{ width: '100px' }}>
+                                        <label>Qty</label>
+                                        <input type="number" name="quantity" value={newItem.quantity} onChange={handleAddItemChange} className="co-input" min="1" />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="modal-actions">
-                                <button type="button" className="btn-cancel" onClick={() => setIsAddItemModalOpen(false)}>Cancel</button>
-                                <button type="button" className="btn-confirm" onClick={handleConfirmAddItem}>Add to Order</button>
+                                <div className="modal-actions">
+                                    <button type="button" className="btn-cancel" onClick={() => setIsAddItemModalOpen(false)}>Cancel</button>
+                                    <button type="button" className="btn-confirm" onClick={handleConfirmAddItem}>Add to Order</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* --- Add Customer Modal --- */}
-            {isAddCustomerModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '800px', width: '100%', padding: '0' }}>
-                        <AddCustomerForm
-                            onCancel={() => setIsAddCustomerModalOpen(false)}
-                            onSubmit={handleCreateCustomer}
-                        />
+            {
+                isAddCustomerModalOpen && (
+                    <div className="modal-overlay">
+                        <div className="modal-content" style={{ maxWidth: '800px', width: '100%', padding: '0' }}>
+                            <AddCustomerForm
+                                onCancel={() => setIsAddCustomerModalOpen(false)}
+                                onSubmit={handleCreateCustomer}
+                            />
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* --- Item Confirmation Modal --- */}
+            {isConfirmModalOpen && pendingItem && (
+                <div className="ai-modal-overlay">
+                    <div className="ai-modal-content">
+                        <div className="ai-header">
+                            <h2>Edit Item Details</h2>
+                            <button className="ai-close-btn" onClick={() => setIsConfirmModalOpen(false)}>&times;</button>
+                        </div>
+                        <div className="ai-body">
+                            <div className="ai-grid">
+                                <div className="ai-col">
+                                    <div className="ai-group">
+                                        <label>Product Name</label>
+                                        <input
+                                            className="co-input"
+                                            value={pendingItem.name}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, name: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="ai-group">
+                                        <label>Processor</label>
+                                        <SearchableDropdown
+                                            name="processor"
+                                            value={pendingItem.processor}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, processor: e.target.value })}
+                                            options={processorList.length > 0 ? processorList : PROCESSOR_OPTIONS}
+                                            placeholder="Select Processor"
+                                        />
+                                    </div>
+                                    <div className="ai-group">
+                                        <label>Generation</label>
+                                        <SearchableDropdown
+                                            name="generation"
+                                            value={pendingItem.generation}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, generation: e.target.value })}
+                                            options={generationList.length > 0 ? generationList : GEN_OPTIONS}
+                                            placeholder="Select Generation"
+                                        />
+                                    </div>
+                                    <div className="ai-group">
+                                        <label>RAM</label>
+                                        <SearchableDropdown
+                                            name="ram"
+                                            value={pendingItem.ram}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, ram: e.target.value })}
+                                            options={ramList.length > 0 ? ramList : RAM_OPTIONS}
+                                            placeholder="Select RAM"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="ai-col">
+                                    <div className="ai-group">
+                                        <label>SSD/Storage</label>
+                                        <SearchableDropdown
+                                            name="ssd"
+                                            value={pendingItem.ssd}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, ssd: e.target.value })}
+                                            options={storageList.length > 0 ? storageList : STORAGE_OPTIONS}
+                                            placeholder="Select Storage"
+                                        />
+                                    </div>
+                                    <div className="ai-group">
+                                        <label>Graphics</label>
+                                        <SearchableDropdown
+                                            name="graphics"
+                                            value={pendingItem.graphics}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, graphics: e.target.value })}
+                                            options={graphicsList.length > 0 ? graphicsList : GRAPHICS_OPTIONS}
+                                            placeholder="Select Graphics..."
+                                        />
+                                    </div>
+                                    <div className="ai-group">
+                                        <label>Charger / AC</label>
+                                        <SearchableDropdown
+                                            name="acStatus"
+                                            value={pendingItem.acStatus}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, acStatus: e.target.value })}
+                                            options={CHARGER_OPTIONS}
+                                            placeholder="Select Charger Status"
+                                        />
+                                    </div>
+                                    <div className="ai-group">
+                                        <label>Condition</label>
+                                        <SearchableDropdown
+                                            name="condition"
+                                            value={pendingItem.condition}
+                                            onChange={(e) => setPendingItem({ ...pendingItem, condition: e.target.value })}
+                                            options={conditionList.length > 0 ? conditionList : CONDITION_OPTIONS}
+                                            placeholder="Select Condition..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="ai-footer-row">
+                                <div className="ai-group" style={{ flex: 1 }}>
+                                    <label>Price (AED)</label>
+                                    <input
+                                        type="number"
+                                        className="co-input"
+                                        value={pendingItem.price}
+                                        onChange={(e) => setPendingItem({ ...pendingItem, price: parseFloat(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                <div className="ai-group" style={{ width: '100px' }}>
+                                    <label>Qty</label>
+                                    <input
+                                        type="number"
+                                        className="co-input"
+                                        value={pendingItem.quantity}
+                                        onChange={(e) => setPendingItem({ ...pendingItem, quantity: parseInt(e.target.value) || 1 })}
+                                        min="1"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="modal-actions">
+                                <button className="btn-cancel" onClick={() => setIsConfirmModalOpen(false)}>Cancel</button>
+                                <button
+                                    className="btn-confirm"
+                                    onClick={handleUpdateItem}
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -922,7 +1587,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                 onCancel={() => setModal(prev => ({ ...prev, isOpen: false }))}
                 confirmText="OK"
             />
-        </div>
+        </div >
     );
 };
 

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { logActivity } from '@/lib/activity-logger';
 
 // Helper to check if current user is admin
-function isAdmin() {
+function isAdmin(): boolean {
     const role = cookies().get('admin_user_role')?.value;
     // Allow 'admin' and 'superadmin'
     return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
@@ -31,7 +31,7 @@ const ALLOWED_TABLES = [
     'activity_logs'
 ];
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         if (!isAdmin()) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { tableName, tables } = body;
 
-        const tablesToClear = tables ? tables : (tableName ? [tableName] : []);
+        const tablesToClear = tables ? (tables as string[]) : (tableName ? [tableName as string] : []);
 
         if (tablesToClear.length === 0) {
             return NextResponse.json({ error: 'No tables specified' }, { status: 400 });
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
                         break;
                     case 'purchase_lots':
                         await sql`DELETE FROM purchase_lots`;
-                        try { await sql`DELETE FROM purchase_lot_items`; } catch (e) { }
+                        try { await sql`DELETE FROM purchase_lot_items`; } catch (e: unknown) { }
                         break;
                     case 'purchase_lot_items':
                         await sql`DELETE FROM purchase_lot_items`;
@@ -130,8 +130,9 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json({ message: `Database tables cleared successfully` });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[Database API] Error clearing table:', error);
-        return NextResponse.json({ error: 'Failed to clear table', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to clear table', details: errorMessage }, { status: 500 });
     }
 }

@@ -11,7 +11,7 @@ const getSql = () => {
     return neon(dbUrl);
 };
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(req.url);
         const prefix = searchParams.get('prefix') || 'LP'; // Default prefix provided by frontend logic
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
             SELECT product_code 
             FROM products 
             WHERE product_code LIKE 'BCH-%-%'
-        `;
+        ` as unknown as { product_code: string }[];
 
         let maxNum = 0;
 
@@ -52,8 +52,9 @@ export async function GET(req: Request) {
 
         return NextResponse.json({ code: nextCode, nextNumber: nextNum });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error generating next product code:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

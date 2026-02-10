@@ -3,7 +3,7 @@ import { invoiceSql as sql } from '@/lib/invoice-db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     try {
         const result = await sql`
             SELECT quotation_no 
@@ -11,7 +11,7 @@ export async function GET() {
             WHERE quotation_no LIKE 'QTN%' 
             ORDER BY LENGTH(quotation_no) DESC, quotation_no DESC 
             LIMIT 1
-        `;
+        ` as unknown as { quotation_no: string }[];
 
         let nextNumber = 1;
 
@@ -29,8 +29,9 @@ export async function GET() {
         const nextQuotationNo = `QTN${nextNumber.toString().padStart(4, '0')}`;
 
         return NextResponse.json({ nextQuotationNo });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching next quotation number:', error);
-        return NextResponse.json({ error: 'Failed to fetch next quotation number' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Failed to fetch next quotation number', details: errorMessage }, { status: 500 });
     }
 }

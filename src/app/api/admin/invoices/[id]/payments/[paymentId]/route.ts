@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 
 // PATCH: Update a specific payment
-export async function PATCH(req: Request, { params }: { params: { id: string, paymentId: string } }) {
+export async function PATCH(req: Request, { params }: { params: { id: string, paymentId: string } }): Promise<NextResponse> {
     try {
         const { id: invoiceId, paymentId } = params;
         const body = await req.json();
         const { amount, date, method, notes } = body;
 
         // 1. Fetch original payment to know the difference
-        const existingPaymentResult = await sql`SELECT * FROM invoice_payments WHERE id = ${paymentId} AND invoice_id = ${invoiceId}`;
+        const existingPaymentResult = await sql`SELECT * FROM invoice_payments WHERE id = ${paymentId} AND invoice_id = ${invoiceId}` as unknown as any[];
         if (existingPaymentResult.length === 0) {
             return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
         }
@@ -30,7 +30,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string, pa
 
         // 3. Update Invoice Totals
         // Fetch current invoice total paid
-        const invResult = await sql`SELECT total_amount, advance_received FROM invoices WHERE id = ${invoiceId}`;
+        const invResult = await sql`SELECT total_amount, advance_received FROM invoices WHERE id = ${invoiceId}` as unknown as any[];
         const inv = invResult[0];
         const currentTotalPaid = Number(inv.advance_received || 0);
 
@@ -56,19 +56,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string, pa
 
         return NextResponse.json({ message: 'Payment updated', newStatus, newPaid: newTotalPaid }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating payment:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-// DELETE: Remove a specific payment
-export async function DELETE(req: Request, { params }: { params: { id: string, paymentId: string } }) {
+export async function DELETE(req: Request, { params }: { params: { id: string, paymentId: string } }): Promise<NextResponse> {
     try {
         const { id: invoiceId, paymentId } = params;
 
         // 1. Fetch payment to delete
-        const existingPaymentResult = await sql`SELECT * FROM invoice_payments WHERE id = ${paymentId} AND invoice_id = ${invoiceId}`;
+        const existingPaymentResult = await sql`SELECT * FROM invoice_payments WHERE id = ${paymentId} AND invoice_id = ${invoiceId}` as unknown as any[];
         if (existingPaymentResult.length === 0) {
             return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
         }
@@ -79,7 +79,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string, p
         await sql`DELETE FROM invoice_payments WHERE id = ${paymentId}`;
 
         // 3. Update Invoice Totals
-        const invResult = await sql`SELECT total_amount, advance_received FROM invoices WHERE id = ${invoiceId}`;
+        const invResult = await sql`SELECT total_amount, advance_received FROM invoices WHERE id = ${invoiceId}` as unknown as any[];
         const inv = invResult[0];
         const currentTotalPaid = Number(inv.advance_received || 0);
 
@@ -103,8 +103,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string, p
 
         return NextResponse.json({ message: 'Payment deleted', newStatus, newPaid: newTotalPaid < 0 ? 0 : newTotalPaid }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting payment:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

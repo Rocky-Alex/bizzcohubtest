@@ -28,14 +28,6 @@ export default function AdminSidebar({
             icon: "fa-star",
             label: "Featured Products"
         },
-        //     id: "application",
-        //     icon: "fa-th-large",
-        //     label: "Application",
-        //     subItems: [
-        //         { id: "email-inbox", label: "Email" }
-        //     ]
-        // },
-
         {
             id: "orders",
             icon: "fa-shopping-cart",
@@ -53,6 +45,41 @@ export default function AdminSidebar({
             subItems: [
                 { id: "customers-all", label: "All Customers" },
                 { id: "customers-groups", label: "Groups" }
+            ]
+        },
+        {
+            id: "production",
+            icon: "fa-tools",
+            label: "Production",
+            subItems: [
+                // { id: "production-dashboard", label: "Dashboard" },
+                { id: "production-qc", label: "QC Checking" },
+                { id: "production-packing", label: "Packing" },
+                // { id: "production-projects", label: "Projects" },
+                // { id: "production-tasks", label: "Tasks" }
+            ]
+        },
+        {
+            id: "purchase",
+            icon: "fa-shopping-bag",
+            label: "Purchase",
+            subItems: [
+                { id: "purchase-dashboard", label: "Dashboard" },
+                { id: "purchase-history", label: "Purchase History" },
+                { id: "purchase-import", label: "Import Shipment" },
+                { id: "suppliers", label: "Suppliers" }
+            ]
+        },
+        {
+            id: "inventory",
+            icon: "fa-boxes",
+            label: "Inventory",
+            subItems: [
+                { id: "inventory-dashboard", label: "Dashboard" },
+                { id: "products-list", label: "All Products" },
+                { id: "add-product", label: "Add Product" },
+                { id: "inventory-qc", label: "QC List" },
+                { id: "inventory-drops", label: "Drop Lists" }
             ]
         },
         // {
@@ -113,6 +140,11 @@ export default function AdminSidebar({
             id: "database",
             icon: "fa-database",
             label: "Database"
+        },
+        {
+            id: "labelsize",
+            icon: "fa-tags",
+            label: "Label Size"
         },
     ];
 
@@ -176,9 +208,9 @@ export default function AdminSidebar({
         } else {
             // Map sub IDs to routes
             const routeMap: Record<string, string> = {
-                'orders-all': '/admin/orders',
-                'orders-create': '/admin/orders',
-                'orders-returns': '/admin/orders',
+                'orders-all': '/admin/orders?view=list',
+                'orders-create': '/admin/orders?view=create',
+                'orders-returns': '/admin/orders?view=returns',
                 'customers-all': '/admin/customers',
                 'customers-groups': '/admin/customers',
                 'accounts-dashboard': '/admin/accounts',
@@ -196,6 +228,20 @@ export default function AdminSidebar({
                 'invoices-return': '/admin/billing',
                 'users-all': '/admin/users',
                 'users-roles': '/admin/users',
+                'production-dashboard': '/admin/production?section=production-dashboard',
+                'production-qc': '/admin/production?section=production-qc',
+                'production-projects': '/admin/production?section=production-projects',
+                'production-tasks': '/admin/production?section=production-tasks',
+                'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
+                'products-list': '/admin/inventory?section=products-list',
+                'add-product': '/admin/inventory?section=add-product',
+                'purchase-lots-list': '/admin/inventory?section=purchase-lots-list',
+                'inventory-qc': '/admin/inventory?section=inventory-qc',
+                'inventory-drops': '/admin/inventory?section=inventory-drops',
+                'purchase-dashboard': '/admin/purchase?section=purchase-dashboard',
+                'purchase-history': '/admin/purchase?section=purchase-lots-list',
+                'purchase-import': '/admin/purchase?section=purchase-lots-import',
+                'suppliers': '/admin/purchase?section=suppliers',
             };
 
             const target = routeMap[sub.id] || `/admin/${sub.id.replace(/-/g, '/')}`;
@@ -221,6 +267,8 @@ export default function AdminSidebar({
                 'user-passwords': '/admin/passwords',
                 'activity-log': '/admin/activity-log',
                 'featured-manage': '/admin/featured',
+                'production': '/admin/production',
+                'inventory': '/admin/inventory',
                 'database': '/admin/database'
             };
             const target = routeMap[item.id] || `/admin/${item.id}`;
@@ -247,6 +295,23 @@ export default function AdminSidebar({
             return isSuperAdmin;
         }
 
+        // Workspace Filtering
+        const isProductionWorkspace = searchParams.get('workspace') === 'production' ||
+            pathname?.startsWith('/admin/production') ||
+            pathname?.startsWith('/admin/purchase') ||
+            pathname?.startsWith('/admin/inventory') ||
+            pathname?.startsWith('/admin/labelsize');
+
+        if (isProductionWorkspace) {
+            // Only show detailed Production items + Dashboard
+            return ['dashboard', 'production', 'purchase', 'inventory', 'labelsize'].includes(item.id);
+        } else {
+            // Hide Production items from main menu (Accessed via Header Button)
+            if (['production', 'purchase', 'inventory', 'labelsize'].includes(item.id)) {
+                return false;
+            }
+        }
+
         return true;
     });
 
@@ -263,6 +328,8 @@ export default function AdminSidebar({
             'accounts': '/admin/accounts',
             'invoicing': '/admin/billing',
             'users': '/admin/users',
+            'production': '/admin/production',
+            'inventory': '/admin/inventory',
             'database': '/admin/database'
         };
         const targetRoute = routeMap[item.id];
@@ -282,17 +349,34 @@ export default function AdminSidebar({
                 'accounts-purchases': '/admin/accounts',
                 'accounts-reports': '/admin/accounts',
                 'reports-sales': '/admin/reports',
-                'invoicing-dashboard': '/admin/billing',
-                'invoicing-all': '/admin/billing',
-                'quotations-all': '/admin/billing',
+                'invoicing-dashboard': '/admin/billing?view=dashboard',
+                'invoicing-all': '/admin/billing?view=invoices-all',
+                'quotations-all': '/admin/billing?view=quotations-all',
                 'invoicing-new': '/admin/billing',
                 'quotations-new': '/admin/billing',
                 'payments-all': '/admin/billing',
                 'invoices-return': '/admin/billing',
                 'users-all': '/admin/users',
                 'users-roles': '/admin/users',
+                'production-dashboard': '/admin/production?section=production-dashboard',
+                'production-qc': '/admin/production?section=production-qc',
+                'production-projects': '/admin/production?section=production-projects',
+                'production-tasks': '/admin/production?section=production-tasks',
+                'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
+                'products-list': '/admin/inventory?section=products-list',
+                'add-product': '/admin/inventory?section=add-product',
+                'inventory-qc': '/admin/inventory?section=inventory-qc',
+                'inventory-drops': '/admin/inventory?section=inventory-drops',
+                'purchase-dashboard': '/admin/purchase?section=purchase-dashboard',
+                'purchase-history': '/admin/purchase?section=purchase-lots-list',
+                'purchase-import': '/admin/purchase?section=purchase-lots-import',
+                'suppliers': '/admin/purchase?section=suppliers',
             };
-            return item.subItems.some((sub: any) => pathname === subRouteMap[sub.id]);
+            const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+            return item.subItems.some((sub: any) => {
+                const target = subRouteMap[sub.id] || `/admin/${sub.id.replace(/-/g, '/')}`;
+                return currentFullUrl === target || (pathname === target && !searchParams.toString());
+            });
         }
         return false;
     };
@@ -346,17 +430,33 @@ export default function AdminSidebar({
                                             'accounts-purchases': '/admin/accounts',
                                             'accounts-reports': '/admin/accounts',
                                             'reports-sales': '/admin/reports',
-                                            'invoicing-dashboard': '/admin/billing',
-                                            'invoicing-all': '/admin/billing',
-                                            'quotations-all': '/admin/billing',
+                                            'invoicing-dashboard': '/admin/billing?view=dashboard',
+                                            'invoicing-all': '/admin/billing?view=invoices-all',
+                                            'quotations-all': '/admin/billing?view=quotations-all',
                                             'invoicing-new': '/admin/billing',
                                             'quotations-new': '/admin/billing',
                                             'payments-all': '/admin/billing',
                                             'invoices-return': '/admin/billing',
                                             'users-all': '/admin/users',
                                             'users-roles': '/admin/users',
+                                            'production-dashboard': '/admin/production?section=production-dashboard',
+                                            'production-qc': '/admin/production?section=production-qc',
+                                            'production-packing': '/admin/production?section=production-packing',
+                                            'production-projects': '/admin/production?section=production-projects',
+                                            'production-tasks': '/admin/production?section=production-tasks',
+                                            'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
+                                            'products-list': '/admin/inventory?section=products-list',
+                                            'add-product': '/admin/inventory?section=add-product',
+                                            'inventory-qc': '/admin/inventory?section=inventory-qc',
+                                            'inventory-drops': '/admin/inventory?section=inventory-drops',
+                                            'purchase-dashboard': '/admin/purchase?section=purchase-dashboard',
+                                            'purchase-history': '/admin/purchase?section=purchase-lots-list',
+                                            'purchase-import': '/admin/purchase?section=purchase-lots-import',
+                                            'suppliers': '/admin/purchase?section=suppliers',
                                         };
-                                        const isSubActive = pathname === subRouteMap[sub.id];
+                                        const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+                                        const target = subRouteMap[sub.id] || `/admin/${sub.id.replace(/-/g, '/')}`;
+                                        const isSubActive = currentFullUrl === target || (pathname === target && !searchParams.toString());
 
                                         return (
                                             <button

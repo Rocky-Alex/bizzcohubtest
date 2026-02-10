@@ -5,7 +5,7 @@ import { createHash } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request) {
+export async function POST(): Promise<NextResponse> {
     try {
         console.log('Resetting database (preserving Admin)...');
 
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         // Invoice DB
         try {
             await invoiceSql`TRUNCATE TABLE invoice_items, quotation_items, invoices, quotations CASCADE`;
-        } catch (e) {
+        } catch (e: unknown) {
             console.log('Invoice tables truncate error (might not exist):', e);
         }
 
@@ -40,8 +40,9 @@ export async function POST(req: Request) {
             details: 'All data cleared except Admin user.'
         }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error resetting database:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

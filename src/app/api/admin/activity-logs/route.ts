@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
+import { ActivityLog } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request) {
+export async function GET(): Promise<NextResponse> {
     try {
         // Ensure table exists (in case it hasn't been created yet)
         await sql`
@@ -33,18 +34,18 @@ export async function GET(req: Request) {
             FROM activity_logs 
             ORDER BY timestamp DESC
             LIMIT 500
-        `;
+        ` as unknown as Record<string, unknown>[];
 
         // Map database fields to frontend interface
-        const logs = data.map((log: any) => ({
-            id: log.id,
-            user: log.user_name,
-            action: log.action,
-            details: log.details || '',
-            status: log.status,
-            role: log.role,
-            ip: log.ip,
-            timestamp: log.timestamp || new Date().toISOString(),
+        const logs: ActivityLog[] = data.map((log) => ({
+            id: Number(log.id),
+            user: String(log.user_name),
+            action: String(log.action),
+            details: String(log.details || ''),
+            status: String(log.status),
+            role: String(log.role),
+            ip: log.ip ? String(log.ip) : null,
+            timestamp: String(log.timestamp || new Date().toISOString()),
             // Avatar is not stored in logs, would ideally come from a user join or default
             avatar: null
         }));
@@ -52,13 +53,14 @@ export async function GET(req: Request) {
         // Log view removed as requested to avoid clutter
 
         return NextResponse.json(logs, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching activity logs:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const body = await req.json();
         const { action, details, status, role, user_name } = body;
@@ -77,15 +79,14 @@ export async function POST(req: Request) {
         );
 
         return NextResponse.json({ message: 'Activity logged successfully' }, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error logging activity:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-import { createHash } from 'crypto';
-
-export async function DELETE(req: Request) {
+export async function DELETE(req: Request): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
@@ -114,15 +115,16 @@ export async function DELETE(req: Request) {
 
         const result = await sql`
             DELETE FROM activity_logs WHERE id = ${id} RETURNING id
-        `;
+        ` as unknown as { id: number }[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Log not found' }, { status: 404 });
         }
 
         return NextResponse.json({ message: 'Log deleted successfully' }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting log:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

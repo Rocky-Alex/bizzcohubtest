@@ -1,82 +1,122 @@
 /* ==========================================
-   CREATE ORDER - NEW LAYOUT
+   CREATE ORDER STYLES
    ========================================== */
 
 .co-page-container {
+    background: #f8fafc;
+    min-height: 100vh;
     padding: 2rem;
-    max-width: 1400px;
-    /* Wider for table */
-    margin: 0 auto;
-    background: #fff;
-    min-height: 80vh;
+    font-family: 'Inter', sans-serif;
+    color: #1e293b;
 }
 
-/* --- Header --- */
+/* Header */
 .co-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 3rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+    align-items: center;
+    margin-bottom: 2rem;
 }
 
 .co-title {
-    font-size: 2rem;
+    font-size: 1.875rem;
     font-weight: 700;
-    color: #000;
-    margin: 0 0 0.5rem 0;
-}
-
-.co-subtitle {
-    font-size: 0.9rem;
-    color: #666;
+    color: #0f172a;
     margin: 0;
 }
 
-.so-number-group {
+.co-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0.5rem 0 0;
+}
+
+/* Form Layout */
+.co-form {
+    max-width: 1700px;
+    margin: 0 auto;
+}
+
+.co-section-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1224px) {
+    .co-section-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Cards */
+.co-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.card-header {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+}
+
+
+
+.ai-body {
+    padding: 1.5rem 2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.ai-col {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
 }
 
-.so-number-group label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #333;
-}
-
-.co-input {
-    border: 1px solid #ccc;
-    /* Grey border as in mock */
-    border-radius: 8px;
-    /* Rounded corners */
-    padding: 0.6rem 1rem;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-    background: #fff;
-}
-
-.co-input:focus {
-    border-color: #3b82f6;
-}
-
-.so-input {
-    width: 150px;
-    text-align: right;
-    font-weight: 600;
-}
-
-/* --- Top Controls (Customer & Date) --- */
-.co-top-controls {
+.ai-group {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    /* Align inputs to bottom */
-    gap: 4rem;
-    margin-bottom: 3rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ai-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: 0.01em;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Form Controls */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
 }
 
 .co-control-group {
@@ -85,68 +125,102 @@
     gap: 0.5rem;
 }
 
+.co-control-group.full-width {
+    grid-column: 1 / -1;
+}
+
 .co-control-group label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #333;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
 }
 
-.customer-group {
-    flex: 1;
-    min-width: 300px;
+.co-input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: #fff;
+    color: #1e293b;
 }
 
+.co-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.co-input::placeholder {
+    color: #94a3b8;
+}
+
+/* Buttons */
 .input-with-button {
     display: flex;
-    gap: 1rem;
-    width: 100%;
-}
-
-.input-with-button .co-input {
-    flex: 1;
+    gap: 0.5rem;
 }
 
 .btn-add-customer {
-    background: #3b82f6;
-    /* Blue */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0 1.5rem;
-    font-weight: 500;
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #dbeafe;
+    padding: 0.625rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s;
     white-space: nowrap;
 }
 
-.co-dates-row {
-    display: flex;
-    gap: 2rem;
+.btn-add-customer:hover {
+    background: #dbeafe;
+    border-color: #bfdbfe;
 }
 
-/* --- Table --- */
+/* Table Container */
 .co-table-container {
-    margin-bottom: 3rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
 }
 
 .co-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
 }
 
 .co-table th {
-    text-align: left;
-    padding: 1rem;
-    border-bottom: 1px solid #ddd;
-    border-top: 1px solid #ddd;
+    background: #f8fafc;
+    color: #475569;
     font-weight: 600;
-    color: #444;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .co-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #eee;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.co-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.co-table tbody tr:hover {
+    background-color: #f8fafc;
 }
 
 /* Item Cell */
@@ -159,9 +233,12 @@
 .co-item-thumb {
     width: 48px;
     height: 48px;
-    border-radius: 6px;
-    object-fit: cover;
-    border: 1px solid #eee;
+    object-fit: contain;
+    /* Changed to contain for better product visibility */
+    border-radius: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 4px;
 }
 
 .co-item-info {
@@ -171,275 +248,356 @@
 
 .co-item-info .name {
     font-weight: 600;
+    color: #0f172a;
     font-size: 0.95rem;
 }
 
-.co-item-info .price {
+.co-item-info .code {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Specs Cells (Processor, RAM, etc) */
+.co-table th:nth-child(n+3):nth-child(-n+11),
+.co-table td:nth-child(n+3):nth-child(-n+11) {
+    text-align: center;
+}
+
+.co-table th:first-child,
+.co-table td:first-child {
+    text-align: center;
+}
+
+.co-table td:nth-child(n+3):nth-child(-n+7) {
+    font-variant-numeric: tabular-nums;
+    color: #475569;
+}
+
+/* AC Status Select */
+.co-table-select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
     font-size: 0.85rem;
-    color: #666;
+    color: #334155;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.co-table-select:hover {
+    border-color: #94a3b8;
+}
+
+.co-table-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 /* Qty Control */
 .co-qty-control {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: #f9f9f9;
-    padding: 0.25rem;
+    background: #f1f5f9;
     border-radius: 6px;
+    padding: 2px;
     width: fit-content;
 }
 
 .co-qty-control button {
     width: 24px;
     height: 24px;
-    border: none;
-    background: white;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #555;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: none;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #64748b;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.1s;
+}
+
+.co-qty-control button:hover {
+    color: #0f172a;
+    transform: scale(1.05);
+}
+
+.co-qty-control button:active {
+    transform: scale(0.95);
 }
 
 .co-qty-control span {
-    min-width: 20px;
+    width: 30px;
     text-align: center;
-    font-size: 0.9rem;
     font-weight: 600;
+    font-size: 0.9rem;
+    color: #0f172a;
 }
 
+/* Action Button */
 .co-action-btn.delete {
-    background: transparent;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0.5rem;
-    border-radius: 50%;
-    transition: all 0.2s;
     width: 32px;
     height: 32px;
-    display: inline-flex;
+    border-radius: 6px;
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.8;
 }
 
 .co-action-btn.delete:hover {
-    background: #fee2e2;
-    /* Light red */
-    transform: scale(1.1);
+    background: #fecaca;
+    color: #dc2626;
+    opacity: 1;
 }
 
-/* Add Trigger & Dropdown */
+/* Manual Trigger */
 .co-add-row-trigger {
-    margin-top: 0.5rem;
-    text-align: right;
-    position: relative;
-    padding-right: 2.5rem;
-    /* Better alignment with the action column */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.25rem 1rem;
 }
 
 .btn-add-item {
     background: white;
     color: #3b82f6;
-    border: 1px solid #3b82f6;
+    border: 1px dashed #3b82f6;
+    padding: 0.6rem 1.2rem;
     border-radius: 6px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
     font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     transition: all 0.2s;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn-add-item:hover {
     background: #eff6ff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.15);
 }
 
-/* --- Modal Styles --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-}
-
-.add-item-modal {
-    background: white;
-    width: 800px;
-    max-width: 90%;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid #eee;
-    background: #fcfcfc;
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #111;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
-}
-
-.modal-body {
-    padding: 2rem;
-}
-
-.ai-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    margin-bottom: 1.5rem;
-}
-
-.ai-col {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.ai-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.ai-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #4b5563;
-}
-
-.ai-group input {
-    width: 100%;
-    /* Ensure full width */
-}
-
-/* Specific styling for the modal inputs to match image */
-.ai-group .co-input {
-    border-radius: 6px;
-    padding: 0.7rem;
-    font-size: 0.9rem;
-    border: 1px solid #d1d5db;
-}
-
-.ai-group .co-input:focus {
-    border-color: #000;
-    box-shadow: 0 0 0 1px #000;
-}
-
+/* Footer Totals */
+/* Price & Qty Row */
 .ai-footer-row {
     display: flex;
-    gap: 2rem;
-    margin-top: 2rem;
+    gap: 1rem;
+    margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #f3f4f6;
-    align-items: flex-end;
+    border-top: 1px solid #f1f5f9;
 }
 
 .modal-actions {
-    margin-top: 2rem;
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
+    margin-top: 2rem;
+    /* Updated from 1.5rem */
 }
 
-.btn-cancel {
-    padding: 0.75rem 1.5rem;
-    border: 1px solid #e5e7eb;
+/* --- Advanced Item Modal (AI) --- */
+.ai-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.ai-modal-content {
     background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    color: #374151;
-    transition: all 0.2s;
+    width: 95%;
+    max-width: 1000px;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    /* Removed max-height to allow full content visibility */
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.btn-cancel:hover {
-    background: #f9fafb;
-    color: #111;
+.ai-header {
+    padding: 1rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    flex-shrink: 0;
 }
 
-.btn-confirm {
-    padding: 0.75rem 2rem;
-    background: #111827;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+.ai-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1e293b;
     font-weight: 600;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
 }
 
-.btn-confirm:hover {
-    background: #000;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+.ai-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
 }
 
-@media (max-width: 768px) {
+.ai-close-btn:hover {
+    color: #64748b;
+}
+
+.ai-body {
+    padding: 2rem;
+    /* Removed overflow-y to prevent internal scroll */
+    flex: 1;
+}
+
+/* Grid Layout for Form */
+.ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 1224px) {
     .ai-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
 }
 
-/* --- Footer (Totals) --- */
+.ai-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.ai-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.ai-group input,
+.ai-group select,
+.ai-group .searchable-dropdown-trigger {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #1e293b;
+    transition: all 0.2s;
+    background: #fff;
+    width: 100%;
+}
+
+.ai-group input:focus,
+.ai-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Footer Row for Price/Qty */
+.ai-footer-row {
+    display: flex;
+    gap: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    align-items: flex-end;
+}
+
+.btn-cancel {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #f8fafc;
+    color: #475569;
+}
+
+.btn-confirm {
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-confirm:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ai-footer {
+    display: none;
+    /* Deprecated in favor of modal-actions */
+}
+
 .co-footer {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    border-top: 1px solid #eee;
-    padding-top: 2rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
 }
 
 .co-totals {
-    display: flex;
-    gap: 4rem;
-    width: 100%;
-    justify-content: flex-end;
-    /* Actually usually totals are Right aligned. The submit button is also right or left. 
-       Let's put totals on right. Submit below totals. */
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-.totals-box {
-    width: 300px;
+    width: 350px;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
 }
 
 .t-row {
@@ -447,57 +605,43 @@
     justify-content: space-between;
     margin-bottom: 0.8rem;
     font-size: 0.95rem;
-    color: #555;
+    color: #64748b;
 }
 
 .t-row.grand {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid #eee;
+    border-top: 2px solid #f1f5f9;
     font-weight: 700;
-    font-size: 1.2rem;
-    color: #000;
-}
-
-.co-actions-bar {
-    margin-top: 2rem;
+    font-size: 1.25rem;
+    color: #0f172a;
+    margin-bottom: 0;
 }
 
 .btn-submit-order {
     background: #000;
-    color: #fff;
+    /* Distinct black button for primary action */
+    color: white;
     border: none;
-    padding: 1rem 3rem;
+    padding: 1rem;
     border-radius: 8px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 1rem;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 .btn-submit-order:hover {
-    opacity: 0.9;
+    background: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .btn-submit-order:disabled {
-    background: #ccc;
+    background: #94a3b8;
     cursor: not-allowed;
-}
-
-/* Animations */
-.fade-in {
-    animation: fadeIn 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    transform: none;
+    box-shadow: none;
 }

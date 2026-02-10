@@ -6,11 +6,22 @@ import CreateOrder from "../invoicing/CreateOrder";
 import ComingSoon from "../shared/ComingSoon";
 import { toast } from "sonner";
 
+import { useSearchParams } from 'next/navigation';
+
 export default function OrdersPage() {
-    const [view, setView] = useState<'list' | 'create' | 'edit' | 'returns'>('list');
+    const searchParams = useSearchParams();
+    const initialView = (searchParams.get('view') as 'list' | 'create' | 'edit' | 'returns') || 'list';
+
+    const [view, setView] = useState<'list' | 'create' | 'edit' | 'returns'>(initialView);
     const [orders, setOrders] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [orderToEdit, setOrderToEdit] = useState<any>(null);
+
+    // Update view when URL changes
+    useEffect(() => {
+        const currentView = (searchParams.get('view') as 'list' | 'create' | 'edit' | 'returns') || 'list';
+        setView(currentView);
+    }, [searchParams]);
 
     const fetchOrders = useCallback(async () => {
         setIsLoading(true);

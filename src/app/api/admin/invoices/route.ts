@@ -1,30 +1,29 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 import { logActivity } from '@/lib/activity-logger';
+import { Invoice } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<NextResponse> {
     try {
         const url = new URL(req.url);
-        // DDL removed for performance. Schema assumed to exist.
+        const invoiceNo = url.searchParams.get('invoiceNo');
 
-
-        const data = await sql`
-            SELECT * FROM invoices 
-            WHERE 1=1
-            ${url.searchParams.get('invoiceNo') ? sql`AND invoice_no = ${url.searchParams.get('invoiceNo')}` : sql``}
-            ORDER BY created_date DESC
-        `;
+        const data = await (invoiceNo
+            ? sql`SELECT * FROM invoices WHERE invoice_no = ${invoiceNo} ORDER BY created_date DESC`
+            : sql`SELECT * FROM invoices ORDER BY created_date DESC`
+        ) as unknown as Invoice[];
 
         return NextResponse.json({ invoices: data }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching invoices:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const body = await req.json();
         const {
@@ -47,23 +46,14 @@ export async function POST(req: Request) {
             isDiscountable,
             showTerms,
             items,
-            notes, // Add notes
-            terms, // Add terms
-            advanceReceived // New field
+            notes,
+            terms,
+            advanceReceived
         } = body;
 
         // Validation
         if (!invoiceNo || !customerName || !items || items.length === 0) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
-
-        // DDL removed for performance.
-        // Ensure new column exists
-        try {
-            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS show_terms BOOLEAN DEFAULT TRUE`;
-            await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS terms_and_conditions TEXT`;
-        } catch (e) {
-            console.log('Migration note (invoices):', e);
         }
 
         // Insert Invoice
@@ -80,16 +70,9 @@ export async function POST(req: Request) {
                 ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}, ${showTerms}, ${advanceReceived || 0},
                 ${notes || null}, ${terms || null}
             ) RETURNING id
-        `;
+        ` as unknown as { id: number }[];
 
         const invoiceId = invoiceResult[0].id;
-
-        // Ensure column exists
-        try {
-            await sql`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS product_code TEXT`;
-        } catch (e) {
-            console.log('Migration note (invoice_items):', e);
-        }
 
         // Insert Items
         for (const item of items) {
@@ -103,10 +86,6 @@ export async function POST(req: Request) {
 
             // Deduct from Inventory if product_code is provided
             if (item.product_code) {
-                // We use GREATEST(0, ...) to prevent negative stock if that's desired, 
-                // but usually simply subtracting is fine and lets admin see negative stock if they oversold.
-                // Let's just subtract. If they want to prevent negative, we'd check first.
-                // User said "reduce from the inventory".
                 await sql`
                     UPDATE products 
                     SET stock_quantity = stock_quantity - ${Number(item.qty)}
@@ -120,16 +99,17 @@ export async function POST(req: Request) {
             'Create Invoice',
             `Invoice #${invoiceNo} created for ${customerName}. Total: ${totalAmount}.`,
             'success',
-            'Admin' // Assuming Admin creates invoice, could be passed from body if needed
+            'Admin'
         );
 
         return NextResponse.json({ message: 'Invoice created successfully', invoiceId }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating invoice:', error);
-        if (error.code === '23505') {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        if (typeof error === 'object' && error !== null && 'code' in error && (error as any).code === '23505') {
             return NextResponse.json({ error: 'Invoice number already exists' }, { status: 409 });
         }
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

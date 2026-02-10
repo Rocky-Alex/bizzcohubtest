@@ -11,18 +11,20 @@ import nodemailer from 'nodemailer';
 // Initialize Resend with the provided API key
 // In production, this should be in process.env.RESEND_API_KEY
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+import fs from 'fs';
+
+export async function POST(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
 
         // 1. Fetch Invoice Data
-        const invoiceResult = await sql`SELECT * FROM invoices WHERE id = ${id}`;
+        const invoiceResult = await sql`SELECT * FROM invoices WHERE id = ${id}` as unknown as any[];
         if (invoiceResult.length === 0) {
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
         }
         const invoice = invoiceResult[0];
 
-        const itemsResult = await sql`SELECT * FROM invoice_items WHERE invoice_id = ${id}`;
+        const itemsResult = await sql`SELECT * FROM invoice_items WHERE invoice_id = ${id}` as unknown as any[];
 
         if (!invoice.customer_email) {
             return NextResponse.json({ error: 'Customer email not found' }, { status: 400 });
@@ -33,27 +35,27 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         let logoUrl = '';
 
         try {
-            const fs = require('fs');
             if (fs.existsSync(logoPath)) {
                 const logoBuffer = fs.readFileSync(logoPath);
                 logoUrl = `data:image/png;base64,${logoBuffer.toString('base64')}`;
             } else {
                 console.warn('Logo file not found at:', logoPath);
             }
-        } catch (err) {
+        } catch (err: unknown) {
             console.error('Error reading logo file:', err);
             // Fallback or ignore if logo missing
         }
 
-        let pdfBuffer;
+        let pdfBuffer: Buffer;
         try {
             // Ensure no "as any" hides errors, but if it works it works
             pdfBuffer = await renderToBuffer(
                 React.createElement(InvoicePDF, { invoice: invoice, items: itemsResult, logoUrl: logoUrl }) as any
             );
-        } catch (pdfError: any) {
+        } catch (pdfError: unknown) {
             console.error('PDF Generation Error:', pdfError);
-            return NextResponse.json({ error: 'Failed to generate PDF invoice: ' + pdfError.message }, { status: 500 });
+            const errorMessage = pdfError instanceof Error ? pdfError.message : 'An unknown error occurred';
+            return NextResponse.json({ error: 'Failed to generate PDF invoice: ' + errorMessage }, { status: 500 });
         }
 
         // 3. Send Email
@@ -77,7 +79,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             },
         ];
 
-        let sentResult;
+        let sentResult: any;
 
         // Option A: Use Resend if configured
         if (process.env.RESEND_API_KEY) {
@@ -92,7 +94,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
                 to: targetEmail,
                 subject: subject,
                 html: htmlContent,
-                attachments: attachments as any,
+                attachments: attachments,
             });
 
             if (error) {
@@ -153,8 +155,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         return NextResponse.json({ message: 'Email sent successfully', data: sentResult });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in POST /api/admin/invoices/[id]/send:', error);
-        return NextResponse.json({ error: 'Internal Server Error: ' + error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: 'Internal Server Error: ' + errorMessage }, { status: 500 });
     }
 }

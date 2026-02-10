@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const id = params.id;
 
@@ -9,14 +9,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS notes TEXT`;
 
         // 1. Fetch Quotation
-        const quotationResult = await sql`SELECT * FROM quotations WHERE id = ${id}`;
+        const quotationResult = await sql`SELECT * FROM quotations WHERE id = ${id}` as unknown as any[];
         if (quotationResult.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
         }
         const quote = quotationResult[0];
 
         // 2. Fetch Quotation Items
-        const items = await sql`SELECT * FROM quotation_items WHERE quotation_id = ${id}`;
+        const items = await sql`SELECT * FROM quotation_items WHERE quotation_id = ${id}` as unknown as any[];
 
         // 3. Generate Next Invoice Number
         const lastInvResult = await sql`
@@ -25,7 +25,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             WHERE invoice_no LIKE 'INV%' 
             ORDER BY LENGTH(invoice_no) DESC, invoice_no DESC 
             LIMIT 1
-        `;
+        ` as unknown as { invoice_no: string }[];
 
         let nextNumber = 1;
         if (lastInvResult.length > 0) {
@@ -51,12 +51,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
                 notes
             ) VALUES (
                 ${invoiceNo}, ${quote.customer_id || null}, ${quote.customer_name}, ${quote.customer_address},
-                ${quote.customer_email}, ${quote.customer_phone}, ${new Date()}, ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}, 
+                ${quote.customer_email}, ${quote.customer_phone}, ${new Date().toISOString()}, ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}, 
                 ${quote.sub_total}, ${quote.discount_total}, ${quote.tax_rate}, ${quote.tax_amount}, ${quote.total_amount},
                 ${quote.payment_type}, 'Pending', ${quote.is_taxable}, ${quote.is_discountable}, 0,
                 ${`Converted from Quotation #${quote.quotation_no}`}
             ) RETURNING id
-        `;
+        ` as unknown as { id: number }[];
 
         const invoiceId = invoiceResult[0].id;
 
@@ -80,8 +80,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             invoiceNo
         }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error converting quotation:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

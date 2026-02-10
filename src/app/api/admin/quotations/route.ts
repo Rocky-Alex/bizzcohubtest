@@ -1,26 +1,28 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 import { logActivity } from '@/lib/activity-logger';
+import { Quotation } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     try {
         // DDL removed for performance. Schema assumed to exist.
 
 
         const data = await sql`
             SELECT * FROM quotations ORDER BY created_at DESC
-        `;
+        ` as unknown as Quotation[];
 
         return NextResponse.json({ quotations: data }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching quotations:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const body = await req.json();
         const {
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
                 ${subTotal}, ${discountTotal}, ${taxRate}, ${taxAmount}, ${totalAmount}, 
                 ${paymentType}, ${status || 'Pending'}, ${isTaxable}, ${isDiscountable}, ${advanceReceived || 0}
             ) RETURNING id
-        `;
+        ` as unknown as { id: number }[];
 
         const quotationId = result[0].id;
 
@@ -88,11 +90,12 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ message: 'Quotation created successfully', quotationId }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating quotation:', error);
-        if (error.code === '23505') {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        if (typeof error === 'object' && error !== null && 'code' in error && (error as any).code === '23505') {
             return NextResponse.json({ error: 'Quotation number already exists' }, { status: 409 });
         }
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/invoice-db';
 import { logActivity } from '@/lib/activity-logger';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
 
         const invoiceResult = await sql`
             SELECT * FROM invoices WHERE id = ${id}
-        `;
+        ` as unknown as any[];
 
         if (invoiceResult.length === 0) {
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
@@ -16,18 +16,17 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
         const itemsResult = await sql`
             SELECT * FROM invoice_items WHERE invoice_id = ${id}
-        `;
-
-
+        ` as unknown as any[];
 
         return NextResponse.json({ invoice: invoiceResult[0], items: itemsResult }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching invoice details:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
         const { status } = await req.json();
@@ -42,7 +41,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             SET status = ${status}
             WHERE id = ${id}
             RETURNING id, status
-        `;
+        ` as unknown as any[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
@@ -58,13 +57,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
         return NextResponse.json({ message: 'Status updated successfully', invoice: result[0] }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating invoice status:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
         const body = await req.json();
@@ -81,8 +81,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
 
         // Fetch existing invoice to compare changes
-        const existingInvoiceResult = await sql`SELECT * FROM invoices WHERE id = ${id}`;
-        let changeDetails = [`Invoice #${invoiceNo} updated.`];
+        const existingInvoiceResult = await sql`SELECT * FROM invoices WHERE id = ${id}` as unknown as any[];
+        const changeDetails = [`Invoice #${invoiceNo} updated.`];
 
         if (existingInvoiceResult.length > 0) {
             const old = existingInvoiceResult[0];
@@ -125,14 +125,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
                 terms_and_conditions = ${terms || null}
             WHERE id = ${id}
             RETURNING id
-        `;
+        ` as unknown as any[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
         }
 
         // 1. Fetch existing items to revert stock
-        const existingItems = await sql`SELECT product_code, quantity FROM invoice_items WHERE invoice_id = ${id}`;
+        const existingItems = await sql`SELECT product_code, quantity FROM invoice_items WHERE invoice_id = ${id}` as unknown as any[];
 
         // 2. Revert stock (Add back old quantities)
         for (const item of existingItems) {
@@ -151,11 +151,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         // Ensure column exists (Migration fix for existing dbs)
         try {
             await sql`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS product_code TEXT`;
-        } catch (e) {
+        } catch (e: unknown) {
             console.log('Migration note (invoice_items update):', e);
         }
 
-        for (const item of items) {
+        const itemsList = Array.isArray(items) ? items : [];
+        for (const item of itemsList) {
             await sql`
                 INSERT INTO invoice_items (
                     invoice_id, description, quantity, unit_price, discount, total, product_code
@@ -184,13 +185,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
         return NextResponse.json({ message: 'Invoice updated successfully' }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating invoice:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const { id } = params;
 
@@ -198,7 +200,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
             DELETE FROM invoices
             WHERE id = ${id}
             RETURNING id
-        `;
+        ` as unknown as any[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
@@ -213,8 +215,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
         );
 
         return NextResponse.json({ message: 'Invoice deleted successfully' }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting invoice:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

@@ -3,7 +3,7 @@ import { invoiceSql as sql } from '@/lib/invoice-db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     try {
         // Parallelize queries for efficiency
         const [overallStats, currentMonthStats, prevMonthStats, recentTransactions, monthlyRevenue, quotationStats] = await Promise.all([
@@ -33,7 +33,7 @@ export async function GET() {
                     END), 0) as overdue_amount
                 FROM invoices
                 WHERE TRIM(status) != 'Cancelled'
-            `,
+            ` as unknown as any[],
             // 2. Current Month Stats
             sql`
                 SELECT
@@ -43,7 +43,7 @@ export async function GET() {
                     COALESCE(SUM(CASE WHEN TRIM(status) = 'Overdue' THEN total_amount ELSE 0 END), 0) as overdue
                 FROM invoices
                 WHERE created_date >= date_trunc('month', CURRENT_DATE)
-            `,
+            ` as unknown as any[],
             // 3. Previous Month Stats
             sql`
                 SELECT
@@ -54,7 +54,7 @@ export async function GET() {
                 FROM invoices
                 WHERE created_date >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
                   AND created_date < date_trunc('month', CURRENT_DATE)
-            `,
+            ` as unknown as any[],
             // 4. Recent Transactions (Last 5)
             sql`
                 SELECT id, invoice_no, customer_name, total_amount, status, created_date 
@@ -62,7 +62,7 @@ export async function GET() {
                 WHERE TRIM(status) != 'Cancelled'
                 ORDER BY created_date DESC 
                 LIMIT 5
-            `,
+            ` as unknown as any[],
             // 5. Monthly Revenue (Last 6 Months)
             sql`
                 SELECT 
@@ -73,11 +73,11 @@ export async function GET() {
                   AND TRIM(status) != 'Cancelled'
                 GROUP BY date_trunc('month', created_date)
                 ORDER BY date_trunc('month', created_date) ASC
-            `,
+            ` as unknown as any[],
             // 6. Quotation Account
             sql`
                 SELECT COUNT(*) as count FROM quotations
-            `.catch(() => [{ count: 0 }])
+            `.catch(() => [{ count: 0 }]) as unknown as any[]
         ]);
 
         const totals = overallStats[0];
@@ -113,8 +113,9 @@ export async function GET() {
         };
 
         return NextResponse.json(result, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching invoice stats:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

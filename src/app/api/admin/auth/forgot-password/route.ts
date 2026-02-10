@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
         const { email, action } = body;
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
         // Action: Lookup User
         if (action === 'lookup') {
-            const users = await sql`SELECT username, image_url, avatar FROM users WHERE email = ${email}`;
+            const users = await sql`SELECT username, image_url, avatar FROM users WHERE email = ${email}` as unknown as any[];
 
             if (users.length === 0) {
                 return NextResponse.json({ found: false, message: 'No admin account found with this email' }, { status: 404 });
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 1. Check if Admin exists
-        const admins = await sql`SELECT id, username, first_name FROM users WHERE email = ${email}`;
+        const admins = await sql`SELECT id, username, first_name FROM users WHERE email = ${email}` as unknown as any[];
 
         if (admins.length === 0) {
             return NextResponse.json({ success: true, message: 'If an account exists, a reset link has been sent.' });
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
                     emailSent = true;
                     console.log('Admin reset email sent via Resend');
                 }
-            } catch (e) {
+            } catch (e: unknown) {
                 console.error('Resend execution failed:', e);
             }
         }
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
 
                     emailSent = true;
                     console.log('Admin reset email sent via Nodemailer');
-                } catch (e) {
+                } catch (e: unknown) {
                     console.error('Nodemailer failed:', e);
                 }
             }
@@ -139,8 +139,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to send email. Server configuration error.' }, { status: 500 });
         }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Admin Forgot Password Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

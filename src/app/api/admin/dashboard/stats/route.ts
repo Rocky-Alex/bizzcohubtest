@@ -4,7 +4,7 @@ import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url);
         const fromParam = searchParams.get('from');
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
                 ORDER BY i.created_date DESC 
                 LIMIT 5
             `
-        ]);
+        ]) as unknown as any[][];
 
         const [currInv, prevInv, outStat, currCust, prevCust, prodStat, currQuot, prevQuot, purStat, recentInvoices] = results;
 
@@ -113,8 +113,9 @@ export async function GET(request: Request) {
 
     } catch (error: unknown) {
         console.error('Error fetching dashboard stats:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         return NextResponse.json(
-            { error: 'Failed to fetch dashboard stats' },
+            { error: 'Failed to fetch dashboard stats', details: errorMessage },
             { status: 500 }
         );
     }

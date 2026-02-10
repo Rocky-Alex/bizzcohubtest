@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { logActivity } from '@/lib/activity-logger';
+import { DatabaseProduct, ProductFormData } from '@/types';
 
 // Helper to get DB connection
 const getSql = () => {
@@ -11,22 +12,50 @@ const getSql = () => {
     return neon(dbUrl);
 };
 
-export async function GET() {
+export async function GET(req: Request): Promise<NextResponse> {
     try {
+        const { searchParams } = new URL(req.url);
+        const sku = searchParams.get('sku');
+        const name = searchParams.get('name');
+
         const sql = getSql();
-        const products = await sql`SELECT * FROM products ORDER BY date_added DESC LIMIT 50`;
+
+        if (sku) {
+            // Search by SKU (product_code)
+            const rows = await sql`SELECT * FROM products WHERE product_code = ${sku}`;
+            if (rows.length === 0) {
+                return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+            }
+            return NextResponse.json(rows[0]);
+        }
+
+        if (name) {
+            // Search by Product Name (Try exact, then case-insensitive)
+            const rows = await sql`SELECT * FROM products WHERE product_name = ${name} LIMIT 1`;
+            if (rows.length > 0) {
+                return NextResponse.json(rows[0]);
+            }
+            const fuzzy = await sql`SELECT * FROM products WHERE product_name ILIKE ${name} LIMIT 1`;
+            if (fuzzy.length > 0) {
+                return NextResponse.json(fuzzy[0]);
+            }
+            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        }
+
+        const products = await sql`SELECT * FROM products ORDER BY date_added DESC LIMIT 50` as unknown as DatabaseProduct[];
 
         return NextResponse.json(products);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching products:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const sql = getSql();
-        const body = await req.json();
+        const body = await req.json() as ProductFormData;
 
         // Destructure all possible fields from the new complex form
         const {
@@ -112,7 +141,7 @@ export async function POST(req: Request) {
                 WHERE product_code LIKE ${pattern}
                 ORDER BY CAST(NULLIF(regexp_replace(product_code, ${'^BCH-' + prefix + '-'}, ''), '') AS INTEGER) DESC
                 LIMIT 1
-            `;
+            ` as unknown as { product_code: string }[];
 
             let nextNum = 1000;
             if (rows.length > 0) {
@@ -150,7 +179,7 @@ export async function POST(req: Request) {
                 ${ramVariantsJson}::jsonb, ${storageVariantsJson}::jsonb
             )
             RETURNING product_code
-        `;
+        ` as unknown as { product_code: string }[];
 
         await logActivity(
             'Admin',
@@ -162,13 +191,14 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ message: 'Product created', id: result[0].product_code }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating product:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: Request): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
@@ -180,7 +210,7 @@ export async function DELETE(req: Request) {
         const sql = getSql();
         // Try deleting by ID first, if that fails (e.g. 0 rows), maybe try by product_code if your logic requires it, 
         // but typically 'id' from the frontend object refers to the PK.
-        const result = await sql`DELETE FROM products WHERE id = ${id} RETURNING id`;
+        const result = await sql`DELETE FROM products WHERE id = ${id} RETURNING id` as unknown as { id: number }[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -204,16 +234,17 @@ export async function DELETE(req: Request) {
         );
 
         return NextResponse.json({ message: 'Product deleted' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error deleting product:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: Request): Promise<NextResponse> {
     try {
         const sql = getSql();
-        const body = await req.json();
+        const body = await req.json() as ProductFormData;
 
         // Destructure fields similar to POST
         const {
@@ -326,7 +357,7 @@ export async function PUT(req: Request) {
                 storage_variants = ${storageVariantsJson}::jsonb
             WHERE id = ${id}
             RETURNING id
-        `;
+        ` as unknown as { id: number }[];
 
         if (result.length === 0) {
             return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -353,8 +384,9 @@ export async function PUT(req: Request) {
 
         return NextResponse.json({ message: 'Product updated successfully', id: result[0].id });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating product:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

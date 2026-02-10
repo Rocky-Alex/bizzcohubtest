@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import ProductImage from "@/components/ProductImage";
-import imageKitLoader from "@/utils/imageLoader";
+import { Product } from "@/types";
 
 interface ProductCardProps {
-    product: any;
+    product: Product;
     type?: string;
     priority?: boolean;
 }

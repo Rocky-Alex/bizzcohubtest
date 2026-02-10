@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
             WHERE code LIKE 'BCH-%'
             ORDER BY code DESC
             LIMIT 1
-        `;
+        ` as unknown as { code: string }[];
 
         let nextNumber = 1000; // Start from 1000
 

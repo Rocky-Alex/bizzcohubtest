@@ -4,6 +4,7 @@ import CategoryFilter from "./components/CategoryFilter";
 import ProductCard from "./components/ProductCard";
 import "./styles/products.css";
 import { Metadata } from 'next';
+import { Product } from "@/types";
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +42,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
     // 2. Fetch all products to determine available categories
     const allProducts = await getProducts();
-    const categories = Array.from(new Set(allProducts.map((p: any) => p.category))).filter(Boolean) as string[];
+    const categories = Array.from(new Set(allProducts.map((p: Product) => p.category))).filter(Boolean) as string[];
 
     // 4. Get the filtered products for display (use the DAL for consistency)
     const products = await getProducts(filters);
@@ -73,7 +74,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                     </div>
                 ) : (
                     <div className="products-layout-grid">
-                        {products.map((product: any, index: number) => (
+                        {products.map((product: Product, index: number) => (
                             <ProductCard
                                 key={product.id}
                                 product={product}

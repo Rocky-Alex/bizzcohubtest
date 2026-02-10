@@ -13,14 +13,14 @@ const getSql = () => {
     return neon(dbUrl);
 };
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     try {
         const sql = getSql();
 
         // Check if products table exists
         try {
             await sql`SELECT 1 FROM products LIMIT 1`;
-        } catch (e) {
+        } catch (e: unknown) {
             // If table doesn't exist, return empty stats
             return NextResponse.json({
                 totalProducts: 0,
@@ -87,12 +87,12 @@ export async function GET() {
                 END) as items_prev_month
 
             FROM products
-        `;
+        ` as unknown as any[];
 
         const s = stats[0];
 
         // Helper for percentage growth
-        const calcTrend = (curr: number, prev: number) => {
+        const calcTrend = (curr: any, prev: any) => {
             curr = Number(curr || 0);
             prev = Number(prev || 0);
             if (prev === 0) return curr > 0 ? 100 : 0;
@@ -120,20 +120,18 @@ export async function GET() {
             }
         };
 
-
-
         return NextResponse.json(result);
 
-
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching inventory stats:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         return NextResponse.json({
             totalProducts: 0,
             totalAccessories: 0,
             lowStockItems: 0,
             totalValue: 0,
             trends: { products: 0, accessories: 0, stock: 0, value: 0 },
-            error: error.message
+            error: errorMessage
         });
     }
 }

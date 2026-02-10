@@ -31,7 +31,7 @@ const LoadingSpinner = ({ fullScreen = false }: { fullScreen?: boolean }) => {
         alignItems: 'center',
         padding: '2rem',
         width: '100%',
-        flexDirection: 'column' as 'column', // Explicit cast for TS
+        flexDirection: 'column' as const, // Explicit cast for TS
         gap: '1rem'
     };
 

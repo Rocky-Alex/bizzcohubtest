@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
-export async function GET(request: NextRequest) {
+export async function GET(): Promise<NextResponse> {
     try {
         await sql`
             CREATE TABLE IF NOT EXISTS admin_emails (
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         `;
 
         // Seed some data if empty
-        const count = await sql`SELECT COUNT(*) FROM admin_emails`;
+        const count = await sql`SELECT COUNT(*) FROM admin_emails` as unknown as { count: string }[];
         if (Number(count[0].count) === 0) {
             await sql`
                 INSERT INTO admin_emails (sender_name, sender_email, recipient_email, subject, body, snippet, folder, is_read, labels, avatar, created_at)
@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({ message: 'Email table initialized successfully' });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
