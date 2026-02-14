@@ -52,46 +52,63 @@ export async function GET(req: Request): Promise<NextResponse> {
         // Check for BCH-XXXX format
         const bchMatch = (sku || search || '').toString().toUpperCase().match(/^BCH-(\d+)$/);
 
+        // NOTE: inventory_qc.sku is treated as Serial Number.
+        // We join products on product_name because sku (Serial) won't match product_code (Model).
         if (bchMatch) {
             const seqNum = parseInt(bchMatch[1]);
             const id = seqNum - 999;
             if (id > 0) {
                 // Try looking up by ID first
                 items = await sql`
-                    SELECT * FROM inventory_qc 
-                    WHERE id = ${id}
+                    SELECT inventory_qc.*, p.ram as product_ram, p.storage as product_storage 
+                    FROM inventory_qc 
+                    LEFT JOIN products p ON TRIM(UPPER(p.product_name)) = TRIM(UPPER(inventory_qc.product_name))
+                    WHERE inventory_qc.id = ${id}
                 ` as unknown as any[];
 
                 // If no result by ID, try matching the SKU column explicitly
                 if (!items || items.length === 0) {
                     items = await sql`
-                        SELECT * FROM inventory_qc 
-                        WHERE sku ILIKE ${sku || search} 
-                        ORDER BY created_at DESC
+                        SELECT inventory_qc.*, p.ram as product_ram, p.storage as product_storage 
+                        FROM inventory_qc 
+                        LEFT JOIN products p ON TRIM(UPPER(p.product_name)) = TRIM(UPPER(inventory_qc.product_name))
+                        WHERE TRIM(inventory_qc.sku) ILIKE ${sku || search} 
+                        ORDER BY inventory_qc.created_at DESC
                     ` as unknown as any[];
                 }
             } else {
                 // ID calculation invalid, try SKU
                 items = await sql`
-                    SELECT * FROM inventory_qc 
-                    WHERE sku ILIKE ${sku || search} 
-                    ORDER BY created_at DESC
+                    SELECT inventory_qc.*, p.ram as product_ram, p.storage as product_storage 
+                    FROM inventory_qc 
+                    LEFT JOIN products p ON TRIM(UPPER(p.product_name)) = TRIM(UPPER(inventory_qc.product_name))
+                    WHERE TRIM(inventory_qc.sku) ILIKE ${sku || search} 
+                    ORDER BY inventory_qc.created_at DESC
                 ` as unknown as any[];
             }
         } else if (sku) {
             items = await sql`
-                SELECT * FROM inventory_qc 
-                WHERE sku ILIKE ${sku} 
-                ORDER BY created_at DESC
+                SELECT inventory_qc.*, p.ram as product_ram, p.storage as product_storage 
+                FROM inventory_qc 
+                LEFT JOIN products p ON TRIM(UPPER(p.product_name)) = TRIM(UPPER(inventory_qc.product_name))
+                WHERE TRIM(inventory_qc.sku) ILIKE ${sku} 
+                ORDER BY inventory_qc.created_at DESC
             ` as unknown as any[];
         } else if (search) {
             items = await sql`
-                SELECT * FROM inventory_qc 
-                WHERE sku ILIKE ${search} OR product_name ILIKE ${'%' + search + '%'}
-                ORDER BY created_at DESC
+                SELECT inventory_qc.*, p.ram as product_ram, p.storage as product_storage 
+                FROM inventory_qc 
+                LEFT JOIN products p ON TRIM(UPPER(p.product_name)) = TRIM(UPPER(inventory_qc.product_name))
+                WHERE TRIM(inventory_qc.sku) ILIKE ${search} OR inventory_qc.product_name ILIKE ${'%' + search + '%'}
+                ORDER BY inventory_qc.created_at DESC
             ` as unknown as any[];
         } else {
-            items = await sql`SELECT * FROM inventory_qc ORDER BY created_at DESC` as unknown as any[];
+            items = await sql`
+                SELECT inventory_qc.*, p.ram as product_ram, p.storage as product_storage 
+                FROM inventory_qc 
+                LEFT JOIN products p ON TRIM(UPPER(p.product_name)) = TRIM(UPPER(inventory_qc.product_name))
+                ORDER BY inventory_qc.created_at DESC
+            ` as unknown as any[];
         }
 
         return NextResponse.json({ success: true, data: items });
@@ -232,6 +249,85 @@ export async function POST(req: Request): Promise<NextResponse> {
         return NextResponse.json({ success: true, insertedId: result[0].id });
     } catch (error: unknown) {
         console.error('Error saving QC check:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+    }
+}
+
+export async function PUT(req: Request): Promise<NextResponse> {
+    try {
+        const body = await req.json();
+        const {
+            id,
+            sku,
+            productName,
+            brand,
+            model,
+            series,
+            processor,
+            processor_gen,
+            ram,
+            storage,
+            graphics_card,
+            screen_size,
+            screen_resolution,
+            keyboard_type,
+            keyboard_backlit,
+            condition_status,
+            updatedBy
+        } = body;
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'ID is required for update' }, { status: 400 });
+        }
+
+        // Ensure columns exist
+        try {
+            await sql`ALTER TABLE inventory_qc ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE`;
+            await sql`ALTER TABLE inventory_qc ADD COLUMN IF NOT EXISTS updated_by TEXT`;
+        } catch (e) {
+            console.warn('Could not update schema for updated_at:', e);
+        }
+
+        const result = await sql`
+            UPDATE inventory_qc
+            SET 
+                sku = ${sku || null},
+                product_name = ${productName},
+                brand = ${brand || null},
+                model = ${model || null},
+                series = ${series || null},
+                processor = ${processor || null},
+                processor_gen = ${processor_gen || null},
+                ram = ${ram || null},
+                storage = ${storage || null},
+                graphics = ${graphics_card || null},
+                screen_size = ${screen_size || null},
+                screen_resolution = ${screen_resolution || null},
+                keyboard_type = ${keyboard_type || null},
+                keyboard_backlit = ${keyboard_backlit || null},
+                condition_status = ${condition_status || null},
+                updated_at = CURRENT_TIMESTAMP,
+                updated_by = ${updatedBy || 'Admin'}
+            WHERE id = ${id}
+            RETURNING id
+        `;
+
+        if (result.length === 0) {
+            return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
+        }
+
+        await logActivity(
+            'Admin',
+            'QC Update',
+            `QC updated for ${productName} (ID: ${id})`,
+            'success',
+            updatedBy || 'Admin'
+        );
+
+        return NextResponse.json({ success: true, message: 'Updated successfully' });
+    } catch (error: unknown) {
+        console.error('Error updating QC:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
         return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }

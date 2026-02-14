@@ -15,6 +15,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
         totalLots: 0,
         totalItems: 0,
         pendingQC: 0,
+        finishedQC: 0,
         topSuppliers: [] as { name: string, total: number }[],
         recentLots: [] as any[],
         trends: {
@@ -127,6 +128,19 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                     </div>
                 </div>
 
+                {/* Total Items */}
+                <div className="billing-stat-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
+                            <i className="fas fa-truck-loading"></i>
+                        </div>
+                    </div>
+                    <div className="stat-content">
+                        <h3>Total Items</h3>
+                        <p className="stat-value">{stats.totalItems}</p>
+                    </div>
+                </div>
+
                 {/* Items Pending QC */}
                 <div className="billing-stat-card">
                     <div className="stat-header">
@@ -137,6 +151,19 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                     <div className="stat-content">
                         <h3>Pending QC</h3>
                         <p className="stat-value">{stats.pendingQC}</p>
+                    </div>
+                </div>
+
+                {/* items Finished QC */}
+                <div className="billing-stat-card">
+                    <div className="stat-header">
+                        <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+                            <i className="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div className="stat-content">
+                        <h3>Finished QC</h3>
+                        <p className="stat-value">{stats.finishedQC}</p>
                     </div>
                 </div>
             </div>
@@ -228,10 +255,22 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                         </div>
                     </div>
 
+                    <div className="action-card" onClick={() => setActiveSection('purchase-import-full')}>
+                        <div className="action-icon" style={{ background: '#fef3c7', color: '#a35d0d' }}>
+                            <i className="fas fa-file-excel"></i>
+                        </div>
+                        <div className="action-info">
+                            <h4>Full Import</h4>
+                            <p>Bulk import items from supplier excel as full import</p>
+                        </div>
+                    </div>
+
                     <div className="action-card" onClick={() => setActiveSection('purchase-lots-list')}>
-                        <div className="action-icon" style={{ background: '#ecfccb', color: '#65a30d' }}>
+                        <div className="action-icon" style={{ background: '#dcfce7', color: '#15803d' }}>
                             <i className="fas fa-history"></i>
                         </div>
+
+
                         <div className="action-info">
                             <h4>Purchase History</h4>
                             <p>View and manage all previous purchases</p>

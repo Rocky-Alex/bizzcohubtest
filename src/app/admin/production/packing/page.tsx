@@ -23,6 +23,9 @@ interface PackingItem {
     qc_id?: number;
     image?: string;
     scanned_at: Date;
+    ram?: string;
+    storage?: string;
+    serial_number?: string;
 }
 
 interface PackedBox {
@@ -46,6 +49,7 @@ export default function PackingPage() {
     const [currentBoxNumber, setCurrentBoxNumber] = useState(1);
     const [currentBoxItems, setCurrentBoxItems] = useState<PackingItem[]>([]);
     const [packedHistory, setPackedHistory] = useState<PackedBox[]>([]);
+    const [editingItem, setEditingItem] = useState<PackingItem | null>(null); // New state for editing
 
     // Barcode State
     const [barcodeInput, setBarcodeInput] = useState('');
@@ -123,7 +127,10 @@ export default function PackingPage() {
                         product_name: item.product_name,
                         sku: item.sku,
                         qc_id: item.id,
-                        image: '/placeholder.svg'
+                        image: '/placeholder.svg',
+                        ram: item.ram || item.product_ram || '',
+                        storage: item.storage || item.product_storage || '',
+                        serial_number: item.serial_number || ''
                     };
                 }
             }
@@ -138,7 +145,10 @@ export default function PackingPage() {
                             product_name: p.name,
                             sku: p.productCode || code,
                             qc_id: undefined,
-                            image: p.images && p.images.length > 0 ? p.images[0] : '/placeholder.svg'
+                            image: p.images && p.images.length > 0 ? p.images[0] : '/placeholder.svg',
+                            ram: p.specifications?.RAM || '',
+                            storage: p.specifications?.Storage || '',
+                            serial_number: ''
                         };
                     }
                 }
@@ -188,6 +198,12 @@ export default function PackingPage() {
             }
             return item;
         }));
+    };
+
+    const handleUpdateItem = (updatedItem: PackingItem) => {
+        setCurrentBoxItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+        setEditingItem(null);
+        toast.success("Item updated");
     };
 
     const removeItem = (id: number) => {
@@ -513,10 +529,10 @@ export default function PackingPage() {
                                                     </div>
                                                 </td>
                                                 <td style={{ padding: '1rem', borderBottom: '1px solid #f9fafb', fontSize: '0.85rem', color: '#6b7280' }}>
-                                                    -
+                                                    {item.ram || ''}{(item.ram && item.storage) ? ' / ' : ''}{item.storage || ''}
                                                 </td>
                                                 <td style={{ padding: '1rem', borderBottom: '1px solid #f9fafb', fontSize: '0.85rem', color: '#6b7280' }}>
-                                                    -
+                                                    {item.serial_number || ''}
                                                 </td>
                                                 <td style={{ padding: '1rem', borderBottom: '1px solid #f9fafb' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -532,13 +548,22 @@ export default function PackingPage() {
                                                     </div>
                                                 </td>
                                                 <td style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #f9fafb', textAlign: 'right' }}>
-                                                    <button
-                                                        onClick={() => removeItem(item.id)}
-                                                        style={{ width: '32px', height: '32px', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#ef4444', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                                                        title="Remove"
-                                                    >
-                                                        <i className="fas fa-trash-alt" style={{ fontSize: '0.85rem' }}></i>
-                                                    </button>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                                        <button
+                                                            onClick={() => setEditingItem(item)}
+                                                            style={{ width: '32px', height: '32px', borderRadius: '8px', border: 'none', background: '#e0e7ff', color: '#4338ca', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                                                            title="Edit"
+                                                        >
+                                                            <i className="fas fa-edit" style={{ fontSize: '0.85rem' }}></i>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => removeItem(item.id)}
+                                                            style={{ width: '32px', height: '32px', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#ef4444', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                                                            title="Remove"
+                                                        >
+                                                            <i className="fas fa-trash-alt" style={{ fontSize: '0.85rem' }}></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -691,6 +716,87 @@ export default function PackingPage() {
                 </div>
 
             </div>
+
+            {/* Edit Item Modal */}
+            {editingItem && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: 'white', padding: '2rem', borderRadius: '16px', width: '500px', maxWidth: '90%', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+                        <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 700, color: '#1f2937' }}>Edit Item Details</h3>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#4b5563' }}>Product Name</label>
+                                <input
+                                    type="text"
+                                    value={editingItem.product_name}
+                                    onChange={(e) => setEditingItem({ ...editingItem, product_name: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#4b5563' }}>RAM</label>
+                                    <input
+                                        type="text"
+                                        value={editingItem.ram || ''}
+                                        onChange={(e) => setEditingItem({ ...editingItem, ram: e.target.value })}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                                        placeholder="e.g. 8GB"
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#4b5563' }}>Storage</label>
+                                    <input
+                                        type="text"
+                                        value={editingItem.storage || ''}
+                                        onChange={(e) => setEditingItem({ ...editingItem, storage: e.target.value })}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                                        placeholder="e.g. 256GB"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#4b5563' }}>Serial Number</label>
+                                <input
+                                    type="text"
+                                    value={editingItem.serial_number || ''}
+                                    onChange={(e) => setEditingItem({ ...editingItem, serial_number: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                                    placeholder="Enter S/N"
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#4b5563' }}>Quantity</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={editingItem.quantity}
+                                    onChange={(e) => setEditingItem({ ...editingItem, quantity: parseInt(e.target.value) || 1 })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setEditingItem(null)}
+                                style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #d1d5db', background: 'white', color: '#4b5563', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleUpdateItem(editingItem)}
+                                style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

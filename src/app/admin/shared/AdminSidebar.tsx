@@ -52,11 +52,19 @@ export default function AdminSidebar({
             icon: "fa-tools",
             label: "Production",
             subItems: [
-                // { id: "production-dashboard", label: "Dashboard" },
-                { id: "production-qc", label: "QC Checking" },
+                { id: "production-qc", label: "Production QC Checking" },
+                { id: "production-inventory-qc", label: "Inventory QC Checking" },
+                { id: "production-reprint", label: "Reprint Barcode" }
+            ]
+        },
+        {
+            id: "packing",
+            icon: "fa-box-open",
+            label: "Packing",
+            subItems: [
+                { id: "packing-dashboard", label: "Packing Dashboard" },
                 { id: "production-packing", label: "Packing" },
-                // { id: "production-projects", label: "Projects" },
-                // { id: "production-tasks", label: "Tasks" }
+                { id: "packing-v2", label: "Packing V2" }
             ]
         },
         {
@@ -64,9 +72,10 @@ export default function AdminSidebar({
             icon: "fa-shopping-bag",
             label: "Purchase",
             subItems: [
-                { id: "purchase-dashboard", label: "Dashboard" },
+                { id: "purchase-dashboard", label: "Purchase Dashboard" },
                 { id: "purchase-history", label: "Purchase History" },
                 { id: "purchase-import", label: "Import Shipment" },
+                { id: "purchase-import-full", label: "Full Import" },
                 { id: "suppliers", label: "Suppliers" }
             ]
         },
@@ -75,41 +84,23 @@ export default function AdminSidebar({
             icon: "fa-boxes",
             label: "Inventory",
             subItems: [
-                { id: "inventory-dashboard", label: "Dashboard" },
-                { id: "products-list", label: "All Products" },
-                { id: "add-product", label: "Add Product" },
-                { id: "inventory-qc", label: "QC List" },
-                { id: "inventory-drops", label: "Drop Lists" }
+                { id: "inventory-dashboard", label: "Inventory Dashboard" },
+                { id: "add-product", label: "Add E-Comm Product" },
+                { id: "products-list", label: "E-Comm Products List" },
+                { id: "inventory-qc", label: "Inventory QC List" },
+                { id: "inventory-drops", label: "Dropdown Manage" }
             ]
         },
-        // {
-        //     id: "accounts",
-        //     icon: "fa-wallet",
-        //     label: "Accounts",
-        //     subItems: [
-        //         { id: "accounts-dashboard", label: "Dashboard" },
-        //         { id: "accounts-items", label: "Items" },
-        //         { id: "accounts-sales", label: "Sales" },
-        //         { id: "accounts-purchases", label: "Purchases" },
-        //         { id: "accounts-reports", label: "Reports" }
-        //     ]
-        // },
-        // {
-        //     id: "reports",
-        //     icon: "fa-chart-line",
-        //     label: "Reports",
-        //     subItems: [
-        //         { id: "reports-sales", label: "Sales Report" }
-        //     ]
-        // },
         {
             id: "invoicing",
             icon: "fa-file-invoice",
             label: "Billing",
             subItems: [
-                { id: "invoicing-dashboard", label: "Dashboard" },
+                { id: "invoicing-dashboard", label: "Billing Dashboard" },
                 { id: "invoicing-all", label: "All Invoice" },
-                { id: "quotations-all", label: "All Quotations" }
+                { id: "invoicing-create", label: "Create Invoice" },
+                { id: "quotations-all", label: "All Quotations" },
+                { id: "quotations-create", label: "Create Quotation" }
             ]
         },
         {
@@ -153,7 +144,6 @@ export default function AdminSidebar({
     const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
     const [showAutoRefreshSettings, setShowAutoRefreshSettings] = useState(false);
 
-    // Load collapsed state from localStorage on mount
     React.useEffect(() => {
         const savedState = localStorage.getItem('sidebarCollapsed');
         if (savedState !== null) {
@@ -161,20 +151,16 @@ export default function AdminSidebar({
         }
     }, []);
 
-    // Save collapsed state to localStorage when it changes
     const toggleSidebar = () => {
         const newState = !isCollapsed;
         setIsCollapsed(newState);
         localStorage.setItem('sidebarCollapsed', newState.toString());
-        // Collapse all menus when sidebar is collapsed
         if (newState) {
             setExpandedMenus([]);
         }
     };
 
-    // Determine if sidebar should appear expanded
     const isExpanded = !isCollapsed || (isCollapsed && isHovering);
-
     const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
     const handleMouseEnter = () => {
@@ -191,7 +177,7 @@ export default function AdminSidebar({
         if (isCollapsed) {
             hoverTimeoutRef.current = setTimeout(() => {
                 setIsHovering(false);
-                setExpandedMenus([]); // Collapse all sub-menus on hover leave
+                setExpandedMenus([]);
             }, 300);
         }
     };
@@ -206,7 +192,6 @@ export default function AdminSidebar({
         if (sub.id === 'email-inbox') {
             router.push('/admin/email');
         } else {
-            // Map sub IDs to routes
             const routeMap: Record<string, string> = {
                 'orders-all': '/admin/orders?view=list',
                 'orders-create': '/admin/orders?view=create',
@@ -230,6 +215,9 @@ export default function AdminSidebar({
                 'users-roles': '/admin/users',
                 'production-dashboard': '/admin/production?section=production-dashboard',
                 'production-qc': '/admin/production?section=production-qc',
+                'production-inventory-qc': '/admin/production?section=production-inventory-qc',
+                'production-packing': '/admin/production?section=production-packing',
+                'production-reprint': '/admin/production?section=production-reprint',
                 'production-projects': '/admin/production?section=production-projects',
                 'production-tasks': '/admin/production?section=production-tasks',
                 'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
@@ -241,7 +229,10 @@ export default function AdminSidebar({
                 'purchase-dashboard': '/admin/purchase?section=purchase-dashboard',
                 'purchase-history': '/admin/purchase?section=purchase-lots-list',
                 'purchase-import': '/admin/purchase?section=purchase-lots-import',
+                'purchase-import-full': '/admin/purchase?section=purchase-import-full',
                 'suppliers': '/admin/purchase?section=suppliers',
+                'packing-dashboard': '/admin/packing?section=packing-dashboard',
+                'packing-v2': '/admin/packing?section=packing-v2',
             };
 
             const target = routeMap[sub.id] || `/admin/${sub.id.replace(/-/g, '/')}`;
@@ -263,12 +254,12 @@ export default function AdminSidebar({
         } else {
             const routeMap: Record<string, string> = {
                 'dashboard': '/admin/dashboard',
-
                 'user-passwords': '/admin/passwords',
                 'activity-log': '/admin/activity-log',
                 'featured-manage': '/admin/featured',
                 'production': '/admin/production',
                 'inventory': '/admin/inventory',
+                'packing': '/admin/packing',
                 'database': '/admin/database'
             };
             const target = routeMap[item.id] || `/admin/${item.id}`;
@@ -283,31 +274,26 @@ export default function AdminSidebar({
     };
 
     const displayedItems = menuItems.filter(item => {
-        // Accountant restriction
         if (userRole?.toLowerCase() === 'accountant') {
             return ['dashboard', 'orders', 'invoicing'].includes(item.id);
         }
 
-        // Super Admin restriction for sensitive sections
         if (['user-passwords', 'activity-log'].includes(item.id)) {
-            // Check if user is superadmin (either by role or username handle)
             const isSuperAdmin = userRole === 'superadmin' || username === 'superadmin';
             return isSuperAdmin;
         }
 
-        // Workspace Filtering
         const isProductionWorkspace = searchParams.get('workspace') === 'production' ||
             pathname?.startsWith('/admin/production') ||
             pathname?.startsWith('/admin/purchase') ||
             pathname?.startsWith('/admin/inventory') ||
+            pathname?.startsWith('/admin/packing') ||
             pathname?.startsWith('/admin/labelsize');
 
         if (isProductionWorkspace) {
-            // Only show detailed Production items + Dashboard
-            return ['dashboard', 'production', 'purchase', 'inventory', 'labelsize'].includes(item.id);
+            return ['dashboard', 'production', 'purchase', 'inventory', 'packing', 'labelsize'].includes(item.id);
         } else {
-            // Hide Production items from main menu (Accessed via Header Button)
-            if (['production', 'purchase', 'inventory', 'labelsize'].includes(item.id)) {
+            if (['production', 'purchase', 'inventory', 'packing', 'labelsize'].includes(item.id)) {
                 return false;
             }
         }
@@ -315,11 +301,9 @@ export default function AdminSidebar({
         return true;
     });
 
-    // Helper to check if a main item or its subitems are active
     const isMainItemActive = (item: any) => {
         const routeMap: Record<string, string> = {
             'dashboard': '/admin/dashboard',
-
             'user-passwords': '/admin/passwords',
             'activity-log': '/admin/activity-log',
             'featured-manage': '/admin/featured',
@@ -329,13 +313,13 @@ export default function AdminSidebar({
             'invoicing': '/admin/billing',
             'users': '/admin/users',
             'production': '/admin/production',
+            'packing': '/admin/packing',
             'inventory': '/admin/inventory',
             'database': '/admin/database'
         };
         const targetRoute = routeMap[item.id];
         if (pathname === targetRoute) return true;
 
-        // Check subitems
         if (item.subItems) {
             const subRouteMap: Record<string, string> = {
                 'orders-all': '/admin/orders',
@@ -360,6 +344,9 @@ export default function AdminSidebar({
                 'users-roles': '/admin/users',
                 'production-dashboard': '/admin/production?section=production-dashboard',
                 'production-qc': '/admin/production?section=production-qc',
+                'production-inventory-qc': '/admin/production?section=production-inventory-qc',
+                'production-packing': '/admin/production?section=production-packing',
+                'production-reprint': '/admin/production?section=production-reprint',
                 'production-projects': '/admin/production?section=production-projects',
                 'production-tasks': '/admin/production?section=production-tasks',
                 'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
@@ -370,7 +357,10 @@ export default function AdminSidebar({
                 'purchase-dashboard': '/admin/purchase?section=purchase-dashboard',
                 'purchase-history': '/admin/purchase?section=purchase-lots-list',
                 'purchase-import': '/admin/purchase?section=purchase-lots-import',
+                'purchase-import-full': '/admin/purchase?section=purchase-import-full',
                 'suppliers': '/admin/purchase?section=suppliers',
+                'packing-dashboard': '/admin/packing?section=packing-dashboard',
+                'packing-v2': '/admin/packing?section=packing-v2',
             };
             const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
             return item.subItems.some((sub: any) => {
@@ -441,7 +431,9 @@ export default function AdminSidebar({
                                             'users-roles': '/admin/users',
                                             'production-dashboard': '/admin/production?section=production-dashboard',
                                             'production-qc': '/admin/production?section=production-qc',
+                                            'production-inventory-qc': '/admin/production?section=production-inventory-qc',
                                             'production-packing': '/admin/production?section=production-packing',
+                                            'production-reprint': '/admin/production?section=production-reprint',
                                             'production-projects': '/admin/production?section=production-projects',
                                             'production-tasks': '/admin/production?section=production-tasks',
                                             'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
@@ -452,6 +444,7 @@ export default function AdminSidebar({
                                             'purchase-dashboard': '/admin/purchase?section=purchase-dashboard',
                                             'purchase-history': '/admin/purchase?section=purchase-lots-list',
                                             'purchase-import': '/admin/purchase?section=purchase-lots-import',
+                                            'purchase-import-full': '/admin/purchase?section=purchase-import-full',
                                             'suppliers': '/admin/purchase?section=suppliers',
                                         };
                                         const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
@@ -475,7 +468,6 @@ export default function AdminSidebar({
                 })}
             </nav>
 
-            {/* Sidebar Footer with Toggle Button */}
             <div className="sidebar-footer">
                 <button
                     className="sidebar-toggle-btn"
@@ -487,7 +479,6 @@ export default function AdminSidebar({
                 </button>
             </div>
 
-            {/* Auto Refresh Settings Modal */}
             <AutoRefreshSettings
                 isOpen={showAutoRefreshSettings}
                 onClose={() => setShowAutoRefreshSettings(false)}

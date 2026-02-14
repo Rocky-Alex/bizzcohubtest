@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import SearchableDropdown from '@/components/ui/SearchableDropdown';
-import Barcode from 'react-barcode';
+import { QRCodeSVG } from 'qrcode.react';
 
 
 
@@ -73,6 +73,8 @@ interface LabelConfig {
     barcodeHeight: number;
     barcodeFontSize: number;
     barcodePos: Position;
+    barcodeTextPos?: Position;
+    barcodeTextFontSize?: number;
     specsFontSize: number;
     specsLineHeight: number;
     specsPos: Position;
@@ -94,7 +96,15 @@ export default function QCChecking() {
                 const res = await fetch('/api/admin/label-settings?name=default_label', { cache: 'no-store' });
                 const data = await res.json();
                 if (data.success && data.config) {
-                    setLabelConfig({ ...data.config, unit: data.config.unit || 'cm' });
+                    const defaults: any = {
+                        unit: 'cm', width: 10, height: 6, borderRadius: 0, showBorder: true,
+                        productNameSize: 14, productNamePos: { x: 0.5, y: 0.5 }, productNameWidth: 9,
+                        barcodeScale: 1.5, barcodeHeight: 40, barcodeFontSize: 12, barcodePos: { x: 0.5, y: 2.5 },
+                        barcodeTextPos: { x: 0.5, y: 3.8 }, barcodeTextFontSize: 8,
+                        specsFontSize: 10, specsLineHeight: 1.4, specsPos: { x: 5.5, y: 2.5 },
+                        lotFontSize: 12, lotPos: { x: 5.5, y: 5.0 }
+                    };
+                    setLabelConfig({ ...defaults, ...data.config, unit: data.config.unit || data.config.unit || defaults.unit });
                 }
             } catch (error) {
                 console.error("Failed to load label settings:", error);
@@ -624,14 +634,33 @@ export default function QCChecking() {
                 </div>
                 <div style={{ position: 'relative' }}>
                     {isDropdown && isEditing ? (
-                        <SearchableDropdown
-                            name={fieldKey}
+                        <select
                             value={value}
                             onChange={(e) => handleChange(fieldKey, e.target.value)}
-                            options={sortedOptions}
-                            placeholder={`Select ${label}`}
                             className="modern-input"
-                        />
+                            style={{
+                                width: '100%',
+                                padding: '0.85rem 1rem',
+                                paddingRight: '2.5rem',
+                                backgroundColor: 'white',
+                                border: '2px solid #e2e8f0',
+                                borderRadius: '8px',
+                                color: value ? '#0f172a' : '#94a3b8',
+                                fontSize: '0.95rem',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                appearance: 'none',
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 1rem center',
+                                backgroundSize: '1.2rem',
+                            }}
+                        >
+                            <option value="" disabled>Select {label}</option>
+                            {sortedOptions.map((opt, idx) => (
+                                <option key={`${opt}-${idx}`} value={opt}>{opt}</option>
+                            ))}
+                        </select>
                     ) : (
                         <input
                             type="text"
@@ -662,7 +691,7 @@ export default function QCChecking() {
             {/* Header Section */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '2.25rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.4rem', letterSpacing: '-0.04em' }}>QC Checking</h1>
+                    <h1 style={{ fontSize: '2.25rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.4rem', letterSpacing: '-0.04em' }}>Production QC Checking</h1>
                     <p style={{ color: '#64748b', fontSize: '1rem', fontWeight: 500 }}>Precision verification for inventory assurance.</p>
                 </div>
                 <div style={{
@@ -1094,12 +1123,12 @@ export default function QCChecking() {
                             position: 'relative',
                             width: labelConfig ? `${labelConfig.width}${labelConfig.unit || 'cm'}` : '100%',
                             height: labelConfig ? `${labelConfig.height}${labelConfig.unit || 'cm'}` : '260px',
-                            border: labelConfig?.showBorder ? '1px solid #000' : '2px solid #000',
+                            border: labelConfig?.showBorder ? '1px solid #000' : 'none',
                             borderRadius: labelConfig ? `${labelConfig.borderRadius}px` : '16px',
                             backgroundColor: 'white',
                             overflow: 'hidden',
-                            boxSizing: 'border-box',
-                            margin: '0 auto'
+                            margin: '0 auto',
+                            flexShrink: 0
                         }}>
                             {labelConfig ? (
                                 <>
@@ -1119,23 +1148,36 @@ export default function QCChecking() {
                                         {printData.productName}
                                     </div>
 
-                                    {/* Barcode */}
+                                    {/* QR Code */}
                                     <div style={{
                                         position: 'absolute',
                                         left: `${labelConfig.barcodePos.x}${labelConfig.unit || 'cm'}`,
                                         top: `${labelConfig.barcodePos.y}${labelConfig.unit || 'cm'}`,
+                                        transformOrigin: 'top left'
                                     }}>
                                         <div style={{ transform: 'scale(1)' }}>
-                                            <Barcode
+                                            <QRCodeSVG
                                                 value={printData.barcodeValue}
-                                                width={labelConfig.barcodeScale}
-                                                height={labelConfig.barcodeHeight}
-                                                fontSize={labelConfig.barcodeFontSize}
-                                                displayValue={true}
-                                                margin={0}
+                                                size={labelConfig.barcodeHeight}
+                                                level={"H"}
+                                                includeMargin={false}
                                             />
                                         </div>
                                     </div>
+
+                                    {/* QR Code Text */}
+                                    {labelConfig.barcodeTextPos && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: `${labelConfig.barcodeTextPos.x}${labelConfig.unit || 'cm'}`,
+                                            top: `${labelConfig.barcodeTextPos.y}${labelConfig.unit || 'cm'}`,
+                                            fontSize: `${labelConfig.barcodeTextFontSize || 8}pt`,
+                                            fontWeight: 700,
+                                            color: '#000'
+                                        }}>
+                                            {printData.barcodeValue}
+                                        </div>
+                                    )}
 
                                     {/* Specs */}
                                     <div style={{
@@ -1147,10 +1189,18 @@ export default function QCChecking() {
                                         fontWeight: 700,
                                         color: '#000'
                                     }}>
-                                        <div style={{ display: 'flex', gap: '8px' }}><span style={{ color: '#64748b', fontWeight: 500 }}>DISPLAY:</span> {printData.screen_size}"</div>
-                                        <div style={{ display: 'flex', gap: '8px' }}><span style={{ color: '#64748b', fontWeight: 500 }}>MEMORY:</span> {printData.ram}</div>
-                                        <div style={{ display: 'flex', gap: '8px' }}><span style={{ color: '#64748b', fontWeight: 500 }}>STORAGE:</span> {printData.storage}</div>
-                                        <div style={{ display: 'flex', gap: '8px' }}><span style={{ color: '#64748b', fontWeight: 500 }}>GPU:</span> {printData.graphics_card}</div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <span style={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase' }}>DISPLAY:</span> {printData.screen_size}"
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <span style={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase' }}>MEMORY:</span> {printData.ram}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <span style={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase' }}>STORAGE:</span> {printData.storage}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <span style={{ color: '#64748b', fontWeight: 500, textTransform: 'uppercase' }}>GPU:</span> {printData.graphics_card}
+                                        </div>
                                     </div>
 
                                     {/* Lot Number */}
@@ -1174,7 +1224,10 @@ export default function QCChecking() {
                                     </h4>
                                     <div style={{ display: 'flex', flex: 1, width: '100%', alignItems: 'center' }}>
                                         <div style={{ flex: '0 0 180px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                                            <Barcode value={printData.barcodeValue} width={1.5} height={60} fontSize={14} displayValue={true} margin={0} />
+                                            <QRCodeSVG value={printData.barcodeValue} size={100} level={"H"} includeMargin={false} />
+                                            <div style={{ fontSize: '0.8rem', fontWeight: 700, textAlign: 'center', marginTop: '4px' }}>
+                                                {printData.barcodeValue}
+                                            </div>
                                         </div>
                                         <div style={{ flex: 1, paddingLeft: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                             <div style={{ fontSize: '1.1rem', lineHeight: 1.8, color: '#000', fontWeight: 700 }}>
@@ -1228,13 +1281,20 @@ export default function QCChecking() {
                                         const style = document.createElement('style');
                                         style.innerHTML = `
                                             @media print {
+                                                @page { size: auto; margin: 0mm; }
                                                 body * { visibility: hidden; }
                                                 .print-label-container, .print-label-container * { visibility: visible; }
                                                 .print-label-container { 
-                                                    position: absolute; left: 0; top: 0; margin: 0; 
-                                                    width: ${labelConfig ? `${labelConfig.width}cm` : '100%'} !important; 
-                                                    height: ${labelConfig ? `${labelConfig.height}cm` : 'auto'} !important;
+                                                    position: fixed !important; 
+                                                    left: 0 !important; 
+                                                    top: 0 !important; 
+                                                    z-index: 2147483647 !important;
+                                                    margin: 0 !important; 
+                                                    width: ${labelConfig ? `${labelConfig.width}${labelConfig.unit || 'cm'}` : '100%'} !important; 
+                                                    height: ${labelConfig ? `${labelConfig.height}${labelConfig.unit || 'cm'}` : 'auto'} !important;
                                                     border: ${labelConfig?.showBorder ? '1px solid #000' : 'none'} !important;
+                                                    border-radius: ${labelConfig?.borderRadius || 0}px !important;
+                                                    background-color: white !important;
                                                     overflow: hidden !important;
                                                 }
                                             }

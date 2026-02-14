@@ -66,6 +66,13 @@ export async function GET(): Promise<NextResponse> {
         ` as unknown as { count: string | null }[];
         const pendingQC = parseInt(pendingQCRes[0]?.count || '0');
 
+        // 6. Finished QC
+        const finishedQCRes = await sql`
+            SELECT SUM(qc_count) as count 
+            FROM purchase_lot_items
+        ` as unknown as { count: string | null }[];
+        const finishedQC = parseInt(finishedQCRes[0]?.count || '0');
+
         // 6. Top Suppliers (by spend)
         const topSuppliers = await sql`
             SELECT supplier_name as name, SUM(total_cost) as total
@@ -100,6 +107,7 @@ export async function GET(): Promise<NextResponse> {
             totalLots,
             totalItems,
             pendingQC,
+            finishedQC,
             topSuppliers,
             recentLots,
             trends: {

@@ -360,6 +360,26 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
             <div className="quick-actions-section">
                 <h3 className="quick-actions-header">Quick Actions</h3>
                 <div className="quick-actions-grid">
+                    <div className="quick-action-card" onClick={() => setActiveSection('invoicing-all')}>
+                        <div className="quick-action-icon" style={{ background: '#f3e8ff', color: '#9333ea' }}>
+                            <i className="fas fa-list"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">All Invoices</span>
+                            <span className="quick-action-desc">View all invoices</span>
+                        </div>
+                    </div>
+
+                    <div className="quick-action-card" onClick={() => setActiveSection('quotations-all')}>
+                        <div className="quick-action-icon" style={{ background: '#f3e8ff', color: '#9333ea' }}>
+                            <i className="fas fa-list"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">All Quotations</span>
+                            <span className="quick-action-desc">View all quotations</span>
+                        </div>
+                    </div>
+
                     <div className="quick-action-card" onClick={() => setActiveSection('invoicing-new')}>
                         <div className="quick-action-icon" style={{ background: '#f3e8ff', color: '#9333ea' }}>
                             <i className="fas fa-plus"></i>

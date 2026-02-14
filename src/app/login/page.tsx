@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import './login.css';
 import { toast } from 'sonner';
-import OrbitingTechnologies from '@/components/ui/OrbitingTechnologies';
+
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
 
@@ -195,7 +195,7 @@ export default function CustomerAuthPage() {
 
                 {/* Visual Side (Tech Core) */}
                 <div className="tech-visual-container">
-                    <OrbitingTechnologies />
+                    {/* <OrbitingTechnologies /> Removed for performance */}
                 </div>
 
                 {/* Login Form Side */}

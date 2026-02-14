@@ -8,6 +8,9 @@ import LoadingSpinner from '@/app/components/LoadingSpinner';
 const ComingSoon = dynamic(() => import('@/app/admin/shared/ComingSoon'));
 const QCChecking = dynamic(() => import('./components/QCChecking/QCChecking'), { loading: () => <LoadingSpinner /> });
 const Packing = dynamic(() => import('./components/Packing/Packing'), { loading: () => <LoadingSpinner /> });
+const ReprintBarcode = dynamic(() => import('./components/ReprintBarcode/ReprintBarcode'), { loading: () => <LoadingSpinner /> });
+
+const InventoryQCChecking = dynamic(() => import('./components/InventoryQCChecking/InventoryQCChecking'), { loading: () => <LoadingSpinner /> });
 
 export default function ProductionPage() {
     const searchParams = useSearchParams();
@@ -36,8 +39,14 @@ export default function ProductionPage() {
             {section === 'production-qc' && (
                 <QCChecking />
             )}
+            {section === 'production-inventory-qc' && (
+                <InventoryQCChecking />
+            )}
             {section === 'production-packing' && (
                 <Packing />
+            )}
+            {section === 'production-reprint' && (
+                <ReprintBarcode />
             )}
         </div>
     );

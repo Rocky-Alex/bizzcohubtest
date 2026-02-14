@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import Barcode from 'react-barcode';
+import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 
 interface Position {
@@ -26,6 +26,8 @@ interface LabelConfig {
     barcodeHeight: number;
     barcodeFontSize: number;
     barcodePos: Position;
+    barcodeTextPos: Position; // Independent position for text BCH-XXXX
+    barcodeTextFontSize: number;
 
     specsFontSize: number;
     specsLineHeight: number;
@@ -69,6 +71,8 @@ export default function QCStickerEditor({ settingKey = 'default_label', title = 
         barcodeHeight: 40,
         barcodeFontSize: 12,
         barcodePos: { x: 0.5, y: 2.5 },
+        barcodeTextPos: { x: 0.5, y: 3.8 },
+        barcodeTextFontSize: 8,
 
         specsFontSize: 10,
         specsLineHeight: 1.4,
@@ -95,9 +99,12 @@ export default function QCStickerEditor({ settingKey = 'default_label', title = 
                 const res = await fetch(`/api/admin/label-settings?name=${settingKey}`, { cache: 'no-store' });
                 const data = await res.json();
                 if (data.success && data.config) {
-                    // Ensure unit exists in loaded config default to cm if missing
-                    setConfig({ ...data.config, unit: data.config.unit || 'cm' });
-
+                    // Merge DB config with current (default) state to ensure new fields like barcodeTextPos exist
+                    setConfig(prev => ({
+                        ...prev,
+                        ...data.config,
+                        unit: data.config.unit || prev.unit || 'cm'
+                    }));
                 }
             } catch (error) {
                 console.error('Failed to load settings:', error);
@@ -134,6 +141,7 @@ export default function QCStickerEditor({ settingKey = 'default_label', title = 
             productNamePos: { x: convert(prev.productNamePos.x), y: convert(prev.productNamePos.y) },
             productNameWidth: convert(prev.productNameWidth),
             barcodePos: { x: convert(prev.barcodePos.x), y: convert(prev.barcodePos.y) },
+            barcodeTextPos: { x: convert(prev.barcodeTextPos.x), y: convert(prev.barcodeTextPos.y) },
             specsPos: { x: convert(prev.specsPos.x), y: convert(prev.specsPos.y) },
             lotPos: { x: convert(prev.lotPos.x), y: convert(prev.lotPos.y) },
         }));
@@ -241,16 +249,21 @@ export default function QCStickerEditor({ settingKey = 'default_label', title = 
                     </div>
                 </div>
 
-                {/* 3. Barcode */}
+                {/* 3. QR Code */}
                 <div className="control-section" style={sectionStyle}>
-                    <h3 style={headerStyle}>Barcode</h3>
+                    <h3 style={headerStyle}>QR Code</h3>
                     {renderPosInputs('Pos', 'barcodePos', config.barcodePos)}
                     <div style={rowStyle}>
-                        <label style={labelStyle}>Scale (Width) <input type="number" step="0.1" name="barcodeScale" value={config.barcodeScale} onChange={handleConfigChange} style={inputStyle} /></label>
-                        <label style={labelStyle}>Height (px) <input type="number" name="barcodeHeight" value={config.barcodeHeight} onChange={handleConfigChange} style={inputStyle} /></label>
+                        <label style={labelStyle}>Size (px) <input type="number" name="barcodeHeight" value={config.barcodeHeight} onChange={handleConfigChange} style={inputStyle} /></label>
                     </div>
+                </div>
+
+                {/* 3a. QR Code Text (BCH-XXXX) */}
+                <div className="control-section" style={sectionStyle}>
+                    <h3 style={headerStyle}>QR Code Text</h3>
+                    {renderPosInputs('Pos', 'barcodeTextPos', config.barcodeTextPos)}
                     <div style={rowStyle}>
-                        <label style={labelStyle}>Text Size (pt) <input type="number" name="barcodeFontSize" value={config.barcodeFontSize} onChange={handleConfigChange} style={inputStyle} /></label>
+                        <label style={labelStyle}>Font Size (pt) <input type="number" name="barcodeTextFontSize" value={config.barcodeTextFontSize} onChange={handleConfigChange} style={inputStyle} /></label>
                     </div>
                 </div>
 
@@ -294,23 +307,33 @@ export default function QCStickerEditor({ settingKey = 'default_label', title = 
                         {data.productName}
                     </div>
 
-                    {/* Element 2: Barcode */}
+                    {/* Element 2: QR Code */}
                     <div style={{
                         position: 'absolute',
                         left: `${config.barcodePos.x}${config.unit}`,
                         top: `${config.barcodePos.y}${config.unit}`,
-                        transformOrigin: 'top left' // Standardize transform origin? React-barcode is an SVG/Canvas
+                        transformOrigin: 'top left'
                     }}>
                         <div style={{ transform: 'scale(1)' }}>
-                            <Barcode
+                            <QRCodeSVG
                                 value={data.barcodeValue}
-                                width={config.barcodeScale}
-                                height={config.barcodeHeight}
-                                fontSize={config.barcodeFontSize}
-                                displayValue={true}
-                                margin={0}
+                                size={config.barcodeHeight}
+                                level={"H"}
+                                includeMargin={false}
                             />
                         </div>
+                    </div>
+
+                    {/* Element 2a: Barcode Text */}
+                    <div style={{
+                        position: 'absolute',
+                        left: `${config.barcodeTextPos.x}${config.unit}`,
+                        top: `${config.barcodeTextPos.y}${config.unit}`,
+                        fontSize: `${config.barcodeTextFontSize}pt`,
+                        fontWeight: 700,
+                        color: '#000'
+                    }}>
+                        {data.barcodeValue}
                     </div>
 
                     {/* Element 3: Specs */}
