@@ -21,9 +21,13 @@ export async function POST(req: Request): Promise<NextResponse> {
         let lotNumber = lotMetadata.lotNumber;
         if (!lotNumber) {
             try {
+                // We need to check both purchase_lots and master_inventory to find the true max lot number
                 const lastLotResult = await sql`
-                    SELECT lot_number FROM master_inventory 
-                    WHERE lot_number LIKE 'LOT-%'
+                    SELECT lot_number FROM (
+                        SELECT lot_number, created_at FROM master_inventory WHERE lot_number LIKE 'LOT-%'
+                        UNION ALL
+                        SELECT lot_number, created_at FROM purchase_lots WHERE lot_number LIKE 'LOT-%'
+                    ) combined_lots
                     ORDER BY created_at DESC 
                     LIMIT 1
                 ` as unknown as { lot_number: string }[];
