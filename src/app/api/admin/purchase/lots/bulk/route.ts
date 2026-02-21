@@ -22,25 +22,32 @@ export async function POST(req: Request): Promise<NextResponse> {
         if (!lotNumber) {
             try {
                 // We need to check both purchase_lots and master_inventory to find the true max lot number
-                const lastLotResult = await sql`
+                // Fetch all matching lot numbers to safely calculate the maximum numeric suffix in JS.
+                // This prevents duplicate key errors if lots are added out of order (e.g. manually specifying an older lot number).
+                const allLotsResult = await sql`
                     SELECT lot_number FROM (
-                        SELECT lot_number, created_at FROM master_inventory WHERE lot_number LIKE 'LOT-%'
+                        SELECT lot_number FROM master_inventory WHERE lot_number LIKE 'LOT-%'
                         UNION ALL
-                        SELECT lot_number, created_at FROM purchase_lots WHERE lot_number LIKE 'LOT-%'
+                        SELECT lot_number FROM purchase_lots WHERE lot_number LIKE 'LOT-%'
                     ) combined_lots
-                    ORDER BY created_at DESC 
-                    LIMIT 1
                 ` as unknown as { lot_number: string }[];
 
-                let nextId = 1;
-                if (lastLotResult.length > 0 && lastLotResult[0].lot_number) {
-                    const parts = lastLotResult[0].lot_number.split('-');
-                    if (parts.length === 2 && !isNaN(parseInt(parts[1]))) {
-                        nextId = parseInt(parts[1]) + 1;
+                let maxId = 0;
+                for (const row of allLotsResult) {
+                    if (row.lot_number) {
+                        const parts = row.lot_number.split('-');
+                        if (parts.length === 2 && !isNaN(parseInt(parts[1]))) {
+                            const num = parseInt(parts[1]);
+                            if (num > maxId) {
+                                maxId = num;
+                            }
+                        }
                     }
                 }
+                const nextId = maxId + 1;
                 lotNumber = `LOT-${String(nextId).padStart(3, '0')}`;
             } catch (e) {
+                console.error('Error generating lot number:', e);
                 lotNumber = `LOT-${Date.now()}`;
             }
         }
