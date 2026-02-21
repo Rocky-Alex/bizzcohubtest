@@ -21,4 +21,5 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: '/auth/signin',
     },
+    secret: process.env.NEXTAUTH_SECRET || "bizzcohub_fallback_secret_for_production_2026",
 };
