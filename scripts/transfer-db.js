@@ -1,7 +1,8 @@
 const { Pool } = require('pg');
 
-const sourceUrl = 'postgresql://neondb_owner:npg_Idm0shFwXtT5@ep-summer-dust-ae78ala9-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
-const destUrl = 'postgresql://neondb_owner:npg_nhxLbUTkc8K2@ep-rapid-lab-ahfqo17q-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+require('dotenv').config({ path: '.env' });
+const sourceUrl = process.env.MAIN_POSTGRES_URL;
+const destUrl = process.env.LOCAL_POSTGRES_URL;
 
 const sourcePool = new Pool({ connectionString: sourceUrl });
 const destPool = new Pool({ connectionString: destUrl });

@@ -12,113 +12,134 @@ export async function POST(req: Request): Promise<NextResponse> {
         const body = await req.json();
         const { lotMetadata, items } = body;
 
-        // Ensure tables exist
-        await sql`
-            CREATE TABLE IF NOT EXISTS purchase_lots (
-                id SERIAL PRIMARY KEY,
-                lot_number TEXT,
-                supplier_name TEXT NOT NULL,
-                supplier_id INTEGER,
-                invoice_date DATE,
-                invoice_number TEXT,
-                notes TEXT,
-                total_cost DECIMAL(12, 2) DEFAULT 0,
-                status TEXT DEFAULT 'active',
-                created_by TEXT,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        // Validation
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return NextResponse.json({ success: false, error: 'No items provided' }, { status: 400 });
+        }
 
-        // Ensure supplier_id exists (it might be missing if table was created before it was added)
-        await sql`ALTER TABLE purchase_lots ADD COLUMN IF NOT EXISTS supplier_id INTEGER`;
-        await sql`ALTER TABLE purchase_lots ADD COLUMN IF NOT EXISTS created_by TEXT`;
+        // 1. Generate Lot Number if missing
+        let lotNumber = lotMetadata.lotNumber;
+        if (!lotNumber) {
+            try {
+                const lastLotResult = await sql`
+                    SELECT lot_number FROM master_inventory 
+                    WHERE lot_number LIKE 'LOT-%'
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                ` as unknown as { lot_number: string }[];
 
-        await sql`
-            CREATE TABLE IF NOT EXISTS purchase_lot_items (
-                id SERIAL PRIMARY KEY,
-                lot_id INTEGER REFERENCES purchase_lots(id) ON DELETE CASCADE,
-                product_type TEXT,
-                product_name TEXT NOT NULL,
-                brand TEXT,
-                series TEXT,
-                model TEXT,
-                processor TEXT,
-                processor_gen TEXT,
-                sku TEXT,
-                quantity INTEGER DEFAULT 1,
-                unit_cost DECIMAL(12, 2) DEFAULT 0,
-                qc_count INTEGER DEFAULT 0,
-                created_by TEXT,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
-
-        // 1. Generate Auto-Increment Lot ID (LOT-01, LOT-02...)
-        const lastLotResult = await sql`
-            SELECT lot_id FROM purchase_lots 
-            ORDER BY id DESC 
-            LIMIT 1
-        ` as unknown as { lot_id: string }[];
-
-        let nextLotId = 'LOT-01';
-        if (lastLotResult.length > 0 && lastLotResult[0].lot_id) {
-            const lastIdStr = lastLotResult[0].lot_id;
-            const parts = lastIdStr.split('-');
-            if (parts.length === 2) {
-                const num = parseInt(parts[1], 10);
-                if (!isNaN(num)) {
-                    nextLotId = `LOT-${String(num + 1).padStart(2, '0')}`;
+                let nextId = 1;
+                if (lastLotResult.length > 0 && lastLotResult[0].lot_number) {
+                    const parts = lastLotResult[0].lot_number.split('-');
+                    if (parts.length === 2 && !isNaN(parseInt(parts[1]))) {
+                        nextId = parseInt(parts[1]) + 1;
+                    }
                 }
+                lotNumber = `LOT-${String(nextId).padStart(3, '0')}`;
+            } catch (e) {
+                lotNumber = `LOT-${Date.now()}`;
             }
         }
 
-        // 2. Insert Lot Metadata
-        const lotResult = await sql`
-            INSERT INTO purchase_lots (
-                lot_id, lot_number, supplier_name, supplier_id, invoice_date, invoice_number, notes, total_cost, created_by
+        // 2. Process and Insert Items
+        // Use transaction-like approach (sequential inserts)
+        let purchaseLotId: number | null = null;
+        let insertedCount = 0;
+
+        // A. Insert into purchase_lots
+        const lotInsertResult = await sql`
+        INSERT INTO purchase_lots (
+            lot_number, 
+            supplier_name, 
+            invoice_number, 
+            invoice_date, 
+            total_cost, 
+            notes, 
+            status, 
+            created_by
+        )
+        VALUES (
+            ${lotNumber}, 
+            ${lotMetadata.supplierName}, 
+            ${lotMetadata.invoiceNumber}, 
+            ${lotMetadata.invoiceDate || null}, 
+            ${lotMetadata.totalCost || 0}, 
+            ${lotMetadata.notes || ''}, 
+            'Pending', 
+            ${createdBy}
+        )
+        RETURNING id
+    ` as unknown as { id: number }[];
+
+        if (!lotInsertResult || lotInsertResult.length === 0) {
+            throw new Error("Failed to create Purchase Lot record.");
+        }
+        purchaseLotId = lotInsertResult[0].id;
+
+        // B. Insert Items into purchase_lot_items
+        for (const item of items) {
+            const qty = parseInt(item.quantity) || 1;
+
+            // We insert ONE row per product type with quantity, NOT expanded rows.
+            // The expansion happens during QC when moving to Master Inventory.
+            // This keeps the "Purchase Order" clean.
+
+            await sql`
+            INSERT INTO purchase_lot_items (
+                lot_id,
+                product_name,
+                product_type,
+                brand,
+                model,
+                series,
+                processor,
+                processor_gen,
+                ram,
+                storage,
+                graphics,
+                screen_size,
+                screen_resolution,
+                condition_status,
+                quantity,
+                unit_cost,
+                total_cost,
+                sku,
+                qc_count
             )
             VALUES (
-                ${nextLotId},
-                ${lotMetadata.lotNumber || null}, 
-                ${lotMetadata.supplierName}, 
-                ${lotMetadata.supplierId || null}, 
-                ${lotMetadata.invoiceDate}, 
-                ${lotMetadata.invoiceNumber}, 
-                ${lotMetadata.notes || null},
-                ${lotMetadata.totalCost || 0},
-                ${createdBy}
+                ${purchaseLotId},
+                ${item.productName},
+                ${item.productType || 'Laptop'},
+                ${item.brand || ''},
+                ${item.model || ''},
+                ${item.series || ''},
+                ${item.processor || ''},
+                ${item.processorGen || ''},
+                ${item.ram || ''},
+                ${item.storage || ''},
+                ${item.graphics || ''},
+                ${item.screenSize || ''},
+                ${item.screenResolution || ''},
+                ${item.conditionStatus || 'Unknown'},
+                ${qty},
+                ${item.unitCost || 0},
+                ${(item.unitCost || 0) * qty},
+                ${item.sku || ''}, -- Supplier SKU if any
+                0 -- Validated Count starts at 0
             )
-            RETURNING id, lot_id
-        ` as unknown as { id: number, lot_id: string }[];
-
-        const lotId = lotResult[0].id;
-        const lotIdStr = lotResult[0].lot_id;
-
-        // 2. Insert Items
-        for (const item of items) {
-            await sql`
-                INSERT INTO purchase_lot_items (
-                    lot_id, product_type, product_name, brand, series, model, 
-                    processor, processor_gen, sku, quantity, unit_cost, created_by
-                )
-                VALUES (
-                    ${lotId}, ${item.productType}, ${item.productName}, ${item.brand || null}, 
-                    ${item.series || null}, ${item.model || null}, ${item.processor || null}, 
-                    ${item.processorGen || null}, ${item.sku || null}, ${item.quantity || 1}, 
-                    ${item.unitCost || 0}, ${createdBy}
-                )
-            `;
+        `;
+            insertedCount += qty;
         }
 
         await logActivity(
             createdBy,
             'Import Purchase Lot',
-            `Imported lot ${lotMetadata.lotNumber || lotMetadata.invoiceNumber} with ${items.length} items from ${lotMetadata.supplierName}`,
+            `Imported lot ${lotNumber} with ${insertedCount} items (Staging) from ${lotMetadata.supplierName}`,
             'success',
             createdBy
         );
 
-        return NextResponse.json({ success: true, lotId });
+        return NextResponse.json({ success: true, lotId: lotNumber, message: 'Import successful (Staged)' });
     } catch (error: unknown) {
         console.error('Error importing purchase lot bulk:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';

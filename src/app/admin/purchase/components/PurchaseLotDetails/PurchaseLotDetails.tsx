@@ -204,85 +204,168 @@ export default function PurchaseLotDetails({ lotId, onBack }: PurchaseLotDetails
                             </tr>
                         </thead>
                         <tbody>
-                            {lot.items.map((item) => {
-                                const isEditing = editingItemId === item.itemId;
-                                return (
-                                    <tr key={item.itemId} style={{ borderBottom: '1px solid #f1f5f9', background: isEditing ? '#fefff5' : 'transparent' }}>
-                                        {isEditing ? (
-                                            <>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <input value={editFormData.productType || ''} onChange={e => handleChange('productType', e.target.value)} style={inputStyle} placeholder="Type" />
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <input value={editFormData.brand || ''} onChange={e => handleChange('brand', e.target.value)} style={inputStyle} placeholder="Brand" />
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <input value={editFormData.model || ''} onChange={e => handleChange('model', e.target.value)} style={inputStyle} placeholder="Model" />
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                        <input value={editFormData.series || ''} onChange={e => handleChange('series', e.target.value)} style={inputStyle} placeholder="Series" />
-                                                        <div style={{ display: 'flex', gap: '4px' }}>
-                                                            <input value={editFormData.processor || ''} onChange={e => handleChange('processor', e.target.value)} style={inputStyle} placeholder="Proc" />
-                                                            <input value={editFormData.processorGen || ''} onChange={e => handleChange('processorGen', e.target.value)} style={inputStyle} placeholder="Gen" />
+                            {(() => {
+                                // Aggregate items
+                                const aggregatedItems = lot.items.reduce((acc, item) => {
+                                    // Construct unique key based on visible columns + cost
+                                    const key = `${item.productType}|${item.brand}|${item.model}|${item.series}|${item.processor}|${item.processorGen}|${item.unitCost}`;
+
+                                    if (!acc[key]) {
+                                        acc[key] = {
+                                            ...item,
+                                            quantity: 0,
+                                            totalCost: "0",
+                                            ids: [] // Track all IDs in this group
+                                        };
+                                    }
+
+                                    acc[key].quantity += item.quantity;
+                                    acc[key].totalCost = (Number(acc[key].totalCost) + Number(item.totalCost)).toString();
+                                    acc[key].ids.push(item.itemId);
+
+                                    return acc;
+                                }, {} as Record<string, PurchaseLotItem & { ids: number[] }>);
+
+                                return Object.values(aggregatedItems).map((item) => {
+                                    const isEditing = editingItemId === item.itemId; // Use the representative ID (first one) for editing state
+
+                                    // Actions will apply to the Representative Item ID
+                                    // NOTE: This currently only edits/deletes the FIRST item of the group conceptually if the backend doesn't handle batches.
+                                    // To truly fix this, backend needs batch support. 
+                                    // However, for "View" aggregation, this meets the requirement.
+                                    // If the user Edits, they might expect to edit the whole group.
+                                    // Since this is a "Purchase Lot" usually imported in bulk, editing the definition *should* ideally apply to all.
+                                    // But safe implementation for now: show aggregate, but Actions might be per-row in backend.
+                                    // Wait, if I delete ID#1, the group decreases by 1. 
+                                    // If I want to delete the whole group, I need a loop.
+                                    // Let's implement Delete as a loop over `item.ids`.
+
+                                    return (
+                                        <tr key={item.itemId} style={{ borderBottom: '1px solid #f1f5f9', background: isEditing ? '#fefff5' : 'transparent' }}>
+                                            {isEditing ? (
+                                                <>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        <input value={editFormData.productType || ''} onChange={e => handleChange('productType', e.target.value)} style={inputStyle} placeholder="Type" />
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        <input value={editFormData.brand || ''} onChange={e => handleChange('brand', e.target.value)} style={inputStyle} placeholder="Brand" />
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        <input value={editFormData.model || ''} onChange={e => handleChange('model', e.target.value)} style={inputStyle} placeholder="Model" />
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                            <input value={editFormData.series || ''} onChange={e => handleChange('series', e.target.value)} style={inputStyle} placeholder="Series" />
+                                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                                                <input value={editFormData.processor || ''} onChange={e => handleChange('processor', e.target.value)} style={inputStyle} placeholder="Proc" />
+                                                                <input value={editFormData.processorGen || ''} onChange={e => handleChange('processorGen', e.target.value)} style={inputStyle} placeholder="Gen" />
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <input type="number" value={editFormData.quantity || ''} onChange={e => handleChange('quantity', e.target.value)} style={{ ...inputStyle, width: '70px' }} />
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <input type="number" value={editFormData.unitCost || ''} onChange={e => handleChange('unitCost', e.target.value)} style={{ ...inputStyle, width: '90px' }} />
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#0f172a', fontWeight: 700 }}>
-                                                    AED {((Number(editFormData.quantity) || 0) * (Number(editFormData.unitCost) || 0)).toLocaleString()}
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                                        <button onClick={() => handleSave(item.itemId)} style={{ padding: '6px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} title="Save">
-                                                            <i className="fas fa-check"></i>
-                                                        </button>
-                                                        <button onClick={handleCancel} style={{ padding: '6px', background: '#94a3b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} title="Cancel">
-                                                            <i className="fas fa-times"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.85rem' }}>{item.productType}</td>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#1e293b', fontWeight: 600, fontSize: '0.85rem' }}>{item.brand}</td>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#1e293b', fontWeight: 500, fontSize: '0.85rem' }}>{item.model}</td>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.85rem' }}>
-                                                    {item.series && <span style={{ display: 'block' }}>{item.series}</span>}
-                                                    {item.processor && <span style={{ display: 'block', fontSize: '0.75rem' }}>{item.processor} ({item.processorGen})</span>}
-                                                </td>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#1e293b', fontWeight: 700, fontSize: '0.85rem' }}>{item.quantity}</td>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#334155', fontSize: '0.85rem' }}>AED {Number(item.unitCost).toLocaleString()}</td>
-                                                <td style={{ padding: '0.85rem 1rem', color: '#0f172a', fontWeight: 700, fontSize: '0.85rem' }}>AED {Number(item.totalCost).toLocaleString()}</td>
-                                                <td style={{ padding: '0.85rem 1rem' }}>
-                                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                                        <button
-                                                            onClick={() => handleEditClick(item)}
-                                                            style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                                                            title="Edit"
-                                                        >
-                                                            <i className="fas fa-edit"></i>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(item.itemId)}
-                                                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                                                            title="Delete"
-                                                        >
-                                                            <i className="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </>
-                                        )}
-                                    </tr>
-                                );
-                            })}
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        {/* Quantity editing disabled for aggregated view to avoid complexity without backend batch support */}
+                                                        <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{item.quantity} (Locked)</span>
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        <input type="number" value={editFormData.unitCost || ''} onChange={e => handleChange('unitCost', e.target.value)} style={{ ...inputStyle, width: '90px' }} />
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#0f172a', fontWeight: 700 }}>
+                                                        AED {((Number(item.quantity) || 0) * (Number(editFormData.unitCost) || 0)).toLocaleString()}
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <button onClick={async () => {
+                                                                // Apply changes to ALL items in the group
+                                                                // We need to iterate over item.ids and call PUT for each
+                                                                if (!confirm(`Apply changes to all ${item.ids.length} items in this group?`)) return;
+
+                                                                // Helper for batch update
+                                                                const toastId = toast.loading('Updating items...');
+                                                                try {
+                                                                    const brand = editFormData.brand || '';
+                                                                    const series = editFormData.series || '';
+                                                                    const model = editFormData.model || '';
+                                                                    const processor = editFormData.processor || '';
+                                                                    const gen = editFormData.processorGen || '';
+                                                                    const productName = `${brand} ${series} ${model} ${processor} ${gen}`.trim().replace(/\s+/g, ' ') || editFormData.productName;
+                                                                    const payload = { ...editFormData, productName };
+
+                                                                    // Update Edit Logic to loop
+                                                                    await Promise.all(item.ids.map(id =>
+                                                                        fetch(`/api/admin/purchase/lots/items/${id}`, {
+                                                                            method: 'PUT',
+                                                                            headers: { 'Content-Type': 'application/json' },
+                                                                            body: JSON.stringify(payload)
+                                                                        })
+                                                                    ));
+
+                                                                    toast.dismiss(toastId);
+                                                                    toast.success('Items updated successfully');
+                                                                    setEditingItemId(null);
+                                                                    fetchLotDetails();
+                                                                } catch (e) {
+                                                                    toast.dismiss(toastId);
+                                                                    toast.error('Failed to update some items');
+                                                                }
+                                                            }} style={{ padding: '6px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} title="Save All">
+                                                                <i className="fas fa-check"></i>
+                                                            </button>
+                                                            <button onClick={handleCancel} style={{ padding: '6px', background: '#94a3b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} title="Cancel">
+                                                                <i className="fas fa-times"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.85rem' }}>{item.productType}</td>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#1e293b', fontWeight: 600, fontSize: '0.85rem' }}>{item.brand}</td>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#1e293b', fontWeight: 500, fontSize: '0.85rem' }}>{item.model}</td>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.85rem' }}>
+                                                        {item.series && <span style={{ display: 'block' }}>{item.series}</span>}
+                                                        {item.processor && <span style={{ display: 'block', fontSize: '0.75rem' }}>{item.processor} ({item.processorGen})</span>}
+                                                    </td>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#1e293b', fontWeight: 700, fontSize: '0.85rem' }}>{item.quantity}</td>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#334155', fontSize: '0.85rem' }}>AED {Number(item.unitCost).toLocaleString()}</td>
+                                                    <td style={{ padding: '0.85rem 1rem', color: '#0f172a', fontWeight: 700, fontSize: '0.85rem' }}>AED {Number(item.totalCost).toLocaleString()}</td>
+                                                    <td style={{ padding: '0.85rem 1rem' }}>
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <button
+                                                                onClick={() => handleEditClick(item)}
+                                                                style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}
+                                                                title="Edit Group"
+                                                            >
+                                                                <i className="fas fa-edit"></i>
+                                                            </button>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`Are you sure you want to delete ALL ${item.quantity} items in this group?`)) return;
+                                                                    const toastId = toast.loading('Deleting items...');
+                                                                    try {
+                                                                        await Promise.all(item.ids.map(id =>
+                                                                            fetch(`/api/admin/purchase/lots/items/${id}`, { method: 'DELETE' })
+                                                                        ));
+                                                                        toast.dismiss(toastId);
+                                                                        toast.success('Group deleted');
+                                                                        fetchLotDetails();
+                                                                    } catch (e) {
+                                                                        toast.dismiss(toastId);
+                                                                        toast.error('Error deleting group');
+                                                                    }
+                                                                }}
+                                                                style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}
+                                                                title="Delete Group"
+                                                            >
+                                                                <i className="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            )}
+                                        </tr>
+                                    );
+                                });
+                            })()}
                         </tbody>
                     </table>
                 </div>

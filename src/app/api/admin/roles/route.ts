@@ -5,8 +5,8 @@ import { cookies } from 'next/headers';
 // Helper to check if current user is admin
 // Helper to check if current user is admin
 function isAdmin(): boolean {
-    const role = cookies().get('user_role')?.value;
-    return role?.toLowerCase() === 'admin';
+    const role = cookies().get('admin_user_role')?.value;
+    return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
 }
 
 export async function GET(): Promise<NextResponse> {

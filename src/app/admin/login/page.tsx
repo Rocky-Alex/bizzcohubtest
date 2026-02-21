@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className="login-container">
+        <div className="login-container admin-login-page">
             <div className="sphere-text">Admin</div>
 
             <div className="login-content">
@@ -104,7 +104,7 @@ export default function AdminLoginPage() {
                         </div>
 
                         <div style={{ textAlign: 'right', marginTop: '8px', marginBottom: '16px' }}>
-                            <a href="/admin/forgot-password" style={{ color: '#aaa', fontSize: '0.85rem', textDecoration: 'none', transition: 'color 0.3s' }} onMouseOver={(e) => e.currentTarget.style.color = '#fff'} onMouseOut={(e) => e.currentTarget.style.color = '#aaa'}>
+                            <a href="/admin/forgot-password" className="forgot-password">
                                 Forgot Password?
                             </a>
                         </div>

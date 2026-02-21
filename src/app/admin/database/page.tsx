@@ -27,7 +27,7 @@ export default function DatabasePage() {
                 id: 'products', label: 'Products', tables: [
                     { name: 'Products', tableName: 'products', description: 'Main product catalog' },
                     { name: 'Featured Config', tableName: 'featured_products_config', description: 'Homepage featured items' },
-                    { name: 'Inventory QC', tableName: 'inventory_qc', description: 'Quality control records' }
+
                 ]
             }
         ],

@@ -1,6 +1,6 @@
-/* Admin Login Page - Remove White Background */
+/* Admin Login Page - White Background */
 .admin-login-page {
-    background: #0a0a0a !important;
+    background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
     min-height: 100vh !important;
@@ -8,9 +8,8 @@
 
 /* Override body background for admin login */
 body:has(.admin-login-page) {
-    background: #0a0a0a !important;
+    background: #ffffff !important;
 }
-
 
 /* Admin Login Styles */
 .login-container {
@@ -20,15 +19,17 @@ body:has(.admin-login-page) {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #0a0a0a;
-    background-image: radial-gradient(circle at 50% 0%, #1a2a2a 0%, #0a0a0a 60%);
-    color: #ffffff;
+    background-color: #f9fafb;
+    /* Light gray background */
+    background-image: radial-gradient(circle at 50% 0%, #f3f4f6 0%, #ffffff 60%);
+    color: #111827;
+    /* Gray 900 */
     font-family: 'Inter', sans-serif;
     position: relative;
     overflow: hidden;
 }
 
-/* Background Glow Effects */
+/* Background Glow Effects - keeping subtle */
 .login-container::before {
     content: '';
     position: absolute;
@@ -37,7 +38,7 @@ body:has(.admin-login-page) {
     transform: translateX(-50%);
     width: 800px;
     height: 800px;
-    background: radial-gradient(circle, rgba(20, 184, 166, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
     pointer-events: none;
     z-index: 0;
 }
@@ -61,7 +62,8 @@ body:has(.admin-login-page) {
 .sphere-text {
     font-size: 8rem;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.03);
+    color: rgba(0, 0, 0, 0.03);
+    /* Light gray for white bg */
     position: absolute;
     top: 5%;
     left: 50%;
@@ -78,11 +80,13 @@ body:has(.admin-login-page) {
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    color: #111827;
 }
 
 .highlight-text {
     color: #14b8a6;
-    background: linear-gradient(90deg, #2dd4bf, #0d9488);
+    /* Teal 500 */
+    background: linear-gradient(90deg, #14b8a6, #0d9488);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -92,24 +96,26 @@ body:has(.admin-login-page) {
     font-size: 1.8rem;
     font-weight: 700;
     margin-bottom: 15px;
-    color: #e5e7eb;
+    color: #374151;
+    /* Gray 700 */
 }
 
 .description {
-    color: #9ca3af;
+    color: #6b7280;
+    /* Gray 500 */
     font-size: 1rem;
     font-weight: 400;
 }
 
 /* Login Card */
 .login-card {
-    background: rgba(20, 20, 20, 0.8);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 24px;
     padding: 40px;
     width: 100%;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 /* Form */
@@ -120,7 +126,8 @@ body:has(.admin-login-page) {
 
 .form-label {
     display: block;
-    color: #e5e7eb;
+    color: #374151;
+    /* Gray 700 */
     font-size: 0.9rem;
     font-weight: 500;
     margin-bottom: 8px;
@@ -134,11 +141,13 @@ body:has(.admin-login-page) {
 
 .form-input {
     width: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    /* Gray 200 */
     border-radius: 12px;
     padding: 14px 16px;
-    color: #ffffff;
+    color: #111827;
+    /* Gray 900 */
     font-size: 0.95rem;
     transition: all 0.3s ease;
 }
@@ -146,11 +155,13 @@ body:has(.admin-login-page) {
 .form-input:focus {
     outline: none;
     border-color: #14b8a6;
-    background: rgba(0, 0, 0, 0.5);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
 }
 
 .form-input::placeholder {
-    color: #4b5563;
+    color: #9ca3af;
+    /* Gray 400 */
 }
 
 .password-toggle {
@@ -158,12 +169,17 @@ body:has(.admin-login-page) {
     right: 16px;
     background: none;
     border: none;
-    color: #14b8a6;
+    color: #6b7280;
+    /* Gray 500 */
     cursor: pointer;
     font-size: 1.1rem;
     padding: 0;
     display: flex;
     align-items: center;
+}
+
+.password-toggle:hover {
+    color: #14b8a6;
 }
 
 .forgot-password {
@@ -177,7 +193,7 @@ body:has(.admin-login-page) {
 }
 
 .forgot-password:hover {
-    color: #2dd4bf;
+    color: #0d9488;
 }
 
 /* Submit Button */
@@ -206,12 +222,18 @@ body:has(.admin-login-page) {
     transform: translateY(0);
 }
 
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Footer Links */
 .signup-link {
     text-align: center;
     margin-top: 24px;
     font-size: 0.9rem;
-    color: #9ca3af;
+    color: #6b7280;
     position: relative;
     z-index: 10;
 }
@@ -228,19 +250,20 @@ body:has(.admin-login-page) {
 
 .copyright {
     margin-top: 40px;
-    color: #4b5563;
+    color: #9ca3af;
+    /* Gray 400 */
     font-size: 0.8rem;
     text-align: center;
 }
 
-/* Password Reset Modal */
+/* Password Reset Modal - Also update to light theme */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -259,15 +282,15 @@ body:has(.admin-login-page) {
 }
 
 .modal-content {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    border: 1px solid rgba(20, 184, 166, 0.2);
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 20px;
     padding: 40px;
     max-width: 450px;
     width: 90%;
     position: relative;
     animation: slideUp 0.3s ease;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes slideUp {
@@ -299,11 +322,11 @@ body:has(.admin-login-page) {
 }
 
 .modal-close:hover {
-    color: #14b8a6;
+    color: #111827;
 }
 
 .modal-title {
-    color: #14b8a6;
+    color: #111827;
     font-size: 1.8rem;
     font-weight: 700;
     margin-bottom: 10px;
@@ -311,7 +334,7 @@ body:has(.admin-login-page) {
 }
 
 .modal-description {
-    color: #9ca3af;
+    color: #6b7280;
     font-size: 0.9rem;
     margin-bottom: 25px;
     text-align: center;
@@ -321,8 +344,8 @@ body:has(.admin-login-page) {
     width: 100%;
     padding: 14px 24px;
     background: transparent;
-    border: 1px solid rgba(20, 184, 166, 0.3);
-    color: #14b8a6;
+    border: 1px solid #d1d5db;
+    color: #4b5563;
     border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
@@ -332,8 +355,9 @@ body:has(.admin-login-page) {
 }
 
 .back-btn:hover {
-    background: rgba(20, 184, 166, 0.1);
-    border-color: #14b8a6;
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
 }
 
 /* Responsive */
@@ -345,36 +369,4 @@ body:has(.admin-login-page) {
     .modal-title {
         font-size: 1.5rem;
     }
-}
-
-/* Login Tabs */
-.login-tabs {
-    display: flex;
-    margin-bottom: 25px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 12px;
-    padding: 4px;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 10px;
-    background: transparent;
-    border: none;
-    color: #9ca3af;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.tab-btn.active {
-    background: rgba(20, 184, 166, 0.2);
-    color: #14b8a6;
-}
-
-.tab-btn:hover:not(.active) {
-    color: #e5e7eb;
-    background: rgba(255, 255, 255, 0.05);
 }

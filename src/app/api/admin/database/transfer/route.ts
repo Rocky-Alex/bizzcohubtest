@@ -47,7 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const PREFERRED_ORDER = [
             'roles', 'users', 'settings', 'admin_emails', 'suppliers', 'customers',
             'products', 'featured_products_config', 'purchase_lots', 'purchase_lot_items',
-            'inventory_qc', 'quotations', 'quotation_items', 'orders', 'invoices',
+            'quotations', 'quotation_items', 'orders', 'invoices',
             'invoice_items', 'invoice_payments', 'wishlist', 'activity_logs',
             'drop_lists', 'password_resets'
         ];

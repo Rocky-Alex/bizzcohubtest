@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+// Force rebuild
 import { useTheme } from "@/context/ThemeContext";
 
 const InventoryDashboard = dynamic(() => import("./components/InventoryDashboard/InventoryDashboard"), { loading: () => <LoadingSpinner /> });

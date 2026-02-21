@@ -83,6 +83,13 @@ export default function PurchaseLotList({ onViewDetail }: PurchaseLotListProps) 
             if (data.success) {
                 toast.success('Purchase lot deleted successfully');
                 fetchLots();
+            } else {
+                if (res.status === 404) {
+                    toast.info('Lot was already deleted');
+                    fetchLots();
+                } else {
+                    toast.error(data.error || 'Failed to delete lot');
+                }
             }
         } catch (error) {
             console.error('Delete failed', error);

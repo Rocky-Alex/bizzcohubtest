@@ -15,59 +15,62 @@ export async function GET(req: Request): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: 'Invalid Lot ID' }, { status: 400 });
         }
 
-        console.log(`[API] Fetching details for Lot ID: ${id}`);
-
-        // Fetch Lot Metadata
-        const lotRows = await sql`
-            SELECT 
-                id as "lotId", 
-                lot_number as "lotNumber", 
-                supplier_name as "supplierName", 
-                invoice_date as "invoiceDate", 
-                invoice_number as "invoiceNumber", 
-                notes,
-                total_cost as "totalCost"
+        // 1. Fetch Lot Metadata from purchase_lots
+        const lotInfo = await sql`
+            SELECT id, lot_number, supplier_name, invoice_date, invoice_number, total_cost, notes, status
             FROM purchase_lots
             WHERE id = ${id}
         ` as unknown as any[];
 
-        if (lotRows.length === 0) {
-            console.warn(`[API] Lot ${id} not found`);
+        if (lotInfo.length === 0) {
             return NextResponse.json({ success: false, error: 'Lot not found' }, { status: 404 });
         }
 
-        const lot = lotRows[0];
+        const lotMetadata = {
+            lotId: lotInfo[0].id.toString(),
+            lotNumber: lotInfo[0].lot_number,
+            supplierName: lotInfo[0].supplier_name,
+            invoiceDate: lotInfo[0].invoice_date,
+            invoiceNumber: lotInfo[0].invoice_number,
+            totalCost: lotInfo[0].total_cost,
+            notes: lotInfo[0].notes,
+            status: lotInfo[0].status
+        };
 
-        // Ensure qc_count column exists
-        try {
-            await sql`ALTER TABLE purchase_lot_items ADD COLUMN IF NOT EXISTS qc_count INTEGER DEFAULT 0`;
-        } catch (e: unknown) {
-            console.warn('Could not ensure qc_count column:', e);
-        }
-
-        // Fetch Lot Items
-        // We use COALESCE and ensure names match what QCChecking expects
+        // 2. Fetch Items from purchase_lot_items
         const items = await sql`
             SELECT 
-                id as "itemId", 
-                COALESCE(product_type, 'Product') as "productType", 
-                product_name as "productName", 
-                COALESCE(brand, '') as brand, 
-                COALESCE(series, '') as series, 
-                COALESCE(model, '') as model, 
-                COALESCE(processor, '') as processor, 
-                COALESCE(processor_gen, '') as "processorGen", 
-                COALESCE(sku, '') as sku, 
-                COALESCE(quantity, 1) as quantity, 
-                COALESCE(qc_count, 0) as "qcCount"
+                id as "itemId",
+                product_name as "productName",
+                product_type as "productType",
+                brand,
+                model,
+                series,
+                processor,
+                processor_gen as "processorGen",
+                ram,
+                storage,
+                graphics,
+                screen_size as "screenSize",
+                screen_resolution as "screenResolution",
+                condition_status as "conditionStatus",
+                sku, 
+                quantity,
+                qc_count as "qcCount",
+                unit_cost as "unitCost"
             FROM purchase_lot_items
             WHERE lot_id = ${id}
+            ORDER BY id ASC
         ` as unknown as any[];
 
-        console.log(`[API] Found ${items.length} items for Lot ${id}`);
-        lot.items = items;
+        console.log(`[API] Found ${items.length} items for Lot ID: ${id}`);
+
+        // Return raw items (or aggregated if multiple rows per product)
+        // Since we insert compacted rows, we can return directly
+        const lot = { ...lotMetadata, items: items };
 
         return NextResponse.json({ success: true, lot });
+
     } catch (error: unknown) {
         console.error('Error fetching lot details:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';

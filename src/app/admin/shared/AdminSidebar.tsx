@@ -54,6 +54,7 @@ export default function AdminSidebar({
             subItems: [
                 { id: "production-qc", label: "Production QC Checking" },
                 { id: "production-inventory-qc", label: "Inventory QC Checking" },
+                { id: "production-model-checking", label: "Model Checking" },
                 { id: "production-reprint", label: "Reprint Barcode" }
             ]
         },
@@ -63,20 +64,17 @@ export default function AdminSidebar({
             label: "Packing",
             subItems: [
                 { id: "packing-dashboard", label: "Packing Dashboard" },
-                { id: "production-packing", label: "Packing" },
-                { id: "packing-v2", label: "Packing V2" }
+                { id: "packing-v2", label: "Packing" }
             ]
         },
         {
             id: "purchase",
             icon: "fa-shopping-bag",
-            label: "Purchase",
+            label: "Purchases",
             subItems: [
-                { id: "purchase-dashboard", label: "Purchase Dashboard" },
-                { id: "purchase-history", label: "Purchase History" },
-                { id: "purchase-import", label: "Import Shipment" },
-                { id: "purchase-import-full", label: "Full Import" },
-                { id: "suppliers", label: "Suppliers" }
+                { id: "purchase-dashboard", label: "Dashboard" },
+                { id: "purchase-history", label: "Purchase Lots" },
+                { id: "suppliers", label: "Suppliers Manage" }
             ]
         },
         {
@@ -216,7 +214,8 @@ export default function AdminSidebar({
                 'production-dashboard': '/admin/production?section=production-dashboard',
                 'production-qc': '/admin/production?section=production-qc',
                 'production-inventory-qc': '/admin/production?section=production-inventory-qc',
-                'production-packing': '/admin/production?section=production-packing',
+                'production-model-checking': '/admin/production?section=model-checking',
+
                 'production-reprint': '/admin/production?section=production-reprint',
                 'production-projects': '/admin/production?section=production-projects',
                 'production-tasks': '/admin/production?section=production-tasks',
@@ -228,7 +227,6 @@ export default function AdminSidebar({
                 'inventory-drops': '/admin/inventory?section=inventory-drops',
                 'purchase-dashboard': '/admin/purchase?section=purchase-dashboard',
                 'purchase-history': '/admin/purchase?section=purchase-lots-list',
-                'purchase-import': '/admin/purchase?section=purchase-lots-import',
                 'purchase-import-full': '/admin/purchase?section=purchase-import-full',
                 'suppliers': '/admin/purchase?section=suppliers',
                 'packing-dashboard': '/admin/packing?section=packing-dashboard',

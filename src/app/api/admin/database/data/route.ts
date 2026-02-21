@@ -21,7 +21,7 @@ const ALLOWED_TABLES = [
     'users',
     'settings',
     'admin_emails',
-    'inventory_qc',
+
     'purchase_lots',
     'purchase_lot_items',
     'invoice_items',

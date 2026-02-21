@@ -41,7 +41,7 @@ export async function GET(req: Request): Promise<NextResponse> {
 
         // Parallel Queries
         const [qcResults, productResults, lotResults] = await Promise.all([
-            // 1. Search QC Inventory (Unique Items)
+            // 1. Search QC Inventory (Now Master Inventory)
             // Fields: brand, model, product_name, sku, series
             sql`
                 SELECT
@@ -51,7 +51,7 @@ export async function GET(req: Request): Promise<NextResponse> {
                     sku as code, 
                     condition_status as detail,
                     brand, model, processor, ram, storage
-                FROM inventory_qc 
+                FROM master_inventory 
                 WHERE 
                     (id = ${idParam} AND ${idParam} IS NOT NULL) OR
                     (

@@ -13,24 +13,29 @@ export async function DELETE(
             return NextResponse.json({ success: false, error: 'Lot ID is required' }, { status: 400 });
         }
 
-        console.log(`[API] Deleting Purchase Lot ID: ${id}`);
+        console.log(`[API] Deleting Purchase Lot with ID: ${id}`);
 
-        // 1. Delete associated QC records
-        await sql`DELETE FROM inventory_qc WHERE lot_id = ${id}`;
+        // 1. Check if the lot exists in purchase_lots
+        const lotCheck = await sql`
+            SELECT id, lot_number FROM purchase_lots WHERE id = ${id}
+        ` as unknown as { id: number, lot_number: string }[];
 
-        // 2. Delete the lot (cascades to purchase_lot_items)
-        const result = await sql`DELETE FROM purchase_lots WHERE id = ${id} RETURNING lot_number` as unknown as { lot_number: string }[];
-
-        if (result.length === 0) {
+        if (lotCheck.length === 0) {
             return NextResponse.json({ success: false, error: 'Lot not found' }, { status: 404 });
         }
 
-        const lotNumber = result[0].lot_number || `ID: ${id}`;
+        const lotNumber = lotCheck[0].lot_number;
+
+        // 2. Delete items associated with this lot from purchase_lot_items
+        await sql`DELETE FROM purchase_lot_items WHERE lot_id = ${id}`;
+
+        // 3. Delete the lot itself from purchase_lots
+        await sql`DELETE FROM purchase_lots WHERE id = ${id}`;
 
         await logActivity(
             'Admin',
             'Purchase Delete',
-            `Deleted purchase lot ${lotNumber}`,
+            `Deleted purchase lot ${lotNumber} (ID: ${id})`,
             'success',
             'Admin'
         );

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { sql } from '@/lib/db';
 
 export async function GET(request: Request) {
     try {
@@ -10,77 +10,48 @@ export async function GET(request: Request) {
             return NextResponse.json({ success: false, error: 'Barcode is required' }, { status: 400 });
         }
 
-        // Barcode format: BCH-<QC_ID> (e.g., BCH-1005)
-        // Or could be internal ID if just numbers.
-        let qcId = -1;
-
         const cleanBarcode = barcode.trim().toUpperCase();
-        if (cleanBarcode.startsWith('BCH-')) {
-            const idPart = cleanBarcode.replace('BCH-', '');
-            // Logic: seqNumber = 999 + insertedId
-            // So insertedId = seqNumber - 999
-            const seqNumber = parseInt(idPart);
-            if (!isNaN(seqNumber)) {
-                qcId = seqNumber - 999;
+
+        // Fetch Item from Master Inventory
+        // We accept either direct Barcode (BCH-XXXX) or numeric ID
+        let results: any[] = [];
+
+        // 1. Try exact Barcode match
+        results = await sql`SELECT * FROM master_inventory WHERE barcode = ${cleanBarcode} LIMIT 1` as any[];
+
+        if (results.length === 0) {
+            // 2. Try as Numeric ID
+            const numericId = parseInt(cleanBarcode);
+            if (!isNaN(numericId)) {
+                results = await sql`SELECT * FROM master_inventory WHERE id = ${numericId} LIMIT 1` as any[];
             }
-        } else {
-            // Maybe they scanned just the number?
-            const possibleId = parseInt(cleanBarcode);
-            if (!isNaN(possibleId)) {
-                // If small number, maybe ID? If > 999 maybe seqNumber?
-                // Let's assume if > 999 it is seqNumber
-                if (possibleId > 999) {
-                    qcId = possibleId - 999;
-                } else {
-                    qcId = possibleId;
+        }
+
+        if (results.length === 0 && cleanBarcode.startsWith('BCH-')) {
+            // 3. Logic check: If BCH-XXXX, maybe ID = XXXX - 1000? (Legacy format check)
+            const idPart = cleanBarcode.replace('BCH-', '');
+            const seqNum = parseInt(idPart);
+            if (!isNaN(seqNum)) {
+                const derivedId = seqNum - 1000;
+                if (derivedId > 0) {
+                    results = await sql`SELECT * FROM master_inventory WHERE id = ${derivedId} LIMIT 1` as any[];
                 }
             }
         }
 
-        if (qcId <= 0) {
-            return NextResponse.json({ success: false, error: 'Invalid barcode format' }, { status: 404 });
-        }
-
-        // Fetch QC Item with related Lot and Product info
-        // Note: inventory_qc does not have product_id, so we link to products via SKU
-        const sql = `
-            SELECT 
-                iq.*,
-                pl.lot_id as purchase_lot_code,
-                pl.lot_number as purchase_lot_number,
-                p.ram as product_ram,
-                p.storage as product_storage,
-                p.screen_size as product_screen_size,
-                p.graphics_card as product_graphics,
-                p.product_name as product_name_master
-            FROM inventory_qc iq
-            LEFT JOIN purchase_lots pl ON iq.lot_id = pl.id
-            LEFT JOIN products p ON TRIM(UPPER(p.product_code)) = TRIM(UPPER(iq.sku))
-            WHERE iq.id = $1
-            LIMIT 1
-        `;
-
-        const result = await query(sql, [qcId]);
-
-        if (result.rows.length === 0) {
+        if (results.length === 0) {
             return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
         }
 
-        const item = result.rows[0];
-        const seqNumber = 999 + item.id;
+        const item = results[0];
 
-        // Map snake_case database fields to camelCase for frontend where needed
-        // Coalesce item-specific specs with product master specs
+        // Map to frontend expected format
         const mappedItem = {
             ...item,
-            productName: item.product_name || item.product_name_master,
-            ram: item.ram || item.product_ram || '',
-            storage: item.storage || item.product_storage || '',
-            screen_size: item.screen_size || item.product_screen_size || '',
-            graphics_card: item.graphics || item.product_graphics || '',
-            barcodeValue: `BCH-${seqNumber}`,
-            lotNumber: item.purchase_lot_number || item.purchase_lot_code || `Lot #${item.lot_id}`,
-            generatedId: `List-${item.lot_id}-${item.product_id || 'GEN'}-${seqNumber}`
+            productName: item.product_name,
+            barcodeValue: item.barcode,
+            lotNumber: item.lot_number || 'Unknown',
+            generatedId: `INV-${item.id}`
         };
 
         return NextResponse.json({
@@ -88,7 +59,7 @@ export async function GET(request: Request) {
             item: mappedItem
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching barcode details:', error);
         return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
     }

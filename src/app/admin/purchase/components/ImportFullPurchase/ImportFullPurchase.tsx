@@ -158,14 +158,35 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
 
             // Handle Excel date
             let formattedDate = new Date().toISOString().split('T')[0];
+
+            // Debug log to see what we are getting
+            console.log("Raw Extracted Date:", extractedDate);
+
             if (extractedDate instanceof Date) {
                 formattedDate = extractedDate.toISOString().split('T')[0];
-            } else if (typeof extractedDate === 'string' && extractedDate.includes('-')) {
-                const parts = extractedDate.split('-');
-                if (parts.length === 3 && parts[2].length === 4) {
-                    formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                } else {
-                    formattedDate = extractedDate;
+            } else if (typeof extractedDate === 'string') {
+                const cleanDate = extractedDate.trim();
+
+                // Check if it's accidentally an invoice number starting with INV
+                if (cleanDate.toUpperCase().startsWith('INV')) {
+                    // It's likely the user swapped the columns or the template is misread
+                    // We don't want to use this as a date. 
+                    // We'll keep the default today's date or try to find date elsewhere.
+                    console.warn("Date field looks like Invoice Number:", cleanDate);
+                }
+                // Try parsing YYYY-MM-DD or DD-MM-YYYY
+                else if (cleanDate.includes('-')) {
+                    const parts = cleanDate.split('-');
+                    if (parts.length === 3) {
+                        // Assumption: if first part is 4 digits, it's YYYY-MM-DD
+                        if (parts[0].length === 4) {
+                            formattedDate = cleanDate;
+                        }
+                        // Assumption: if last part is 4 digits, it's DD-MM-YYYY
+                        else if (parts[2].length === 4) {
+                            formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        }
+                    }
                 }
             }
 

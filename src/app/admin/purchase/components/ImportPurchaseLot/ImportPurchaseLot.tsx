@@ -217,6 +217,14 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
                 newRow['Model'] = getRawVal(['Model', 'Product Model', 'Model Name', 'Model No']) || '';
                 newRow['Processor'] = getRawVal(['Processor', 'CPU', 'Processor Name']) || '';
                 newRow['Processor Gen'] = getRawVal(['Processor Gen', 'Gen', 'Generation', 'Processor Generation', 'Processor_Gen']) || '';
+                newRow['RAM'] = getRawVal(['RAM', 'Memory', 'Ram Size']) || '';
+                newRow['Storage'] = getRawVal(['Storage', 'HDD', 'SSD', 'Disk', 'Hard Drive']) || '';
+                newRow['Graphics'] = getRawVal(['Graphics', 'GPU', 'Video Card', 'Graphic Card']) || '';
+                newRow['Screen Size'] = getRawVal(['Screen Size', 'Screen', 'Display', 'Size', 'Inches']) || '';
+                newRow['Resolution'] = getRawVal(['Resolution', 'Screen Resolution', 'Display Resolution', 'Res']) || '';
+                newRow['Keyboard'] = getRawVal(['Keyboard', 'Keyboard Layout', 'KB']) || '';
+                newRow['Backlit'] = getRawVal(['Backlit', 'Backlight', 'Keyboard Backlight']) || '';
+                newRow['Condition'] = getRawVal(['Condition', 'Grade', 'Status', 'Condition Status']) || '';
                 newRow['Product Name'] = getRawVal(['Product Name', 'Item Name', 'Name']) || '';
                 newRow['SKU'] = getRawVal(['SKU', 'Serial', 'Serial Number', 'Product Code', 'Serial #']) || '';
                 newRow['Qty'] = getRawVal(['Qty', 'Quantity', 'QTY', 'Count']) || 1;
@@ -297,11 +305,19 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
                     model: model,
                     processor: processor,
                     processorGen: gen,
+                    ram: (row['RAM'] || '').toString().trim(),
+                    storage: (row['Storage'] || '').toString().trim(),
+                    graphics: (row['Graphics'] || '').toString().trim(),
+                    screenSize: (row['Screen Size'] || '').toString().trim(),
+                    screenResolution: (row['Resolution'] || '').toString().trim(),
+                    keyboard: (row['Keyboard'] || '').toString().trim(),
+                    backlit: (row['Backlit'] || '').toString().trim(),
+                    conditionStatus: (row['Condition'] || '').toString().trim(),
                     productName: constructedName || row['Product Name'] || 'Unnamed Product',
                     sku: sku,
                     quantity: parseNumber(qty),
                     unitCost: parseNumber(cost),
-                    description: `${brand} ${model}`.trim(),
+                    description: `${brand} ${model} ${processor} ${row['RAM'] || ''} ${row['Storage'] || ''}`.trim(),
                     metadata: row
                 };
             }).filter(item => item.productName && item.productName !== 'Unnamed Product');
@@ -389,22 +405,30 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
             ['Date', 'YYYY-MM-DD'],
             ['Invoice #', ''],
             [],
-            ['Category', 'Brand', 'Series', 'Model', 'Processor', 'Processor Gen', 'Product Name', 'SKU', 'Qty', 'Unit Cost']
+            ['Category', 'Brand', 'Series', 'Model', 'Processor', 'Gen', 'RAM', 'Storage', 'Graphics', 'Screen Size', 'Resolution', 'Keyboard', 'Backlit', 'Condition', 'SKU', 'Qty', 'Unit Cost', 'Product Name']
         ]);
 
         // Add sample data starting at Row 7
         XLSX.utils.sheet_add_json(ws, [
             {
-                'Category': 'Renewed Laptops',
+                'Category': 'Laptop',
                 'Brand': 'Dell',
-                'Series': 'XPS',
-                'Model': '15',
-                'Processor': 'i7',
-                'Processor Gen': '12th Gen',
-                'Product Name': 'Dell XPS 15',
-                'SKU': 'DELL-XPS-001',
+                'Series': 'Latitude',
+                'Model': '5420',
+                'Processor': 'Intel Core i5',
+                'Gen': '11th',
+                'RAM': '16 GB',
+                'Storage': '256 GB',
+                'Graphics': 'Intel Iris Xe',
+                'Screen Size': '14 inch',
+                'Resolution': '1920x1080',
+                'Keyboard': 'US',
+                'Backlit': 'Yes',
+                'Condition': 'Grade A',
+                'SKU': '5CG22707J5',
                 'Qty': 10,
-                'Unit Cost': 5000
+                'Unit Cost': 450,
+                'Product Name': 'Dell Latitude 5420'
             }
         ], { skipHeader: true, origin: 'A7' });
 

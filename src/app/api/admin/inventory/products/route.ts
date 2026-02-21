@@ -20,6 +20,50 @@ export async function GET(req: Request): Promise<NextResponse> {
 
         const sql = getSql();
 
+        // Ensure table exists (Recovery mechanism)
+        await sql`
+            CREATE TABLE IF NOT EXISTS products (
+                id SERIAL PRIMARY KEY,
+                product_code TEXT UNIQUE,
+                product_name TEXT NOT NULL,
+                type TEXT,
+                brand TEXT,
+                model TEXT,
+                series TEXT,
+                category TEXT,
+                badge TEXT,
+                condition_status TEXT,
+                base_price DECIMAL(10, 2),
+                offer_price DECIMAL(10, 2),
+                discount_percent INTEGER,
+                stock_quantity INTEGER DEFAULT 0,
+                processor TEXT,
+                processor_gen TEXT,
+                processor_speed TEXT,
+                ram TEXT,
+                ram_type TEXT,
+                storage TEXT,
+                storage_type TEXT,
+                graphics_card TEXT,
+                graphics_card_type TEXT,
+                graphics_storage TEXT,
+                screen_size TEXT,
+                screen_resolution TEXT,
+                screen_resolution_pixel TEXT,
+                display_type TEXT,
+                wireless_type TEXT,
+                operating_system TEXT,
+                optical_drive TEXT,
+                colors TEXT,
+                features TEXT,
+                primary_image_url TEXT,
+                all_images_urls TEXT,
+                ram_variants JSONB,
+                storage_variants JSONB,
+                date_added TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
         if (sku) {
             // Search by SKU (product_code)
             const rows = await sql`SELECT * FROM products WHERE product_code = ${sku}`;

@@ -1,0 +1,373 @@
+{
+    "project_name": "Bizz Co Hub Next.js App",
+    "description": "A comprehensive Next.js application for inventory management, billing, and e-commerce for Bizz Co Hub.",
+    "tech_stack": {
+        "framework": "Next.js 14 (App Router), React 18",
+        "language": "TypeScript",
+        "database": "PostgreSQL (pg, @neondatabase/serverless)",
+        "styling": "Tailwind CSS, Styled Components",
+        "authentication": "NextAuth.js",
+        "image_processing": "React Easy Crop, Browser Image Compression, ImageKit, @imgly/background-removal",
+        "pdf_generation": "@react-pdf/renderer",
+        "email": "Resend, Nodemailer, Imap-Simple"
+    },
+    "directory_structure": {
+        "src/app": "Contains Next.js app router pages and API routes.",
+        "src/components": "Reusable UI components.",
+        "src/lib": "Core utilities, database connection (db.ts), email, and third-party integrations.",
+        "src/types": "TypeScript interfaces and type definitions (e.g., index.ts).",
+        "public": "Static assets like images and fonts."
+    },
+    "project_shapes_and_types": {
+        "Product": {
+            "id": "string | number",
+            "productCode": "string",
+            "name": "string",
+            "brand": "string",
+            "price": "number",
+            "stock": "number",
+            "category": "string",
+            "specifications": "ProductSpecifications object (RAM, Processor, Storage, etc.)"
+        },
+        "DatabaseProduct": {
+            "description": "Database representation of a product.",
+            "fields": [
+                "id",
+                "product_code",
+                "product_name",
+                "base_price",
+                "offer_price",
+                "stock_quantity",
+                "processor",
+                "ram",
+                "storage",
+                "graphics_card",
+                "condition_status"
+            ]
+        },
+        "User": {
+            "id": "number",
+            "username": "string",
+            "email": "string",
+            "role": "string",
+            "approval_status": "string"
+        },
+        "Invoice": {
+            "id": "number",
+            "invoice_no": "string",
+            "customer_name": "string",
+            "total_amount": "number",
+            "status": "string",
+            "created_date": "string"
+        },
+        "PurchaseLot": {
+            "id": "number",
+            "lot_no": "string",
+            "supplier_name": "string",
+            "total_items": "number",
+            "total_cost": "number",
+            "status": "string"
+        }
+    },
+    "pages_and_routing": {
+        "public": [
+            {
+                "path": "/",
+                "function": "Main Landing Page / Homepage",
+                "design": "Hero section, featured products, marketing banners",
+                "role": "Public visitor entry point"
+            },
+            {
+                "path": "/landing-page",
+                "function": "Specific Marketing Landing Page",
+                "design": "Conversion-focused minimalistic marketing design",
+                "role": "Marketing campaigns"
+            },
+            {
+                "path": "/login",
+                "function": "Customer Login",
+                "design": "Clean authentication form with NextAuth integration",
+                "role": "Customer Auth"
+            },
+            {
+                "path": "/forgot-password",
+                "function": "Customer Forgot Password Request",
+                "design": "Simple form for email input",
+                "role": "Customer Auth"
+            },
+            {
+                "path": "/reset-password",
+                "function": "Customer Password Reset Execution",
+                "design": "Form securely updating the password",
+                "role": "Customer Auth"
+            },
+            {
+                "path": "/profile",
+                "function": "Customer Profile Management",
+                "design": "Account settings, order history, address management",
+                "role": "Authenticated Customer"
+            },
+            {
+                "path": "/cart",
+                "function": "Shopping Cart",
+                "design": "List of selected items, totals, and proceed to checkout",
+                "role": "E-commerce flow"
+            },
+            {
+                "path": "/checkout",
+                "function": "Checkout Process",
+                "design": "Shipping details, payment selection, order confirmation",
+                "role": "E-commerce flow"
+            },
+            {
+                "path": "/contact",
+                "function": "Contact Us",
+                "design": "Contact form, physical address, phone numbers",
+                "role": "Public Information"
+            },
+            {
+                "path": "/connect",
+                "function": "Connect / Social links",
+                "design": "Social media aggregations, direct contact links",
+                "role": "Public Information"
+            },
+            {
+                "path": "/privacy",
+                "function": "Privacy Policy",
+                "design": "Long-form text document",
+                "role": "Legal"
+            },
+            {
+                "path": "/terms",
+                "function": "Terms and Conditions",
+                "design": "Long-form text document",
+                "role": "Legal"
+            },
+            {
+                "path": "/services",
+                "function": "Company Services Offered",
+                "design": "Service cards detailing offerings (repair, bulk deals)",
+                "role": "Marketing"
+            }
+        ],
+        "products": [
+            {
+                "path": "/products",
+                "function": "Main Shop Page / All Products",
+                "design": "Product grid, filters (price, brand, category), pagination",
+                "role": "E-commerce Catalog"
+            },
+            {
+                "path": "/products/accessories",
+                "function": "Accessories Category",
+                "design": "Filtered grid specifically for accessories",
+                "role": "E-commerce Category"
+            },
+            {
+                "path": "/products/laptops",
+                "function": "Laptops Category",
+                "design": "Filtered grid specifically for laptops",
+                "role": "E-commerce Category"
+            },
+            {
+                "path": "/products/[type]/[id]",
+                "function": "Single Product Details View",
+                "design": "Image gallery, add to cart, price, deep specs table, related items",
+                "role": "E-commerce Details"
+            }
+        ],
+        "admin": [
+            {
+                "path": "/admin",
+                "function": "Admin Root / Redirect",
+                "design": "Redirects to dashboard or login",
+                "role": "Admin Auth"
+            },
+            {
+                "path": "/admin/login",
+                "function": "Admin Login Panel",
+                "design": "Secure backend login form",
+                "role": "Admin Auth"
+            },
+            {
+                "path": "/admin/dashboard",
+                "function": "Admin Main Dashboard",
+                "design": "Statistical cards, charts, recent activities overview",
+                "role": "Admin Overview"
+            },
+            {
+                "path": "/admin/inventory",
+                "function": "Master Inventory Management",
+                "design": "Complex data table with search, filters, inline edit, add product modals",
+                "role": "Inventory Manager"
+            },
+            {
+                "path": "/admin/billing",
+                "function": "Invoicing and Billing",
+                "design": "Invoice generator, list of past invoices, customer billing data",
+                "role": "Accounts / Sales"
+            },
+            {
+                "path": "/admin/orders",
+                "function": "E-commerce Orders Management",
+                "design": "List of online orders, status updater (shipped, delivered)",
+                "role": "Sales / Fulfillment"
+            },
+            {
+                "path": "/admin/customers",
+                "function": "Customer Management",
+                "design": "CRM-like table to view customer details and order history",
+                "role": "Sales / Support"
+            },
+            {
+                "path": "/admin/purchase",
+                "function": "Purchase Lots Management",
+                "design": "Entry forms for bulk purchases, supplier tracking, batch costs",
+                "role": "Procurement"
+            },
+            {
+                "path": "/admin/production",
+                "function": "Production and QC Process Tracking",
+                "design": "Kanban or list view for items under testing, repairing, or QC",
+                "role": "Technician / QC"
+            },
+            {
+                "path": "/admin/packing",
+                "function": "Packing and Shipping Status",
+                "design": "Checklist UI for dispatch readiness",
+                "role": "Logistics"
+            },
+            {
+                "path": "/admin/reports",
+                "function": "Sales & Inventory Reports",
+                "design": "Data export utilities, printable formats, complex filtering",
+                "role": "Management"
+            },
+            {
+                "path": "/admin/users",
+                "function": "Internal User Management",
+                "design": "List of staff, role assignments",
+                "role": "Super Admin"
+            },
+            {
+                "path": "/admin/accounts",
+                "function": "Accounting / Expense Tracking",
+                "design": "Ledger views, financial tracking",
+                "role": "Super Admin / Accounts"
+            },
+            {
+                "path": "/admin/activity-log",
+                "function": "System Activity Logs",
+                "design": "Audit trail table mapping user actions",
+                "role": "Super Admin"
+            },
+            {
+                "path": "/admin/database",
+                "function": "Direct DB Management Tool",
+                "design": "Raw data views or sync utilities",
+                "role": "Super Admin / Dev"
+            },
+            {
+                "path": "/admin/featured",
+                "function": "Featured Products Setup",
+                "design": "Drag and drop or slot assignment for homepage highlights",
+                "role": "Marketing"
+            },
+            {
+                "path": "/admin/labelsize",
+                "function": "Barcode Label Generation",
+                "design": "PDF layout preview for thermal printers",
+                "role": "Inventory / Dispatch"
+            }
+        ],
+        "resources_web_tools": [
+            {
+                "path": "/resources",
+                "function": "Hardware/Software Tools Index",
+                "design": "Grid of available utilities and diagnostic tests",
+                "role": "Public / Technician Tool"
+            },
+            {
+                "path": "/resources/battery-status",
+                "function": "Battery Health Checker",
+                "design": "Diagnostic UI for laptop battery wear",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/bg-remover",
+                "function": "Image Background Remover",
+                "design": "Upload zone, AI processing indicator, before/after preview",
+                "role": "Utility"
+            },
+            {
+                "path": "/resources/camera-test",
+                "function": "Webcam Tester",
+                "design": "Video stream preview and capture validation",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/compressor",
+                "function": "Image Compressor",
+                "design": "Upload, quality slider, sizes comparison",
+                "role": "Utility"
+            },
+            {
+                "path": "/resources/connectivity-test",
+                "function": "Network Tester",
+                "design": "Ping/Speed test visualizer",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/enhancer",
+                "function": "Image Enhancer",
+                "design": "Upload zone with upscale options",
+                "role": "Utility"
+            },
+            {
+                "path": "/resources/keyboard-test",
+                "function": "Keyboard Tester",
+                "design": "Virtual keyboard layout lighting up on key press",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/lcd-check",
+                "function": "Display / Dead Pixel Check",
+                "design": "Full-screen color cycling utilities",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/sound-test",
+                "function": "Speaker / Audio Test",
+                "design": "L/R channel audio playback buttons",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/specification",
+                "function": "System Spec Reader",
+                "design": "Table displaying detected client machine specs",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/touch-test",
+                "function": "Touchscreen Tester",
+                "design": "Canvas for drawing/registering touch points",
+                "role": "Diagnostic Tool"
+            },
+            {
+                "path": "/resources/trackpad-test",
+                "function": "Trackpad/Mouse Tester",
+                "design": "Click tracking and gesture zones",
+                "role": "Diagnostic Tool"
+            }
+        ]
+    },
+    "ai_instructions_malayalam": {
+        "goal": "ഈ പ്രൊജക്റ്റ് കോൺടെക്സ്റ്റ് മനസ്സിലാക്കി കൃത്യമായ കോഡ് എഴുതുക.",
+        "step_1_understand_stack": "Next.js 14 App Router ഉം TypeScript ഉം ആണ് ഉപയോഗിക്കുന്നത് എന്ന് ഓർക്കുക. സർവർ കമ്പോണന്റുകൾക്കും ക്ലയന്റ് കമ്പോണന്റുകൾക്കും ('use client') കൃത്യമായ വ്യത്യാസം നൽകുക.",
+        "step_2_database_queries": "ഡാറ്റാബേസ് ക്വറികൾ എഴുതുമ്പോൾ 'src/lib/db.ts' ലെ sql അല്ലെങ്കിൽ pool ഉപയോഗിക്കുക. Raw SQL ഉപയോഗിക്കുമ്പോൾ parameterization (ഉദാഹരണത്തിന് $1, $2) ശ്രദ്ധിക്കുക.",
+        "step_3_types_usage": "പുതിയ ഫീച്ചറുകൾ ചെയ്യുമ്പോൾ 'src/types/index.ts' ലെ ടൈപ്പുകൾ (ഉദാ: Product, Invoice, User) കർശനമായി ഉപയോഗിക്കുക. Type error വരാതെ നോക്കുക.",
+        "step_4_ui_styling": "Tailwind CSS ലൂടെയോ അല്ലെങ്കിൽ നിലവിലുള്ള Styled Components വഴിയോ മികച്ച UI ഡിസൈൻ നൽകുക.",
+        "step_5_testing_and_qc": "Inventory, QC, Invoicing എന്നിവയുമായി ബന്ധപ്പെട്ട ലോജിക്കുകൾ കൃത്യമാണെന്ന് ഉറപ്പുവരുത്തുക. ജോയിനുകൾ (JOINs) ആവശ്യമുള്ളിടത്ത് അത് ഒപ്റ്റിമൈസ് ചെയ്യുക."
+    },
+    "how_to_use_this_prompt": "ഈ JSON പ്രോംപ്റ്റ് AI-ക്ക് പ്രൊജക്റ്റിനെ പറ്റി എ ടു സെഡ് (A-Z) കാര്യങ്ങൾ മനസ്സിലാക്കി കൊടുക്കാനായി ഉപയോഗിക്കാം. കോഡിങ്ങിൽ എന്തെങ്കിലും മാറ്റങ്ങൾ വരുത്തുന്നതിന് മുൻപ് AI ഈ സ്ട്രക്ച്ചറും ടൈപ്പുകളും റെഫർ ചെയ്യേണ്ടതാണ്."
+}

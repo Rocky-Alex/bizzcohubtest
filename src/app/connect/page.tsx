@@ -5,7 +5,7 @@ import Image from 'next/image';
 import "./connect.css";
 
 export const metadata = {
-    title: 'Connect With Us | Bizz Co Hub',
+    title: 'Connect With Us',
     description: 'Join our community on social media and stay updated with the latest tech news and offers.',
 };
 
@@ -171,8 +171,7 @@ export default function ConnectPage() {
                 <div className="connect-header">
                     <h1 className="connect-title">Connect With Us</h1>
                     <p className="connect-description">
-                        Be part of our growing community. Follow us on social media for exclusive updates,
-                        behind-the-scenes content, and special offers.
+                        Be part of our growing community. Follow us on social media for exclusive updates and special offers.
                     </p>
                 </div>
 

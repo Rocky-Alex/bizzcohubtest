@@ -1,0 +1,76 @@
+{
+    "project_name": "Bizz Co Hub Official Site",
+    "report_title": "Product Related Database Tables Report (Malayalam)",
+    "tables": [
+        {
+            "table_name": "products",
+            "description": "പ്രൊഡക്റ്റുകളുടെ അടിസ്ഥാന വിവരങ്ങൾ സൂക്ഷിക്കുന്ന പ്രധാന ടേബിൾ.",
+            "columns_details": [
+                "id/product_code: യുണീക്ക് ഐഡി",
+                "product_name: ഉൽപ്പന്നത്തിന്റെ പേര്",
+                "brand: ബ്രാൻഡ് (Dell, HP etc.)",
+                "price / offer_price: വില വിവരങ്ങൾ",
+                "stock: നിലവിലുള്ള സ്റ്റോക്ക് എണ്ണം",
+                "specs: റാം, പ്രോസസ്സർ, സ്റ്റോറേജ് മുതലായവ (Column list: processor, ram, storage, graphics_card etc.)"
+            ]
+        },
+        {
+            "table_name": "purchase_lots",
+            "description": "മൊത്തമായി സാധനങ്ങൾ വാങ്ങുമ്പോഴുള്ള (Purchase Batch) വിവരങ്ങൾ.",
+            "columns_details": [
+                "lot_number: പർച്ചേസ് ബാച്ച് നമ്പർ",
+                "supplier_name: വിതരണക്കാരന്റെ പേര്",
+                "total_cost: ആക്കെ ചിലവ്",
+                "invoice_number: പർച്ചേസ് ഇൻവോയ്സ് നമ്പർ",
+                "purchase_date: വാങ്ങിയ തീയതി"
+            ]
+        },
+        {
+            "table_name": "purchase_lot_items",
+            "description": "ഒരു പർച്ചേസ് ലോട്ടിൽ അടങ്ങിയിരിക്കുന്ന വിവിധ തരം ഉൽപ്പന്നങ്ങളുടെ ലിസ്റ്റ്.",
+            "columns_details": [
+                "lot_id: പർച്ചേസ് ലോട്ടുമായി ബന്ധിപ്പിക്കുന്നു",
+                "product_name: ഉൽപ്പന്നത്തിന്റെ പേര്",
+                "quantity: എണ്ണം",
+                "unit_cost: ഒരെണ്ണത്തിന്റെ വില"
+            ]
+        },
+        {
+            "table_name": "inventory_qc",
+            "description": "ക്വാളിറ്റി ചെക്ക് (QC) ചെയ്ത ഓരോ ലാപ്ടോപ്പിന്റെയും യുണീക്ക് വിവരങ്ങൾ (Serialized Inventory).",
+            "columns_details": [
+                "barcode: ഓരോ ലാപ്ടോപ്പിനുമുള്ള യുണീക്ക് ബാർകോഡ്",
+                "sku: സ്റ്റോക്ക് കീപ്പിംഗ് യൂണിറ്റ്",
+                "condition_status: കണ്ടീഷൻ (Grade A, B, etc.)",
+                "status: ഇപ്പോഴത്തെ അവസ്ഥ (Available, Sold, Packed)",
+                "specs: ഈ ഒരൊറ്റ പീസിന്റെ റാം, സ്റ്റോറേജ് മുതലായവ"
+            ]
+        },
+        {
+            "table_name": "featured_products_config",
+            "description": "വെബ്സൈറ്റിൽ ഹൈലൈറ്റ് ചെയ്ത് കാണിക്കേണ്ട പ്രൊഡക്റ്റുകൾ.",
+            "columns_details": [
+                "product_code: പ്രൊഡക്റ്റ് കോഡ്",
+                "slot_number: എത്രാമത്തെ സ്ഥാനത്ത് കാണിക്കണം"
+            ]
+        },
+        {
+            "table_name": "wishlist",
+            "description": "ഉപഭോക്താക്കൾ ഇഷ്ടപ്പെട്ട പ്രൊഡക്റ്റുകൾ സേവ് ചെയ്യുന്നത്.",
+            "columns_details": [
+                "customer_id: കസ്റ്റമർ ഐഡി",
+                "product_id: പ്രൊഡക്റ്റ് ഐഡി"
+            ]
+        },
+        {
+            "table_name": "invoice_items / quotation_items",
+            "description": "വിൽപ്പനയുമായി ബന്ധപ്പെട്ട പ്രൊഡക്റ്റ് വിവരങ്ങൾ.",
+            "columns_details": [
+                "product_code: വിറ്റ സാധനത്തിന്റെ കോഡ്",
+                "quantity: വിറ്റ എണ്ണം",
+                "unit_price: വിറ്റ വില"
+            ]
+        }
+    ],
+    "summary_malayalam": "ഈ ടേബിളുകളിൽ 'products' എന്നത് കാറ്റലോഗ് ആണ്. 'purchase_lots' ഉം 'inventory_qc' യും സ്റ്റോക്ക് മാനേജ്മെന്റിന് വേണ്ടിയുള്ളതാണ്. 'featured_products' മാർക്കറ്റിംഗിനും, 'invoice_items' വിൽപ്പനയ്ക്കും ഉപയോഗിക്കുന്നു."
+}

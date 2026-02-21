@@ -236,18 +236,28 @@ export default function QCChecking() {
     })), [lots]);
 
     const itemOptions = useMemo(() => {
-        // Group items by productName to show aggregate quantity
-        const groups: Record<string, number> = {};
+        // Group items by unique characteristics (Product Name)
+        const grouped = new Map<string, { totalRemaining: number, ids: number[] }>();
+
         lotItems.forEach(item => {
-            const left = item.quantity - (item.qcCount || 0);
-            if (left > 0) {
-                groups[item.productName] = (groups[item.productName] || 0) + left;
+            const remaining = item.quantity - (item.qcCount || 0);
+            if (remaining <= 0) return;
+
+            // Use Product Name as key to group identical items
+            const key = item.productName;
+
+            if (!grouped.has(key)) {
+                grouped.set(key, { totalRemaining: 0, ids: [] });
             }
+            const group = grouped.get(key)!;
+            group.totalRemaining += remaining;
+            group.ids.push(item.itemId);
         });
 
-        return Object.entries(groups).map(([name, count]) => ({
-            label: `${name} (${count} left)`,
-            value: name
+        return Array.from(grouped.entries()).map(([name, group]) => ({
+            label: `${name} - (Qty: ${group.totalRemaining})`,
+            // Use the first ID as the value to select one of them for processing
+            value: group.ids[0].toString()
         }));
     }, [lotItems]);
 
@@ -406,41 +416,61 @@ export default function QCChecking() {
             alert("Please select a Purchase Lot and Product.");
             return;
         }
+
+        // Logic to pick a specific Item ID from Staging to "Move"
+        // The API now returns raw items or we can just pass the purchase_lot_item_id
+        // Since we are moving from Staging -> Master, we don't need a "pendingId" from Master.
+        // We need the Staging Item ID.
+
+        const stagingItemId = selectedItem.itemId;
+
         setSaving(true);
         try {
-            console.log("Submitting QC Check...");
-            // Prepare payload
+            console.log(`Submitting QC Check for Staging Item ID: ${stagingItemId}`);
+
+            // Prepare payload for CREATING a new Master Item from Staging
             const payload = {
-                // IDs to link back
+                // Link back to staging for updating count
+                purchaseLotItemId: stagingItemId,
                 lotId: parseInt(selectedLotId),
-                productId: productDetails?.id || null, // Allow null if product missing in master
-                purchaseLotItemId: selectedItem.itemId, // Send the item ID to track count
 
-                // Ensure proper field mapping for API
-                productName: formData.product_name || selectedItem.productName,
-                sku: formData.sku || selectedItem.sku, // Explicitly map SKU
+                // Product Data (User might have edited it in form)
+                productName: formData.product_name,
+                sku: formData.sku, // If supplier provided one, otherwise backend generates BCH-XXX
+                brand: formData.brand,
+                model: formData.model,
+                series: formData.series,
+                processor: formData.processor,
+                processor_gen: formData.processor_gen,
+                ram: formData.ram,
+                storage: formData.storage,
+                graphics_card: formData.graphics_card,
+                screen_size: formData.screen_size,
+                screen_resolution: formData.screen_resolution,
+                keyboard_type: formData.keyboard_type,
+                keyboard_backlit: formData.keyboard_backlit,
+                condition_status: formData.condition_status,
 
-                // Form Data
-                ...formData
+                // Status is implied 'Passed' when moving to Inventory
+                qc_status: 'Passed'
             };
 
             console.log("Payload:", payload);
 
-            // Post to QC Inventory
+            // POST to Inventory QC -> This should now INSERT into master_inventory
+            // We need to revert the API change that made it a PUT, or support POST for "Move from Staging"
             const res = await fetch('/api/admin/inventory/qc', {
-                method: 'POST',
+                method: 'POST', // Switching back to POST for Creation
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
             if (res.ok) {
                 const responseData = await res.json();
-                setResultMessage({ type: 'success', text: 'Saved to Database Successfully! ✅' });
+                setResultMessage({ type: 'success', text: 'Item Moved to Inventory! ✅' });
 
-                // Calculate sequential number starting from 1000
-                // Assuming ID starts at 1, we want 1000, 1001, 1002...
-                // So: 999 + insertedId
-                const seqNumber = responseData.insertedId ? (999 + responseData.insertedId) : 1000;
+                // Calculate serial/barcode (using the ID we just updated)
+                const seqNumber = 1000 + responseData.newMasterItemId; // Assuming newMasterItemId is returned
                 const barcodeVal = `BCH-${seqNumber}`;
 
                 const selectedLot = lots.find(l => l.id.toString() === selectedLotId);
@@ -449,15 +479,13 @@ export default function QCChecking() {
                 setPrintData({
                     ...payload,
                     barcodeValue: barcodeVal,
-                    lotNumber: lotNumber, // Pass the actual Lot Number
-                    // generatedId for vertical text
-                    generatedId: `List-${payload.lotId}-${payload.productId || 'GEN'}-${seqNumber}`
+                    lotNumber: lotNumber,
+                    generatedId: `List-${selectedLotId}-${stagingItemId}`
                 });
                 setShowPrintModal(true);
 
                 setEditableFields({});
-                fetchLotItems(selectedLotId); // Refresh the list to update counts/filter dropdown
-                // setTimeout removed to keep modal open for confirmation
+                fetchLotItems(selectedLotId); // Refresh to update list and remove the processed ID from pending
             } else {
                 const err = await res.json();
                 console.error("QC Submit Error:", err);
@@ -801,14 +829,11 @@ export default function QCChecking() {
                     </label>
                     <SearchableDropdown
                         name="product"
-                        value={selectedItem?.productName || ''}
+                        value={selectedItem?.itemId.toString() || ''}
                         options={itemOptions}
                         onChange={(e) => {
-                            const pName = e.target.value;
-                            // Find the first available item with this name
-                            const candidates = lotItems.filter(i => i.productName === pName);
-                            // Prioritize items that haven't been fully checked
-                            const item = candidates.find(i => (i.qcCount || 0) < i.quantity) || candidates[0];
+                            const itemId = parseInt(e.target.value);
+                            const item = lotItems.find(i => i.itemId === itemId);
                             setSelectedItem(item || null);
                         }}
                         placeholder={!selectedLotId ? "Select a lot first" : (lotItems.length > 0 ? (itemOptions.length > 0 ? "Search items to check..." : "All items in this lot checked!") : "No items found in this lot")}
