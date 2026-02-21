@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import ViewUserModal from "../users/ViewUserModal";
@@ -23,6 +25,10 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
 
     const dropdownRef = useRef<HTMLDivElement>(null);
     const settingsRef = useRef<HTMLDivElement>(null);
+
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
     // Load initial settings
     useEffect(() => {
@@ -198,10 +204,7 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                     border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`
                 }}>
                     {(() => {
-                        const router = useRouter();
-                        const pathname = usePathname();
-                        const searchParams = useSearchParams();
-                        const isProduction = searchParams.get('workspace') === 'production' ||
+                        const isProduction = searchParams?.get('workspace') === 'production' ||
                             pathname?.startsWith('/admin/production') ||
                             pathname?.startsWith('/admin/purchase') ||
                             pathname?.startsWith('/admin/inventory');

@@ -85,6 +85,7 @@ export default function AdminSidebar({
                 { id: "inventory-dashboard", label: "Inventory Dashboard" },
                 { id: "add-product", label: "Add E-Comm Product" },
                 { id: "products-list", label: "E-Comm Products List" },
+                { id: "inventory-pricing", label: "Product Pricing" },
                 { id: "inventory-qc", label: "Inventory QC List" },
                 { id: "inventory-drops", label: "Dropdown Manage" }
             ]
@@ -221,6 +222,7 @@ export default function AdminSidebar({
                 'production-tasks': '/admin/production?section=production-tasks',
                 'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
                 'products-list': '/admin/inventory?section=products-list',
+                'inventory-pricing': '/admin/inventory?section=inventory-pricing',
                 'add-product': '/admin/inventory?section=add-product',
                 'purchase-lots-list': '/admin/inventory?section=purchase-lots-list',
                 'inventory-qc': '/admin/inventory?section=inventory-qc',
@@ -436,6 +438,7 @@ export default function AdminSidebar({
                                             'production-tasks': '/admin/production?section=production-tasks',
                                             'inventory-dashboard': '/admin/inventory?section=inventory-dashboard',
                                             'products-list': '/admin/inventory?section=products-list',
+                                            'inventory-pricing': '/admin/inventory?section=inventory-pricing',
                                             'add-product': '/admin/inventory?section=add-product',
                                             'inventory-qc': '/admin/inventory?section=inventory-qc',
                                             'inventory-drops': '/admin/inventory?section=inventory-drops',

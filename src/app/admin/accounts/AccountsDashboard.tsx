@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useCallback } from 'react';
 import './AccountsDashboard.css';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';

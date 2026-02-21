@@ -10,6 +10,7 @@ import { useTheme } from "@/context/ThemeContext";
 const InventoryDashboard = dynamic(() => import("./components/InventoryDashboard/InventoryDashboard"), { loading: () => <LoadingSpinner /> });
 const ProductList = dynamic(() => import("./components/ProductList/ProductList"), { loading: () => <LoadingSpinner /> });
 const AddProduct = dynamic(() => import("./components/AddProduct/AddProduct"), { loading: () => <LoadingSpinner /> });
+const ProductPricing = dynamic(() => import("./components/ProductPricing/ProductPricing"), { loading: () => <LoadingSpinner /> });
 const ImportProducts = dynamic(() => import('./components/ImportProducts/ImportProducts'), { loading: () => <LoadingSpinner /> });
 const QCInventory = dynamic(() => import('./components/QCInventory/QCInventory'), { loading: () => <LoadingSpinner /> });
 const DropListUpdates = dynamic(() => import('./components/DropListUpdates/DropListUpdates'), { loading: () => <LoadingSpinner /> });
@@ -44,6 +45,7 @@ export default function InventoryPage() {
                     onEdit={handleEditProduct}
                 />
             )}
+            {section === 'inventory-pricing' && <ProductPricing />}
             {(section === 'add-product' || section === 'edit-product') && (
                 <AddProduct
                     onCancel={() => setActiveSection('products-list')}
