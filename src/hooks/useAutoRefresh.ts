@@ -37,9 +37,9 @@ export const useAutoRefresh = (callback: () => void) => {
             const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
             const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
 
-            // Default to 1 minute (60000ms) if settings are not present/zero
+            // Default to 5 seconds (5000ms) if settings are not present/zero for real-time monitoring
             let totalMs = (h * 3600 + m * 60 + s) * 1000;
-            if (totalMs === 0) totalMs = 60000;
+            if (totalMs === 0) totalMs = 5000;
 
             console.log(`Auto-refresh setup: ${totalMs}ms`);
 

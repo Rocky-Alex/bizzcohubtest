@@ -1,6 +1,6 @@
-
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import './AccountsDashboard.css';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 interface AccountsDashboardProps {
     setActiveSection: (section: string) => void;
@@ -8,6 +8,14 @@ interface AccountsDashboardProps {
 
 export default function AccountsDashboard({ setActiveSection }: AccountsDashboardProps) {
     const [period, setPeriod] = useState('This Fiscal Year');
+
+    // Auto-refresh integration (ready for real API implementation)
+    const fetchStats = useCallback(async () => {
+        console.log("AccountsDashboard: Fetching real-time stats...");
+        // API call will go here once backend is ready
+    }, []);
+
+    useAutoRefresh(fetchStats);
 
     // Mock Data for Dashboard
     const metrics = [

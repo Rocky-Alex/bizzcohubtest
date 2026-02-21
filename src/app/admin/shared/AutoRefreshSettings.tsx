@@ -11,8 +11,8 @@ interface AutoRefreshSettingsProps {
 export default function AutoRefreshSettings({ isOpen, onClose }: AutoRefreshSettingsProps) {
     const [isEnabled, setIsEnabled] = useState(false);
     const [hours, setHours] = useState(0);
-    const [minutes, setMinutes] = useState(1);
-    const [seconds, setSeconds] = useState(0);
+    const [minutes, setMinutes] = useState(0);
+    const [seconds, setSeconds] = useState(5);
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -41,8 +41,8 @@ export default function AutoRefreshSettings({ isOpen, onClose }: AutoRefreshSett
                 // Fallback to localStorage if API fails
                 const savedEnabled = localStorage.getItem('autoRefreshEnabled') === 'true';
                 const savedHours = parseInt(localStorage.getItem('autoRefreshHours') || '0');
-                const savedMinutes = parseInt(localStorage.getItem('autoRefreshMinutes') || '1');
-                const savedSeconds = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
+                const savedMinutes = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
+                const savedSeconds = parseInt(localStorage.getItem('autoRefreshSeconds') || '5');
 
                 setIsEnabled(savedEnabled);
                 setHours(savedHours);

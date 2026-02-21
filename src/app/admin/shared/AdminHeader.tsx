@@ -28,8 +28,8 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
     useEffect(() => {
         const enabled = localStorage.getItem('autoRefreshEnabled') !== 'false';
         const h = parseInt(localStorage.getItem('autoRefreshHours') || '0');
-        const m = parseInt(localStorage.getItem('autoRefreshMinutes') || (enabled ? '1' : '0'));
-        const s = parseInt(localStorage.getItem('autoRefreshSeconds') || '0');
+        const m = parseInt(localStorage.getItem('autoRefreshMinutes') || '0');
+        const s = parseInt(localStorage.getItem('autoRefreshSeconds') || (enabled ? '5' : '0'));
 
         setAutoRefreshEnabled(enabled);
         setRefreshInterval({ h, m, s: (h === 0 && m === 0 && s === 0) ? 0 : s });
