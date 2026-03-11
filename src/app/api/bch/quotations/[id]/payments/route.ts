@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { quotationSql as sql } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
         const id = params.id;
