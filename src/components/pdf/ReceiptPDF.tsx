@@ -212,7 +212,7 @@ const ReceiptPDF: React.FC<ReceiptPDFProps> = ({ payment, staffName, logoUrl }) 
     });
 
     const docDate = payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
-    const receiptId = (payment.id || 0).toString().padStart(4, '0');
+    const receiptId = payment.receipt_no || (payment.id || 0).toString().padStart(4, '0');
     const customerName = (payment.customer_name || '').toUpperCase();
     const amountFormatted = Number(payment.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const amountWords = toWords.convert(Number(payment.amount || 0));

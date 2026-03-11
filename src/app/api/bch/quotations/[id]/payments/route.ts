@@ -8,6 +8,7 @@ const ensureTableExists = async () => {
         CREATE TABLE IF NOT EXISTS quotation_payments (
             id SERIAL PRIMARY KEY,
             quotation_id INTEGER REFERENCES quotations(id) ON DELETE CASCADE,
+            receipt_no VARCHAR(50),
             amount NUMERIC(15, 2) NOT NULL,
             payment_date DATE DEFAULT CURRENT_DATE,
             payment_method VARCHAR(50),
@@ -21,6 +22,12 @@ const ensureTableExists = async () => {
     await sql`
         ALTER TABLE quotation_payments 
         ADD COLUMN IF NOT EXISTS staff_name VARCHAR(255)
+    `;
+
+    // Add receipt_no column
+    await sql`
+        ALTER TABLE quotation_payments 
+        ADD COLUMN IF NOT EXISTS receipt_no VARCHAR(50)
     `;
 };
 
@@ -62,25 +69,32 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
         await ensureTableExists();
 
+        // Unified Receipt Numbering logic (simplified: use separate series for now or share? User said "1, 2" like invoices)
+        // To truly unify, we'd need a shared counter. For now, let's use the individual table totals to simulate.
+        const [lastP] = await sql`SELECT id FROM quotation_payments ORDER BY id DESC LIMIT 1` as unknown as any[];
+        const nextId = lastP ? lastP.id + 1 : 1;
+        const receiptNo = `REC-Q${nextId.toString().padStart(4, '0')}`;
+
         // 1. Insert Payment
         // Format date to YYYY-MM-DD
         const paymentDate = date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
-        await sql`
-            INSERT INTO quotation_payments (quotation_id, amount, payment_date, payment_method, notes, staff_name)
-            VALUES (${id}, ${Number(amount)}, ${paymentDate}, ${method || 'Cash'}, ${notes || null}, ${staff_name || null})
-        `;
+        const result = await sql`
+            INSERT INTO quotation_payments (quotation_id, receipt_no, amount, payment_date, payment_method, notes, staff_name)
+            VALUES (${id}, ${receiptNo}, ${Number(amount)}, ${paymentDate}, ${method || 'Cash'}, ${notes || null}, ${staff_name || null})
+            RETURNING id, receipt_no
+        ` as unknown as any[];
 
         // 2. Recalculate Total Paid and Update Quotation
-        const invResult = await sql`SELECT total_amount, advance_received FROM quotations WHERE id = ${id}` as unknown as any[];
-        if (invResult.length === 0) {
+        const qtnResult = await sql`SELECT total_amount, advance_received FROM quotations WHERE id = ${id}` as unknown as any[];
+        if (qtnResult.length === 0) {
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
         }
 
-        const inv = invResult[0];
-        const currentPaid = Number(inv.advance_received || 0);
+        const qtn = qtnResult[0];
+        const currentPaid = Number(qtn.advance_received || 0);
         const newPaid = currentPaid + Number(amount);
-        const totalAmount = Number(inv.total_amount);
+        const totalAmount = Number(qtn.total_amount);
 
         // Determine Status
         let newStatus = 'Partial';
@@ -98,7 +112,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         return NextResponse.json({
             message: 'Payment recorded successfully',
             newStatus,
-            newPaid
+            newPaid,
+            paymentId: result[0].id,
+            receiptNo: result[0].receipt_no
         }, { status: 201 });
 
     } catch (error: unknown) {

@@ -5,6 +5,7 @@ const ensureTableExists = async () => {
     await invoiceSql`
         CREATE TABLE IF NOT EXISTS receipt_list (
             id SERIAL PRIMARY KEY,
+            receipt_no VARCHAR(50),
             customer_name VARCHAR(255) NOT NULL,
             amount NUMERIC(15, 2) NOT NULL,
             payment_date DATE DEFAULT CURRENT_DATE,
@@ -19,6 +20,12 @@ const ensureTableExists = async () => {
     await invoiceSql`
         ALTER TABLE receipt_list 
         ADD COLUMN IF NOT EXISTS staff_name VARCHAR(255)
+    `;
+
+    // Add receipt_no column if it doesn't exist
+    await invoiceSql`
+        ALTER TABLE receipt_list 
+        ADD COLUMN IF NOT EXISTS receipt_no VARCHAR(50)
     `;
 
     // Fix missing SERIAL sequence if it was lost during rename/import
@@ -92,13 +99,20 @@ export async function POST(req: Request) {
 
         await ensureTableExists();
 
+        // Generate next receipt number
+        const lastReceipt = await invoiceSql`
+            SELECT id FROM receipt_list ORDER BY id DESC LIMIT 1
+        ` as unknown as { id: number }[];
+        const nextId = lastReceipt.length > 0 ? lastReceipt[0].id + 1 : 1;
+        const generatedReceiptNo = `REC-${nextId.toString().padStart(4, '0')}`;
+
         // Format date to YYYY-MM-DD
         const paymentDate = date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
         const result = await invoiceSql`
-            INSERT INTO receipt_list (customer_name, amount, payment_date, payment_method, notes, staff_name)
-            VALUES (${customer_name}, ${Number(amount)}, ${paymentDate}, ${method || 'Cash'}, ${notes || null}, ${staff_name || null})
-            RETURNING id
+            INSERT INTO receipt_list (receipt_no, customer_name, amount, payment_date, payment_method, notes, staff_name)
+            VALUES (${generatedReceiptNo}, ${customer_name}, ${Number(amount)}, ${paymentDate}, ${method || 'Cash'}, ${notes || null}, ${staff_name || null})
+            RETURNING id, receipt_no
         `;
 
         if (!result || result.length === 0) {
@@ -107,7 +121,8 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
             message: 'Direct payment recorded successfully',
-            paymentId: result[0].id
+            paymentId: result[0].id,
+            receiptNo: result[0].receipt_no
         }, { status: 201 });
     } catch (error) {
         console.error('Error recording direct payment:', error);

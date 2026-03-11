@@ -49,6 +49,25 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
     const [showDropdown, setShowDropdown] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null);
+    const [nextReceiptNo, setNextReceiptNo] = useState<string>("Loading...");
+
+    // Fetch next receipt number for preview
+    const fetchNextNumber = async () => {
+        try {
+            const res = await fetch('/api/bch/payments/next-number');
+            if (res.ok) {
+                const data = await res.json();
+                setNextReceiptNo(data.nextReceiptNo);
+            }
+        } catch (err) {
+            console.error("Error fetching next number:", err);
+            setNextReceiptNo("REC-####");
+        }
+    };
+
+    useEffect(() => {
+        fetchNextNumber();
+    }, []);
 
     // Load staff name from session
     useEffect(() => {
@@ -150,6 +169,7 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
                 setSavedPayment({
                     ...paymentForm,
                     id: isEditing ? (editingPaymentId as number) : data.paymentId,
+                    receipt_no: data.receiptNo || `REC-${data.paymentId.toString().padStart(4, '0')}`,
                     doc_no: selectedDoc ? (selectedDoc.invoice_no || selectedDoc.quotation_no) : 'DIRECT',
                     customer_name: selectedDoc ? selectedDoc.customer_name : searchQuery,
                     payment_date: paymentForm.date,
@@ -158,6 +178,7 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
                 });
                 setIsEditing(false);
                 setEditingPaymentId(null);
+                fetchNextNumber(); // Refresh for next one
                 // Reset form but keep savedPayment for printing
             } else {
                 const data = await res.json();
@@ -231,7 +252,7 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
         if (!savedPayment) return;
         const pay = savedPayment;
         const docDate = pay.payment_date ? new Date(pay.payment_date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
-        const receiptId = pay.id.toString().padStart(4, '0');
+        const receiptId = pay.receipt_no || `REC-${pay.id.toString().padStart(4, '0')}`;
         const customerName = (pay.customer_name || '').toUpperCase();
 
         const printWindow = window.open('', '_blank');
@@ -630,6 +651,7 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
                                 setIsEditing(false);
                                 setEditingPaymentId(null);
                                 setPaymentForm({ amount: "", date: new Date().toISOString().split('T')[0], method: "Cash", notes: "" });
+                                fetchNextNumber();
                             }}
                             style={styles.anotherBtn}
                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2dd351'}
@@ -692,7 +714,7 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
                                                 style={{ border: 'none', background: 'transparent', fontWeight: 800, color: '#1A2244', fontSize: '1.05rem', fontFamily: 'inherit', outline: 'none', cursor: 'pointer', padding: 0, textAlign: 'center' }}
                                             />
                                         </div>
-                                        <div>Receipt No: <strong style={{ fontWeight: 800 }}>REC-{savedPayment ? savedPayment.id.toString().padStart(4, '0') : '0001'}</strong></div>
+                                        <div>Receipt No: <strong style={{ fontWeight: 800 }}>{savedPayment ? (savedPayment.receipt_no || `REC-${savedPayment.id.toString().padStart(4, '0')}`) : nextReceiptNo}</strong></div>
                                     </div>
                                 </div>
                             </div>
