@@ -1,23 +1,37 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
+const ensureTableExists = async () => {
+    await sql`
+        CREATE TABLE IF NOT EXISTS invoice_payments (
+            id SERIAL PRIMARY KEY,
+            invoice_id INTEGER REFERENCES invoices(id) ON DELETE CASCADE,
+            amount NUMERIC(15, 2) NOT NULL,
+            payment_date DATE DEFAULT CURRENT_DATE,
+            payment_method VARCHAR(50),
+            notes TEXT,
+            staff_name VARCHAR(255),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )
+    `;
+
+    // Migration: ensure staff_name column exists
+    await sql`
+        ALTER TABLE invoice_payments 
+        ADD COLUMN IF NOT EXISTS staff_name VARCHAR(255)
+    `;
+};
+
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
-        const id = params.id;
+        const id = parseInt(params.id);
+        if (isNaN(id)) {
+            return NextResponse.json({ error: 'Invalid Invoice ID' }, { status: 400 });
+        }
 
-        // Ensure table exists
-        await sql`
-            CREATE TABLE IF NOT EXISTS invoice_payments (
-                id SERIAL PRIMARY KEY,
-                invoice_id INTEGER REFERENCES invoices(id) ON DELETE CASCADE,
-                amount NUMERIC(15, 2) NOT NULL,
-                payment_date DATE DEFAULT CURRENT_DATE,
-                payment_method VARCHAR(50),
-                notes TEXT,
-                staff_name VARCHAR(255),
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        await ensureTableExists();
 
         const payments = await sql`
             SELECT * FROM invoice_payments WHERE invoice_id = ${id} ORDER BY payment_date DESC, created_at DESC
@@ -34,7 +48,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
 
 export async function POST(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
     try {
-        const id = params.id;
+        const id = parseInt(params.id);
+        if (isNaN(id)) {
+            return NextResponse.json({ error: 'Invalid Invoice ID' }, { status: 400 });
+        }
+
         const body = await req.json();
         const { amount, date, method, notes, staff_name } = body;
 
@@ -42,14 +60,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
         }
 
+        await ensureTableExists();
+
         // 1. Insert Payment
+        const paymentDate = date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
         await sql`
             INSERT INTO invoice_payments (invoice_id, amount, payment_date, payment_method, notes, staff_name)
-            VALUES (${id}, ${amount}, ${date || new Date().toISOString()}, ${method || 'Cash'}, ${notes}, ${staff_name})
+            VALUES (${id}, ${Number(amount)}, ${paymentDate}, ${method || 'Cash'}, ${notes || null}, ${staff_name || null})
         `;
 
         // 2. Recalculate Total Paid and Update Invoice
-        // Fetch current invoice to get total and current advance
         const invResult = await sql`SELECT total_amount, advance_received FROM invoices WHERE id = ${id}` as unknown as any[];
         if (invResult.length === 0) {
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
