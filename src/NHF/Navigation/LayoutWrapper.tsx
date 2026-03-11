@@ -11,7 +11,7 @@ import { ThemeProvider } from "../../context/ThemeContext";
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const isAdmin = pathname?.startsWith('/admin');
+    const isAdmin = pathname?.startsWith('/bch');
 
     // Strict Security: Logout Admin if they leave the admin section
     // Requirement: "If one exits the Admin section... then Re-login should be mandatory"

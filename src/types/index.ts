@@ -183,7 +183,10 @@ export interface Quotation {
     status: string;
     is_taxable: boolean;
     is_discountable: boolean;
+    show_terms: boolean;
     advance_received: number;
+    notes: string | null;
+    terms_and_conditions: string | null;
     created_at: string;
 }
 
@@ -195,6 +198,7 @@ export interface QuotationItem {
     unit_price: number;
     discount: number;
     total: number;
+    product_code: string | null;
 }
 
 export interface PurchaseLot {

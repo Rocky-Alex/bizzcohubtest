@@ -1,0 +1,244 @@
+/* ==========================================
+   CREATE QUOTATION STYLES (Matched to Screenshot)
+   ========================================== */
+
+.invoice-wrapper {
+    background: #f8fafc;
+    min-height: 100vh;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-primary {
+    background: #0081f1;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: #0071d6;
+}
+
+.btn-secondary {
+    background: white;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+/* --- Paper Design --- */
+.invoice-container {
+    background: white;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 1.5rem 3rem 3rem 3rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    color: #1f2937;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Header Sections */
+.quotation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #1A2244;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.quotation-left-header {
+    width: 70%;
+}
+
+.quotation-right-header {
+    position: absolute;
+    right: 0;
+    top: 0;
+    text-align: right;
+}
+
+.quotation-right-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    color: #1A2244;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Meta Grid */
+.quotation-meta-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 4rem;
+    margin-bottom: 2.5rem;
+}
+
+.meta-field-group {
+    margin-bottom: 1.25rem;
+}
+
+.meta-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #4b5563;
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+}
+
+.meta-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Fields */
+.editable-field {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+    color: #1f2937;
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+.editable-field:focus {
+    outline: none;
+    border-color: #0081f1;
+    box-shadow: 0 0 0 2px rgba(0, 129, 241, 0.1);
+}
+
+.textarea-field {
+    resize: none;
+    min-height: 100px;
+}
+
+/* Table Design */
+.quotation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+}
+
+.quotation-table th {
+    background: #f1f5f9;
+    color: #1A2244;
+    padding: 1.25rem 1rem;
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.quotation-table td {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 1rem;
+}
+
+.quotation-table th:not(:first-child),
+.quotation-table td:not(:first-child) {
+    text-align: center;
+}
+
+.quotation-table th:last-child,
+.quotation-table td:last-child {
+    text-align: right;
+}
+
+/* Buttons */
+.btn-add-item {
+    background: white;
+    color: #0081f1;
+    border: 1px dashed #0081f1;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.btn-add-item:hover {
+    background: #f0f7ff;
+}
+
+/* Footer Totals */
+.quotation-footer-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.quotation-totals {
+    width: 300px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.total-row.final {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1A2244;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.amount-in-words {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    text-align: right;
+    margin-top: 1rem;
+    font-style: italic;
+}
+
+/* Branding */
+.bottom-branding {
+    position: absolute;
+    bottom: 2rem;
+    left: 0;
+    width: 100%;
+    text-align: center;
+}
+
+.bank-details {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}

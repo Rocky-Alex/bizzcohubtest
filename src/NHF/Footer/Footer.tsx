@@ -51,7 +51,7 @@ export default function Footer() {
                                     target.dataset.clicks = clicks.toString();
 
                                     if (clicks >= 10) {
-                                        window.location.href = '/admin/login';
+                                        window.location.href = '/bch/login';
                                         target.dataset.clicks = '0'; // Reset after navigation
                                     }
 

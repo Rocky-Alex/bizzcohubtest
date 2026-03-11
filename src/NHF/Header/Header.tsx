@@ -274,7 +274,7 @@ export default function Header() {
                                             Wishlist
                                         </DropdownMenuItem>
                                         {(currentUser.username === 'admin' || currentUser.email === 'bizzcohubllc@gmail.com') && (
-                                            <DropdownMenuItem onClick={() => window.location.href = '/admin/login'}>
+                                            <DropdownMenuItem onClick={() => window.location.href = '/bch/login'}>
                                                 Admin Login
                                             </DropdownMenuItem>
                                         )}

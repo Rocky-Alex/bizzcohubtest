@@ -72,7 +72,7 @@ function ResetPasswordForm() {
                 setIsSuccess(true);
                 toast.success("Password reset successful!");
                 setTimeout(() => {
-                    if (type === 'admin') router.push('/admin/login');
+                    if (type === 'admin') router.push('/bch/login');
                     else router.push('/login');
                 }, 2000);
             } else {
@@ -108,7 +108,7 @@ function ResetPasswordForm() {
                 </p>
                 <button
                     onClick={() => {
-                        if (type === 'admin') router.push('/admin/forgot-password');
+                        if (type === 'admin') router.push('/bch/forgot-password');
                         else router.push('/forgot-password');
                     }}
                     className="login-btn-glow"
@@ -128,7 +128,7 @@ function ResetPasswordForm() {
                 <h2 className="text-2xl font-bold text-white mb-2">Password Reset!</h2>
                 <p className="text-gray-400 mb-6">Your password has been successfully updated.</p>
                 <button
-                    onClick={() => type === 'admin' ? router.push('/admin/login') : router.push('/login')}
+                    onClick={() => type === 'admin' ? router.push('/bch/login') : router.push('/login')}
                     className="login-btn-glow"
                 >
                     Proceed to Login

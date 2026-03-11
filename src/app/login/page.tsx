@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'DUMMY_CLIENT_ID_REPLACE_ME';
 
 
 export default function CustomerAuthPage() {
@@ -64,7 +67,7 @@ export default function CustomerAuthPage() {
 
             if (keySequence.join('') === secretCode) {
                 toast.info("Accessing Admin Portal...");
-                window.location.href = '/admin/login';
+                window.location.href = '/bch/login';
             }
         };
 
@@ -108,6 +111,32 @@ export default function CustomerAuthPage() {
             toast.error("Failed to crop image");
         }
     }, [cropImageSrc, croppedAreaPixels]);
+
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: credentialResponse.credential })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                localStorage.setItem('customer_user', JSON.stringify(data.user));
+                window.dispatchEvent(new Event('user-login'));
+                toast.success('Successfully logged in with Google!');
+                window.location.href = '/products';
+            } else {
+                toast.error(data.message || 'Google Auth Failed');
+            }
+        } catch (err) {
+            console.error("Google login error", err);
+            toast.error('An error occurred during Google sign in.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -190,48 +219,49 @@ export default function CustomerAuthPage() {
     };
 
     return (
-        <div className="futuristic-login-container">
-            <div className="content-wrapper">
-
-                {/* Visual Side (Tech Core) */}
-                <div className="tech-visual-container">
-                    {/* <OrbitingTechnologies /> Removed for performance */}
-                </div>
-
-                {/* Login Form Side */}
-                <div className="login-card-glass">
-                    <div className="login-header">
-                        <h1 className="login-title">
-                            {isLogin ? 'User Login' : 'Create Account'}
-                        </h1>
-                        <p className="login-subtitle">
-                            BIZZ CO HUB
-                        </p>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            <div className="minimal-login-container">
+                <div className="minimal-login-card">
+                    <div className="minimal-header">
+                        <h2>{isLogin ? 'Sign In' : 'Create a Tailark Account'}</h2>
+                        <p>{isLogin ? 'Welcome back! Please enter your details' : 'Welcome! Create an account to get started'}</p>
                     </div>
 
-                    <form onSubmit={handleSubmit}>
+                    <div className="minimal-sso-grid">
+                        <div className="minimal-sso-wrapper">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => toast.error('Google Sign In was unsuccessful.')}
+                                text={isLogin ? 'signin_with' : 'signup_with'}
+                                shape="rectangular"
+                                logo_alignment="center"
+                                // @ts-expect-error - locale is supported by GSI but missing in react-oauth types
+                                locale="en"
+                            />
+                        </div>
+                        <button type="button" className="minimal-sso-btn" onClick={() => toast.info('Microsoft login coming soon')}>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" width={18} height={18} />
+                            <span>Microsoft</span>
+                        </button>
+                    </div>
+
+                    <div className="minimal-divider">
+                        <span></span>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="minimal-form">
                         {!isLogin && (
-                            <div className="avatar-upload-container">
+                            <div className="minimal-avatar-upload">
                                 <div
-                                    className="avatar-preview-wrapper"
+                                    className="avatar-preview-circle"
                                     onClick={() => fileInputRef.current?.click()}
                                     title="Upload Profile Picture"
                                 >
                                     {avatarPreview ? (
-                                        <img
-                                            src={avatarPreview}
-                                            alt="Avatar Preview"
-                                            className="avatar-image"
-                                        />
+                                        <img src={avatarPreview} alt="Avatar" />
                                     ) : (
                                         <div className="avatar-placeholder">
-                                            <i className="fas fa-camera" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}></i>
-                                            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Add Photo</span>
-                                        </div>
-                                    )}
-                                    {avatarPreview && (
-                                        <div className="camera-icon-overlay">
-                                            <i className="fas fa-pen"></i>
+                                            <i className="fas fa-camera"></i>
                                         </div>
                                     )}
                                     <input
@@ -240,98 +270,82 @@ export default function CustomerAuthPage() {
                                         className="hidden-input"
                                         accept="image/*"
                                         onChange={handleAvatarChange}
+                                        style={{ display: 'none' }}
                                     />
                                 </div>
                             </div>
                         )}
 
                         {!isLogin && (
-                            <>
-                                <div className="dark-form-group">
-                                    <div className="flex gap-4">
-                                        <div className="dark-input-container w-1/2">
-                                            <i className="fas fa-user dark-input-icon"></i>
-                                            <input
-                                                type="text"
-                                                className="dark-input"
-                                                placeholder="First Name"
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
-                                                required
-                                                autoComplete="given-name"
-                                            />
-                                        </div>
-                                        <div className="dark-input-container w-1/2">
-                                            <i className="fas fa-user dark-input-icon"></i>
-                                            <input
-                                                type="text"
-                                                className="dark-input"
-                                                placeholder="Last Name"
-                                                value={lastName}
-                                                onChange={(e) => setLastName(e.target.value)}
-                                                required
-                                                autoComplete="family-name"
-                                            />
-                                        </div>
-                                    </div>
+                            <div className="minimal-form-row">
+                                <div className="minimal-form-group">
+                                    <label>Firstname</label>
+                                    <input
+                                        type="text"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        required
+                                        autoComplete="given-name"
+                                    />
                                 </div>
-                                <div className="dark-form-group">
-                                    <div className="dark-input-container">
-                                        <i className="fas fa-at dark-input-icon"></i>
-                                        <input
-                                            type="text"
-                                            className="dark-input"
-                                            placeholder="Username"
-                                            value={username}
-                                            onChange={(e) => setUsername(e.target.value)}
-                                            required
-                                            autoComplete="username"
-                                        />
-                                    </div>
+                                <div className="minimal-form-group">
+                                    <label>Lastname</label>
+                                    <input
+                                        type="text"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        required
+                                        autoComplete="family-name"
+                                    />
                                 </div>
-                            </>
+                            </div>
                         )}
 
-                        {/* Email Field - Used for both or adapted based on backend requirement */}
-                        <div className="dark-form-group">
-                            <div className="dark-input-container">
-                                <i className="fas fa-envelope dark-input-icon"></i>
+                        {!isLogin && (
+                            <div className="minimal-form-group">
+                                <label>Username</label>
                                 <input
-                                    type="text" // generic text to allow username or email on login
-                                    className="dark-input"
-                                    placeholder={isLogin ? "Username / Email" : "Email"}
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     required
                                     autoComplete="username"
                                 />
                             </div>
+                        )}
+
+                        <div className="minimal-form-group">
+                            <label>{isLogin ? 'Email or Username' : 'Email'}</label>
+                            <input
+                                type="text"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                autoComplete="email"
+                            />
                         </div>
 
                         {!isLogin && (
-                            <div className="dark-form-group">
-                                <div className="dark-input-container">
-                                    <i className="fas fa-phone dark-input-icon"></i>
-                                    <input
-                                        type="tel"
-                                        className="dark-input"
-                                        placeholder="Phone Number"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        required
-                                        autoComplete="tel"
-                                    />
-                                </div>
+                            <div className="minimal-form-group">
+                                <label>Phone</label>
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
+                                    autoComplete="tel"
+                                />
                             </div>
                         )}
 
-                        <div className="dark-form-group">
-                            <div className="dark-input-container">
-                                <i className="fas fa-lock dark-input-icon"></i>
+                        <div className="minimal-form-group">
+                            <div className="minimal-password-header">
+                                <label>Password</label>
+                                {isLogin && <Link href="/forgot-password" className="minimal-forgot-link">Forgot password?</Link>}
+                            </div>
+                            <div className="minimal-input-wrapper">
                                 <input
                                     type={showPassword ? "text" : "password"}
-                                    className="dark-input"
-                                    placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -339,39 +353,20 @@ export default function CustomerAuthPage() {
                                 />
                                 <button
                                     type="button"
+                                    className="minimal-toggle-pwd"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    style={{
-                                        position: 'absolute',
-                                        right: '10px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        background: 'none',
-                                        border: 'none',
-                                        color: '#64748b',
-                                        cursor: 'pointer'
-                                    }}
                                 >
                                     <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                                 </button>
                             </div>
                         </div>
 
-                        {isLogin && (
-                            <div style={{ textAlign: 'right', marginTop: '-10px', marginBottom: '20px' }}>
-                                <Link href="/forgot-password" className="forgot-password-link">
-                                    Forgot Password?
-                                </Link>
-                            </div>
-                        )}
-
                         {!isLogin && (
-                            <div className="dark-form-group">
-                                <div className="dark-input-container">
-                                    <i className="fas fa-lock dark-input-icon"></i>
+                            <div className="minimal-form-group">
+                                <label>Confirm Password</label>
+                                <div className="minimal-input-wrapper">
                                     <input
                                         type={showConfirmPassword ? "text" : "password"}
-                                        className="dark-input"
-                                        placeholder="Confirm Password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
@@ -379,17 +374,8 @@ export default function CustomerAuthPage() {
                                     />
                                     <button
                                         type="button"
+                                        className="minimal-toggle-pwd"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        style={{
-                                            position: 'absolute',
-                                            right: '10px',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
-                                            background: 'none',
-                                            border: 'none',
-                                            color: '#64748b',
-                                            cursor: 'pointer'
-                                        }}
                                     >
                                         <i className={`fas ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                                     </button>
@@ -397,118 +383,47 @@ export default function CustomerAuthPage() {
                             </div>
                         )}
 
-                        <button
-                            type="submit"
-                            className="login-btn-glow"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <i className="fas fa-circle-notch fa-spin"></i>
-                            ) : (
-                                isLogin ? 'Login' : 'Sign Up'
-                            )}
+                        <button type="submit" className="minimal-submit-btn" disabled={isLoading}>
+                            {isLoading ? 'Processing...' : 'Continue'}
                         </button>
                     </form>
-
-
-
-                    <div className="toggle-auth-mode">
-                        {isLogin ? (
-                            <>
-                                Don&apos;t have an account?
-                                <span className="toggle-link" onClick={() => setIsLogin(false)}>
-                                    Register
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                Already have an account?
-                                <span className="toggle-link" onClick={() => setIsLogin(true)}>
-                                    Login
-                                </span>
-                            </>
-                        )}
-                    </div>
                 </div>
-            </div>
 
-            {/* Crop Modal */}
-            {isCropping && cropImageSrc && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    zIndex: 1000,
-                    background: 'rgba(11, 17, 33, 0.95)',
-                    backdropFilter: 'blur(10px)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
-                    <div style={{ position: 'relative', width: '100%', maxWidth: '500px', height: '500px', background: '#000', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <Cropper
-                            image={cropImageSrc}
-                            crop={crop}
-                            zoom={zoom}
-                            aspect={1}
-                            onCropChange={setCrop}
-                            onCropComplete={onCropComplete}
-                            onZoomChange={setZoom}
-                            cropShape="round"
-                            showGrid={true}
-                        />
-                    </div>
-                    <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', width: '100%', maxWidth: '500px', justifyContent: 'center' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#94a3b8' }}>
-                                <i className="fas fa-search-minus"></i>
-                                <input
-                                    type="range"
-                                    value={zoom}
-                                    min={1}
-                                    max={3}
-                                    step={0.1}
-                                    aria-labelledby="Zoom"
-                                    onChange={(e) => setZoom(Number(e.target.value))}
-                                    style={{ width: '100%', accentColor: '#007aff' }}
-                                />
-                                <i className="fas fa-search-plus"></i>
-                            </div>
-                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsCropping(false); setCropImageSrc(null); }}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: 'transparent',
-                                        color: '#ef4444',
-                                        border: '1px solid #ef4444',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        fontWeight: 600
-                                    }}>
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={showCroppedImage}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: 'linear-gradient(90deg, #007aff, #00b4ff)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        cursor: 'pointer',
-                                        fontWeight: 600,
-                                        boxShadow: '0 0 20px rgba(0, 122, 255, 0.4)'
-                                    }}>
-                                    Set Profile Picture
-                                </button>
-                            </div>
+                <div className="minimal-footer-tray">
+                    {isLogin ? (
+                        <p>Don't have an account ? <button type="button" onClick={() => setIsLogin(false)}>Sign Up</button></p>
+                    ) : (
+                        <p>Have an account ? <button type="button" onClick={() => setIsLogin(true)}>Sign In</button></p>
+                    )}
+                </div>
+
+                {/* Crop Modal */}
+                {isCropping && cropImageSrc && (
+                    <div className="minimal-crop-modal">
+                        <div className="minimal-crop-container">
+                            <Cropper
+                                image={cropImageSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                                cropShape="round"
+                                showGrid={true}
+                            />
+                        </div>
+                        <div className="minimal-crop-controls">
+                            <button type="button" className="crop-cancel-btn" onClick={() => { setIsCropping(false); setCropImageSrc(null); }}>
+                                Cancel
+                            </button>
+                            <button type="button" className="crop-save-btn" onClick={showCroppedImage}>
+                                Set Picture
+                            </button>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </GoogleOAuthProvider>
     );
 }

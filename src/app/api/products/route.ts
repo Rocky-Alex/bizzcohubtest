@@ -130,6 +130,6 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// POST is superseded by /api/admin/inventory/products, but keeping this for public API compatibility if needed.
+// POST is superseded by /api/bch/inventory/products, but keeping this for public API compatibility if needed.
 // For now, removing POST/PUT/DELETE from here to avoid confusion and use the Admin API.
 // If valid usage exists, it should be updated to matches schema as well.

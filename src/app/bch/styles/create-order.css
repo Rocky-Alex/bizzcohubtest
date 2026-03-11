@@ -1,0 +1,753 @@
+/* ==========================================
+   CREATE ORDER STYLES
+   ========================================== */
+
+.co-page-container {
+    background: #f8fafc;
+    min-height: 100vh;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+    color: #1e293b;
+}
+
+/* Header */
+.co-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.co-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.co-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0.5rem 0 0;
+}
+
+/* Form Layout */
+.co-form {
+    max-width: 1700px;
+    margin: 0 auto;
+}
+
+.co-section-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1224px) {
+    .co-section-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Cards */
+.co-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.card-header {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+
+.ai-body {
+    padding: 1.5rem 2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.ai-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ai-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ai-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: 0.01em;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Form Controls */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.co-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.co-control-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.co-control-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.co-input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: #fff;
+    color: #1e293b;
+}
+
+.co-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.co-input::placeholder {
+    color: #94a3b8;
+}
+
+/* Buttons */
+.input-with-button {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-add-customer {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #dbeafe;
+    padding: 0.625rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-add-customer:hover {
+    background: #dbeafe;
+    border-color: #bfdbfe;
+}
+
+/* Table Container */
+.co-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.co-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+}
+
+.co-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.co-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.co-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.co-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Item Cell */
+.co-item-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.co-item-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    /* Changed to contain for better product visibility */
+    border-radius: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 4px;
+}
+
+.co-item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.co-item-info .name {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.co-item-info .code {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Specs Cells (Processor, RAM, etc) */
+.co-table th:nth-child(n+3):nth-child(-n+11),
+.co-table td:nth-child(n+3):nth-child(-n+11) {
+    text-align: center;
+}
+
+.co-table th:first-child,
+.co-table td:first-child {
+    text-align: center;
+}
+
+.co-table td:nth-child(n+3):nth-child(-n+7) {
+    font-variant-numeric: tabular-nums;
+    color: #475569;
+}
+
+/* AC Status Select */
+.co-table-select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #334155;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.co-table-select:hover {
+    border-color: #94a3b8;
+}
+
+.co-table-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Qty Control */
+.co-qty-control {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border-radius: 6px;
+    padding: 2px;
+    width: fit-content;
+}
+
+.co-qty-control button {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #64748b;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.1s;
+}
+
+.co-qty-control button:hover {
+    color: #0f172a;
+    transform: scale(1.05);
+}
+
+.co-qty-control button:active {
+    transform: scale(0.95);
+}
+
+.co-qty-control span {
+    width: 30px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #0f172a;
+}
+
+/* Action Button */
+.co-action-btn.delete {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0.8;
+}
+
+.co-action-btn.delete:hover {
+    background: #fecaca;
+    color: #dc2626;
+    opacity: 1;
+}
+
+/* Manual Trigger */
+.co-add-row-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.25rem 1rem;
+}
+
+.btn-add-item {
+    background: white;
+    color: #3b82f6;
+    border: 1px dashed #3b82f6;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-item:hover {
+    background: #eff6ff;
+}
+
+/* Footer Totals */
+/* Price & Qty Row */
+.ai-footer-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    /* Updated from 1.5rem */
+}
+
+/* --- Advanced Item Modal (AI) --- */
+.ai-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.ai-modal-content {
+    background: white;
+    width: 95%;
+    max-width: 1000px;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    /* Removed max-height to allow full content visibility */
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-header {
+    padding: 1rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    flex-shrink: 0;
+}
+
+.ai-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.ai-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.ai-close-btn:hover {
+    color: #64748b;
+}
+
+.ai-body {
+    padding: 2rem;
+    /* Removed overflow-y to prevent internal scroll */
+    flex: 1;
+}
+
+/* Grid Layout for Form */
+.ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 1224px) {
+    .ai-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.ai-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.ai-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.ai-group input,
+.ai-group select,
+.ai-group .searchable-dropdown-trigger {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #1e293b;
+    transition: all 0.2s;
+    background: #fff;
+    width: 100%;
+}
+
+.ai-group input:focus,
+.ai-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Footer Row for Price/Qty */
+.ai-footer-row {
+    display: flex;
+    gap: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    align-items: flex-end;
+}
+
+.btn-cancel {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #f8fafc;
+    color: #475569;
+}
+
+.btn-confirm {
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-confirm:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ai-footer {
+    display: none;
+    /* Deprecated in favor of modal-actions */
+}
+
+.co-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.co-totals {
+    width: 350px;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.t-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
+    color: #64748b;
+}
+
+.t-row.grand {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #f1f5f9;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #0f172a;
+    margin-bottom: 0;
+}
+
+.btn-submit-order {
+    background: #000;
+    /* Distinct black button for primary action */
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.btn-submit-order:hover {
+    background: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-submit-order:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .co-table thead {
+        display: none;
+    }
+
+    .co-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 1rem;
+        gap: 0.5rem;
+        border-bottom: 2px solid #f1f5f9;
+        background: #fff;
+    }
+
+    .co-table td {
+        display: block;
+        padding: 0 !important;
+        border: none !important;
+        text-align: left !important;
+    }
+
+    /* Product Cell - Line 1 */
+    .co-table td:nth-child(2) {
+        grid-column: 1 / -1;
+        margin-bottom: 0.75rem;
+    }
+
+    /* AC Status - Line 2 Left */
+    .co-table td:nth-child(8) {
+        grid-column: 1;
+        font-size: 0.75rem;
+    }
+
+    /* Qty - Line 2 Right */
+    .co-table td:nth-child(9) {
+        grid-column: 2;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Price - Line 3 Left */
+    .co-table td:nth-child(10) {
+        grid-column: 1;
+        font-weight: 700;
+        color: #0f172a;
+        margin-top: 0.25rem;
+    }
+
+    /* Action - Line 3 Right */
+    .co-table td:nth-child(11) {
+        grid-column: 2;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.25rem;
+    }
+
+    .co-item-thumb {
+        width: 40px;
+        height: 40px;
+    }
+
+    .co-item-info .name {
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .co-qty-control button {
+        width: 24px;
+        height: 24px;
+    }
+
+    .mobile-spec-summary {
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .show-mobile {
+        display: inline !important;
+    }
+}
+
+/* Lot Selection Grid */
+.co-lot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 100px;
+    gap: 1rem;
+    align-items: end;
+}
+
+@media (max-width: 768px) {
+    .co-lot-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .co-lot-grid .btn-add-customer {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+}

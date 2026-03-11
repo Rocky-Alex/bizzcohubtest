@@ -57,7 +57,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 name={product.name}
                 description={product.description || `High-quality ${product.type} from ${product.brand}`}
                 image={product.images?.length > 0 ? product.images : [product.image]}
-                sku={product.productCode || product.id}
+                sku={product.productCode || String(product.id)}
                 brand={product.brand}
                 price={product.price}
                 priceCurrency="AED"

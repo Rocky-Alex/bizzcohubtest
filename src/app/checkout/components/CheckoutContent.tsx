@@ -142,7 +142,7 @@ export default function CheckoutContent() {
                 customerId
             };
 
-            const response = await fetch('/api/admin/orders', {
+            const response = await fetch('/api/bch/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)

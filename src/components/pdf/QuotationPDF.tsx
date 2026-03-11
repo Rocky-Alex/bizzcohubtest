@@ -16,126 +16,240 @@ const styles = StyleSheet.create({
         color: '#333',
         flexDirection: 'column',
     },
+    // Header Section
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         marginBottom: 20,
-        borderBottomWidth: 1,
+        borderBottomWidth: 2,
         borderBottomColor: '#1A2244',
         paddingBottom: 10,
+        position: 'relative',
     },
     headerLeft: {
         flexDirection: 'column',
+        width: '60%',
     },
     logoRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 5,
+        marginBottom: 2,
     },
     logoText: {
         color: '#1A2244',
         fontSize: 20,
         fontWeight: 'bold',
-        marginLeft: 10,
+        marginLeft: 2,
         fontFamily: 'Square721 BT Roman',
     },
     tagline: {
         color: '#1A2244',
-        fontSize: 9,
+        fontSize: 7,
+        marginBottom: 1,
     },
-    headerCenter: { marginTop: 35 },
-    taxId: { color: '#1A2244', fontSize: 10 },
-    headerRight: { alignItems: 'flex-end' },
+    taxIdContainer: {
+        position: 'absolute',
+        left: '50%',
+        top: 62,
+        transform: 'translateX(-50%)',
+    },
+    taxId: {
+        color: '#1A2244',
+        fontSize: 12,
+        fontWeight: 500,
+    },
+    headerRight: {
+        alignItems: 'flex-end',
+    },
     invoiceTitle: {
         color: '#1A2244',
-        fontSize: 28, // Slightly smaller to fit QUOTATION INVOICE if needed
+        fontSize: 26,
         fontWeight: 'bold',
+        letterSpacing: 1,
     },
+    // Info Section
     infoSection: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 30,
     },
-    billToColumn: { width: '45%' },
-    billToLabel: { fontWeight: 'bold', marginBottom: 4, fontSize: 10 },
-    billToContent: { lineHeight: 1.4 },
-    dateColumn: { width: '35%' },
-    dateRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-    dateLabel: { color: '#444' },
-    dateValue: { textAlign: 'right', fontWeight: 'bold' },
-    table: { width: '100%', marginBottom: 20 },
+    billToColumn: {
+        width: '50%',
+    },
+    billToLabel: {
+        fontWeight: 'bold',
+        marginBottom: 4,
+        fontSize: 9,
+    },
+    billToContent: {
+        lineHeight: 1.4,
+        fontSize: 9,
+    },
+    dateColumn: {
+        width: '40%',
+    },
+    dateRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    dateLabel: {
+        color: '#000',
+        fontSize: 9,
+    },
+    dateValue: {
+        textAlign: 'right',
+        fontWeight: 'bold',
+        fontSize: 9,
+    },
+    // Table Section
+    table: {
+        width: '100%',
+        marginBottom: 30,
+    },
     tableHeader: {
         flexDirection: 'row',
         backgroundColor: '#f8fafc',
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-        paddingVertical: 8,
-        paddingHorizontal: 4,
+        paddingVertical: 12,
+        paddingHorizontal: 8,
     },
-    tableHeaderCell: { color: '#1A2244', fontWeight: 'bold', fontSize: 9 },
-    tableCell: { fontSize: 9, color: '#333' },
+    tableHeaderCell: {
+        color: '#1A2244',
+        fontWeight: 'bold',
+        fontSize: 8,
+    },
+    tableCell: {
+        fontSize: 9,
+        color: '#1f2937',
+    },
     tableRow: {
         flexDirection: 'row',
         borderBottomWidth: 1,
         borderBottomColor: '#f1f5f9',
-        paddingVertical: 8,
-        paddingHorizontal: 4,
+        paddingVertical: 12,
+        paddingHorizontal: 8,
     },
     colDesc: { width: '50%' },
-    colQty: { width: '10%', textAlign: 'center' },
-    colCost: { width: '15%', textAlign: 'right' },
-    colDisc: { width: '10%', textAlign: 'right' },
+    colQty: { width: '8%', textAlign: 'center' },
+    colCost: { width: '14%', textAlign: 'center' },
+    colDisc: { width: '13%', textAlign: 'center' },
     colTotal: { width: '15%', textAlign: 'right' },
+
+    // Bottom Section
     bottomSection: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 10,
     },
-    termsColumn: { width: '50%', paddingRight: 20 },
-    sectionTitle: { fontWeight: 'bold', marginBottom: 5, marginTop: 10, fontSize: 9 },
-    sectionContent: { color: '#666', lineHeight: 1.4, marginBottom: 10 },
-    totalsColumn: { width: '40%' },
-    totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-    totalLabel: { color: '#666' },
-    totalValue: { textAlign: 'right', fontWeight: 'bold' },
+    termsColumn: {
+        width: '50%',
+    },
+    sectionTitle: {
+        fontWeight: 'bold',
+        marginBottom: 4,
+        fontSize: 7,
+        color: '#1A2244',
+    },
+    sectionContent: {
+        color: '#6b7280',
+        lineHeight: 1.3,
+        marginBottom: 8,
+        fontSize: 7,
+    },
+    totalsColumn: {
+        width: '180pt',
+    },
+    totalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    totalLabel: {
+        color: '#4b5563',
+        fontSize: 9,
+    },
+    totalValue: {
+        textAlign: 'right',
+        fontSize: 9,
+    },
     grandTotalRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 8,
+        marginBottom: 6,
         borderTopWidth: 1,
-        borderTopColor: '#eee',
+        borderTopColor: '#e5e7eb',
         paddingTop: 8,
     },
-    grandTotalLabel: { color: '#ff4d4f', fontWeight: 'bold', fontSize: 11 },
-    grandTotalValue: { color: '#ff4d4f', fontWeight: 'bold', fontSize: 11, textAlign: 'right' },
-    amountInWords: { fontSize: 8, fontStyle: 'italic', color: '#888', textAlign: 'right', marginTop: 5 },
-    signatureSection: {
-        marginTop: 50,
-        alignSelf: 'flex-end',
-        width: 150,
-        borderTopWidth: 1,
-        borderTopColor: '#000',
-        paddingTop: 5,
-        alignItems: 'center',
+    grandTotalLabel: {
+        color: '#ea580c',
+        fontWeight: 'bold',
+        fontSize: 11,
     },
-    signatureName: { fontWeight: 'bold', fontSize: 10 },
-    signatureRole: { fontSize: 8, color: '#1A2244' },
+    grandTotalValue: {
+        color: '#ea580c',
+        fontWeight: 'bold',
+        fontSize: 11,
+        textAlign: 'right',
+    },
+    amountInWords: {
+        fontSize: 8,
+        fontStyle: 'italic',
+        color: '#9ca3af',
+        textAlign: 'right',
+        marginTop: 8,
+    },
+
+    // Signature
+    signatureSection: {
+        marginTop: 60,
+        textAlign: 'right',
+        alignItems: 'flex-end',
+    },
+    signatureLine: {
+        width: 150,
+        borderBottomWidth: 1,
+        borderBottomColor: '#000',
+        marginBottom: 6,
+    },
+    signatureName: {
+        fontWeight: 'bold',
+        fontSize: 9,
+        color: '#1A2244',
+        textAlign: 'center',
+        width: 150,
+    },
+    signatureRole: {
+        fontSize: 8,
+        color: '#6b7280',
+        textAlign: 'center',
+        width: 150,
+    },
+
+    // Footer
     footer: {
         position: 'absolute',
-        bottom: 30,
-        left: 40,
-        right: 40,
+        bottom: 40,
+        left: 0,
+        right: 0,
         textAlign: 'center',
-        borderTopWidth: 1,
-        borderTopColor: '#f1f5f9',
-        paddingTop: 10,
     },
     footerLogoRow: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginBottom: 3,
+        marginBottom: 4,
         alignItems: 'center',
+    },
+    footerLogoText: {
+        color: '#1A2244',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 5,
+        fontFamily: 'Square721 BT Roman',
+    },
+    footerTagline: {
+        fontSize: 8,
+        color: '#6b7280',
     },
 });
 
@@ -143,81 +257,84 @@ interface QuotationPDFProps {
     quotation: any;
     items: any[];
     logoUrl?: string;
+    staffName?: string;
+    staffRole?: string;
 }
 
-const QuotationPDF: React.FC<QuotationPDFProps> = ({ quotation, items, logoUrl }) => {
+const QuotationPDF: React.FC<QuotationPDFProps> = ({ quotation, items, logoUrl, staffName, staffRole }) => {
     const toWords = new ToWords({
         localeCode: 'en-US',
-        converterOptions: { currency: true, ignoreDecimal: false, ignoreZeroCurrency: false, doNotAddOnly: false }
+        converterOptions: {
+            currency: true,
+            ignoreDecimal: false,
+            ignoreZeroCurrency: false,
+            doNotAddOnly: false,
+        }
     });
 
     const subTotal = Number(quotation.sub_total || 0);
     const taxAmount = Number(quotation.tax_amount || 0);
+    const taxRate = Number(quotation.tax_rate || 5);
     const totalAmount = Number(quotation.total_amount || 0);
-
-    let amountWord = "";
-    try {
-        amountWord = toWords.convert(totalAmount);
-    } catch (e) {
-        amountWord = `${totalAmount}`;
-    }
 
     return (
         <Document>
             <Page size="A4" style={styles.page}>
+
+                {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
                         <View style={styles.logoRow}>
-                            {logoUrl ? (
-                                <Image src={logoUrl} style={{ width: 40, height: 40, objectFit: 'contain' }} />
-                            ) : (
-                                <View style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: '#1A2244' }} />
-                            )}
+                            {logoUrl && <Image src={logoUrl} style={{ width: 40, height: 40, objectFit: 'contain' }} />}
                             <Text style={styles.logoText}>BIZZ CO HUB LLC</Text>
                         </View>
                         <Text style={styles.tagline}>Premium Refurbished Electronics and Professional IT Services</Text>
                         <Text style={styles.tagline}>Sharjah Media City, Sharjah, UAE</Text>
                         <Text style={styles.tagline}>Ph: +971 52 714 6582 | +971 55 614 8279</Text>
                     </View>
-                    <View style={styles.headerCenter}>
-                        {/* Tax ID moved to header or bill to? Let's keep consistent with PDF design */}
-                        {/* Original PDF had centered Tax ID, user asked to move it. In PDF we'll put it in Bill To section similar to HTML update */}
-                    </View>
+
+                    {quotation.is_taxable && (
+                        <View style={styles.taxIdContainer}>
+                            <Text style={styles.taxId}>TAX : 123456789123456</Text>
+                        </View>
+                    )}
+
                     <View style={styles.headerRight}>
-                        <Text style={styles.invoiceTitle}>QUOTATION</Text>
+                        <Text style={styles.invoiceTitle}>PROFORMA INVOICE</Text>
                     </View>
                 </View>
 
+                {/* Info Section */}
                 <View style={styles.infoSection}>
                     <View style={styles.billToColumn}>
                         <Text style={styles.billToLabel}>Bill To</Text>
-                        <Text style={{ fontWeight: 'bold', fontSize: 11, marginBottom: 2 }}>{quotation.customer_name}</Text>
+                        <Text style={{ fontWeight: 'bold', fontSize: 10, marginBottom: 2, color: '#000' }}>{quotation.customer_name}</Text>
                         <Text style={styles.billToContent}>{quotation.customer_address}</Text>
-                        <Text style={styles.billToContent}>{quotation.customer_email}</Text>
-                        <Text style={styles.billToContent}>{quotation.customer_phone}</Text>
+                        {quotation.customer_email && <Text style={styles.billToContent}>{quotation.customer_email}</Text>}
+                        {quotation.customer_phone && <Text style={styles.billToContent}>{quotation.customer_phone}</Text>}
                     </View>
+
                     <View style={styles.dateColumn}>
                         <View style={styles.dateRow}>
-                            <Text style={styles.dateLabel}>Date:</Text>
-                            <Text style={styles.dateValue}>{new Date(quotation.created_date).toLocaleDateString()}</Text>
+                            <Text style={styles.dateLabel}>Pro-Inv #:</Text>
+                            <Text style={styles.dateValue}>{quotation.quotation_no}</Text>
                         </View>
                         <View style={styles.dateRow}>
-                            <Text style={styles.dateLabel}>Valid Until:</Text>
-                            <Text style={styles.dateValue}>{new Date(quotation.due_date).toLocaleDateString()}</Text>
+                            <Text style={styles.dateLabel}>Date:</Text>
+                            <Text style={styles.dateValue}>{new Date(quotation.created_date || quotation.created_at).toLocaleDateString()}</Text>
+                        </View>
+                        <View style={styles.dateRow}>
+                            <Text style={styles.dateLabel}>Due Date:</Text>
+                            <Text style={styles.dateValue}>{new Date(quotation.validity_date || quotation.due_date).toLocaleDateString()}</Text>
                         </View>
                         <View style={styles.dateRow}>
                             <Text style={styles.dateLabel}>Payment Type:</Text>
                             <Text style={styles.dateValue}>{quotation.payment_type || 'Bank'}</Text>
                         </View>
-                        {quotation.is_taxable ? (
-                            <View style={styles.dateRow}>
-                                <Text style={styles.dateLabel}>Tax ID:</Text>
-                                <Text style={styles.dateValue}>123456789123456</Text>
-                            </View>
-                        ) : null}
                     </View>
                 </View>
 
+                {/* Table */}
                 <View style={styles.table}>
                     <View style={styles.tableHeader}>
                         <Text style={[styles.tableHeaderCell, styles.colDesc]}>Job Description</Text>
@@ -226,57 +343,76 @@ const QuotationPDF: React.FC<QuotationPDFProps> = ({ quotation, items, logoUrl }
                         <Text style={[styles.tableHeaderCell, styles.colDisc]}>Discount</Text>
                         <Text style={[styles.tableHeaderCell, styles.colTotal]}>Total</Text>
                     </View>
+
                     {items.map((item, index) => (
                         <View style={styles.tableRow} key={index}>
                             <Text style={[styles.tableCell, styles.colDesc]}>{item.description}</Text>
-                            <Text style={[styles.tableCell, styles.colQty]}>{item.quantity}</Text>
-                            <Text style={[styles.tableCell, styles.colCost]}>AED {Number(item.unit_price).toFixed(0)}</Text>
-                            <Text style={[styles.tableCell, styles.colDisc]}>AED {Number(item.discount || 0).toFixed(0)}</Text>
-                            <Text style={[styles.tableCell, styles.colTotal]}>AED {Number(item.total).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colQty]}>{item.quantity || item.qty}</Text>
+                            <Text style={[styles.tableCell, styles.colCost, { color: '#333' }]}>AED {Number(item.unit_price || item.cost).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colDisc, { color: '#333' }]}>AED {Number(item.discount || 0).toFixed(0)}</Text>
+                            <Text style={[styles.tableCell, styles.colTotal, { color: '#333' }]}>AED {Number(item.total || (((item.quantity || item.qty) * (item.unit_price || item.cost)) - item.discount)).toFixed(0)}</Text>
                         </View>
                     ))}
                 </View>
 
+                {/* Bottom Section */}
                 <View style={styles.bottomSection}>
                     <View style={styles.termsColumn}>
-                        <Text style={styles.sectionTitle}>Terms and Conditions</Text>
-                        <Text style={styles.sectionContent}>Valid for 7 days from the date of quotation.</Text>
+                        {quotation.show_terms !== false && (
+                            <>
+                                <Text style={styles.sectionTitle}>Terms and Conditions</Text>
+                                <Text style={styles.sectionContent}>{quotation.terms_and_conditions || ''}</Text>
+                                <Text style={styles.sectionTitle}>Notes</Text>
+                                <Text style={styles.sectionContent}>{quotation.notes || ''}</Text>
+                            </>
+                        )}
                     </View>
+
                     <View style={styles.totalsColumn}>
-                        <View style={styles.totalRow}>
-                            <Text style={styles.totalLabel}>Sub Total</Text>
-                            <Text style={styles.totalValue}>AED {subTotal.toFixed(0)}</Text>
-                        </View>
-                        {quotation.is_taxable ? (
+                        {(quotation.is_taxable || quotation.is_discountable) && (
                             <View style={styles.totalRow}>
-                                <Text style={styles.totalLabel}>VAT (5%)</Text>
+                                <Text style={styles.totalLabel}>Sub Total</Text>
+                                <Text style={styles.totalValue}>AED {subTotal.toFixed(0)}</Text>
+                            </View>
+                        )}
+                        {quotation.is_taxable && (
+                            <View style={styles.totalRow}>
+                                <Text style={styles.totalLabel}>VAT ({taxRate}%)</Text>
                                 <Text style={styles.totalValue}>AED {taxAmount.toFixed(0)}</Text>
                             </View>
-                        ) : null}
+                        )}
                         <View style={styles.grandTotalRow}>
                             <Text style={styles.grandTotalLabel}>Total Amount</Text>
                             <Text style={styles.grandTotalValue}>AED {totalAmount.toFixed(0)}</Text>
                         </View>
-                        <Text style={styles.amountInWords}>Amount in Words :  {totalAmount} Dirhams Only</Text>
+                        <View style={styles.totalRow}>
+                            <Text style={styles.totalLabel}>Advance Paid</Text>
+                            <Text style={[styles.totalValue, { color: '#16a34a', fontWeight: 'bold' }]}>AED {Number(quotation.advance_received || 0).toFixed(0)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                            <Text style={{ color: '#dc2626', fontWeight: 'bold', fontSize: 9 }}>Balance Due</Text>
+                            <Text style={{ color: '#dc2626', fontWeight: 'bold', fontSize: 9, textAlign: 'right' }}>AED {(totalAmount - Number(quotation.advance_received || 0)).toFixed(0)}</Text>
+                        </View>
+                        <Text style={styles.amountInWords}>Amount in Words : {toWords.convert(totalAmount).replace('Only', '')} AED Only</Text>
                     </View>
                 </View>
 
+                {/* Signature */}
                 <View style={styles.signatureSection}>
-                    <Text style={styles.signatureName}>Muhammed Rishad</Text>
-                    <Text style={styles.signatureRole}>Accountant</Text>
+                    <View style={styles.signatureLine} />
+                    <Text style={styles.signatureName}>{staffName || 'Muhammed Rishad'}</Text>
+                    <Text style={styles.signatureRole}>{staffRole || 'Accountant'}</Text>
                 </View>
 
+                {/* Footer */}
                 <View style={styles.footer}>
                     <View style={styles.footerLogoRow}>
-                        {logoUrl ? (
-                            <Image src={logoUrl} style={{ width: 14, height: 14, objectFit: 'contain', marginRight: 5 }} />
-                        ) : (
-                            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#1A2244', marginRight: 5 }} />
-                        )}
-                        <Text style={{ color: '#1A2244', fontWeight: 'bold' }}>BIZZ CO HUB LLC</Text>
+                        {logoUrl && <Image src={logoUrl} style={{ width: 20, height: 20, objectFit: 'contain' }} />}
+                        <Text style={styles.footerLogoText}>BIZZ CO HUB LLC</Text>
                     </View>
-                    <Text style={{ color: '#666', fontSize: 8 }}>Premium Refurbished Electronics and Professional IT Services</Text>
+                    <Text style={styles.footerTagline}>Premium Refurbished Electronics and Professional IT Services</Text>
                 </View>
+
             </Page>
         </Document>
     );

@@ -104,6 +104,9 @@ export default function PhoneInputWithCountry({
                 {/* Input */}
                 <input
                     type="tel"
+                    id="user_phone_number"
+                    name="user_phone_number"
+                    autoComplete="new-password"
                     className="phone-input-field"
                     placeholder={placeholder}
                     value={value}
