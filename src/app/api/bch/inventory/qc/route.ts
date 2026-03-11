@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 import { logActivity } from '@/lib/activity-logger';
 
 export async function GET(req: Request): Promise<NextResponse> {
