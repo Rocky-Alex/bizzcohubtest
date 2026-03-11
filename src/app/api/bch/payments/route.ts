@@ -1,21 +1,43 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql, quotationSql } from '@/lib/db';
 
+const ensureTableExists = async () => {
+    await invoiceSql`
+        CREATE TABLE IF NOT EXISTS receipt_list (
+            id SERIAL PRIMARY KEY,
+            customer_name VARCHAR(255) NOT NULL,
+            amount NUMERIC(15, 2) NOT NULL,
+            payment_date DATE DEFAULT CURRENT_DATE,
+            payment_method VARCHAR(50),
+            notes TEXT,
+            staff_name VARCHAR(255),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )
+    `;
+
+    // Ensure staff_name exists
+    await invoiceSql`
+        ALTER TABLE receipt_list 
+        ADD COLUMN IF NOT EXISTS staff_name VARCHAR(255)
+    `;
+
+    // Fix missing SERIAL sequence if it was lost during rename/import
+    // This is safe to run multiple times
+    await invoiceSql`
+        DO $$ 
+        BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'receipt_list' AND column_name = 'id' AND column_default IS NOT NULL) THEN
+                CREATE SEQUENCE IF NOT EXISTS receipt_list_id_seq;
+                ALTER TABLE receipt_list ALTER COLUMN id SET DEFAULT nextval('receipt_list_id_seq');
+                PERFORM setval('receipt_list_id_seq', COALESCE((SELECT MAX(id) FROM receipt_list), 0) + 1);
+            END IF;
+        END $$;
+    `;
+};
+
 export async function GET() {
     try {
-        // Ensure receipt_list table exists
-        await invoiceSql`
-            CREATE TABLE IF NOT EXISTS receipt_list (
-                id SERIAL PRIMARY KEY,
-                customer_name VARCHAR(255) NOT NULL,
-                amount NUMERIC(15, 2) NOT NULL,
-                payment_date DATE DEFAULT CURRENT_DATE,
-                payment_method VARCHAR(50),
-                notes TEXT,
-                staff_name VARCHAR(255),
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        await ensureTableExists();
 
         const [invoicePayments, quotationPayments, receiptListPayments] = await Promise.all([
             invoiceSql`
@@ -55,7 +77,7 @@ export async function GET() {
         return NextResponse.json({ payments: allPayments }, { status: 200 });
     } catch (error) {
         console.error('Error fetching combined payments:', error);
-        return NextResponse.json({ error: 'Failed to fetch payments' }, { status: 500 });
+        return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to fetch payments' }, { status: 500 });
     }
 }
 
@@ -65,28 +87,23 @@ export async function POST(req: Request) {
         const { customer_name, amount, date, method, notes, staff_name } = body;
 
         if (!customer_name || !amount) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Missing required fields (customer_name, amount)' }, { status: 400 });
         }
 
-        // Ensure table exists
-        await invoiceSql`
-            CREATE TABLE IF NOT EXISTS receipt_list (
-                id SERIAL PRIMARY KEY,
-                customer_name VARCHAR(255) NOT NULL,
-                amount NUMERIC(15, 2) NOT NULL,
-                payment_date DATE DEFAULT CURRENT_DATE,
-                payment_method VARCHAR(50),
-                notes TEXT,
-                staff_name VARCHAR(255),
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        await ensureTableExists();
+
+        // Format date to YYYY-MM-DD
+        const paymentDate = date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
         const result = await invoiceSql`
             INSERT INTO receipt_list (customer_name, amount, payment_date, payment_method, notes, staff_name)
-            VALUES (${customer_name}, ${amount}, ${date || new Date().toISOString()}, ${method || 'Cash'}, ${notes}, ${staff_name})
+            VALUES (${customer_name}, ${Number(amount)}, ${paymentDate}, ${method || 'Cash'}, ${notes || null}, ${staff_name || null})
             RETURNING id
         `;
+
+        if (!result || result.length === 0) {
+            throw new Error('No record returned from insertion');
+        }
 
         return NextResponse.json({
             message: 'Direct payment recorded successfully',
@@ -94,7 +111,12 @@ export async function POST(req: Request) {
         }, { status: 201 });
     } catch (error) {
         console.error('Error recording direct payment:', error);
-        return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 });
+        if (error instanceof Error) {
+            console.error('Stack:', error.stack);
+        }
+        return NextResponse.json({ 
+            error: error instanceof Error ? error.message : 'Failed to record payment' 
+        }, { status: 500 });
     }
 }
 
