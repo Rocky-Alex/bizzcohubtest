@@ -222,6 +222,16 @@ export default function InventoryDashboard({ setActiveSection }: InventoryDashbo
                             <span className="quick-action-desc">Import from Excel into Inventory</span>
                         </div>
                     </div>
+
+                    <div className="quick-action-card" onClick={() => router.push('/bch/inventory/soldout')}>
+                        <div className="quick-action-icon" style={{ background: '#fee2e2', color: '#ef4444' }}>
+                            <i className="fas fa-shopping-cart"></i>
+                        </div>
+                        <div className="quick-action-content">
+                            <span className="quick-action-title">Sale Out</span>
+                            <span className="quick-action-desc">Record sold items from inventory</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

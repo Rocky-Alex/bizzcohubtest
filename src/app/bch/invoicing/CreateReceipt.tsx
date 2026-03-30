@@ -52,9 +52,10 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
     const [nextReceiptNo, setNextReceiptNo] = useState<string>("Loading...");
 
     // Fetch next receipt number for preview
-    const fetchNextNumber = async () => {
+    const fetchNextNumber = async (doc = selectedDoc) => {
         try {
-            const res = await fetch('/api/bch/payments/next-number');
+            const type = doc ? doc.type : 'direct';
+            const res = await fetch(`/api/bch/payments/next-number?type=${type}`);
             if (res.ok) {
                 const data = await res.json();
                 setNextReceiptNo(data.nextReceiptNo);
@@ -67,7 +68,7 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
 
     useEffect(() => {
         fetchNextNumber();
-    }, []);
+    }, [selectedDoc]);
 
     // Load staff name from session
     useEffect(() => {
@@ -714,7 +715,7 @@ export default function CreateReceipt({ setActiveSection }: CreateReceiptProps) 
                                                 style={{ border: 'none', background: 'transparent', fontWeight: 800, color: '#1A2244', fontSize: '1.05rem', fontFamily: 'inherit', outline: 'none', cursor: 'pointer', padding: 0, textAlign: 'center' }}
                                             />
                                         </div>
-                                        <div>Receipt No: <strong style={{ fontWeight: 800 }}>{savedPayment ? (savedPayment.receipt_no || `REC-${savedPayment.id.toString().padStart(4, '0')}`) : nextReceiptNo}</strong></div>
+                                        <div>Receipt No: <strong style={{ fontWeight: 800 }}>{savedPayment ? (savedPayment.receipt_no || (savedPayment.id ? `REC-${savedPayment.id.toString().padStart(4, '0')}` : 'Loading...')) : nextReceiptNo}</strong></div>
                                     </div>
                                 </div>
                             </div>

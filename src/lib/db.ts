@@ -1,8 +1,8 @@
 import { neon } from '@neondatabase/serverless';
 
-const mainUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.LOCAL_POSTGRES_URL || process.env.MAIN_POSTGRES_URL;
-const invoiceUrl = process.env.INVOICE_DATABASE_URL || mainUrl;
-const quotationUrl = process.env.QUOTATION_DATABASE_URL || mainUrl;
+export const mainUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.LOCAL_POSTGRES_URL || process.env.MAIN_POSTGRES_URL;
+export const invoiceUrl = process.env.INVOICE_DATABASE_URL || mainUrl;
+export const quotationUrl = process.env.QUOTATION_DATABASE_URL || mainUrl;
 
 if (!mainUrl) {
     console.warn('⚠️ No database connection URL found in environment variables (POSTGRES_URL, DATABASE_URL, LOCAL_POSTGRES_URL, MAIN_POSTGRES_URL)! SQL queries will fail.');
@@ -15,7 +15,9 @@ const createSql = (url: string | undefined, name: string) => {
             return Promise.resolve([]);
         }) as any;
     }
-    return neon(url);
+    return (strings: any, ...values: any[]) => {
+        return neon(url)(strings, ...values);
+    };
 };
 
 export const sql = createSql(mainUrl, 'Main');

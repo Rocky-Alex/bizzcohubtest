@@ -9,6 +9,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
     const [payments, setPayments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('direct');
 
     // Edit Modal State
     const [showEditModal, setShowEditModal] = useState(false);
@@ -55,15 +56,27 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
     };
 
     const handleDelete = async (pay: any) => {
+        const typeLabel = pay.doc_type === 'invoice' ? 'Invoice' : pay.doc_type === 'quotation' ? 'Quotation' : 'Receipt';
+        const docNo = pay.doc_no || pay.receipt_no;
+
         setConfirmModal({
             isOpen: true,
             title: 'Delete Payment',
-            message: `Are you sure you want to delete this payment for Invoice ${pay.invoice_no}?`,
+            message: `Are you sure you want to delete this payment for ${typeLabel} ${docNo}?`,
             type: 'danger',
             onConfirm: async () => {
                 setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 try {
-                    const res = await fetch(`/api/bch/invoices/${pay.invoice_id}/payments/${pay.id}`, {
+                    let endpoint = "";
+                    if (pay.doc_type === 'direct') {
+                        endpoint = `/api/bch/payments/${pay.id}`;
+                    } else if (pay.doc_type === 'invoice') {
+                        endpoint = `/api/bch/invoices/${pay.invoice_id}/payments/${pay.id}`;
+                    } else if (pay.doc_type === 'quotation') {
+                        endpoint = `/api/bch/quotations/${pay.quotation_id}/payments/${pay.id}`;
+                    }
+
+                    const res = await fetch(endpoint, {
                         method: 'DELETE'
                     });
 
@@ -96,6 +109,11 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
     };
 
     const handleSendReceipt = async (pay: any) => {
+        if (pay.doc_type === 'direct') {
+            alert("Direct payments do not have linked emails. Please use the Print option.");
+            return;
+        }
+
         setConfirmModal({
             isOpen: true,
             title: 'Send Receipt',
@@ -104,7 +122,11 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
             onConfirm: async () => {
                 setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 try {
-                    const res = await fetch(`/api/bch/invoices/${pay.invoice_id}/payments/${pay.id}/send`, {
+                    const baseUrl = pay.doc_type === 'invoice'
+                        ? `/api/bch/invoices/${pay.invoice_id}/payments/${pay.id}`
+                        : `/api/bch/quotations/${pay.quotation_id}/payments/${pay.id}`;
+                    
+                    const res = await fetch(`${baseUrl}/send`, {
                         method: 'POST'
                     });
 
@@ -112,7 +134,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                         setConfirmModal({
                             isOpen: true,
                             title: 'Success',
-                            message: 'Receipt sent successfully! (Sent to rishadpnpm@gmail.com for testing)',
+                            message: 'Receipt sent successfully!',
                             type: 'success',
                             singleButton: true,
                             onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
@@ -173,7 +195,7 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                             <p style="color: #1A2244; font-weight: bold;">BIZZ CO HUB LLC</p>
                         </div>
                         <p><strong>Customer:</strong> ${pay.customer_name}</p>
-                        <p><strong>Invoice #:</strong> ${pay.invoice_no}</p>
+                        <p><strong>Document #:</strong> ${pay.doc_no || pay.receipt_no}</p>
                         
                         <table>
                             <tr><td class="label">Date</td><td class="value">${new Date(pay.payment_date).toLocaleDateString()}</td></tr>
@@ -211,7 +233,16 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
         if (!editingPayment) return;
 
         try {
-            const res = await fetch(`/api/bch/invoices/${editingPayment.invoice_id}/payments/${editingPayment.id}`, {
+            let endpoint = "";
+            if (editingPayment.doc_type === 'direct') {
+                endpoint = `/api/bch/payments/${editingPayment.id}`;
+            } else if (editingPayment.doc_type === 'invoice') {
+                endpoint = `/api/bch/invoices/${editingPayment.invoice_id}/payments/${editingPayment.id}`;
+            } else if (editingPayment.doc_type === 'quotation') {
+                endpoint = `/api/bch/quotations/${editingPayment.quotation_id}/payments/${editingPayment.id}`;
+            }
+
+            const res = await fetch(endpoint, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editForm)
@@ -254,19 +285,34 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
         }
     };
 
-    const handleViewInvoice = async (pay: any) => {
+    const handleViewDocument = async (pay: any) => {
+        if (pay.doc_type === 'direct') {
+            alert("This is a direct payment receipt without a linked invoice/quotation.");
+            return;
+        }
         setLoadingDetails(true);
         setShowViewModal(true);
         try {
-            const res = await fetch(`/api/bch/invoices/${pay.invoice_id}`);
+            const endpoint = pay.doc_type === 'invoice' 
+                ? `/api/bch/invoices/${pay.invoice_id}`
+                : `/api/bch/quotations/${pay.quotation_id}`;
+            const res = await fetch(endpoint);
             if (res.ok) {
                 const data = await res.json();
-                setViewData(data);
+                // Ensure the view modal knows which type it is
+                setViewData({
+                    ...data,
+                    doc_type: pay.doc_type,
+                    // Map quotation to invoice structure for the viewer if needed, 
+                    // or handle it in the modal. Existing logic seems to assume invoice structure.
+                    invoice: data.invoice || data.quotation,
+                    invoice_no: data.invoice?.invoice_no || data.quotation?.quotation_no
+                });
             } else {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to fetch invoice details',
+                    message: `Failed to fetch ${pay.doc_type} details`,
                     type: 'danger',
                     singleButton: true,
                     onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
@@ -274,11 +320,11 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                 setShowViewModal(false);
             }
         } catch (error) {
-            console.error('Error fetching invoice details:', error);
+            console.error('Error fetching document details:', error);
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Error fetching invoice details',
+                message: 'Error fetching document details',
                 type: 'danger',
                 singleButton: true,
                 onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
@@ -290,23 +336,63 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
     };
 
     // Filter Logic
-    const filteredPayments = payments.filter((p: any) =>
-        p.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.invoice_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredPayments = payments.filter((p: any) => {
+        // Type matching
+        const typeMatch = filterType === 'all' || p.doc_type === filterType;
+        if (!typeMatch) return false;
+
+        // Search matching
+        const search = searchTerm.toLowerCase();
+        return (
+            p.customer_name?.toLowerCase().includes(search) ||
+            p.doc_no?.toLowerCase().includes(search) ||
+            p.receipt_no?.toLowerCase().includes(search) ||
+            p.notes?.toLowerCase().includes(search) ||
+            p.doc_type?.toLowerCase().includes(search)
+        );
+    });
 
     return (
         <div className="partial-payments-list">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>Partial Payments</h1>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    {/* Toggle Switch */}
+                    <div style={{ 
+                        display: 'flex', 
+                        background: '#f3f4f6', 
+                        padding: '4px', 
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb'
+                    }}>
+                        {['all', 'invoice', 'quotation', 'direct'].map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setFilterType(type)}
+                                style={{
+                                    padding: '6px 16px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    border: 'none',
+                                    transition: 'all 0.2s',
+                                    backgroundColor: filterType === type ? 'white' : 'transparent',
+                                    color: filterType === type ? '#1A2244' : '#6b7280',
+                                    boxShadow: filterType === type ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                }}
+                            >
+                                {type.charAt(0).toUpperCase() + type.slice(1) === 'Direct' ? 'Receipt' : type.charAt(0).toUpperCase() + type.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+
                     <input
                         type="text"
-                        placeholder="Search Customer or Invoice..."
+                        placeholder="Search Customer or Bill #..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ padding: '0.5rem 1rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '300px' }}
+                        style={{ padding: '0.5rem 1rem', border: '1px solid #d1d5db', borderRadius: '6px', width: '250px' }}
                     />
                 </div>
             </div>
@@ -321,7 +407,8 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                         <thead style={{ background: '#f9fafb' }}>
                             <tr>
                                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>Date</th>
-                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>Invoice #</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>Type</th>
+                                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>Bill #</th>
                                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>Customer</th>
                                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>Method</th>
                                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>Notes</th>
@@ -331,16 +418,29 @@ export default function PartialPaymentsList({ setActiveSection }: PartialPayment
                         </thead>
                         <tbody>
                             {filteredPayments.map((pay: any) => (
-                                <tr key={pay.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                <tr key={`${pay.doc_type}-${pay.id}`} style={{ borderBottom: '1px solid #f3f4f6' }}>
                                     <td style={{ padding: '1rem', color: '#4b5563' }}>{new Date(pay.payment_date).toLocaleDateString()}</td>
-                                    <td style={{ padding: '1rem', fontWeight: 500 }}>{pay.invoice_no}</td>
+                                    <td style={{ padding: '1rem' }}>
+                                        <span style={{
+                                            padding: '0.2rem 0.5rem',
+                                            borderRadius: '4px',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            textTransform: 'uppercase',
+                                            backgroundColor: pay.doc_type === 'invoice' ? '#eff6ff' : pay.doc_type === 'quotation' ? '#fef3c7' : '#f3f4f6',
+                                            color: pay.doc_type === 'invoice' ? '#2563eb' : pay.doc_type === 'quotation' ? '#d97706' : '#6b7280'
+                                        }}>
+                                            {pay.doc_type}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '1rem', fontWeight: 500 }}>{pay.doc_no || pay.receipt_no}</td>
                                     <td style={{ padding: '1rem', color: '#4b5563' }}>{pay.customer_name}</td>
                                     <td style={{ padding: '1rem', color: '#6b7280' }}>{pay.payment_method}</td>
                                     <td style={{ padding: '1rem', color: '#6b7280', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pay.notes || '-'}</td>
                                     <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, color: '#16a34a' }}>${Number(pay.amount).toFixed(2)}</td>
                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                                            <button title="View Invoice" onClick={() => handleViewInvoice(pay)} style={{ border: 'none', background: '#dbeafe', color: '#1e40af', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}><i className="fas fa-eye"></i></button>
+                                            <button title="View Document" onClick={() => handleViewDocument(pay)} style={{ border: 'none', background: '#dbeafe', color: '#1e40af', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}><i className="fas fa-eye"></i></button>
                                             <button title="Print Receipt" onClick={() => handlePrintReceipt(pay)} style={{ border: 'none', background: '#fff7ed', color: '#f97316', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}><i className="fas fa-print"></i></button>
                                             <button title="Email Receipt" onClick={() => handleSendReceipt(pay)} style={{ border: 'none', background: '#f0fdf4', color: '#16a34a', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}><i className="fas fa-paper-plane"></i></button>
                                             <button title="Edit" onClick={() => openEditModal(pay)} style={{ border: 'none', background: '#eff6ff', color: '#3b82f6', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' }}><i className="fas fa-edit"></i></button>

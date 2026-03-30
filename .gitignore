@@ -14,3 +14,11 @@ battery_report.html
 
 ffmpeg.zip
 ffmpeg_extracted/
+
+tsconfig.tsbuildinfo
+server_logs.txt
+
+# Temporary scripts
+tmp_check_*.ts
+scripts/
+project-diagram.html

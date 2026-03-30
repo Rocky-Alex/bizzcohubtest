@@ -365,7 +365,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
             <div className="quick-actions-section">
                 <h3 className="quick-actions-header">Quick Actions</h3>
                 <div className="quick-actions-grid">
-                    <div className="quick-action-card" onClick={() => setActiveSection('invoicing-all')}>
+                    <div className="quick-action-card" onClick={() => setActiveSection('combined-all')}>
                         <div className="quick-action-icon" style={{ background: '#f3e8ff', color: '#9333ea' }}>
                             <i className="fas fa-list"></i>
                         </div>
@@ -385,7 +385,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         </div>
                     </div>
 
-                    <div className="quick-action-card" onClick={() => setActiveSection('invoicing-new')}>
+                    <div className="quick-action-card" onClick={() => setActiveSection('invoicing-create')}>
                         <div className="quick-action-icon" style={{ background: '#f3e8ff', color: '#9333ea' }}>
                             <i className="fas fa-plus"></i>
                         </div>
@@ -395,9 +395,7 @@ export default function InvoicingDashboard({ setActiveSection }: InvoicingDashbo
                         </div>
                     </div>
 
-
-
-                    <div className="quick-action-card" onClick={() => setActiveSection('quotations-new')}>
+                    <div className="quick-action-card" onClick={() => setActiveSection('quotations-create')}>
                         <div className="quick-action-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
                             <i className="fas fa-file-alt"></i>
                         </div>

@@ -131,6 +131,36 @@ export async function PUT(req: Request, { params }: { params: { id: string } }):
             return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
         }
 
+        // --- Handle initial payment synchronization ---
+        const [existingInitial] = await sql`
+            SELECT id FROM quotation_payments 
+            WHERE quotation_id = ${id} AND notes = 'Initial Advance' 
+            LIMIT 1
+        ` as unknown as any[];
+
+        if (Number(advanceReceived) > 0) {
+            if (existingInitial) {
+                await sql`
+                    UPDATE quotation_payments 
+                    SET amount = ${advanceReceived}, payment_date = ${createdDate}, payment_method = ${paymentType}
+                    WHERE id = ${existingInitial.id}
+                `;
+            } else {
+                const [lastP] = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM quotation_payments` as unknown as any[];
+                const nextId = lastP.next_id;
+                const receiptNo = `REC-Q${nextId.toString().padStart(4, '0')}`;
+                await sql`
+                    INSERT INTO quotation_payments (
+                        quotation_id, amount, payment_date, payment_method, notes, receipt_no, staff_name
+                    ) VALUES (
+                        ${id}, ${advanceReceived}, ${createdDate}, ${paymentType}, 'Initial Advance', ${receiptNo}, 'Admin'
+                    )
+                `;
+            }
+        } else if (existingInitial) {
+            await sql`DELETE FROM quotation_payments WHERE id = ${existingInitial.id}`;
+        }
+
         // 1. Fetch existing items to revert stock
         const existingItems = await sql`SELECT product_code, quantity FROM quotation_items WHERE quotation_id = ${id}` as unknown as any[];
 

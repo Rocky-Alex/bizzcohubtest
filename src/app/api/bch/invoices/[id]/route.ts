@@ -131,6 +131,36 @@ export async function PUT(req: Request, { params }: { params: { id: string } }):
             return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
         }
 
+        // --- Handle initial payment synchronization ---
+        const [existingInitial] = await sql`
+            SELECT id FROM invoice_payments 
+            WHERE invoice_id = ${id} AND notes = 'Initial Advance' 
+            LIMIT 1
+        ` as unknown as any[];
+
+        if (Number(advanceReceived) > 0) {
+            if (existingInitial) {
+                await sql`
+                    UPDATE invoice_payments 
+                    SET amount = ${advanceReceived}, payment_date = ${createdDate}, payment_method = ${paymentType}
+                    WHERE id = ${existingInitial.id}
+                `;
+            } else {
+                const [lastP] = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM invoice_payments` as unknown as any[];
+                const nextId = lastP.next_id;
+                const receiptNo = `REC-I${nextId.toString().padStart(4, '0')}`;
+                await sql`
+                    INSERT INTO invoice_payments (
+                        invoice_id, amount, payment_date, payment_method, notes, receipt_no, staff_name
+                    ) VALUES (
+                        ${id}, ${advanceReceived}, ${createdDate}, ${paymentType}, 'Initial Advance', ${receiptNo}, 'Admin'
+                    )
+                `;
+            }
+        } else if (existingInitial) {
+            await sql`DELETE FROM invoice_payments WHERE id = ${existingInitial.id}`;
+        }
+
         // 1. Fetch existing items to revert stock
         const existingItems = await sql`SELECT product_code, quantity FROM invoice_items WHERE invoice_id = ${id}` as unknown as any[];
 

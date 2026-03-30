@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { invoiceSql, quotationSql } from '@/lib/db';
 
 const ensureTableExists = async () => {
+    // Basic table creation
     await invoiceSql`
         CREATE TABLE IF NOT EXISTS receipt_list (
             id SERIAL PRIMARY KEY,
@@ -16,30 +17,9 @@ const ensureTableExists = async () => {
         )
     `;
 
-    // Ensure staff_name exists
-    await invoiceSql`
-        ALTER TABLE receipt_list 
-        ADD COLUMN IF NOT EXISTS staff_name VARCHAR(255)
-    `;
-
-    // Add receipt_no column if it doesn't exist
-    await invoiceSql`
-        ALTER TABLE receipt_list 
-        ADD COLUMN IF NOT EXISTS receipt_no VARCHAR(50)
-    `;
-
-    // Fix missing SERIAL sequence if it was lost during rename/import
-    // This is safe to run multiple times
-    await invoiceSql`
-        DO $$ 
-        BEGIN 
-            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'receipt_list' AND column_name = 'id' AND column_default IS NOT NULL) THEN
-                CREATE SEQUENCE IF NOT EXISTS receipt_list_id_seq;
-                ALTER TABLE receipt_list ALTER COLUMN id SET DEFAULT nextval('receipt_list_id_seq');
-                PERFORM setval('receipt_list_id_seq', COALESCE((SELECT MAX(id) FROM receipt_list), 0) + 1);
-            END IF;
-        END $$;
-    `;
+    // Ensure columns exist (fast)
+    await invoiceSql`ALTER TABLE receipt_list ADD COLUMN IF NOT EXISTS staff_name VARCHAR(255)`;
+    await invoiceSql`ALTER TABLE receipt_list ADD COLUMN IF NOT EXISTS receipt_no VARCHAR(50)`;
 };
 
 export async function GET() {

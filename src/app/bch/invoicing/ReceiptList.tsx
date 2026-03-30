@@ -36,6 +36,7 @@ export default function ReceiptList({ setActiveSection }: ReceiptListProps) {
     const [payments, setPayments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [filterType, setFilterType] = useState("direct");
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -295,22 +296,57 @@ export default function ReceiptList({ setActiveSection }: ReceiptListProps) {
         });
     };
 
-    const filteredPayments = payments.filter(p =>
-        p.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.doc_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.payment_method?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredPayments = payments.filter(p => {
+        const typeMatch = filterType === 'all' || p.doc_type === filterType;
+        if (!typeMatch) return false;
+
+        return (
+            p.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.doc_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.payment_method?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
 
     if (loading) return <LoadingSpinner fullScreen />;
 
     return (
         <div style={{ padding: '2rem', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111827', margin: 0 }}>All Receipts</h2>
-                    <p style={{ margin: '0.25rem 0 0 0', color: '#6b7280', fontSize: '0.875rem' }}>View and manage all payment receipts</p>
+                    <p style={{ margin: 0, color: '#6b7280', fontSize: '0.875rem' }}>View and manage all payment receipts</p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    {/* Filter Toggle */}
+                    <div style={{ 
+                        display: 'flex', 
+                        background: '#f3f4f6', 
+                        padding: '4px', 
+                        borderRadius: '10px',
+                        border: '1px solid #e5e7eb'
+                    }}>
+                        {['all', 'invoice', 'quotation', 'direct'].map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setFilterType(type)}
+                                style={{
+                                    padding: '6px 14px',
+                                    borderRadius: '7px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    border: 'none',
+                                    transition: 'all 0.2s',
+                                    backgroundColor: filterType === type ? 'white' : 'transparent',
+                                    color: filterType === type ? '#1A2244' : '#6b7280',
+                                    boxShadow: filterType === type ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                }}
+                            >
+                                {type.charAt(0).toUpperCase() + type.slice(1) === 'Direct' ? 'Receipt' : type.charAt(0).toUpperCase() + type.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+
                     <div style={{ position: 'relative' }}>
                         <input
                             type="text"
@@ -321,7 +357,7 @@ export default function ReceiptList({ setActiveSection }: ReceiptListProps) {
                                 padding: '0.6rem 1rem 0.6rem 2.5rem',
                                 border: '1px solid #d1d5db',
                                 borderRadius: '8px',
-                                width: '260px',
+                                width: '220px',
                                 fontSize: '0.9rem'
                             }}
                         />

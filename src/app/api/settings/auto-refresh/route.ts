@@ -11,8 +11,13 @@ export async function GET(request: NextRequest) {
         `;
 
         if (result.length > 0) {
-            const settings = JSON.parse(result[0].value);
-            return NextResponse.json({ settings }, { status: 200 });
+            try {
+                const settings = JSON.parse(result[0].value);
+                return NextResponse.json({ settings }, { status: 200 });
+            } catch (pErr) {
+                console.error('CRITICAL: Malformed JSON in settings table for key auto_refresh:', result[0].value);
+                return NextResponse.json({ error: 'Database settings corruption', details: 'Malformed JSON' }, { status: 500 });
+            }
         }
 
         // Return default settings if not found
@@ -84,33 +89,32 @@ export async function POST(request: NextRequest) {
             seconds: parseInt(seconds) || 0
         });
 
-        // Ensure settings table exists
         await sql`
             CREATE TABLE IF NOT EXISTS settings (
                 id SERIAL PRIMARY KEY,
                 key VARCHAR(255) UNIQUE NOT NULL,
                 value TEXT NOT NULL,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             )
         `;
 
         // Insert or update settings
-        const result = await sql`
+        await sql`
             INSERT INTO settings (key, value, updated_at)
             VALUES ('auto_refresh', ${settingsValue}, CURRENT_TIMESTAMP)
             ON CONFLICT (key) 
-            DO UPDATE SET value = ${settingsValue}, updated_at = CURRENT_TIMESTAMP
-            RETURNING *
+            DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
         `;
 
         return NextResponse.json({
-            message: 'Settings saved successfully',
-            settings: JSON.parse(result[0].value)
+            success: true,
+            message: 'Settings saved successfully'
         }, { status: 200 });
     } catch (error: any) {
         console.error('Error saving auto-refresh settings:', error);
+        console.error('Stack:', error.stack);
         return NextResponse.json(
-            { error: 'Failed to save settings', details: error.message },
+            { error: 'Failed to save settings', details: error.message, stack: error.stack },
             { status: 500 }
         );
     }

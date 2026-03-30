@@ -9,8 +9,28 @@ function isAdmin(): boolean {
     return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
 }
 
-// Type for the neon function when used for dynamic queries
-type NeonFunction = (query: string, params?: unknown[]) => Promise<any[]>;
+// Helper to run a raw SQL string using neon's tagged template
+// neon v1.x only supports tagged-template calls, not regular function calls
+function rawQuery(sqlFn: any, query: string, params: unknown[] = []): Promise<any[]> {
+    // Build a TemplateStringsArray-compatible object with the query split at $1, $2, etc.
+    if (params.length === 0) {
+        const strings = Object.assign([query], { raw: [query] });
+        return sqlFn(strings as unknown as TemplateStringsArray);
+    }
+    // Split the query at $1, $2, ... $N placeholders and call as tagged template
+    const parts: string[] = [];
+    let remaining = query;
+    for (let i = 1; i <= params.length; i++) {
+        const placeholder = `$${i}`;
+        const idx = remaining.indexOf(placeholder);
+        if (idx === -1) break;
+        parts.push(remaining.substring(0, idx));
+        remaining = remaining.substring(idx + placeholder.length);
+    }
+    parts.push(remaining);
+    const strings = Object.assign(parts, { raw: parts });
+    return sqlFn(strings as unknown as TemplateStringsArray, ...params);
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
@@ -31,16 +51,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const sourceUrl = direction === 'main-to-local' ? mainUrl : localUrl;
         const destUrl = direction === 'main-to-local' ? localUrl : mainUrl;
 
-        const sourceSql = neon(sourceUrl) as unknown as NeonFunction;
-        const destSql = neon(destUrl) as unknown as NeonFunction;
+        const sourceSql = neon(sourceUrl);
+        const destSql = neon(destUrl);
 
         console.log(`[Database Transfer] Starting dynamic transfer: ${direction}`);
         const results: Record<string, number> = {};
 
         // 1. Discover all tables in source database
-        const sourceTablesResult = await sourceSql(
+        const sourceTablesResult = await rawQuery(sourceSql,
             `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`
-        ) as unknown as { table_name: string }[];
+        ) as { table_name: string }[];
         const discoveredTables = sourceTablesResult.map(r => r.table_name);
 
         // Define a base order for known dependencies, merge with discovered tables
@@ -63,32 +83,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // 2. Prepare destination (Truncate existing or Create new)
         for (const table of [...allTables].reverse()) {
             try {
-                const tableExists = await destSql(
+                const tableExists = await rawQuery(destSql,
                     `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1`,
                     [table]
-                ) as unknown as any[];
+                );
 
                 if (tableExists.length === 0) {
                     console.log(`[Database Transfer] Table "${table}" missing in destination. Cloning schema...`);
 
-                    const columns = await sourceSql(`
+                    const columns = await rawQuery(sourceSql, `
                         SELECT
                             column_name, data_type, udt_name, is_nullable,
                             column_default, character_maximum_length
                         FROM information_schema.columns
                         WHERE table_schema = 'public' AND table_name = $1
                         ORDER BY ordinal_position
-                    `, [table]) as unknown as any[];
+                    `, [table]) as any[];
 
                     if (columns.length > 0) {
-                        const pks = await sourceSql(`
+                        const pks = await rawQuery(sourceSql, `
                             SELECT kcu.column_name
                             FROM information_schema.table_constraints tc
                             JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
                             WHERE tc.constraint_schema = 'public'
                               AND tc.table_name = $1
                               AND tc.constraint_type = 'PRIMARY KEY'
-                        `, [table]) as unknown as { column_name: string }[];
+                        `, [table]) as { column_name: string }[];
                         const pkCols = pks.map(p => p.column_name);
 
                         let createSql = `CREATE TABLE "${table}" (\n`;
@@ -120,10 +140,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                         }
                         createSql += '\n)';
 
-                        await destSql(createSql);
+                        await rawQuery(destSql, createSql);
                     }
                 } else {
-                    await destSql(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
+                    await rawQuery(destSql, `TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
                 }
             } catch (e: unknown) {
                 const message = e instanceof Error ? e.message : 'Unknown error';
@@ -135,7 +155,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const BATCH_SIZE = 100;
         for (const table of allTables) {
             try {
-                const data = await sourceSql(`SELECT * FROM "${table}"`) as unknown as Record<string, unknown>[];
+                const data = await rawQuery(sourceSql, `SELECT * FROM "${table}"`) as Record<string, unknown>[];
                 if (data.length > 0) {
                     const columns = Object.keys(data[0]);
                     const colNames = columns.map(c => `"${c}"`).join(', ');
@@ -154,7 +174,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                         });
 
                         const query = `INSERT INTO "${table}" (${colNames}) VALUES ${valuePlaceholders.join(', ')}`;
-                        await destSql(query, allValues);
+                        await rawQuery(destSql, query, allValues);
                     }
                 }
                 results[table] = data.length;

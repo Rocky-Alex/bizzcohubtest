@@ -101,10 +101,25 @@ export async function POST(req: Request): Promise<NextResponse> {
             }
         }
 
+        // 3. Handle initial payment record in dedicated table
+        if (Number(advanceReceived) > 0) {
+            const [lastP] = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM quotation_payments` as unknown as any[];
+            const nextId = lastP.next_id;
+            const receiptNo = `REC-Q${nextId.toString().padStart(4, '0')}`;
+            
+            await sql`
+                INSERT INTO quotation_payments (
+                    quotation_id, amount, payment_date, payment_method, notes, receipt_no, staff_name
+                ) VALUES (
+                    ${quotationId}, ${advanceReceived}, ${createdDate}, ${paymentType}, 'Initial Advance', ${receiptNo}, 'Admin'
+                )
+            `;
+        }
+
         await logActivity(
             customerName || 'Admin',
             'Create Quotation',
-            `Quotation #${quotationNo} created for ${customerName}. Total: ${totalAmount}.`,
+            `Quotation #${quotationNo} created for ${customerName}. Total: ${totalAmount}. Advance: ${advanceReceived || 0}`,
             'success',
             'Admin'
         );

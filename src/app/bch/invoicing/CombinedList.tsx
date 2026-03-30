@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ConfirmModal from '../shared/ConfirmModal';
 import { pdf } from '@react-pdf/renderer';
@@ -35,6 +36,7 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
     onEditQuotation: (quotation: any) => void,
     onConvertQuotation?: (quotation: any, items: any[]) => void
 }) {
+    const router = useRouter();
     const [documents, setDocuments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -914,9 +916,6 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                                         <button onClick={() => handleDelete(doc.id, doc.documentType)} title="Delete" style={{ border: 'none', background: '#fef2f2', color: '#ef4444', width: '30px', height: '30px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <i className="fas fa-trash" style={{ fontSize: '0.8rem' }}></i>
                                         </button>
-                                        <button onClick={() => handlePayment(doc)} title="Record Payment" style={{ border: 'none', background: '#ecfdf5', color: '#059669', width: '30px', height: '30px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <i className="fas fa-hand-holding-usd" style={{ fontSize: '0.8rem' }}></i>
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -950,6 +949,16 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#10b981', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', color: 'white', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: 500 }}
                         >
                             <i className="fas fa-hand-holding-usd"></i> Record Payment
+                        </button>
+                        <button 
+                            onClick={() => {
+                                const docNo = viewData.type === 'invoice' ? viewData.document.invoice_no : viewData.document.quotation_no;
+                                const param = viewData.type === 'invoice' ? 'invoice' : 'proforma';
+                                router.push(`/bch/inventory/soldout?${param}=${encodeURIComponent(docNo)}`);
+                            }} 
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#4f46e5', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', color: 'white', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: 500 }}
+                        >
+                            <i className="fas fa-cart-arrow-down"></i> Sales Out
                         </button>
                         <button onClick={() => handleDownload(viewData.document, viewData.items, viewData.type)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', color: '#374151', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: 500 }}>
                             <i className="fas fa-download"></i> Download

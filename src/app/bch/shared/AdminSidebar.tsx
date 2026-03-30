@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import AutoRefreshSettings from "./AutoRefreshSettings";
 
 interface AdminSidebarProps {
     onLogout: () => void;
@@ -77,7 +76,8 @@ export default function AdminSidebar({
                 { id: "production-qc", label: "Production QC Checking" },
                 { id: "production-inventory-qc", label: "Inventory QC Checking" },
                 { id: "production-model-checking", label: "Model Checking" },
-                { id: "production-reprint", label: "Reprint Barcode" }
+                { id: "production-reprint", label: "Reprint Barcode" },
+                { id: "production-sale-out", label: "Sale Out" }
             ]
         },
         {
@@ -148,7 +148,6 @@ export default function AdminSidebar({
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
     const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-    const [showAutoRefreshSettings, setShowAutoRefreshSettings] = useState(false);
 
     React.useEffect(() => {
         const savedState = localStorage.getItem('sidebarCollapsed');
@@ -206,88 +205,87 @@ export default function AdminSidebar({
         });
     };
 
-    const handleSubItemClick = (sub: any) => {
-        if (sub.id === 'email-inbox') {
-            router.push('/bch/email');
+    const handleSubItemClick = (sub: any, returnOnly = false) => {
+        const routeMap: Record<string, string> = {
+            'orders-all': '/bch/Order/dashboard',
+            'orders-create': '/bch/Order/createorder',
+            'orders-returns': '/bch/Order/return',
+            'customers-all': '/bch/customers',
+            'customers-groups': '/bch/customers',
+            'accounts-dashboard': '/bch/accounts',
+            'accounts-items': '/bch/accounts',
+            'accounts-sales': '/bch/accounts',
+            'accounts-purchases': '/bch/accounts',
+            'accounts-reports': '/bch/accounts',
+            'reports-sales': '/bch/reports',
+            'invoicing-dashboard': '/bch/billing/dashboard',
+            'combined-all': '/bch/billing/allbills',
+            'invoicing-all': '/bch/billing/allbills',
+            'invoicing-create': '/bch/billing/newinvoices',
+            'quotations-all': '/bch/billing/allbills',
+            'quotations-create': '/bch/billing/newqoutations',
+            'payments-all': '/bch/billing/allreceipts',
+            'receipts-all': '/bch/billing/allreceipts',
+            'receipts-new': '/bch/billing/newreceipts',
+            'invoices-return': '/bch/billing/returns',
+            'users-all': '/bch/users',
+            'users-roles': '/bch/users',
+            'production-dashboard': '/bch/production?section=production-dashboard',
+            'production-qc': '/bch/production/productionqcchecking',
+            'production-inventory-qc': '/bch/production/inventoryqcchecking',
+            'production-model-checking': '/bch/production/modelchecking',
+            'production-reprint': '/bch/production/reprintBarcode',
+            'production-sale-out': '/bch/inventory/soldout',
+            'production-projects': '/bch/production?section=production-projects',
+            'production-tasks': '/bch/production?section=production-tasks',
+            'inventory-dashboard': '/bch/inventory/inventorydashboard',
+            'products-list': '/bch/inventory/ecommproductlist',
+            'inventory-pricing': '/bch/inventory?section=inventory-pricing',
+            'add-product': '/bch/inventory/addecommproduct',
+            'purchase-lots-list': '/bch/purchases/purchaselot',
+            'inventory-qc': '/bch/inventory/inventoryqclist',
+            'inventory-drops': '/bch/inventory/dropdownManage',
+            'purchase-dashboard': '/bch/purchases/Dashboard',
+            'purchase-history': '/bch/purchases/purchaselot',
+            'purchase-import-full': '/bch/purchase?section=purchase-import-full',
+            'suppliers': '/bch/purchases/suppliersmanage',
+            'packing-dashboard': '/bch/packing/packingdashboard',
+            'packing-v2': '/bch/packing/packing',
+            'email-inbox': '/bch/email'
+        };
+
+        const target = routeMap[sub.id] || `/bch/${sub.id.replace(/-/g, '/')}`;
+        if (returnOnly) return target;
+
+        const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+        if (currentFullUrl === target) {
+            window.location.reload();
         } else {
-            const routeMap: Record<string, string> = {
-                'orders-all': '/bch/orders?view=list',
-                'orders-create': '/bch/orders?view=create',
-                'orders-returns': '/bch/orders?view=returns',
-                'customers-all': '/bch/customers',
-                'customers-groups': '/bch/customers',
-                'accounts-dashboard': '/bch/accounts',
-                'accounts-items': '/bch/accounts',
-                'accounts-sales': '/bch/accounts',
-                'accounts-purchases': '/bch/accounts',
-                'accounts-reports': '/bch/accounts',
-                'reports-sales': '/bch/reports',
-                'invoicing-dashboard': '/bch/billing?view=dashboard',
-                'combined-all': '/bch/billing?view=combined-all',
-                'invoicing-all': '/bch/billing?view=invoices-all',
-                'invoicing-create': '/bch/billing?view=invoices-new',
-                'quotations-all': '/bch/billing?view=quotations-all',
-                'quotations-create': '/bch/billing?view=quotations-new',
-                'payments-all': '/bch/billing?view=payments',
-                'receipts-all': '/bch/billing?view=receipts-all',
-                'receipts-new': '/bch/billing?view=receipts-new',
-                'invoices-return': '/bch/billing?view=returns',
-                'users-all': '/bch/users',
-                'users-roles': '/bch/users',
-                'production-dashboard': '/bch/production?section=production-dashboard',
-                'production-qc': '/bch/production?section=production-qc',
-                'production-inventory-qc': '/bch/production?section=production-inventory-qc',
-                'production-model-checking': '/bch/production/modelchecking',
-
-                'production-reprint': '/bch/production?section=production-reprint',
-                'production-projects': '/bch/production?section=production-projects',
-                'production-tasks': '/bch/production?section=production-tasks',
-                'inventory-dashboard': '/bch/inventory?section=inventory-dashboard',
-                'products-list': '/bch/inventory?section=products-list',
-                'inventory-pricing': '/bch/inventory?section=inventory-pricing',
-                'add-product': '/bch/inventory?section=add-product',
-                'purchase-lots-list': '/bch/inventory?section=purchase-lots-list',
-                'inventory-qc': '/bch/inventory?section=inventory-qc',
-                'inventory-drops': '/bch/inventory?section=inventory-drops',
-                'purchase-dashboard': '/bch/purchase?section=purchase-dashboard',
-                'purchase-history': '/bch/purchase?section=purchase-lots-list',
-                'purchase-import-full': '/bch/purchase?section=purchase-import-full',
-                'suppliers': '/bch/purchase?section=suppliers',
-                'packing-dashboard': '/bch/packing?section=packing-dashboard',
-                'packing-v2': '/bch/packing?section=packing-v2',
-            };
-
-            const target = routeMap[sub.id] || `/bch/${sub.id.replace(/-/g, '/')}`;
-            const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-
-            if (currentFullUrl === target) {
-                window.location.reload();
-            } else {
-                router.push(target);
-            }
+            router.push(target);
         }
     };
 
-    const handleMainItemClick = (item: any) => {
-        if (item.id === 'auto-refresh') {
-            setShowAutoRefreshSettings(true);
-        } else if (item.subItems) {
+    const handleMainItemClick = (item: any, returnOnly = false) => {
+        const routeMap: Record<string, string> = {
+            'dashboard': '/bch/dashboard',
+            'user-passwords': '/bch/passwords',
+            'activity-log': '/bch/activity-log',
+            'featured-manage': '/bch/featured',
+            'production': '/bch/production',
+            'inventory': '/bch/inventory',
+            'packing': '/bch/packing',
+            'product-pricing': '/bch/pricing',
+            'database': '/bch/database',
+            'auto-refresh': '/bch/autorefresh'
+        };
+        const target = routeMap[item.id] || `/bch/${item.id}`;
+
+        if (returnOnly) return item.subItems ? '#' : target;
+
+        if (item.subItems) {
             toggleMenu(item.id);
         } else {
-            const routeMap: Record<string, string> = {
-                'dashboard': '/bch/dashboard',
-                'user-passwords': '/bch/passwords',
-                'activity-log': '/bch/activity-log',
-                'featured-manage': '/bch/featured',
-                'production': '/bch/production',
-                'inventory': '/bch/inventory',
-                'packing': '/bch/packing',
-                'product-pricing': '/bch/pricing',
-                'database': '/bch/database'
-            };
-            const target = routeMap[item.id] || `/bch/${item.id}`;
             const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-
             if (currentFullUrl === target) {
                 window.location.reload();
             } else {
@@ -330,7 +328,7 @@ export default function AdminSidebar({
             'user-passwords': '/bch/passwords',
             'activity-log': '/bch/activity-log',
             'featured-manage': '/bch/featured',
-            'orders': '/bch/orders',
+            'orders': '/bch/Order',
             'customers': '/bch/customers',
             'accounts': '/bch/accounts',
             'invoicing': '/bch/billing',
@@ -339,16 +337,17 @@ export default function AdminSidebar({
             'packing': '/bch/packing',
             'inventory': '/bch/inventory',
             'product-pricing': '/bch/pricing',
-            'database': '/bch/database'
+            'database': '/bch/database',
+            'auto-refresh': '/bch/autorefresh'
         };
         const targetRoute = routeMap[item.id];
         if (pathname === targetRoute) return true;
 
         if (item.subItems) {
             const subRouteMap: Record<string, string> = {
-                'orders-all': '/bch/orders',
-                'orders-create': '/bch/orders',
-                'orders-returns': '/bch/orders',
+                'orders-all': '/bch/Order/dashboard',
+                'orders-create': '/bch/Order/createorder',
+                'orders-returns': '/bch/Order/return',
                 'customers-all': '/bch/customers',
                 'customers-groups': '/bch/customers',
                 'accounts-dashboard': '/bch/accounts',
@@ -357,36 +356,38 @@ export default function AdminSidebar({
                 'accounts-purchases': '/bch/accounts',
                 'accounts-reports': '/bch/accounts',
                 'reports-sales': '/bch/reports',
-                'invoicing-dashboard': '/bch/billing?view=dashboard',
-                'combined-all': '/bch/billing?view=combined-all',
-                'invoicing-all': '/bch/billing?view=invoices-all',
-                'invoicing-create': '/bch/billing?view=invoices-new',
-                'payments-all': '/bch/billing?view=payments',
-                'receipts-all': '/bch/billing?view=receipts-all',
-                'receipts-new': '/bch/billing?view=receipts-new',
-                'invoices-return': '/bch/billing?view=returns',
+                'invoicing-dashboard': '/bch/billing/dashboard',
+                'combined-all': '/bch/billing/allbills',
+                'invoicing-all': '/bch/billing/allbills',
+                'invoicing-create': '/bch/billing/newinvoices',
+                'payments-all': '/bch/billing/allreceipts',
+                'receipts-all': '/bch/billing/allreceipts',
+                'receipts-new': '/bch/billing/newreceipts',
+                'invoices-return': '/bch/billing/returns',
                 'users-all': '/bch/users',
                 'users-roles': '/bch/users',
                 'production-dashboard': '/bch/production?section=production-dashboard',
-                'production-qc': '/bch/production?section=production-qc',
-                'production-inventory-qc': '/bch/production?section=production-inventory-qc',
+                'production-qc': '/bch/production/productionqcchecking',
+                'production-inventory-qc': '/bch/production/inventoryqcchecking',
                 'production-model-checking': '/bch/production/modelchecking',
                 'production-packing': '/bch/production?section=production-packing',
-                'production-reprint': '/bch/production?section=production-reprint',
+                'production-reprint': '/bch/production/reprintBarcode',
+                'production-sale-out': '/bch/inventory/soldout',
                 'production-projects': '/bch/production?section=production-projects',
                 'production-tasks': '/bch/production?section=production-tasks',
-                'inventory-dashboard': '/bch/inventory?section=inventory-dashboard',
-                'products-list': '/bch/inventory?section=products-list',
-                'add-product': '/bch/inventory?section=add-product',
-                'inventory-qc': '/bch/inventory?section=inventory-qc',
-                'inventory-drops': '/bch/inventory?section=inventory-drops',
-                'purchase-dashboard': '/bch/purchase?section=purchase-dashboard',
-                'purchase-history': '/bch/purchase?section=purchase-lots-list',
+                'inventory-dashboard': '/bch/inventory/inventorydashboard',
+                'products-list': '/bch/inventory/ecommproductlist',
+                'inventory-pricing': '/bch/inventory?section=inventory-pricing',
+                'add-product': '/bch/inventory/addecommproduct',
+                'inventory-qc': '/bch/inventory/inventoryqclist',
+                'inventory-drops': '/bch/inventory/dropdownManage',
+                'purchase-dashboard': '/bch/purchases/Dashboard',
+                'purchase-history': '/bch/purchases/purchaselot',
                 'purchase-import': '/bch/purchase?section=purchase-lots-import',
                 'purchase-import-full': '/bch/purchase?section=purchase-import-full',
-                'suppliers': '/bch/purchase?section=suppliers',
-                'packing-dashboard': '/bch/packing?section=packing-dashboard',
-                'packing-v2': '/bch/packing?section=packing-v2',
+                'suppliers': '/bch/purchases/suppliersmanage',
+                'packing-dashboard': '/bch/packing/packingdashboard',
+                'packing-v2': '/bch/packing/packing',
             };
             const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
             return item.subItems.some((sub: any) => {
@@ -420,24 +421,39 @@ export default function AdminSidebar({
 
                     return (
                         <div key={item.id} className="nav-item-wrapper">
-                            <button
+                            <Link
+                                href={handleMainItemClick(item, true) || '#'}
                                 className={`nav-item ${isActive ? "active" : ""}`}
-                                onClick={() => handleMainItemClick(item)}
+                                onMouseEnter={() => {
+                                    handleMouseEnter();
+                                    const target = handleMainItemClick(item, true);
+                                    if (target && target !== '#') router.prefetch(target);
+                                }}
+                                onClick={(e) => {
+                                    const target = handleMainItemClick(item, true);
+                                    if (item.subItems) {
+                                        e.preventDefault();
+                                        toggleMenu(item.id);
+                                    } else if (target && (pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')) === target) {
+                                        e.preventDefault();
+                                        window.location.reload();
+                                    }
+                                }}
                             >
                                 <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
                                 <span className="nav-text">{item.label}</span>
                                 {item.subItems && (
                                     <i className={`fas fa-chevron-right dropdown-arrow ${isExpanded ? 'rotated' : ''}`}></i>
                                 )}
-                            </button>
+                            </Link>
 
                             {item.subItems && (
                                 <div className={`sub-menu ${isExpanded ? 'expanded' : ''}`}>
                                     {item.subItems.map((sub: any) => {
                                         const subRouteMap: Record<string, string> = {
-                                            'orders-all': '/bch/orders',
-                                            'orders-create': '/bch/orders',
-                                            'orders-returns': '/bch/orders',
+                                            'orders-all': '/bch/Order/dashboard',
+                                            'orders-create': '/bch/Order/createorder',
+                                            'orders-returns': '/bch/Order/return',
                                             'customers-all': '/bch/customers',
                                             'customers-groups': '/bch/customers',
                                             'accounts-dashboard': '/bch/accounts',
@@ -446,46 +462,58 @@ export default function AdminSidebar({
                                             'accounts-purchases': '/bch/accounts',
                                             'accounts-reports': '/bch/accounts',
                                             'reports-sales': '/bch/reports',
-                                            'invoicing-new': '/bch/billing',
-                                            'quotations-new': '/bch/billing',
-                                            'payments-all': '/bch/billing',
-                                            'receipts-all': '/bch/billing',
-                                            'receipts-new': '/bch/billing',
-                                            'invoices-return': '/bch/billing',
+                                            'invoicing-new': '/bch/billing/newinvoices',
+                                            'quotations-new': '/bch/billing/newqoutations',
+                                            'payments-all': '/bch/billing/allreceipts',
+                                            'receipts-all': '/bch/billing/allreceipts',
+                                            'receipts-new': '/bch/billing/newreceipts',
+                                            'invoices-return': '/bch/billing/returns',
                                             'users-all': '/bch/users',
                                             'users-roles': '/bch/users',
                                             'production-dashboard': '/bch/production?section=production-dashboard',
-                                            'production-qc': '/bch/production?section=production-qc',
-                                            'production-inventory-qc': '/bch/production?section=production-inventory-qc',
+                                            'production-qc': '/bch/production/productionqcchecking',
+                                            'production-inventory-qc': '/bch/production/inventoryqcchecking',
                                             'production-model-checking': '/bch/production/modelchecking',
                                             'production-packing': '/bch/production?section=production-packing',
-                                            'production-reprint': '/bch/production?section=production-reprint',
+                                            'production-reprint': '/bch/production/reprintBarcode',
+                                            'production-sale-out': '/bch/inventory/soldout',
                                             'production-projects': '/bch/production?section=production-projects',
                                             'production-tasks': '/bch/production?section=production-tasks',
-                                            'inventory-dashboard': '/bch/inventory?section=inventory-dashboard',
-                                            'products-list': '/bch/inventory?section=products-list',
+                                            'inventory-dashboard': '/bch/inventory/inventorydashboard',
+                                            'products-list': '/bch/inventory/ecommproductlist',
                                             'inventory-pricing': '/bch/inventory?section=inventory-pricing',
-                                            'add-product': '/bch/inventory?section=add-product',
-                                            'inventory-qc': '/bch/inventory?section=inventory-qc',
-                                            'inventory-drops': '/bch/inventory?section=inventory-drops',
-                                            'purchase-dashboard': '/bch/purchase?section=purchase-dashboard',
-                                            'purchase-history': '/bch/purchase?section=purchase-lots-list',
+                                            'add-product': '/bch/inventory/addecommproduct',
+                                            'inventory-qc': '/bch/inventory/inventoryqclist',
+                                            'inventory-drops': '/bch/inventory/dropdownManage',
+                                            'purchase-dashboard': '/bch/purchases/Dashboard',
+                                            'purchase-history': '/bch/purchases/purchaselot',
                                             'purchase-import': '/bch/purchase?section=purchase-lots-import',
                                             'purchase-import-full': '/bch/purchase?section=purchase-import-full',
-                                            'suppliers': '/bch/purchase?section=suppliers',
+                                            'suppliers': '/bch/purchases/suppliersmanage',
                                         };
                                         const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
                                         const target = subRouteMap[sub.id] || `/bch/${sub.id.replace(/-/g, '/')}`;
                                         const isSubActive = currentFullUrl === target || (pathname === target && !searchParams.toString());
 
                                         return (
-                                            <button
+                                            <Link
                                                 key={sub.id}
+                                                href={handleSubItemClick(sub, true) || '#'}
                                                 className={`sub-nav-item ${isSubActive ? "active" : ""}`}
-                                                onClick={() => handleSubItemClick(sub)}
+                                                onMouseEnter={() => {
+                                                    const target = handleSubItemClick(sub, true);
+                                                    if (target && target !== '#') router.prefetch(target);
+                                                }}
+                                                onClick={(e) => {
+                                                    const target = handleSubItemClick(sub, true);
+                                                    if (target && (pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')) === target) {
+                                                        e.preventDefault();
+                                                        window.location.reload();
+                                                    }
+                                                }}
                                             >
                                                 <span className="sub-nav-text">{sub.label}</span>
-                                            </button>
+                                            </Link>
                                         );
                                     })}
                                 </div>
@@ -506,10 +534,6 @@ export default function AdminSidebar({
                 </button>
             </div>
 
-            <AutoRefreshSettings
-                isOpen={showAutoRefreshSettings}
-                onClose={() => setShowAutoRefreshSettings(false)}
-            />
         </aside>
     );
 }

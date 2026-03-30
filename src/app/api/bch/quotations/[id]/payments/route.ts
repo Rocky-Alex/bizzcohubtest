@@ -67,18 +67,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
         }
 
+        console.log("Ensuring table exists...");
         await ensureTableExists();
 
-        // Unified Receipt Numbering logic (simplified: use separate series for now or share? User said "1, 2" like invoices)
-        // To truly unify, we'd need a shared counter. For now, let's use the individual table totals to simulate.
         const [lastP] = await sql`SELECT id FROM quotation_payments ORDER BY id DESC LIMIT 1` as unknown as any[];
-        const nextId = lastP ? lastP.id + 1 : 1;
+        const nextId = lastP ? Number(lastP.id) + 1 : 1;
         const receiptNo = `REC-Q${nextId.toString().padStart(4, '0')}`;
 
         // 1. Insert Payment
-        // Format date to YYYY-MM-DD
         const paymentDate = date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-
         const result = await sql`
             INSERT INTO quotation_payments (quotation_id, receipt_no, amount, payment_date, payment_method, notes, staff_name)
             VALUES (${id}, ${receiptNo}, ${Number(amount)}, ${paymentDate}, ${method || 'Cash'}, ${notes || null}, ${staff_name || null})
@@ -117,13 +114,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             receiptNo: result[0].receipt_no
         }, { status: 201 });
 
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error('Error recording payment:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        // Log stack trace for better debugging
-        if (error instanceof Error) {
-            console.error('Stack:', error.stack);
-        }
         return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

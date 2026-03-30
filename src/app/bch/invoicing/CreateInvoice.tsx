@@ -311,6 +311,14 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
     const [paymentType, setPaymentType] = useState("Cash");
     const [advanceReceived, setAdvanceReceived] = useState(0);
+    const [showAddAdvance, setShowAddAdvance] = useState(false);
+    const [newAdvanceAmount, setNewAdvanceAmount] = useState<number>(0);
+
+    const handleAddAdvance = () => {
+        setAdvanceReceived((prev) => prev + (newAdvanceAmount || 0));
+        setNewAdvanceAmount(0);
+        setShowAddAdvance(false);
+    };
 
     const [items, setItems] = useState<InvoiceItem[]>([
         { id: 1, description: "", qty: 0, cost: 0, discount: 0 }
@@ -347,6 +355,46 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
     const [inventoryProducts, setInventoryProducts] = useState<any[]>([]);
     const [showProductSuggestions, setShowProductSuggestions] = useState(false);
     const productSearchRef = useRef<HTMLDivElement>(null);
+
+    // --- Product History State ---
+    const [productHistory, setProductHistory] = useState<any[]>([]);
+    const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+
+    // Fetch Product History when a valid product code is in the input
+    useEffect(() => {
+        const fetchHistory = async () => {
+             if (!productCodeInput.trim()) {
+                 setProductHistory([]);
+                 return;
+             }
+
+             // Only fetch if it's an exact match in inventory to avoid spamming the API on every keystroke
+             const exactMatch = inventoryProducts.find(p => p.product_code === productCodeInput.trim() || p.product_name === productCodeInput.trim());
+             
+             if (exactMatch && exactMatch.product_code) {
+                 setIsFetchingHistory(true);
+                 try {
+                     const res = await fetch(`/api/bch/invoices/by-product/${encodeURIComponent(exactMatch.product_code)}`);
+                     if (res.ok) {
+                         const data = await res.json();
+                         setProductHistory(data.history || []);
+                     } else {
+                         setProductHistory([]);
+                     }
+                 } catch (err) {
+                     console.error("Failed to load product history", err);
+                     setProductHistory([]);
+                 } finally {
+                     setIsFetchingHistory(false);
+                 }
+             } else {
+                 setProductHistory([]);
+             }
+        };
+
+        const debounceTimer = setTimeout(fetchHistory, 500); // 500ms debounce
+        return () => clearTimeout(debounceTimer);
+    }, [productCodeInput, inventoryProducts]);
 
     useEffect(() => {
         const fetchInventory = async () => {
@@ -926,6 +974,50 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                     </div>
                 </div>
 
+                {/* --- Product Pricing History Table --- */}
+                {(productHistory.length > 0 || isFetchingHistory) && productCodeInput.trim() && (
+                    <div style={{ marginTop: '1rem', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                        <h4 style={{ margin: '0 0 0.75rem 0', color: '#1A2244', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <i className="fas fa-history" style={{ color: '#6b7280' }}></i> Pricing History for {productCodeInput}
+                        </h4>
+                        
+                        {isFetchingHistory ? (
+                            <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
+                                <i className="fas fa-circle-notch fa-spin" style={{ marginRight: '0.5rem' }}></i> Loading history...
+                            </div>
+                        ) : productHistory.length > 0 ? (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '1px solid #e5e7eb', color: '#4b5563', textAlign: 'left' }}>
+                                            <th style={{ padding: '0.5rem', fontWeight: 600 }}>Date</th>
+                                            <th style={{ padding: '0.5rem', fontWeight: 600 }}>Invoice #</th>
+                                            <th style={{ padding: '0.5rem', fontWeight: 600 }}>Customer</th>
+                                            <th style={{ padding: '0.5rem', fontWeight: 600, textAlign: 'center' }}>Qty</th>
+                                            <th style={{ padding: '0.5rem', fontWeight: 600, textAlign: 'right' }}>Unit Price</th>
+                                            <th style={{ padding: '0.5rem', fontWeight: 600, textAlign: 'right' }}>Discount</th>
+                                            <th style={{ padding: '0.5rem', fontWeight: 600, textAlign: 'right' }}>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {productHistory.map((hist, idx) => (
+                                            <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                <td style={{ padding: '0.5rem' }}>{new Date(hist.created_date).toLocaleDateString()}</td>
+                                                <td style={{ padding: '0.5rem', color: '#2563eb' }}>#{hist.invoice_no}</td>
+                                                <td style={{ padding: '0.5rem' }}>{hist.customer_name}</td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'center' }}>{hist.quantity}</td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 500 }}>AED {Number(hist.unit_price).toFixed(0)}</td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'right' }}>AED {Number(hist.discount).toFixed(0)}</td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'right', color: '#ea580c', fontWeight: 600 }}>AED {Number(hist.total).toFixed(0)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : null}
+                    </div>
+                )}
+
                 {/* Footer Totals */}
                 {showTerms ? (
                     <div className="invoice-footer-section">
@@ -1081,13 +1173,28 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
                             <div className="total-row">
                                 <span>Advance Received</span>
-                                <input
-                                    type="number"
-                                    value={advanceReceived}
-                                    onChange={e => setAdvanceReceived(parseFloat(e.target.value) || 0)}
-                                    className="editable-field"
-                                    style={{ width: '100px', textAlign: 'right', border: '1px solid #e5e7eb' }}
-                                />
+                                <div>
+                                    <input
+                                        type="number"
+                                        value={advanceReceived}
+                                        onChange={e => setAdvanceReceived(parseFloat(e.target.value) || 0)}
+                                        className="editable-field"
+                                        style={{ width: '100px', textAlign: 'right', border: '1px solid #e5e7eb' }}
+                                    />
+                                    {isEditing && (
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                                            {!showAddAdvance ? (
+                                                <button onClick={() => setShowAddAdvance(true)} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: '0.85rem' }}>+ Value</button>
+                                            ) : (
+                                                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                                                    <input type="number" value={newAdvanceAmount || ''} onChange={e => setNewAdvanceAmount(parseFloat(e.target.value) || 0)} className="editable-field" style={{ width: '60px', padding: '0.2rem', fontSize: '0.8rem', border: '1px solid #e5e7eb', textAlign: 'right' }} placeholder="Amount" />
+                                                    <button onClick={handleAddAdvance} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>Add</button>
+                                                    <button onClick={() => setShowAddAdvance(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.8rem' }}><i className="fas fa-times"></i></button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="total-row" style={{ fontWeight: 600, color: '#dc2626', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
@@ -1152,13 +1259,28 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
                             <div className="total-row">
                                 <span>Advance Received</span>
-                                <input
-                                    type="number"
-                                    value={advanceReceived}
-                                    onChange={e => setAdvanceReceived(parseFloat(e.target.value) || 0)}
-                                    className="editable-field"
-                                    style={{ width: '100px', textAlign: 'right', border: '1px solid #e5e7eb' }}
-                                />
+                                <div>
+                                    <input
+                                        type="number"
+                                        value={advanceReceived}
+                                        onChange={e => setAdvanceReceived(parseFloat(e.target.value) || 0)}
+                                        className="editable-field"
+                                        style={{ width: '100px', textAlign: 'right', border: '1px solid #e5e7eb' }}
+                                    />
+                                    {isEditing && (
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                                            {!showAddAdvance ? (
+                                                <button onClick={() => setShowAddAdvance(true)} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: '0.85rem' }}>+ Value</button>
+                                            ) : (
+                                                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                                                    <input type="number" value={newAdvanceAmount || ''} onChange={e => setNewAdvanceAmount(parseFloat(e.target.value) || 0)} className="editable-field" style={{ width: '60px', padding: '0.2rem', fontSize: '0.8rem', border: '1px solid #e5e7eb', textAlign: 'right' }} placeholder="Amount" />
+                                                    <button onClick={handleAddAdvance} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}>Add</button>
+                                                    <button onClick={() => setShowAddAdvance(false)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.8rem' }}><i className="fas fa-times"></i></button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="total-row" style={{ fontWeight: 600, color: '#dc2626', borderTop: '1px solid #e5e7eb', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
