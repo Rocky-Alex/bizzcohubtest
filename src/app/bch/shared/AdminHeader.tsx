@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import ViewUserModal from "../users/ViewUserModal";
 import EditUserModal from "../users/EditUserModal";
@@ -11,6 +12,34 @@ interface AdminHeaderProps {
     toggleSidebar?: () => void;
     onLogout?: () => void;
     roles?: string[];
+}
+
+interface AdminUser {
+    id?: number | string;
+    name?: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    status?: "Active" | "Inactive" | string;
+    image_url?: string | null;
+    role?: string;
+    avatar?: string | null;
+}
+
+interface EditableProfile {
+    avatar?: string | null;
+    image?: File | null;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    userName?: string;
+    email?: string;
+    phone?: string;
+    role?: string;
+    status?: string;
+    password?: string;
 }
 
 export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Administrator', 'Editor', 'Viewer'] }: AdminHeaderProps) {
@@ -67,7 +96,13 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
         };
     }, []);
 
-    const [user, setUser] = useState<any>(null);
+    useEffect(() => {
+        const openProfileMenu = () => setIsProfileOpen(true);
+        window.addEventListener('bch-open-profile', openProfileMenu);
+        return () => window.removeEventListener('bch-open-profile', openProfileMenu);
+    }, []);
+
+    const [user, setUser] = useState<AdminUser | null>(null);
 
     useEffect(() => {
         const loadUser = () => {
@@ -87,13 +122,25 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
 
     const userImage = user?.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || user?.username || 'Admin User')}&background=0D8ABC&color=fff`;
     const userName = user?.name || user?.username || 'Admin';
+    const editableUser = user ? {
+        id: String(user.id ?? ""),
+        name: user.name || user.username || "Admin",
+        username: user.username || user.name || "",
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone || "",
+        email: user.email || "",
+        role: user.role || "Administrator",
+        status: (user.status === "Inactive" ? "Inactive" : "Active") as "Active" | "Inactive",
+        avatar: user.avatar || user.image_url || undefined
+    } : null;
 
     const handleEditProfile = () => {
         setIsViewProfileOpen(false);
         setIsEditProfileOpen(true);
     };
 
-    const handleSaveProfile = async (updatedUser: any) => {
+    const handleSaveProfile = async (updatedUser: EditableProfile) => {
         try {
             if (!user?.id) {
                 toast.error("Please Log Out and Log In to update your session.");
@@ -194,6 +241,15 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                 </div>
             </div>
 
+            <div className="header-mobile-brand">
+                <Link href="/bch/dashboard" className="mobile-brand-link">
+                    <span className="mobile-brand-logo">
+                        <img src="/icon/nav-logo.png" alt="Bizzcohub" />
+                    </span>
+                    <span className="mobile-brand-text">Bizzcohub</span>
+                </Link>
+            </div>
+
             <div className="header-toggle-wrapper">
                 <div className="workspace-toggle-container">
                     {(() => {
@@ -223,21 +279,22 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
             </div>
 
             <div className="header-right">
-                <button className="icon-btn" onClick={toggleTheme} title="Toggle Theme">
+                <button className="icon-btn theme-toggle-btn" onClick={toggleTheme} title="Toggle Theme">
                     <i className={`fas ${theme === 'dark' ? 'fa-sun' : 'fa-moon'}`}></i>
                 </button>
 
-                <button className="icon-btn notification-btn">
+                <button className="icon-btn notification-btn message-btn">
                     <i className="fas fa-envelope"></i>
                     <span className="badge-count">1</span>
                 </button>
 
-                <button className="icon-btn">
+                <button className="icon-btn bell-btn">
                     <i className="fas fa-bell"></i>
+                    <span className="header-status-dot"></span>
                 </button>
 
                 <div className="icon-btn-wrapper" ref={settingsRef} style={{ position: 'relative' }}>
-                    <button className="icon-btn" onClick={() => setIsSettingsOpen(!isSettingsOpen)}>
+                    <button className="icon-btn settings-btn" onClick={() => setIsSettingsOpen(!isSettingsOpen)}>
                         <i className={`fas fa-cog ${isSettingsOpen ? 'fa-spin' : ''}`} style={{ transition: 'transform 0.5s' }}></i>
                     </button>
                     {isSettingsOpen && (
@@ -348,7 +405,7 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
             <ViewUserModal
                 isOpen={isViewProfileOpen}
                 onClose={() => setIsViewProfileOpen(false)}
-                user={user}
+                user={editableUser}
                 onEdit={handleEditProfile}
             />
 
@@ -356,7 +413,7 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                 isOpen={isEditProfileOpen}
                 onClose={() => setIsEditProfileOpen(false)}
                 onSubmit={handleSaveProfile}
-                user={user}
+                user={editableUser}
                 roles={roles}
             />
         </header>

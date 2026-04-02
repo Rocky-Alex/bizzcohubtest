@@ -1,9 +1,6 @@
 import React from 'react';
 import { PackedItemRecord, Order } from './PackingV2';
 
-interface ValidatedItem extends PackedItemRecord {
-    // Add any specific validated fields if needed, or just use PackedItemRecord
-}
 
 interface Props {
     items: PackedItemRecord[];

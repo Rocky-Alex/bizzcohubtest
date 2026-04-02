@@ -21,7 +21,7 @@ async function main() {
             process.exit(1);
         }
 
-        const tables = tablesResult.rows.map(t => t.tablename);
+        const tables = tablesResult.rows.map((t: any) => t.tablename);
         console.log(`Found ${tables.length} tables in public schema.`);
 
         for (const table of tables) {

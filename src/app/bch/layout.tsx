@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import AdminSidebar from "./shared/AdminSidebar";
 import AdminHeader from "./shared/AdminHeader";
@@ -25,7 +25,6 @@ export default function AdminLayout({
     const [userRole, setUserRole] = useState("accountant");
     const [username, setUsername] = useState("Admin");
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState<any>(null);
 
     // Modal State for global use (like Logout)
     const [confirmModal, setConfirmModal] = useState({
@@ -56,7 +55,6 @@ export default function AdminLayout({
                         setIsAuthenticated(true);
                         setUserRole(data.role || 'accountant');
                         setUsername(data.user?.name || 'Admin');
-                        setCurrentUser(data.user);
                     } else {
                         router.push('/bch/login');
                     }
@@ -70,6 +68,10 @@ export default function AdminLayout({
         };
         checkAuth();
     }, [router]);
+
+    useEffect(() => {
+        setIsMobileSidebarOpen(false);
+    }, [pathname]);
 
     const handleLogout = () => {
         setConfirmModal({
@@ -93,6 +95,44 @@ export default function AdminLayout({
         }
     };
 
+    const mobileNavItems = [
+        {
+            id: 'dashboard',
+            label: 'Dashboard',
+            icon: 'fas fa-border-all',
+            active: pathname === '/bch/dashboard',
+            onClick: () => router.push('/bch/dashboard')
+        },
+        {
+            id: 'purchase',
+            label: 'Purchase',
+            icon: 'fas fa-cart-shopping',
+            active: pathname.startsWith('/bch/purchase') || pathname.startsWith('/bch/purchases'),
+            onClick: () => router.push('/bch/purchases/Dashboard')
+        },
+        {
+            id: 'inventory',
+            label: 'Inventory',
+            icon: 'fas fa-box',
+            active: pathname.startsWith('/bch/inventory'),
+            onClick: () => router.push('/bch/inventory/inventorydashboard')
+        },
+        {
+            id: 'billing',
+            label: 'Billing',
+            icon: 'fas fa-money-bill-wave',
+            active: pathname.startsWith('/bch/billing'),
+            onClick: () => router.push('/bch/billing/dashboard')
+        },
+        {
+            id: 'profile',
+            label: 'Profile',
+            icon: 'fas fa-user',
+            active: false,
+            onClick: () => window.dispatchEvent(new Event('bch-open-profile'))
+        }
+    ];
+
     if (!isAuthenticated && pathname !== '/bch/login') {
         return null; // Or a loading spinner
     }
@@ -109,6 +149,11 @@ export default function AdminLayout({
                 username={username}
                 mobileOpen={isMobileSidebarOpen}
             />
+            <div
+                className={`sidebar-overlay ${isMobileSidebarOpen ? 'active' : ''}`}
+                onClick={() => setIsMobileSidebarOpen(false)}
+                aria-hidden="true"
+            />
 
             <div className="admin-main">
                 <AdminHeader
@@ -120,6 +165,20 @@ export default function AdminLayout({
                     {children}
                 </main>
             </div>
+
+            <nav className="mobile-bottom-nav" aria-label="Admin mobile navigation">
+                {mobileNavItems.map((item) => (
+                    <button
+                        key={item.id}
+                        type="button"
+                        className={`mobile-bottom-nav-item ${item.active ? 'active' : ''}`}
+                        onClick={item.onClick}
+                    >
+                        <i className={item.icon}></i>
+                        <span>{item.label}</span>
+                    </button>
+                ))}
+            </nav>
 
             <ConfirmModal
                 isOpen={confirmModal.isOpen}

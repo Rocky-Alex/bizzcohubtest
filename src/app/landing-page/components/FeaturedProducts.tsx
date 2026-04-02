@@ -18,9 +18,6 @@ interface FeaturedProductsProps {
 }
 
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
-    // Hide section if no products
-    if (!products || products.length === 0) return null;
-
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [activeSlide, setActiveSlide] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
@@ -108,6 +105,9 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
         if (lower.includes('best') || lower.includes('hot')) return 'hot';
         return 'new';
     };
+
+    // Hide section if no products
+    if (!products || products.length === 0) return null;
 
     return (
         <section className="products-section-v3">

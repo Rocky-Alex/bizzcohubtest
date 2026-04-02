@@ -65,14 +65,6 @@ const nextConfig = {
         return config;
     },
 
-    // Allow build to proceed despite lint/type errors
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
-    typescript: {
-        ignoreBuildErrors: true,
-    },
-
 };
 
 module.exports = nextConfig;

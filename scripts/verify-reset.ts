@@ -14,7 +14,7 @@ async function main() {
             WHERE schemaname = 'public'
         `);
 
-        const tables = tablesResult.rows.map(t => t.tablename);
+        const tables = tablesResult.rows.map((t: any) => t.tablename);
 
         for (const table of tables) {
             const countResult = await query(`SELECT COUNT(*) as cnt FROM "${table}"`);

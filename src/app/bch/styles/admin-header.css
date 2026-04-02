@@ -74,6 +74,43 @@
     gap: 0.75rem;
 }
 
+.header-mobile-brand {
+    display: none;
+}
+
+.mobile-brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    text-decoration: none;
+}
+
+.mobile-brand-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #eef2ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(37, 99, 235, 0.12);
+}
+
+.mobile-brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.mobile-brand-text {
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
 .header-btn {
     display: flex;
     align-items: center;
@@ -123,6 +160,21 @@
     transition: all 0.2s;
     position: relative;
     font-size: 1rem;
+}
+
+.bell-btn {
+    position: relative;
+}
+
+.header-status-dot {
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #ef4444;
+    border: 2px solid var(--bg-primary);
 }
 
 .icon-btn:hover {
