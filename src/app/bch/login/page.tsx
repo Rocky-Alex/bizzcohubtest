@@ -19,6 +19,26 @@ export default function AdminLoginPage() {
         e.preventDefault();
         setIsLoading(true);
 
+        const BYPASS_AUTH = true;
+
+        if (BYPASS_AUTH) {
+            // Simulated login for "paused auth"
+            const dummyUser = {
+                id: 1,
+                username: username || 'admin',
+                role: 'admin',
+                name: username ? `Bypass (${username})` : 'Super Admin',
+                email: 'admin@bizzcohub.com'
+            };
+
+            localStorage.setItem('admin_user', JSON.stringify(dummyUser));
+            sessionStorage.setItem('admin_authenticated', 'true');
+            window.dispatchEvent(new Event('admin-login'));
+            router.push('/bch/dashboard');
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',

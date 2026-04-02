@@ -21,7 +21,7 @@ export default function AdminLayout({
     const router = useRouter();
     const pathname = usePathname();
 
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // Temporarily true for "pause auth"
     const [userRole, setUserRole] = useState("accountant");
     const [username, setUsername] = useState("Admin");
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -46,24 +46,31 @@ export default function AdminLayout({
                     const isSessionActive = sessionStorage.getItem('admin_authenticated');
 
                     if (data.authenticated) {
-                        if (!isSessionActive) {
-                            await fetch('/api/auth/logout', { method: 'POST' });
-                            router.push('/bch/login');
-                            return;
-                        }
-
+                        // Regular flow if already authenticated
                         setIsAuthenticated(true);
-                        setUserRole(data.role || 'accountant');
+                        setUserRole(data.role || 'admin');
                         setUsername(data.user?.name || 'Admin');
                     } else {
-                        router.push('/bch/login');
+                        // If not authenticated via API, we still allow it because auth is "paused"
+                        // But we ensure we have some dummy user data for the UI
+                        setIsAuthenticated(true);
+                        if (!sessionStorage.getItem('admin_authenticated')) {
+                            sessionStorage.setItem('admin_authenticated', 'true');
+                            localStorage.setItem('admin_user', JSON.stringify({
+                                id: 1,
+                                username: 'admin',
+                                role: 'admin',
+                                name: 'Admin (Bypass)'
+                            }));
+                        }
                     }
                 } else {
-                    router.push('/bch/login');
+                    // Fail-safe: auth is paused, so stay authenticated
+                    setIsAuthenticated(true);
                 }
             } catch (error) {
-                console.error("Auth check failed", error);
-                router.push('/bch/login');
+                console.error("Auth check failed, but auth is paused", error);
+                setIsAuthenticated(true);
             }
         };
         checkAuth();
