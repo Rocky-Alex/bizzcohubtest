@@ -96,18 +96,19 @@ export async function POST(request: NextRequest) {
         const { items, notes, soldBy, invoiceNo, customerName } = body;
 
         // Support both single-item (legacy) and bulk format
-        let saleItems: { id: number; source: 'master' | 'purchase'; qtySold: number }[] = [];
+        let saleItems: { id: number; source: 'master' | 'purchase'; qtySold: number; hasAc?: string }[] = [];
 
         if (items && Array.isArray(items)) {
             saleItems = items;
         } else {
             // Legacy single-item format
-            const { masterInventoryId, purchaseLotItemId, qtySold, source } = body;
+            const { masterInventoryId, purchaseLotItemId, qtySold, source, hasAc } = body;
             const isMaster = source !== 'purchase';
             saleItems = [{
                 id: isMaster ? masterInventoryId : purchaseLotItemId,
                 source: isMaster ? 'master' : 'purchase',
-                qtySold: qtySold || 1
+                qtySold: qtySold || 1,
+                hasAc: hasAc || 'Not Specified'
             }];
         }
 
