@@ -91,13 +91,23 @@ export async function POST(req: Request): Promise<NextResponse> {
                 )
             `;
 
-            // Deduct from Inventory if product_code is provided
+            // 2. Deduct from Inventory based on source
             if (item.product_code) {
-                await sql`
-                    UPDATE products 
-                    SET stock_quantity = stock_quantity - ${Number(item.qty)}
-                    WHERE product_code = ${item.product_code}
-                `;
+                if (item.source === 'QC Passed') {
+                    await sql`
+                        UPDATE master_inventory 
+                        SET quantity = quantity - ${Number(item.qty)}
+                        WHERE sku = ${item.product_code} OR barcode = ${item.product_code}
+                    `;
+                } else if (item.source === 'Purchase') {
+                    // For Purchase source, we deduct from purchase_lot_items
+                    // We might need the specific item ID since SKU might not be unique in staging
+                    await sql`
+                        UPDATE purchase_lot_items 
+                        SET quantity = quantity - ${Number(item.qty)}
+                        WHERE sku = ${item.product_code}
+                    `;
+                }
             }
         }
 

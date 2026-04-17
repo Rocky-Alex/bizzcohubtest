@@ -64,6 +64,7 @@ interface SelectedEntry {
     barcode: string;
     quantity: number;     // available
     qtySold: number;      // how many to sell
+    hasAc: boolean;       // included or not
 }
 
 interface SaleRecord {
@@ -139,6 +140,15 @@ export default function SaleOut() {
     // Confirm modal
     const [showConfirm, setShowConfirm] = useState(false);
 
+    // Detail modal for history
+    const [selectedHistoryItem, setSelectedHistoryItem] = useState<any | null>(null);
+
+    // Return logic inside modal
+    const [isReturning, setIsReturning] = useState(false);
+    const [returnReason, setReturnReason] = useState('');
+    const [returnCondition, setReturnCondition] = useState('Good');
+    const [submittingReturn, setSubmittingReturn] = useState(false);
+
     // Helpers
     const makeKey = (source: string, id: number) => `${source}-${id}`;
 
@@ -149,7 +159,7 @@ export default function SaleOut() {
             if (next.has(key)) {
                 next.delete(key);
             } else {
-                next.set(key, { ...item, source, qtySold: item.quantity });
+                next.set(key, { ...item, source, qtySold: item.quantity, hasAc: true });
             }
             return next;
         });
@@ -162,7 +172,7 @@ export default function SaleOut() {
             if (next.has(key)) {
                 next.delete(key);
             } else {
-                next.set(key, { ...group, source: 'purchase-group', qtySold: group.quantity });
+                next.set(key, { ...group, source: 'purchase-group', qtySold: group.quantity, hasAc: true });
             }
             return next;
         });
@@ -176,6 +186,17 @@ export default function SaleOut() {
             const entry = next.get(key);
             if (entry) {
                 next.set(key, { ...entry, qtySold: Math.max(1, Math.min(entry.quantity, qty)) });
+            }
+            return next;
+        });
+    };
+
+    const toggleAc = (key: string) => {
+        setSelected(prev => {
+            const next = new Map(prev);
+            const entry = next.get(key);
+            if (entry) {
+                next.set(key, { ...entry, hasAc: !entry.hasAc });
             }
             return next;
         });
@@ -204,7 +225,7 @@ export default function SaleOut() {
                     next.set(key, {
                         id: item.id, source: 'master', brand: item.brand || '', model: item.model || '',
                         series: item.series || '', lot_number: item.lot_number || '', product_name: item.product_name || '',
-                        barcode: item.barcode || '', quantity: item.quantity, qtySold: item.quantity
+                        barcode: item.barcode || '', quantity: item.quantity, qtySold: item.quantity, hasAc: true
                     });
                 }
             });
@@ -221,12 +242,47 @@ export default function SaleOut() {
                 groups.forEach((group: any) => {
                     const key = `purchaseGroup-${group.specKey}`;
                     if (!next.has(key)) {
-                        next.set(key, { ...group, source: 'purchase-group', qtySold: group.quantity });
+                        next.set(key, { ...group, source: 'purchase-group', qtySold: group.quantity, hasAc: true });
                     }
                 });
             });
             return next;
         });
+    };
+
+    const handleInitiateReturn = async () => {
+        if (!selectedHistoryItem) return;
+        setSubmittingReturn(true);
+        const toastId = toast.loading('Processing sales return...');
+
+        try {
+            const res = await fetch('/api/bch/sales/returns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: [{ barcode: selectedHistoryItem.barcode, id: selectedHistoryItem.master_inventory_id }],
+                    reason: returnReason,
+                    condition: returnCondition,
+                    returnedBy: 'Admin'
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Product moved to Return Staging', { id: toastId });
+                setSelectedHistoryItem(null);
+                setIsReturning(false);
+                setReturnReason('');
+                fetchHistory();
+            } else {
+                toast.error(data.error || 'Return failed', { id: toastId });
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Unexpected error', { id: toastId });
+        } finally {
+            setSubmittingReturn(false);
+        }
     };
 
     // Fetch sale history
@@ -420,12 +476,12 @@ export default function SaleOut() {
                         const originalItem = results?.purchase.find((p: any) => p.id === id);
                         const canSell = Math.min(toSell, originalItem?.quantity || 1);
                         if (canSell > 0) {
-                            saleItems.push({ id, source: 'purchase', qtySold: canSell });
+                            saleItems.push({ id, source: 'purchase', qtySold: canSell, hasAc: entry.hasAc ? 'With AC' : 'Without AC' });
                             toSell -= canSell;
                         }
                     });
                 } else {
-                    saleItems.push({ id: entry.id, source: entry.source === 'purchase-group' ? 'purchase' : entry.source, qtySold: entry.qtySold });
+                    saleItems.push({ id: entry.id, source: entry.source === 'purchase-group' ? 'purchase' : entry.source, qtySold: entry.qtySold, hasAc: entry.hasAc ? 'With AC' : 'Without AC' });
                 }
             });
 
@@ -754,6 +810,7 @@ export default function SaleOut() {
                                     <th style={{ ...thStyle, position: 'sticky', top: 0, background: '#fef2f2', zIndex: 10 }}>Model</th>
                                     <th style={{ ...thStyle, position: 'sticky', top: 0, background: '#fef2f2', zIndex: 10 }}>Available</th>
                                     <th style={{ ...thStyle, position: 'sticky', top: 0, background: '#fef2f2', zIndex: 10 }}>Qty to Sell</th>
+                                    <th style={{ ...thStyle, position: 'sticky', top: 0, background: '#fef2f2', zIndex: 10, textAlign: 'center' }}>AC Adapter</th>
                                     <th style={{ ...thStyle, position: 'sticky', top: 0, background: '#fef2f2', zIndex: 10, textAlign: 'center' }}>Remove</th>
                                 </tr>
                             </thead>
@@ -786,6 +843,19 @@ export default function SaleOut() {
                                                     textAlign: 'center', outline: 'none'
                                                 }}
                                             />
+                                        </td>
+                                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                                            <button 
+                                                onClick={() => toggleAc(key)}
+                                                style={{
+                                                    background: entry.hasAc ? '#10b981' : '#f3f4f6',
+                                                    color: entry.hasAc ? 'white' : '#64748b',
+                                                    border: 'none', borderRadius: '6px', padding: '4px 10px',
+                                                    fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {entry.hasAc ? 'WITH AC' : 'NO AC'}
+                                            </button>
                                         </td>
                                         <td style={{ ...tdStyle, textAlign: 'center' }}>
                                             <button onClick={() => removeSelected(key)} style={{
@@ -1213,7 +1283,17 @@ export default function SaleOut() {
                             </thead>
                             <tbody>
                                 {groupedHistory.map((item, idx) => (
-                                    <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                    <tr 
+                                        key={item.id} 
+                                        style={{ 
+                                            borderBottom: '1px solid #f1f5f9',
+                                            cursor: 'pointer',
+                                            transition: 'background 0.2s'
+                                        }}
+                                        onClick={() => setSelectedHistoryItem(item)}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                    >
                                         <td style={{ ...tdStyle, color: '#94a3b8' }}>{idx + 1}</td>
                                         <td style={tdStyle}>
                                             <div style={{ fontWeight: 600 }}>{new Date(item.sold_at).toLocaleDateString()}</div>
@@ -1263,6 +1343,187 @@ export default function SaleOut() {
                 type="danger"
                 confirmText={`Yes, Confirm Sold (${totalSelectedQty} pcs)`}
             />
+
+            {/* Product Detail Modal */}
+            {selectedHistoryItem && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000,
+                    padding: '20px'
+                }} onClick={() => setSelectedHistoryItem(null)}>
+                    <div style={{
+                        width: '100%', maxWidth: '650px', background: 'white',
+                        borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        overflow: 'hidden', position: 'relative'
+                    }} onClick={e => e.stopPropagation()}>
+                        
+                        {/* Header */}
+                        <div style={{ 
+                            padding: '24px 32px', borderBottom: '1px solid #f1f5f9',
+                            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>Product Details</h3>
+                                <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    Record #{selectedHistoryItem.id} &middot; {new Date(selectedHistoryItem.sold_at).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <button onClick={() => setSelectedHistoryItem(null)} style={{
+                                width: '40px', height: '40px', borderRadius: '12px', border: 'none',
+                                background: 'white', color: '#64748b', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)', transition: 'all 0.2s'
+                            }}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div style={{ padding: '32px', maxHeight: '60vh', overflowY: 'auto' }}>
+                            <div style={{ marginBottom: '24px' }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Product Header</div>
+                                <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#1e293b' }}>{selectedHistoryItem.brand} {selectedHistoryItem.model}</h2>
+                                <p style={{ margin: '8px 0 0 0', color: '#475569', fontSize: '1rem', fontWeight: 500 }}>{selectedHistoryItem.series || 'Standard Series'}</p>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+                                {/* Specs Grid */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    {[
+                                        { label: 'Lot Number', value: selectedHistoryItem.lot_number, icon: 'fa-layer-group', color: '#6366f1' },
+                                        { label: 'Barcode', value: selectedHistoryItem.barcode || '-', icon: 'fa-barcode', color: '#1e293b' },
+                                        { label: 'Core / Processor', value: selectedHistoryItem.processor || '-', icon: 'fa-microchip', color: '#3b82f6' },
+                                        { label: 'Generation', value: selectedHistoryItem.processor_gen || '-', icon: 'fa-microchip', color: '#10b981' },
+                                        { label: 'Graphics', value: selectedHistoryItem.graphics || '-', icon: 'fa-video', color: '#ef4444' },
+                                    ].map((spec, i) => (
+                                        <div key={i}>
+                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                                                <i className={`fas ${spec.icon}`} style={{ color: spec.color, fontSize: '0.7rem' }}></i> {spec.label}
+                                            </div>
+                                            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#334155' }}>{spec.value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    {[
+                                        { label: 'RAM', value: selectedHistoryItem.ram || '-', icon: 'fa-memory', color: '#f59e0b' },
+                                        { label: 'SSD / Storage', value: selectedHistoryItem.storage || '-', icon: 'fa-hdd', color: '#8b5cf6' },
+                                        { label: 'Type', value: selectedHistoryItem.invoice_no ? 'With Invoice' : 'Non-Invoice (Direct)', icon: 'fa-file-invoice', color: '#10b981' },
+                                        { label: 'AC Adapter', value: selectedHistoryItem.has_ac || 'Not Specified', icon: 'fa-plug', color: '#06b6d4' },
+                                        { label: 'Invoice No', value: selectedHistoryItem.invoice_no || 'N/A', icon: 'fa-hashtag', color: '#ec4899' },
+                                    ].map((spec, i) => (
+                                        <div key={i}>
+                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                                                <i className={`fas ${spec.icon}`} style={{ color: spec.color, fontSize: '0.7rem' }}></i> {spec.label}
+                                            </div>
+                                            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#334155' }}>{spec.value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {selectedHistoryItem.notes && (
+                                <div style={{ marginTop: '24px', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, marginBottom: '8px' }}>Notes</div>
+                                    <div style={{ fontSize: '0.9rem', color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>&ldquo;{selectedHistoryItem.notes}&rdquo;</div>
+                                </div>
+                            )}
+
+                            {/* SALES RETURN SECTION */}
+                            <div style={{ 
+                                marginTop: '32px', borderTop: '2px dashed #e2e8f0', paddingTop: '24px'
+                            }}>
+                                {!isReturning ? (
+                                    <button 
+                                        onClick={() => setIsReturning(true)}
+                                        style={{
+                                            width: '100%', padding: '12px', borderRadius: '12px',
+                                            background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca',
+                                            fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#fee2e2'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
+                                    >
+                                        <i className="fas fa-undo"></i> Initiate Sales Return
+                                    </button>
+                                ) : (
+                                    <div style={{ 
+                                        background: '#fff7ed', border: '1px solid #ffedd5', 
+                                        borderRadius: '16px', padding: '20px', animation: 'fadeIn 0.3s' 
+                                    }}>
+                                        <h4 style={{ margin: '0 0 16px 0', fontSize: '1rem', color: '#9a3412', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <i className="fas fa-exclamation-triangle"></i> Sales Return Details
+                                        </h4>
+                                        
+                                        <div style={{ marginBottom: '12px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#c2410c', marginBottom: '4px' }}>Return Reason</label>
+                                            <textarea 
+                                                value={returnReason}
+                                                onChange={(e) => setReturnReason(e.target.value)}
+                                                placeholder="Defective unit / Wrong model / Customer change of mind..."
+                                                style={{ width: '100%', height: '70px', padding: '10px', borderRadius: '8px', border: '1px solid #fed7aa', outline: 'none', fontSize: '0.9rem' }}
+                                            />
+                                        </div>
+
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#c2410c', marginBottom: '4px' }}>Received Condition</label>
+                                            <select 
+                                                value={returnCondition}
+                                                onChange={(e) => setReturnCondition(e.target.value)}
+                                                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #fed7aa', outline: 'none', background: 'white' }}
+                                            >
+                                                <option>Good</option>
+                                                <option>Scratched</option>
+                                                <option>Damaged</option>
+                                                <option>Faulty</option>
+                                            </select>
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '12px' }}>
+                                            <button 
+                                                disabled={submittingReturn}
+                                                onClick={handleInitiateReturn}
+                                                style={{
+                                                    flex: 1, padding: '10px', borderRadius: '10px',
+                                                    background: '#ea580c', color: 'white', border: 'none',
+                                                    fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {submittingReturn ? <i className="fas fa-circle-notch fa-spin"></i> : 'Confirm Return'}
+                                            </button>
+                                            <button 
+                                                onClick={() => setIsReturning(false)}
+                                                style={{
+                                                    padding: '10px 20px', borderRadius: '10px',
+                                                    background: 'white', color: '#9a3412', border: '1px solid #fed7aa',
+                                                    fontWeight: 600, cursor: 'pointer'
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div style={{ padding: '24px 32px', background: '#f8fafc', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button onClick={() => { setSelectedHistoryItem(null); setIsReturning(false); }} style={{
+                                padding: '10px 24px', borderRadius: '12px', background: '#0f172a', color: 'white',
+                                border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                            }}>
+                                Close Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

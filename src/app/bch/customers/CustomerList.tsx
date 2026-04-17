@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './CustomerList.css';
 import { Country } from 'country-state-city';
-import CustomerLedgerModal from '../accounts/CustomerLedgerModal';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function CustomerList({
@@ -28,7 +27,6 @@ export default function CustomerList({
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [selectedCustomerForLedger, setSelectedCustomerForLedger] = useState<any | null>(null);
     const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -259,17 +257,6 @@ export default function CustomerList({
                     </button>
                 </div>
             </div>
-            {/* Ledger Modal */}
-            <CustomerLedgerModal
-                isOpen={!!selectedCustomerForLedger}
-                onClose={() => setSelectedCustomerForLedger(null)}
-                customer={selectedCustomerForLedger ? {
-                    name: selectedCustomerForLedger.name,
-                    email: selectedCustomerForLedger.email || "",
-                    avatar: selectedCustomerForLedger.image_url,
-                    balance: selectedCustomerForLedger.balance
-                } : null}
-            />
         </div >
     );
 }

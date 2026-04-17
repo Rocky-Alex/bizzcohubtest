@@ -8,6 +8,7 @@ export async function GET(req: Request): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
+        const statusFilter = searchParams.get('status'); // 'active' or 'completed'
 
         if (id) {
             const result = await sql`
@@ -17,7 +18,8 @@ export async function GET(req: Request): Promise<NextResponse> {
         } else {
             const lots = await sql`
                 SELECT 
-                    id as "lotId", 
+                    id,
+                    'LOT-' || LPAD(id::text, 4, '0') as "lotId", 
                     lot_number as "lotNumber", 
                     supplier_name as "supplierName", 
                     invoice_number as "invoiceNumber", 
@@ -30,6 +32,9 @@ export async function GET(req: Request): Promise<NextResponse> {
                     (SELECT COUNT(*) FROM purchase_lot_items WHERE lot_id = purchase_lots.id) as "totalItems",
                     (SELECT COALESCE(SUM(quantity), 0) FROM purchase_lot_items WHERE lot_id = purchase_lots.id) as "totalQty"
                 FROM purchase_lots 
+                WHERE 
+                    (${statusFilter} = 'completed' AND UPPER(TRIM(status)) = 'COMPLETED') OR
+                    (${statusFilter} != 'completed' AND (status IS NULL OR UPPER(TRIM(status)) != 'COMPLETED'))
                 ORDER BY created_at DESC
             ` as unknown as any[];
             return NextResponse.json({ success: true, lots });

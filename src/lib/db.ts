@@ -9,14 +9,25 @@ if (!mainUrl) {
 }
 
 const createSql = (url: string | undefined, name: string) => {
+    // Mask URL for security but show enough to identify discrepancy
+    const maskedUrl = url ? url.replace(/:[^:@/]+@/, ':***@') : 'UNDEFINED';
+    console.log(`[DB] initializing ${name} with URL: ${maskedUrl}`);
+    
     if (!url) {
         return ((strings: any, ...values: any[]) => {
             console.warn(`⚠️ ${name} SQL query ignored because Database URL is not set.`);
             return Promise.resolve([]);
         }) as any;
     }
+    const neonHandler = neon(url);
     return (strings: any, ...values: any[]) => {
-        return neon(url)(strings, ...values);
+        if (typeof strings === 'string') {
+            // Support call as function: sql("SELECT...", [...params])
+            // We use the .query method of neon or format it ourselves safely
+            // But since neon(url) returns a tag, we need to handle this.
+            return (neonHandler as any).query(strings, values);
+        }
+        return neonHandler(strings, ...values);
     };
 };
 
@@ -26,10 +37,9 @@ export const quotationSql = createSql(quotationUrl, 'Quotation');
 
 // Export compatibility for any legacy code still using 'query'
 export const query = async (text: string, params?: any[]) => {
-    // Note: neon doesn't support parameterized queries with $1, $2 in this way directly via its sql tag if passed as values.
-    // However, if needed, we can implement a basic wrapper. 
-    // Most code uses the sql template literal.
-    return { rows: await sql(text, ...(params || [])) };
+    // Note: Use the safely wrapped sql as a function here
+    const results = await sql(text, ...(params || []));
+    return { rows: results };
 };
 
 

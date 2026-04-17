@@ -11,6 +11,20 @@ interface AdminSidebarProps {
     mobileOpen?: boolean;
 }
 
+interface SidebarSubItem {
+    id: string;
+    label: string;
+}
+
+interface SidebarItem {
+    id: string;
+    icon: string;
+    label: string;
+    special?: boolean;
+    onClick?: () => void;
+    subItems?: SidebarSubItem[];
+}
+
 export default function AdminSidebar({
     onLogout,
     userRole = 'accountant',
@@ -20,7 +34,7 @@ export default function AdminSidebar({
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const menuItems = [
+    const menuItems: SidebarItem[] = [
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
         {
             id: "featured-manage",
@@ -53,6 +67,7 @@ export default function AdminSidebar({
             subItems: [
                 { id: "purchase-dashboard", label: "Dashboard" },
                 { id: "purchase-history", label: "Purchase Lots" },
+                { id: "purchase-lot-inventory", label: "Purchase Lot Inventory" },
                 { id: "suppliers", label: "Suppliers Manage" }
             ]
         },
@@ -64,7 +79,7 @@ export default function AdminSidebar({
                 { id: "inventory-dashboard", label: "Inventory Dashboard" },
                 { id: "add-product", label: "Add E-Comm Product" },
                 { id: "products-list", label: "E-Comm Products List" },
-                { id: "inventory-qc", label: "Inventory QC List" },
+                { id: "inventory-qc", label: "Master Inventory" },
                 { id: "inventory-drops", label: "Dropdown Manage" }
             ]
         },
@@ -77,7 +92,9 @@ export default function AdminSidebar({
                 { id: "production-inventory-qc", label: "Inventory QC Checking" },
                 { id: "production-model-checking", label: "Model Checking" },
                 { id: "production-reprint", label: "Reprint Barcode" },
-                { id: "production-sale-out", label: "Sale Out" }
+                { id: "production-sale-out", label: "Sale Out" },
+                { id: "production-sales-return", label: "Sales Return" },
+                { id: "production-sticker-printing", label: "Sticker Printing" }
             ]
         },
         {
@@ -108,10 +125,20 @@ export default function AdminSidebar({
                 { id: "combined-all", label: "All Bills" },
                 { id: "receipts-all", label: "All Receipts" },
                 { id: "receipts-new", label: "Create Receipt" },
-                //{ id: "invoicing-all", label: "All Invoice" },
                 { id: "invoicing-create", label: "Create Invoice" },
-                //{ id: "quotations-all", label: "All Proforma Invoices" },
                 { id: "quotations-create", label: "Create Proforma Invoice" }
+            ]
+        },
+        {
+            id: "accounting",
+            icon: "fa-book-open",
+            label: "Accounting",
+            subItems: [
+                { id: "accounting-dashboard", label: "Dashboard" },
+                { id: "accounting-cashbook", label: "Cash Book" },
+                { id: "accounting-statements", label: "Financial Statements" },
+                { id: "accounting-lots", label: "Lot Management" },
+                { id: "accounting-settings", label: "Settings" }
             ]
         },
         {
@@ -212,22 +239,14 @@ export default function AdminSidebar({
             'orders-returns': '/bch/Order/return',
             'customers-all': '/bch/customers',
             'customers-groups': '/bch/customers',
-            'accounts-dashboard': '/bch/accounts',
-            'accounts-items': '/bch/accounts',
-            'accounts-sales': '/bch/accounts',
-            'accounts-purchases': '/bch/accounts',
-            'accounts-reports': '/bch/accounts',
-            'reports-sales': '/bch/reports',
             'invoicing-dashboard': '/bch/billing/dashboard',
             'combined-all': '/bch/billing/allbills',
             'invoicing-all': '/bch/billing/allbills',
             'invoicing-create': '/bch/billing/newinvoices',
             'quotations-all': '/bch/billing/allbills',
             'quotations-create': '/bch/billing/newqoutations',
-            'payments-all': '/bch/billing/allreceipts',
             'receipts-all': '/bch/billing/allreceipts',
             'receipts-new': '/bch/billing/newreceipts',
-            'invoices-return': '/bch/billing/returns',
             'users-all': '/bch/users',
             'users-roles': '/bch/users',
             'production-dashboard': '/bch/production?section=production-dashboard',
@@ -236,22 +255,24 @@ export default function AdminSidebar({
             'production-model-checking': '/bch/production/modelchecking',
             'production-reprint': '/bch/production/reprintBarcode',
             'production-sale-out': '/bch/inventory/soldout',
-            'production-projects': '/bch/production?section=production-projects',
-            'production-tasks': '/bch/production?section=production-tasks',
+            'production-sales-return': '/bch/inventory/sales-return',
+            'production-sticker-printing': '/bch/production/stickerprinting',
             'inventory-dashboard': '/bch/inventory/inventorydashboard',
             'products-list': '/bch/inventory/ecommproductlist',
-            'inventory-pricing': '/bch/inventory?section=inventory-pricing',
             'add-product': '/bch/inventory/addecommproduct',
-            'purchase-lots-list': '/bch/purchases/purchaselot',
-            'inventory-qc': '/bch/inventory/inventoryqclist',
+            'inventory-qc': '/bch/inventory/masterinventory',
             'inventory-drops': '/bch/inventory/dropdownManage',
             'purchase-dashboard': '/bch/purchases/Dashboard',
             'purchase-history': '/bch/purchases/purchaselot',
-            'purchase-import-full': '/bch/purchase?section=purchase-import-full',
+            'purchase-lot-inventory': '/bch/purchases/inventory',
             'suppliers': '/bch/purchases/suppliersmanage',
             'packing-dashboard': '/bch/packing/packingdashboard',
             'packing-v2': '/bch/packing/packing',
-            'email-inbox': '/bch/email'
+            'accounting-dashboard': '/bch/accounting/dashboard',
+            'accounting-cashbook': '/bch/accounting/cashbook',
+            'accounting-statements': '/bch/accounting/statements',
+            'accounting-lots': '/bch/accounting/lots',
+            'accounting-settings': '/bch/accounting/settings',
         };
 
         const target = routeMap[sub.id] || `/bch/${sub.id.replace(/-/g, '/')}`;
@@ -275,6 +296,7 @@ export default function AdminSidebar({
             'inventory': '/bch/inventory',
             'packing': '/bch/packing',
             'product-pricing': '/bch/pricing',
+            'accounting': '/bch/accounting/dashboard',
             'database': '/bch/database',
             'auto-refresh': '/bch/autorefresh'
         };
@@ -295,8 +317,10 @@ export default function AdminSidebar({
     };
 
     const displayedItems = menuItems.filter(item => {
+        if (item.id === 'mobile-accounts') return true;
+
         if (userRole?.toLowerCase() === 'accountant') {
-            return ['dashboard', 'orders', 'invoicing'].includes(item.id);
+            return ['dashboard', 'orders', 'invoicing', 'accounting', 'accounts'].includes(item.id);
         }
 
         if (['user-passwords', 'activity-log'].includes(item.id)) {
@@ -337,6 +361,7 @@ export default function AdminSidebar({
             'packing': '/bch/packing',
             'inventory': '/bch/inventory',
             'product-pricing': '/bch/pricing',
+            'accounting': '/bch/accounting',
             'database': '/bch/database',
             'auto-refresh': '/bch/autorefresh'
         };
@@ -344,55 +369,11 @@ export default function AdminSidebar({
         if (pathname === targetRoute) return true;
 
         if (item.subItems) {
-            const subRouteMap: Record<string, string> = {
-                'orders-all': '/bch/Order/dashboard',
-                'orders-create': '/bch/Order/createorder',
-                'orders-returns': '/bch/Order/return',
-                'customers-all': '/bch/customers',
-                'customers-groups': '/bch/customers',
-                'accounts-dashboard': '/bch/accounts',
-                'accounts-items': '/bch/accounts',
-                'accounts-sales': '/bch/accounts',
-                'accounts-purchases': '/bch/accounts',
-                'accounts-reports': '/bch/accounts',
-                'reports-sales': '/bch/reports',
-                'invoicing-dashboard': '/bch/billing/dashboard',
-                'combined-all': '/bch/billing/allbills',
-                'invoicing-all': '/bch/billing/allbills',
-                'invoicing-create': '/bch/billing/newinvoices',
-                'payments-all': '/bch/billing/allreceipts',
-                'receipts-all': '/bch/billing/allreceipts',
-                'receipts-new': '/bch/billing/newreceipts',
-                'invoices-return': '/bch/billing/returns',
-                'users-all': '/bch/users',
-                'users-roles': '/bch/users',
-                'production-dashboard': '/bch/production?section=production-dashboard',
-                'production-qc': '/bch/production/productionqcchecking',
-                'production-inventory-qc': '/bch/production/inventoryqcchecking',
-                'production-model-checking': '/bch/production/modelchecking',
-                'production-packing': '/bch/production?section=production-packing',
-                'production-reprint': '/bch/production/reprintBarcode',
-                'production-sale-out': '/bch/inventory/soldout',
-                'production-projects': '/bch/production?section=production-projects',
-                'production-tasks': '/bch/production?section=production-tasks',
-                'inventory-dashboard': '/bch/inventory/inventorydashboard',
-                'products-list': '/bch/inventory/ecommproductlist',
-                'inventory-pricing': '/bch/inventory?section=inventory-pricing',
-                'add-product': '/bch/inventory/addecommproduct',
-                'inventory-qc': '/bch/inventory/inventoryqclist',
-                'inventory-drops': '/bch/inventory/dropdownManage',
-                'purchase-dashboard': '/bch/purchases/Dashboard',
-                'purchase-history': '/bch/purchases/purchaselot',
-                'purchase-import': '/bch/purchase?section=purchase-lots-import',
-                'purchase-import-full': '/bch/purchase?section=purchase-import-full',
-                'suppliers': '/bch/purchases/suppliersmanage',
-                'packing-dashboard': '/bch/packing/packingdashboard',
-                'packing-v2': '/bch/packing/packing',
-            };
             const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
             return item.subItems.some((sub: any) => {
-                const target = subRouteMap[sub.id] || `/bch/${sub.id.replace(/-/g, '/')}`;
-                return currentFullUrl === target || (pathname === target && !searchParams.toString());
+                const subTarget = `/bch/${sub.id.replace(/-/g, '/')}`; // Generic fallback
+                // Check if the current path matches any of the sub-item logic
+                return currentFullUrl.includes('/bch/accounts') && item.id === 'accounts';
             });
         }
         return false;
@@ -417,19 +398,19 @@ export default function AdminSidebar({
                 <div className="menu-label">MAIN MENU</div>
                 {displayedItems.map((item) => {
                     const isActive = isMainItemActive(item);
-                    const isExpanded = expandedMenus.includes(item.id);
+                    const isExpandedFlag = expandedMenus.includes(item.id);
 
                     return (
-                        <div key={item.id} className="nav-item-wrapper">
+                        <div key={item.id} className={`nav-item-wrapper ${item.special ? 'special-nav-item' : ''}`}>
                             <Link
-                                href={handleMainItemClick(item, true) || '#'}
+                                href={item.special ? '#' : (handleMainItemClick(item, true) || '#')}
                                 className={`nav-item ${isActive ? "active" : ""}`}
-                                onMouseEnter={() => {
-                                    handleMouseEnter();
-                                    const target = handleMainItemClick(item, true);
-                                    if (target && target !== '#') router.prefetch(target);
-                                }}
                                 onClick={(e) => {
+                                    if (item.special && (item as any).onClick) {
+                                        e.preventDefault();
+                                        (item as any).onClick();
+                                        return;
+                                    }
                                     const target = handleMainItemClick(item, true);
                                     if (item.subItems) {
                                         e.preventDefault();
@@ -440,72 +421,26 @@ export default function AdminSidebar({
                                     }
                                 }}
                             >
-                                <i className={`${item.icon.includes('fab') ? '' : 'fas'} ${item.icon}`}></i>
+                                <i className={`fas ${item.icon}`}></i>
                                 <span className="nav-text">{item.label}</span>
                                 {item.subItems && (
-                                    <i className={`fas fa-chevron-right dropdown-arrow ${isExpanded ? 'rotated' : ''}`}></i>
+                                    <i className={`fas fa-chevron-right dropdown-arrow ${isExpandedFlag ? 'rotated' : ''}`}></i>
                                 )}
                             </Link>
 
                             {item.subItems && (
-                                <div className={`sub-menu ${isExpanded ? 'expanded' : ''}`}>
+                                <div className={`sub-menu ${isExpandedFlag ? 'expanded' : ''}`}>
                                     {item.subItems.map((sub: any) => {
-                                        const subRouteMap: Record<string, string> = {
-                                            'orders-all': '/bch/Order/dashboard',
-                                            'orders-create': '/bch/Order/createorder',
-                                            'orders-returns': '/bch/Order/return',
-                                            'customers-all': '/bch/customers',
-                                            'customers-groups': '/bch/customers',
-                                            'accounts-dashboard': '/bch/accounts',
-                                            'accounts-items': '/bch/accounts',
-                                            'accounts-sales': '/bch/accounts',
-                                            'accounts-purchases': '/bch/accounts',
-                                            'accounts-reports': '/bch/accounts',
-                                            'reports-sales': '/bch/reports',
-                                            'invoicing-new': '/bch/billing/newinvoices',
-                                            'quotations-new': '/bch/billing/newqoutations',
-                                            'payments-all': '/bch/billing/allreceipts',
-                                            'receipts-all': '/bch/billing/allreceipts',
-                                            'receipts-new': '/bch/billing/newreceipts',
-                                            'invoices-return': '/bch/billing/returns',
-                                            'users-all': '/bch/users',
-                                            'users-roles': '/bch/users',
-                                            'production-dashboard': '/bch/production?section=production-dashboard',
-                                            'production-qc': '/bch/production/productionqcchecking',
-                                            'production-inventory-qc': '/bch/production/inventoryqcchecking',
-                                            'production-model-checking': '/bch/production/modelchecking',
-                                            'production-packing': '/bch/production?section=production-packing',
-                                            'production-reprint': '/bch/production/reprintBarcode',
-                                            'production-sale-out': '/bch/inventory/soldout',
-                                            'production-projects': '/bch/production?section=production-projects',
-                                            'production-tasks': '/bch/production?section=production-tasks',
-                                            'inventory-dashboard': '/bch/inventory/inventorydashboard',
-                                            'products-list': '/bch/inventory/ecommproductlist',
-                                            'inventory-pricing': '/bch/inventory?section=inventory-pricing',
-                                            'add-product': '/bch/inventory/addecommproduct',
-                                            'inventory-qc': '/bch/inventory/inventoryqclist',
-                                            'inventory-drops': '/bch/inventory/dropdownManage',
-                                            'purchase-dashboard': '/bch/purchases/Dashboard',
-                                            'purchase-history': '/bch/purchases/purchaselot',
-                                            'purchase-import': '/bch/purchase?section=purchase-lots-import',
-                                            'purchase-import-full': '/bch/purchase?section=purchase-import-full',
-                                            'suppliers': '/bch/purchases/suppliersmanage',
-                                        };
+                                        const target = handleSubItemClick(sub, true);
                                         const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-                                        const target = subRouteMap[sub.id] || `/bch/${sub.id.replace(/-/g, '/')}`;
                                         const isSubActive = currentFullUrl === target || (pathname === target && !searchParams.toString());
 
                                         return (
                                             <Link
                                                 key={sub.id}
-                                                href={handleSubItemClick(sub, true) || '#'}
+                                                href={target || '#'}
                                                 className={`sub-nav-item ${isSubActive ? "active" : ""}`}
-                                                onMouseEnter={() => {
-                                                    const target = handleSubItemClick(sub, true);
-                                                    if (target && target !== '#') router.prefetch(target);
-                                                }}
                                                 onClick={(e) => {
-                                                    const target = handleSubItemClick(sub, true);
                                                     if (target && (pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')) === target) {
                                                         e.preventDefault();
                                                         window.location.reload();
@@ -533,7 +468,6 @@ export default function AdminSidebar({
                     {isExpanded && <span className="toggle-text">{isCollapsed ? 'Expand' : 'Collapse'}</span>}
                 </button>
             </div>
-
         </aside>
     );
 }

@@ -60,6 +60,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             RETURNING *
         ` as unknown as any[];
 
+        const orderId = newOrder[0].id;
+
+        // Stock Deduction Logic
+        if (Array.isArray(body.items)) {
+            for (const item of body.items) {
+                if (item.product_code) {
+                    if (item.source === 'QC Passed') {
+                        await sql`
+                            UPDATE master_inventory 
+                            SET quantity = quantity - ${Number(item.quantity || 1)}
+                            WHERE sku = ${item.product_code} OR barcode = ${item.product_code}
+                        `;
+                    } else if (item.source === 'Purchase') {
+                        await sql`
+                            UPDATE purchase_lot_items 
+                            SET quantity = quantity - ${Number(item.quantity || 1)}
+                            WHERE sku = ${item.product_code}
+                        `;
+                    }
+                }
+            }
+        }
+
         await logActivity(
             'Admin',
             'Create Order',

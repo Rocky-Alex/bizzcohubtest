@@ -68,7 +68,7 @@ export async function GET(req: Request): Promise<NextResponse> {
             // Search by SKU (product_code)
             const rows = await sql`SELECT * FROM products WHERE product_code = ${sku}`;
             if (rows.length === 0) {
-                return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+                return NextResponse.json(null); // Return null instead of 404 to avoid console error noise
             }
             return NextResponse.json(rows[0]);
         }
@@ -83,7 +83,7 @@ export async function GET(req: Request): Promise<NextResponse> {
             if (fuzzy.length > 0) {
                 return NextResponse.json(fuzzy[0]);
             }
-            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+            return NextResponse.json(null); // Return null instead of 404 to avoid console error noise
         }
 
         const products = await sql`SELECT * FROM products ORDER BY date_added DESC LIMIT 50` as unknown as DatabaseProduct[];

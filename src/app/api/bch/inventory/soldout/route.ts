@@ -16,6 +16,12 @@ async function ensureTable() {
             model VARCHAR,
             series VARCHAR,
             product_name VARCHAR,
+            processor VARCHAR,
+            processor_gen VARCHAR,
+            ram VARCHAR,
+            storage VARCHAR,
+            graphics VARCHAR,
+            has_ac VARCHAR,
             qty_sold INTEGER NOT NULL DEFAULT 1,
             sold_by VARCHAR DEFAULT 'Admin',
             invoice_no VARCHAR,
@@ -26,12 +32,20 @@ async function ensureTable() {
     `;
     // Add columns if they don't exist (for existing tables)
     try {
-        await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS purchase_lot_item_id INTEGER`;
-        await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS source VARCHAR DEFAULT 'master'`;
-        await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS invoice_no VARCHAR`;
-        await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS customer_name VARCHAR`;
+        const queries = [
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS purchase_lot_item_id INTEGER`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS source VARCHAR DEFAULT 'master'`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS invoice_no VARCHAR`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS customer_name VARCHAR`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS processor VARCHAR`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS processor_gen VARCHAR`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS ram VARCHAR`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS storage VARCHAR`,
+            sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS graphics VARCHAR`
+        ];
+        await Promise.all(queries);
     } catch (e) {
-        // ignore if already exists
+        // ignore if errors occur during alter
     }
 }
 
@@ -119,7 +133,8 @@ export async function POST(request: NextRequest) {
             try {
                 if (isMaster) {
                     const rows = await sql`
-                        SELECT id, barcode, lot_number, brand, model, series, product_name, quantity
+                        SELECT id, barcode, lot_number, brand, model, series, product_name, quantity,
+                               processor, processor_gen, ram, storage, graphics_card as graphics
                         FROM master_inventory WHERE id = ${id}
                     ` as unknown as any[];
                     if (rows.length === 0) { errors.push(`Master item #${id} not found`); continue; }
@@ -127,7 +142,8 @@ export async function POST(request: NextRequest) {
                 } else {
                     const rows = await sql`
                         SELECT pli.id, pl.lot_number, pli.brand, pli.model, pli.series,
-                                pli.product_name, pli.quantity
+                                pli.product_name, pli.quantity,
+                                pli.processor, pli.processor_gen, pli.ram, pli.storage, pli.graphics
                         FROM purchase_lot_items pli
                         JOIN purchase_lots pl ON pli.lot_id = pl.id
                         WHERE pli.id = ${id}
@@ -147,6 +163,7 @@ export async function POST(request: NextRequest) {
                     INSERT INTO sale_out (
                         master_inventory_id, purchase_lot_item_id, source,
                         barcode, lot_number, brand, model, series, product_name,
+                        processor, processor_gen, ram, storage, graphics, has_ac,
                         qty_sold, sold_by, invoice_no, customer_name, notes, sold_at
                     ) VALUES (
                         ${isMaster ? item.id : null},
@@ -158,6 +175,12 @@ export async function POST(request: NextRequest) {
                         ${item.model || ''},
                         ${item.series || ''},
                         ${item.product_name || ''},
+                        ${item.processor || ''},
+                        ${item.processor_gen || ''},
+                        ${item.ram || ''},
+                        ${item.storage || ''},
+                        ${item.graphics || ''},
+                        ${saleItem.hasAc || 'Not Specified'},
                         ${qtySold},
                         ${soldBy || 'Admin'},
                         ${invoiceNo || null},

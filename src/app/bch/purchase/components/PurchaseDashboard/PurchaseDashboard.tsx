@@ -18,13 +18,16 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
         finishedQC: 0,
         topSuppliers: [] as { name: string, total: number }[],
         recentLots: [] as any[],
+        lastUpdated: '',
         trends: {
             spend: 0
         }
     });
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const fetchStats = useCallback(async () => {
+    const fetchStats = useCallback(async (isAuto = false) => {
+        if (isAuto) setIsRefreshing(true);
         try {
             const response = await fetch('/api/bch/purchase/stats', { cache: 'no-store' });
             if (response.ok) {
@@ -41,6 +44,9 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
             console.error('Network Error:', error);
         } finally {
             setLoading(false);
+            if (isAuto) {
+                setTimeout(() => setIsRefreshing(false), 1000);
+            }
         }
     }, []);
 
@@ -48,7 +54,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
         fetchStats();
     }, [fetchStats]);
 
-    useAutoRefresh(fetchStats);
+    useAutoRefresh(() => fetchStats(true));
 
     const renderTrend = (value: number) => {
         if (!value) return (
@@ -74,8 +80,39 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
 
     return (
         <div className="billing-dashboard-container">
-            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>Purchase Dashboard</h2>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                        <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Purchase Dashboard</h2>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#ecfdf5',
+                            color: '#10b981',
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.5px'
+                        }}>
+                            <span style={{
+                                width: '6px',
+                                height: '6px',
+                                borderRadius: '50%',
+                                background: '#10b981',
+                                display: 'inline-block',
+                                animation: 'pulse-green 2s infinite'
+                            }}></span>
+                            LIVE
+                        </div>
+                    </div>
+                    {stats.lastUpdated && (
+                        <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
+                            Last updated: {new Date(stats.lastUpdated).toLocaleTimeString()}
+                        </p>
+                    )}
+                </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
                         onClick={() => setActiveSection('purchase-lots-import')}
@@ -86,10 +123,26 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                 </div>
             </div>
 
+            <style>{`
+                @keyframes pulse-green {
+                    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+                    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+                }
+                .refresh-pulse {
+                    animation: card-pulse 1s ease-out;
+                }
+                @keyframes card-pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.02); background-color: #f0f9ff; }
+                    100% { transform: scale(1); }
+                }
+            `}</style>
+
             {/* Stats Overview */}
             <div className="billing-stats-grid">
                 {/* Total Spend */}
-                <div className="billing-stat-card">
+                <div className={`billing-stat-card ${isRefreshing ? 'refresh-pulse' : ''}`}>
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
                             <i className="fas fa-money-bill-wave"></i>
@@ -102,7 +155,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                 </div>
 
                 {/* Monthly Spend */}
-                <div className="billing-stat-card">
+                <div className={`billing-stat-card ${isRefreshing ? 'refresh-pulse' : ''}`}>
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
                             <i className="fas fa-calendar-alt"></i>
@@ -116,7 +169,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                 </div>
 
                 {/* Total Lots */}
-                <div className="billing-stat-card">
+                <div className={`billing-stat-card ${isRefreshing ? 'refresh-pulse' : ''}`}>
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#f97316' }}>
                             <i className="fas fa-truck-loading"></i>
@@ -129,7 +182,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                 </div>
 
                 {/* Total Items */}
-                <div className="billing-stat-card">
+                <div className={`billing-stat-card ${isRefreshing ? 'refresh-pulse' : ''}`}>
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
                             <i className="fas fa-truck-loading"></i>
@@ -142,7 +195,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                 </div>
 
                 {/* Items Pending QC */}
-                <div className="billing-stat-card">
+                <div className={`billing-stat-card ${isRefreshing ? 'refresh-pulse' : ''}`}>
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
                             <i className="fas fa-tasks"></i>
@@ -155,7 +208,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                 </div>
 
                 {/* items Finished QC */}
-                <div className="billing-stat-card">
+                <div className={`billing-stat-card ${isRefreshing ? 'refresh-pulse' : ''}`}>
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
                             <i className="fas fa-check-circle"></i>

@@ -34,7 +34,7 @@ export async function GET(request: Request) {
             const idPart = cleanBarcode.replace('BCH-', '');
             const seqNum = parseInt(idPart);
             if (!isNaN(seqNum)) {
-                const derivedId = seqNum - 1000;
+                const derivedId = seqNum - 999;
                 if (derivedId > 0) {
                     results = await sql`SELECT * FROM master_inventory WHERE id = ${derivedId} LIMIT 1` as any[];
                 }

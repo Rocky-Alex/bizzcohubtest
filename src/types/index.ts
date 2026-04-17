@@ -95,6 +95,8 @@ export interface DatabaseProduct {
     colors?: string;
     ram_variants?: string;
     storage_variants?: string;
+    lot_number?: string;
+    source?: 'QC Passed' | 'Purchase';
 }
 
 export interface ProductFormData {

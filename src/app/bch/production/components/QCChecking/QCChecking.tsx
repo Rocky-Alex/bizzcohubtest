@@ -117,12 +117,14 @@ export default function QCChecking() {
     const [selectedLotId, setSelectedLotId] = useState<string>('');
     const [lotItems, setLotItems] = useState<PurchaseLotItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<PurchaseLotItem | null>(null);
+    const [lotStats, setLotStats] = useState({ totalItems: 0, totalChecked: 0 });
 
     const [productDetails, setProductDetails] = useState<ProductDetails | null>(null);
     const [loadingLots, setLoadingLots] = useState(true);
     const [loadingItems, setLoadingItems] = useState(false);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const [resultMessage, setResultMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Print Modal State
@@ -261,8 +263,8 @@ export default function QCChecking() {
         }));
     }, [lotItems]);
 
-    const totalItemsInLot = useMemo(() => lotItems.reduce((acc, item) => acc + item.quantity, 0), [lotItems]);
-    const totalCheckedInLot = useMemo(() => lotItems.reduce((acc, item) => acc + (item.qcCount || 0), 0), [lotItems]);
+    const totalItemsInLot = lotStats.totalItems;
+    const totalCheckedInLot = lotStats.totalChecked;
     const progressPercent = useMemo(() => totalItemsInLot > 0 ? Math.round((totalCheckedInLot / totalItemsInLot) * 100) : 0, [totalItemsInLot, totalCheckedInLot]);
 
 
@@ -302,20 +304,27 @@ export default function QCChecking() {
     }, [formData.brand, formData.series, laptopModelsList]);
 
 
-    const fetchLotItems = async (id: string) => {
-        setLoadingItems(true);
+    const fetchLotItems = async (id: string, isManualRefresh: boolean = false) => {
+        if (isManualRefresh) setRefreshing(true);
+        else setLoadingItems(true);
         try {
-            const response = await fetch(`/api/bch/purchase/lots/details?id=${id}`, { cache: 'no-store' });
+            const response = await fetch(`/api/bch/purchase/lots/details?id=${id}&pendingOnly=true&_=${Date.now()}`, { cache: 'no-store' });
             const data = await response.json();
             if (data.success && data.lot) {
                 setLotItems(data.lot.items || []);
+                setLotStats({
+                    totalItems: data.lot.totalItems || 0,
+                    totalChecked: data.lot.totalChecked || 0
+                });
             } else {
                 setLotItems([]);
+                setLotStats({ totalItems: 0, totalChecked: 0 });
             }
         } catch (error) {
             console.error('Error fetching lot items:', error);
         } finally {
             setLoadingItems(false);
+            setRefreshing(false);
         }
     };
 
@@ -410,6 +419,18 @@ export default function QCChecking() {
         });
     };
 
+    const resetSelection = () => {
+        setSelectedItem(null);
+        setProductDetails(null);
+        setFormData({});
+        setEditableFields({});
+    };
+
+    const handleNextPiece = () => {
+        setShowPrintModal(false);
+        resetSelection();
+    };
+
     // Modified handleSubmit
     const handleSubmit = async () => {
         if (!selectedLotId || !selectedItem) {
@@ -469,8 +490,8 @@ export default function QCChecking() {
                 const responseData = await res.json();
                 setResultMessage({ type: 'success', text: 'Item Moved to Inventory! ✅' });
 
-                // Calculate serial/barcode (using the ID we just updated)
-                const seqNumber = 1000 + responseData.newMasterItemId; // Assuming newMasterItemId is returned
+                // Calculate serial/barcode (using the ID we just updated) - Consistent with backend 999 offset
+                const seqNumber = 999 + responseData.newMasterItemId; 
                 const barcodeVal = `BCH-${seqNumber}`;
 
                 const selectedLot = lots.find(l => l.id.toString() === selectedLotId);
@@ -483,9 +504,19 @@ export default function QCChecking() {
                     generatedId: `List-${selectedLotId}-${stagingItemId}`
                 });
                 setShowPrintModal(true);
-
                 setEditableFields({});
-                fetchLotItems(selectedLotId); // Refresh to update list and remove the processed ID from pending
+
+                // Optimistic UI Update: Immediately increment qcCount for the processed item
+                // This ensures the progress bar and dropdown labels update without waiting for fetchLotItems
+                setLotItems(prev => prev.map(item => 
+                    item.itemId === stagingItemId ? { ...item, qcCount: (Number(item.qcCount) || 0) + 1 } : item
+                ));
+                setLotStats(prev => ({ ...prev, totalChecked: prev.totalChecked + 1 }));
+
+                // Small delay to ensure DB transaction is completed before refetching
+                setTimeout(() => {
+                    fetchLotItems(selectedLotId); 
+                }, 1000);
             } else {
                 const err = await res.json();
                 console.error("QC Submit Error:", err);
@@ -766,7 +797,18 @@ export default function QCChecking() {
                         </div>
                         <div style={{ width: '1px', height: '50px', background: 'rgba(255,255,255,0.1)' }}></div>
                         <div>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.1em' }}>QC Progress</div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                QC Progress
+                                <button 
+                                    onClick={() => fetchLotItems(selectedLotId, true)}
+                                    title="Refresh Stats"
+                                    style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', transition: 'transform 0.2s' }}
+                                    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
+                                    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    <i className={`fas fa-sync-alt ${refreshing ? 'fa-spin' : ''}`} style={{ fontSize: '0.65rem' }}></i>
+                                </button>
+                            </div>
                             <div style={{ fontSize: '1.25rem', fontWeight: 900 }}>
                                 {totalCheckedInLot} <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>/</span> {totalItemsInLot}
                                 <span style={{ fontSize: '0.85rem', background: '#10b981', color: 'white', padding: '3px 10px', borderRadius: '100px', marginLeft: '0.75rem' }}>{progressPercent}%</span>
@@ -779,13 +821,13 @@ export default function QCChecking() {
                             <span style={{ color: '#94a3b8' }}>Completion Rate</span>
                             <span style={{ color: '#3b82f6' }}>{progressPercent}%</span>
                         </div>
-                        <div style={{ height: '8px', width: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden', padding: '2px' }}>
+                        <div style={{ height: '8px', width: '100%', background: 'rgba(255,255,255,0.2)', borderRadius: '100px', overflow: 'hidden', padding: '1px', border: '1px solid rgba(255,255,255,0.1)' }}>
                             <div style={{
                                 height: '100%',
                                 width: `${progressPercent}%`,
                                 background: 'linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%)',
                                 borderRadius: '100px',
-                                boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)',
+                                boxShadow: '0 0 15px rgba(59, 130, 246, 0.6)',
                                 transition: 'width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)'
                             }}></div>
                         </div>
@@ -1132,14 +1174,20 @@ export default function QCChecking() {
                     backgroundColor: 'rgba(15, 23, 42, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
                     backdropFilter: 'blur(10px)'
                 }}>
-                    <div style={{ background: 'white', padding: '3rem', borderRadius: '32px', width: '700px', maxWidth: '95%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+                    <div style={{ background: 'white', padding: '3rem', borderRadius: '32px', width: '700px', maxWidth: '95%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', position: 'relative' }}>
+                        <button 
+                            onClick={() => {
+                                setShowPrintModal(false);
+                                resetSelection();
+                            }} 
+                            style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', transition: 'all 0.2s' }}
+                        >
+                            <i className="fas fa-times"></i>
+                        </button>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                             <div>
                                 <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>Label Generated</h3>
                                 <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Preview your item label and QR code below.</p>
-                            </div>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={() => setShowPrintModal(false)}>
-                                <i className="fas fa-times" style={{ color: '#64748b' }}></i>
                             </div>
                         </div>
 
@@ -1295,6 +1343,24 @@ export default function QCChecking() {
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button
+                                    onClick={handleNextPiece}
+                                    style={{ 
+                                        padding: '1rem 2rem', 
+                                        borderRadius: '16px', 
+                                        border: '2px solid #3b82f6', 
+                                        background: '#eff6ff', 
+                                        color: '#3b82f6', 
+                                        cursor: 'pointer', 
+                                        fontWeight: 700, 
+                                        fontSize: '1rem',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.background = '#dbeafe'}
+                                    onMouseOut={(e) => e.currentTarget.style.background = '#eff6ff'}
+                                >
+                                    QC Next Piece
+                                </button>
                                 <button
                                     onClick={() => setShowPrintModal(false)}
                                     style={{ padding: '1rem 2rem', borderRadius: '16px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}

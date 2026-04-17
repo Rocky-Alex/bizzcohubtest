@@ -21,9 +21,10 @@ export default function AdminLayout({
     const router = useRouter();
     const pathname = usePathname();
 
-    const [isAuthenticated, setIsAuthenticated] = useState(true); // Temporarily true for "pause auth"
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState("accountant");
     const [username, setUsername] = useState("Admin");
+    const [isAccountingMode, setIsAccountingMode] = useState(false);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     // Modal State for global use (like Logout)
@@ -37,44 +38,56 @@ export default function AdminLayout({
     });
 
     useEffect(() => {
+        // Check for persisted accounting mode
+        const savedMode = sessionStorage.getItem('bch_accounting_mode');
+        if (savedMode === 'true') {
+            setIsAccountingMode(true);
+        }
+
+        const handleModeSwitch = (e: any) => {
+            const mode = e.detail?.mode;
+            setIsAccountingMode(mode);
+            sessionStorage.setItem('bch_accounting_mode', String(mode));
+            if (!mode) {
+                router.push('/bch/dashboard');
+            }
+        };
+
+        window.addEventListener('bch-switch-accounting-mode', handleModeSwitch);
+        return () => window.removeEventListener('bch-switch-accounting-mode', handleModeSwitch);
+    }, [router]);
+
+    useEffect(() => {
         const checkAuth = async () => {
+            if (pathname === '/bch/login') return;
+            
             try {
                 const response = await fetch('/api/auth/session');
                 if (response.ok) {
                     const data = await response.json();
 
-                    const isSessionActive = sessionStorage.getItem('admin_authenticated');
-
                     if (data.authenticated) {
-                        // Regular flow if already authenticated
                         setIsAuthenticated(true);
                         setUserRole(data.role || 'admin');
                         setUsername(data.user?.name || 'Admin');
+                        sessionStorage.setItem('admin_authenticated', 'true');
                     } else {
-                        // If not authenticated via API, we still allow it because auth is "paused"
-                        // But we ensure we have some dummy user data for the UI
-                        setIsAuthenticated(true);
-                        if (!sessionStorage.getItem('admin_authenticated')) {
-                            sessionStorage.setItem('admin_authenticated', 'true');
-                            localStorage.setItem('admin_user', JSON.stringify({
-                                id: 1,
-                                username: 'admin',
-                                role: 'admin',
-                                name: 'Admin (Bypass)'
-                            }));
-                        }
+                        setIsAuthenticated(false);
+                        sessionStorage.removeItem('admin_authenticated');
+                        router.push('/bch/login');
                     }
                 } else {
-                    // Fail-safe: auth is paused, so stay authenticated
-                    setIsAuthenticated(true);
+                    setIsAuthenticated(false);
+                    router.push('/bch/login');
                 }
             } catch (error) {
-                console.error("Auth check failed, but auth is paused", error);
-                setIsAuthenticated(true);
+                console.error("Auth check failed:", error);
+                setIsAuthenticated(false);
+                router.push('/bch/login');
             }
         };
         checkAuth();
-    }, [router]);
+    }, [router, pathname]);
 
     useEffect(() => {
         setIsMobileSidebarOpen(false);
@@ -95,6 +108,7 @@ export default function AdminLayout({
         try {
             await fetch('/api/auth/logout', { method: 'POST' });
             sessionStorage.removeItem('admin_authenticated');
+            sessionStorage.removeItem('bch_accounting_mode');
             router.push('/bch/login');
         } catch (error) {
             console.error('Logout error:', error);
@@ -146,6 +160,26 @@ export default function AdminLayout({
 
     if (pathname === '/bch/login') {
         return <>{children}</>;
+    }
+
+    // Specialized Mobile Accounting View Silo
+    if (isAccountingMode) {
+        return (
+            <div className={`admin-container accounting-mode-active ${theme === 'dark' ? 'dark-theme' : ''}`}>
+                <main className="accounting-silo-content">
+                    {children}
+                </main>
+                <ConfirmModal
+                    isOpen={confirmModal.isOpen}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    type={confirmModal.type}
+                    onConfirm={confirmModal.onConfirm}
+                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    singleButton={confirmModal.singleButton}
+                />
+            </div>
+        );
     }
 
     return (

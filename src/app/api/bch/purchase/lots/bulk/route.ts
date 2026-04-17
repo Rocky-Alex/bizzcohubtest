@@ -57,7 +57,8 @@ export async function POST(req: Request): Promise<NextResponse> {
         let purchaseLotId: number | null = null;
         let insertedCount = 0;
 
-        // A. Insert into purchase_lots
+        // A. Insert into purchase_lots (Auto-IDs handled by DB)
+
         const lotInsertResult = await sql`
         INSERT INTO purchase_lots (
             lot_number, 
@@ -87,14 +88,11 @@ export async function POST(req: Request): Promise<NextResponse> {
         }
         purchaseLotId = lotInsertResult[0].id;
 
-        // B. Insert Items into purchase_lot_items
+        // B. Insert Items into purchase_lot_items (Auto-IDs handled by DB)
+
         for (const item of items) {
             const qty = parseInt(item.quantity) || 1;
-
             // We insert ONE row per product type with quantity, NOT expanded rows.
-            // The expansion happens during QC when moving to Master Inventory.
-            // This keeps the "Purchase Order" clean.
-
             await sql`
             INSERT INTO purchase_lot_items (
                 lot_id,

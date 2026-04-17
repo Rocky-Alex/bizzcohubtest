@@ -3,6 +3,7 @@ import { sql } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 import { logActivity } from '@/lib/activity-logger';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(req: Request): Promise<NextResponse> {
     try {
@@ -16,12 +17,13 @@ export async function GET(req: Request): Promise<NextResponse> {
 
         if (bchMatch) {
             const seqNum = parseInt(bchMatch[1]);
-            const id = seqNum - 1000; // Derived ID from barcode
+            const id = seqNum - 999; // Derived ID from barcode
 
             if (id > 0) {
                 items = await sql`
                     SELECT * FROM master_inventory 
                     WHERE id = ${id}
+                    AND NOT EXISTS (SELECT 1 FROM sale_out WHERE master_inventory_id = master_inventory.id AND returned_at IS NULL)
                 ` as unknown as any[];
 
                 if (!items || items.length === 0) {
@@ -29,6 +31,7 @@ export async function GET(req: Request): Promise<NextResponse> {
                     items = await sql`
                         SELECT * FROM master_inventory 
                         WHERE barcode ILIKE ${sku || search}
+                        AND NOT EXISTS (SELECT 1 FROM sale_out WHERE master_inventory_id = master_inventory.id AND returned_at IS NULL)
                         ORDER BY created_at DESC
                     ` as unknown as any[];
                 }
@@ -36,6 +39,7 @@ export async function GET(req: Request): Promise<NextResponse> {
                 items = await sql`
                     SELECT * FROM master_inventory 
                     WHERE barcode ILIKE ${sku || search}
+                    AND NOT EXISTS (SELECT 1 FROM sale_out WHERE master_inventory_id = master_inventory.id AND returned_at IS NULL)
                     ORDER BY created_at DESC
                 ` as unknown as any[];
             }
@@ -43,24 +47,46 @@ export async function GET(req: Request): Promise<NextResponse> {
             items = await sql`
                 SELECT * FROM master_inventory 
                 WHERE sku ILIKE ${sku}
+                AND NOT EXISTS (SELECT 1 FROM sale_out WHERE master_inventory_id = master_inventory.id)
                 ORDER BY created_at DESC
             ` as unknown as any[];
         } else if (search) {
             items = await sql`
                 SELECT * FROM master_inventory 
                 WHERE 
-                    product_name ILIKE ${'%' + search + '%'} OR
+                    (product_name ILIKE ${'%' + search + '%'} OR
                     barcode ILIKE ${'%' + search + '%'} OR
                     lot_number ILIKE ${'%' + search + '%'} OR
-                    sku ILIKE ${'%' + search + '%'}
+                    sku ILIKE ${'%' + search + '%'})
+                    AND NOT EXISTS (SELECT 1 FROM sale_out WHERE master_inventory_id = master_inventory.id AND returned_at IS NULL)
                 ORDER BY created_at DESC
             ` as unknown as any[];
         } else {
-            // Default list - maybe limit to recent?
+            // Default list - Optimized for Master Inventory (QC Passed) items only
             items = await sql`
-                SELECT * FROM master_inventory 
-                ORDER BY created_at DESC
-                LIMIT 100
+                SELECT 
+                    id, 
+                    lot_number, 
+                    product_name, 
+                    brand, 
+                    model, 
+                    series, 
+                    processor, 
+                    processor_gen, 
+                    ram, 
+                    storage, 
+                    graphics_card, 
+                    condition_status, 
+                    qc_status, 
+                    quantity, 
+                    sku, 
+                    barcode,
+                    'QC Passed' as "source",
+                    created_at,
+                    updated_at
+                FROM master_inventory 
+                WHERE NOT EXISTS (SELECT 1 FROM sale_out WHERE master_inventory_id = master_inventory.id AND returned_at IS NULL)
+                ORDER BY id DESC
             ` as unknown as any[];
         }
 
@@ -80,6 +106,7 @@ export async function POST(req: Request): Promise<NextResponse> {
             brand,
             model,
             series,
+            sku, // Added to resolve 'sku is not defined' error
             processor,
             processor_gen,
             ram,
@@ -97,7 +124,8 @@ export async function POST(req: Request): Promise<NextResponse> {
         // 1. Insert into master_inventory (The "Real" Inventory)
         const insertResult = await sql`
             INSERT INTO master_inventory (
-                lot_number, -- We should fetch the actual lot number if possible, or link via lotId
+                lot_number, 
+                sku,
                 product_name, brand, model, series,
                 processor, processor_gen, ram, storage, graphics_card, 
                 screen_size, screen_resolution,
@@ -106,7 +134,8 @@ export async function POST(req: Request): Promise<NextResponse> {
                 created_at, updated_at
             )
             VALUES (
-                (SELECT lot_number FROM purchase_lots WHERE id = ${lotId}), -- Fetch Lot Number dynamically
+                (SELECT lot_number FROM purchase_lots WHERE id = ${lotId}), 
+                ${sku || null},
                 ${productName}, ${brand || null}, ${model || null}, ${series || null},
                 ${processor || null}, ${processor_gen || null}, ${ram || null}, ${storage || null}, ${graphics_card || null},
                 ${screen_size || null}, ${screen_resolution || null},
@@ -119,27 +148,49 @@ export async function POST(req: Request): Promise<NextResponse> {
 
         if (insertResult && insertResult.length > 0) {
             const newMasterId = insertResult[0].id;
-            const barcode = `BCH-${1000 + newMasterId}`;
+            const barcode = `BCH-${999 + newMasterId}`;
 
-            // 2. Generate Barcode/SKU for the new Master Item
-            await sql`UPDATE master_inventory SET barcode = ${barcode}, sku = ${barcode} WHERE id = ${newMasterId}`;
+            // 2. Generate Barcode for the new Master Item (Preserve SKU)
+            await sql`UPDATE master_inventory SET barcode = ${barcode} WHERE id = ${newMasterId}`;
 
-            // 3. Update Staging Count (Increment qc_count)
+            // 3. Update Staging Count (Recalculate from Master Inventory for accuracy)
             if (purchaseLotItemId) {
                 await sql`
                     UPDATE purchase_lot_items 
-                    SET qc_count = qc_count + 1 
+                    SET qc_count = (
+                        SELECT COUNT(*) 
+                        FROM master_inventory 
+                        WHERE lot_number = (SELECT lot_number FROM purchase_lots WHERE id = ${lotId})
+                        AND product_name = ${productName}
+                    )
                     WHERE id = ${purchaseLotItemId}
                 `;
             }
 
+            // 4. Automatic Lot Status Transition (If all items in lot are now Checked)
+            await sql`
+                UPDATE purchase_lots 
+                SET status = 'COMPLETED'
+                WHERE id = ${lotId} 
+                AND (
+                    SELECT SUM(qc_count) FROM purchase_lot_items WHERE lot_id = ${lotId}
+                ) = (
+                    SELECT SUM(quantity) FROM purchase_lot_items WHERE lot_id = ${lotId}
+                )
+                AND (SELECT SUM(quantity) FROM purchase_lot_items WHERE lot_id = ${lotId}) > 0
+            `;
+
             await logActivity(
                 'Admin',
                 'QC Check',
-                `Moved item ${productName} from Staging to Inventory (BCH-${1000 + newMasterId})`,
+                `Moved item ${productName} from Staging to Inventory (BCH-${999 + newMasterId})`,
                 'success',
                 'Admin'
             );
+
+            // Force clear caches for stats and IDs
+            revalidatePath('/api/bch/dashboard/stats');
+            revalidatePath('/api/bch/purchase/lots/details');
 
             return NextResponse.json({ success: true, newMasterItemId: newMasterId });
         }

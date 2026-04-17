@@ -12,7 +12,7 @@ export default function InventoryDashboardPage() {
             'inventory-dashboard': '/bch/inventory/inventorydashboard',
             'products-list': '/bch/inventory/ecommproductlist',
             'add-product': '/bch/inventory/addecommproduct',
-            'inventory-qc': '/bch/inventory/inventoryqclist',
+            'inventory-qc': '/bch/inventory/masterinventory',
             'inventory-drops': '/bch/inventory/dropdownManage',
             'sale-out': '/bch/inventory/soldout'
         };

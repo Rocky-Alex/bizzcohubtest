@@ -97,7 +97,8 @@ export async function POST(request: NextRequest) {
 
         // Generate session token
         const sessionToken = generateSessionToken();
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        const sessionDuration = 30 * 60 * 1000; // 30 minutes
+        const expiresAt = new Date(Date.now() + sessionDuration);
 
         // Set HTTP-only cookies
         cookies().set('admin_session', sessionToken, {

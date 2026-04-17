@@ -4,11 +4,23 @@ import { DropListItem } from '@/types';
 
 export async function GET(req: Request): Promise<NextResponse> {
     try {
-        // Schema Migration: Ensure 'parent' column exists
+        // Schema Initialization & Migration
         try {
+            await sql`
+                CREATE TABLE IF NOT EXISTS drop_lists (
+                    id SERIAL PRIMARY KEY,
+                    category VARCHAR(100) NOT NULL,
+                    value TEXT NOT NULL,
+                    brand VARCHAR(100),
+                    series VARCHAR(100),
+                    model VARCHAR(100),
+                    parent TEXT,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                )
+            `;
             await sql`ALTER TABLE drop_lists ADD COLUMN IF NOT EXISTS parent TEXT`;
         } catch (e) {
-            console.warn('Could not update drop_lists schema:', e);
+            console.warn('Initial schema setup/check failed:', e);
         }
 
         const { searchParams } = new URL(req.url);
@@ -65,6 +77,7 @@ export async function GET(req: Request): Promise<NextResponse> {
                         });
                     }
                 } catch (e: unknown) {
+                    console.error('Error fetching/processing laptop data:', e);
                     data = data || [];
                 }
             } else {
@@ -86,7 +99,9 @@ export async function GET(req: Request): Promise<NextResponse> {
                     else if (category === 'Processor') derivedData = await sql`SELECT DISTINCT processor as value FROM products WHERE processor IS NOT NULL AND processor != ''` as unknown as any[];
                     else if (category === 'Condition') derivedData = await sql`SELECT DISTINCT condition_status as value FROM products WHERE condition_status IS NOT NULL AND condition_status != ''` as unknown as any[];
                     else if (category === 'Brand') derivedData = await sql`SELECT DISTINCT brand as value FROM products WHERE brand IS NOT NULL AND brand != ''` as unknown as any[];
-                } catch (e: unknown) { }
+                } catch (e: unknown) { 
+                    console.error(`Error fetching derived data for ${category}:`, e);
+                }
 
                 if (derivedData.length > 0) {
                     const combined = [...data, ...derivedData];
@@ -113,9 +128,15 @@ export async function GET(req: Request): Promise<NextResponse> {
 
         return NextResponse.json({ success: true, categoryData: resultsMap });
     } catch (error: unknown) {
-        console.error('Error fetching droplists:', error);
+        console.error(' [DEBUG] Error in /api/bch/inventory/droplists:');
+        if (error instanceof Error) {
+            console.error('MESSAGE:', error.message);
+            console.error('STACK:', error.stack);
+        } else {
+            console.error('ERROR OBJECT:', error);
+        }
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+        return NextResponse.json({ success: false, error: errorMessage, details: error instanceof Error ? error.stack : undefined }, { status: 500 });
     }
 }
 

@@ -89,7 +89,7 @@ export default function Packing() {
                         productData = {
                             product_name: item.product_name,
                             sku: item.sku,
-                            barcode: item.barcode || item.generatedId || `BCH-${1000 + item.id}`,
+                            barcode: item.barcode || item.generatedId || `BCH-${999 + item.id}`,
                             ram: item.ram || item.product_ram || '',
                             storage: item.storage || item.product_storage || '',
                             qc_id: item.id,

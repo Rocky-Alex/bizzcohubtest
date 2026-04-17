@@ -5,6 +5,8 @@ import '../styles/create-order.css';
 import AddCustomerForm from '../customers/AddCustomerForm';
 import { toast } from 'sonner';
 import { Edit, Trash2 } from 'lucide-react';
+import ProductInventorySelector from './ProductInventorySelector';
+import TotalEditModal from './TotalEditModal';
 
 interface Product {
     id: number;
@@ -27,6 +29,7 @@ interface Product {
 
 interface CartItem extends Product {
     quantity: number;
+    lot_number?: string;
 }
 
 // Options extracted from AddProduct.tsx
@@ -110,7 +113,6 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
     });
 
     // Product Data State
-    const [existingProducts, setExistingProducts] = useState<any[]>([]);
 
     // --- Master Data State ---
     const [brandList, setBrandList] = useState<string[]>([]);
@@ -233,8 +235,50 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [pendingItem, setPendingItem] = useState<any>(null);
 
+    // --- Product History State ---
+    const [productHistory, setProductHistory] = useState<any[]>([]);
+    const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+    const [existingProducts, setExistingProducts] = useState<any[]>([]);
+
     // Lot & Model State
     const [lotOptions, setLotOptions] = useState<any[]>([]);
+
+    // Fetch Product History when a valid product code is in the input
+    useEffect(() => {
+        const fetchHistory = async () => {
+             if (!productCode.trim()) {
+                 setProductHistory([]);
+                 return;
+             }
+
+             // Only fetch if it's an exact match in inventory 
+             const exactMatch = existingProducts.find(p => p.product_code === productCode.trim() || p.sku === productCode.trim());
+             
+             if (exactMatch && (exactMatch.product_code || exactMatch.sku)) {
+                 setIsFetchingHistory(true);
+                 try {
+                     const code = exactMatch.product_code || exactMatch.sku;
+                     const res = await fetch(`/api/bch/invoices/by-product/${encodeURIComponent(code)}`);
+                     if (res.ok) {
+                         const data = await res.json();
+                         setProductHistory(data.history || []);
+                     } else {
+                         setProductHistory([]);
+                     }
+                 } catch (err) {
+                     console.error("Failed to load product history", err);
+                     setProductHistory([]);
+                 } finally {
+                     setIsFetchingHistory(false);
+                 }
+             } else {
+                 setProductHistory([]);
+             }
+        };
+
+        const debounceTimer = setTimeout(fetchHistory, 500); 
+        return () => clearTimeout(debounceTimer);
+    }, [productCode, existingProducts]);
     const [selectedLot, setSelectedLot] = useState('');
     const [lotLoading, setLotLoading] = useState(false);
 
@@ -246,6 +290,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
     // Omni-Search State
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isProductInventoryModalOpen, setIsProductInventoryModalOpen] = useState(false);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleSearchChange = (query: string) => {
@@ -365,7 +410,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
         setLotLoading(true);
 
         // Find lotId
-        const selectedLotObj = lotOptions.find(l => l.lotNumber === lotNumber);
+        const selectedLotObj = lotOptions.find((l: any) => l.lotNumber === lotNumber);
         if (!selectedLotObj) {
             console.error("Lot map error");
             setLotLoading(false);
@@ -475,14 +520,42 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch('/api/products'); // Simplified fetch, adjust endpoint if needed
+            const res = await fetch('/api/bch/inventory/qc');
             if (res.ok) {
-                const data = await res.json();
-                setExistingProducts(data.products || []);
+                const result = await res.json();
+                if (result.success) {
+                    setExistingProducts(result.data || []);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch products", error);
         }
+    };
+
+    const handleSelectFromInventory = (products: any[]) => {
+        const newCartItems: CartItem[] = products.map((p, index) => ({
+            id: Date.now() + index,
+            name: p.product_name,
+            price: Number(p.offer_price || p.base_price || 0),
+            image: p.primary_image || '/placeholder.svg',
+            description: p.description || '', 
+            stock: Number(p.stock_quantity || 1),
+            quantity: 1,
+            lot_number: p.lot_number,
+            brand: p.brand,
+            series: p.series,
+            model: p.model,
+            processor: p.processor,
+            generation: p.processor_gen,
+            ram: p.ram,
+            ssd: p.storage,
+            graphics: p.graphics_card,
+            acStatus: p.charger_status || 'Original Charger',
+            product_code: p.sku || p.barcode,
+            source: p.source
+        }));
+        setCart(prev => [...prev, ...newCartItems]);
+        toast.success(`Added ${products.length} products to order`);
     };
 
     // --- Computed ---
@@ -494,6 +567,34 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
         const total = subtotal + tax + shipping;
         return { subtotal, tax, shipping, total };
     }, [cart]);
+
+    // Total Edit State
+    const [isTotalEditModalOpen, setIsTotalEditModalOpen] = useState(false);
+
+    const handleProportionalTotalEdit = (targetTotal: number) => {
+        const currentSubtotal = totals.subtotal;
+        
+        if (currentSubtotal === 0) {
+            if (cart.length === 0) {
+                toast.error("Add items to cart first");
+                return;
+            }
+            const pricePerItem = targetTotal / cart.reduce((sum, item) => sum + item.quantity, 0);
+            setCart(prev => prev.map(item => ({
+                ...item,
+                price: pricePerItem.toFixed(2)
+            })));
+        } else {
+            const ratio = targetTotal / currentSubtotal;
+            setCart(prev => prev.map(item => ({
+                ...item,
+                price: (Number(item.price) * ratio).toFixed(2)
+            })));
+        }
+
+        setIsTotalEditModalOpen(false);
+        toast.success("Total cost redistributed proportionally");
+    };
 
     // --- Handlers ---
     const handleAddItemChange = (e: React.ChangeEvent<HTMLInputElement> | { target: { name: string, value: string } }) => {
@@ -1087,11 +1188,66 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                                         >
                                             Add
                                         </button>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => setIsProductInventoryModalOpen(true)}
+                                            title="Select from Inventory"
+                                            style={{ 
+                                                padding: '0 1rem', 
+                                                fontSize: '1.2rem', 
+                                                background: '#f8fafc', 
+                                                color: '#475569', 
+                                                border: '1px solid #e2e8f0',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                width: '50px'
+                                            }}
+                                        >
+                                            <i className="fas fa-boxes"></i>
+                                        </button>
                                     </div>
-                                    <p style={{ textAlign: 'center', marginTop: '0.8rem', fontSize: '0.85rem', color: '#94a3b8' }}>
-                                        <i className="fas fa-info-circle"></i> Scanner should be configured to append 'Enter' after scan.
-                                    </p>
                                 </div>
+
+                                {/* --- Product Pricing History Table --- */}
+                                {(productHistory.length > 0 || isFetchingHistory) && productCode.trim() && (
+                                    <div style={{ marginTop: '1rem', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', maxWidth: '600px', margin: '1rem auto' }}>
+                                        <h4 style={{ margin: '0 0 0.75rem 0', color: '#1A2244', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <i className="fas fa-history" style={{ color: '#6b7280' }}></i> Pricing History for {productCode}
+                                        </h4>
+                                        
+                                        {isFetchingHistory ? (
+                                            <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
+                                                <i className="fas fa-circle-notch fa-spin" style={{ marginRight: '0.5rem' }}></i> Loading history...
+                                            </div>
+                                        ) : (
+                                            <div style={{ overflowX: 'auto' }}>
+                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                                    <thead>
+                                                        <tr style={{ borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>
+                                                            <th style={{ padding: '0.5rem', color: '#4b5563' }}>Date</th>
+                                                            <th style={{ padding: '0.5rem', color: '#4b5563' }}>Invoice #</th>
+                                                            <th style={{ padding: '0.5rem', color: '#4b5563' }}>Customer</th>
+                                                            <th style={{ padding: '0.5rem', color: '#4b5563', textAlign: 'right' }}>Price</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {productHistory.map((h, i) => (
+                                                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: i % 2 === 0 ? '#fff' : '#f9fafb' }}>
+                                                                <td style={{ padding: '0.5rem' }}>{new Date(h.created_at).toLocaleDateString()}</td>
+                                                                <td style={{ padding: '0.5rem' }}>#{h.invoice_no}</td>
+                                                                <td style={{ padding: '0.5rem' }}>{h.customer_name}</td>
+                                                                <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 600 }}>AED {Number(h.unit_price).toFixed(0)}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -1105,7 +1261,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                                             name="lot_selection"
                                             value={selectedLot}
                                             onChange={(e) => handleLotChange(e.target.value)}
-                                            options={lotOptions.map(l => l.lotNumber)}
+                                            options={lotOptions.map((l: any) => l.lotNumber)}
                                             placeholder="Choose Lot..."
                                         />
                                     </div>
@@ -1169,6 +1325,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                         <thead>
                             <tr>
                                 <th style={{ width: '50px' }} className="hide-mobile">No</th>
+                                <th style={{ width: '100px' }}>Lot Num</th>
                                 <th>Product</th>
                                 <th className="hide-mobile">Processor</th>
                                 <th className="hide-mobile">Generation</th>
@@ -1192,6 +1349,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                                 cart.map((item, index) => (
                                     <tr key={item.id}>
                                         <td className="hide-mobile">{String(index + 1).padStart(2, '0')}</td>
+                                        <td style={{ fontWeight: 600, color: '#0369a1' }}>{item.lot_number || '---'}</td>
                                         <td>
                                             <div className="co-item-cell">
                                                 <img src={item.image || '/placeholder.svg'} alt="" className="co-item-thumb" />
@@ -1282,7 +1440,20 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                             {/* Subtotal removed */}
                             {/* Tax removed */}
                             {/* Shipping removed */}
-                            <div className="t-row grand"><span>Total:</span> <span>AED {totals.total.toLocaleString()}</span></div>
+                            <div className="t-row grand">
+                                <div className="order-total-label">Total</div>
+                                <div className="order-total-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    AED {totals.total.toFixed(2)}
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setIsTotalEditModalOpen(true)}
+                                        style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                                        title="Edit Total (Redistribute Proportionally)"
+                                    >
+                                        <i className="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </div>
                             <button
                                 type="submit"
                                 className="btn-submit-order"
@@ -1592,6 +1763,18 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
                 onConfirm={modal.onConfirm}
                 onCancel={() => setModal(prev => ({ ...prev, isOpen: false }))}
                 confirmText="OK"
+            />
+            <ProductInventorySelector 
+                isOpen={isProductInventoryModalOpen}
+                onClose={() => setIsProductInventoryModalOpen(false)}
+                products={existingProducts}
+                onSelect={handleSelectFromInventory}
+            />
+            <TotalEditModal
+                isOpen={isTotalEditModalOpen}
+                currentTotal={totals.total}
+                onClose={() => setIsTotalEditModalOpen(false)}
+                onSave={handleProportionalTotalEdit}
             />
         </div >
     );

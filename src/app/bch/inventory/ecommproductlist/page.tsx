@@ -12,7 +12,7 @@ export default function EcommProductListPage() {
             'inventory-dashboard': '/bch/inventory/inventorydashboard',
             'products-list': '/bch/inventory/ecommproductlist',
             'add-product': '/bch/inventory/addecommproduct',
-            'inventory-qc': '/bch/inventory/inventoryqclist'
+            'inventory-qc': '/bch/inventory/masterinventory'
         };
         const target = routeMap[section] || `/bch/inventory/inventorydashboard`;
         router.push(target);

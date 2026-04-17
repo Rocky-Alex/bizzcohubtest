@@ -44,6 +44,10 @@ export default function PurchaseLotDetails({ lotId, onBack }: PurchaseLotDetails
     // Editing state
     const [editingItemId, setEditingItemId] = useState<number | null>(null);
     const [editFormData, setEditFormData] = useState<Partial<PurchaseLotItem>>({});
+    
+    // Total Cost Editing
+    const [isEditingTotal, setIsEditingTotal] = useState(false);
+    const [newTotalValue, setNewTotalValue] = useState('');
 
     useEffect(() => {
         fetchLotDetails();
@@ -51,7 +55,7 @@ export default function PurchaseLotDetails({ lotId, onBack }: PurchaseLotDetails
 
     const fetchLotDetails = async () => {
         try {
-            const response = await fetch(`/api/bch/purchase/lots/details?id=${lotId}`);
+            const response = await fetch(`/api/bch/purchase/lots/details?id=${lotId}`, { cache: 'no-store' });
 
             if (response.status === 404) {
                 toast.error('Purchase lot not found or has been deleted');
@@ -137,6 +141,61 @@ export default function PurchaseLotDetails({ lotId, onBack }: PurchaseLotDetails
         }
     };
 
+    const handleUpdateTotalCost = async () => {
+        const val = parseFloat(newTotalValue);
+        if (isNaN(val)) {
+            toast.error('Please enter a valid amount');
+            return;
+        }
+
+        const toastId = toast.loading('Recalculating costs...');
+        try {
+            const res = await fetch(`/api/bch/purchase/lots/${lotId}/recalculate-costs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newTotalCost: val })
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Total cost updated and distributed successfully');
+                setIsEditingTotal(false);
+                fetchLotDetails();
+            } else {
+                toast.error(data.error || 'Failed to update total cost');
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to update total cost');
+        } finally {
+            toast.dismiss(toastId);
+        }
+    };
+
+    const handleClearAllCosts = async () => {
+        if (!confirm('This will RESET ALL unit prices in this shipment to 0. Are you sure?')) return;
+
+        const toastId = toast.loading('Resetting costs...');
+        try {
+            const res = await fetch(`/api/bch/purchase/lots/${lotId}/recalculate-costs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newTotalCost: 0, force: true })
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success('All costs reset to 0');
+                fetchLotDetails();
+            } else {
+                toast.error(data.error || 'Failed to reset costs');
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to reset costs');
+        } finally {
+            toast.dismiss(toastId);
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
     if (!lot) return <div style={{ padding: '2rem', textAlign: 'center' }}>Lot not found.</div>;
 
@@ -179,9 +238,61 @@ export default function PurchaseLotDetails({ lotId, onBack }: PurchaseLotDetails
                     <p style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Lot Number</p>
                     <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>{lot.lotNumber || 'N/A'}</p>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0', position: 'relative' }}>
                     <p style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 600, marginBottom: '4px' }}>Total Cost</p>
-                    <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#059669', margin: 0 }}>AED {Number(lot.totalCost).toLocaleString()}</p>
+                    {isEditingTotal ? (
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <input 
+                                type="number" 
+                                value={newTotalValue} 
+                                onChange={(e) => setNewTotalValue(e.target.value)}
+                                autoFocus
+                                style={{ 
+                                    padding: '4px 8px', 
+                                    borderRadius: '6px', 
+                                    border: '1px solid #2563eb', 
+                                    width: '120px',
+                                    fontSize: '1rem',
+                                    fontWeight: 700 
+                                }}
+                            />
+                            <button 
+                                onClick={handleUpdateTotalCost}
+                                style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', width: '28px', height: '28px', cursor: 'pointer' }}
+                            >
+                                <i className="fas fa-check"></i>
+                            </button>
+                            <button 
+                                onClick={() => setIsEditingTotal(false)}
+                                style={{ background: '#94a3b8', color: 'white', border: 'none', borderRadius: '4px', width: '28px', height: '28px', cursor: 'pointer' }}
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#059669', margin: 0 }}>
+                                AED {Number(lot.totalCost).toLocaleString()}
+                            </p>
+                            <button 
+                                onClick={() => {
+                                    setNewTotalValue(lot.totalCost || '0');
+                                    setIsEditingTotal(true);
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem' }}
+                                title="Edit Total Cost"
+                            >
+                                <i className="fas fa-edit"></i>
+                            </button>
+                            <button 
+                                onClick={handleClearAllCosts}
+                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem' }}
+                                title="Clear All Costs"
+                            >
+                                <i className="fas fa-eraser"></i>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

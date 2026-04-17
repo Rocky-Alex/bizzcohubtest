@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-quotation.css';
+import { toast } from 'sonner';
 import ConfirmModal from '../shared/ConfirmModal';
+import ProductInventorySelector from './ProductInventorySelector';
+import { DatabaseProduct } from '@/types';
+import TotalEditModal from './TotalEditModal';
 
 interface CreateQuotationProps {
     setActiveSection: (section: string) => void;
@@ -32,6 +36,8 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
     const [isEditing, setIsEditing] = useState(false);
     const [originalId, setOriginalId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    // Total Edit State
+    const [isTotalEditModalOpen, setIsTotalEditModalOpen] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -153,12 +159,14 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                         );
 
                         // Map items
-                        const mappedItems = itemsData.map((d: any) => ({
-                            id: d.id,
-                            description: d.description,
-                            qty: Number(d.quantity),
-                            cost: Number(d.unit_price),
-                            discount: Number(d.discount)
+                        const mappedItems = itemsData.map((item: any, idx: number) => ({
+                            id: idx + 1,
+                            description: item.description,
+                            qty: Number(item.quantity),
+                            cost: Number(item.unit_price),
+                            discount: Number(item.discount),
+                            product_code: item.product_code || null,
+                            source: item.source || null
                         }));
                         setItems(mappedItems.length > 0 ? mappedItems : [{ id: 1, description: "", qty: 0, cost: 0, discount: 0 }]);
                     }
@@ -321,15 +329,58 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
     const [productCodeInput, setProductCodeInput] = useState("");
     const [inventoryProducts, setInventoryProducts] = useState<any[]>([]);
     const [showProductSuggestions, setShowProductSuggestions] = useState(false);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const productSearchRef = useRef<HTMLDivElement>(null);
+
+    // --- Product History State ---
+    const [productHistory, setProductHistory] = useState<any[]>([]);
+    const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+
+    // Fetch Product History when a valid product code is in the input
+    useEffect(() => {
+        const fetchHistory = async () => {
+             if (!productCodeInput.trim()) {
+                 setProductHistory([]);
+                 return;
+             }
+
+             // Only fetch if it's an exact match in inventory to avoid spamming the API on every keystroke
+             const exactMatch = inventoryProducts.find(p => p.product_code === productCodeInput.trim() || p.product_name === productCodeInput.trim());
+             
+             if (exactMatch && exactMatch.product_code) {
+                 setIsFetchingHistory(true);
+                 try {
+                     const res = await fetch(`/api/bch/invoices/by-product/${encodeURIComponent(exactMatch.product_code)}`);
+                     if (res.ok) {
+                         const data = await res.json();
+                         setProductHistory(data.history || []);
+                     } else {
+                         setProductHistory([]);
+                     }
+                 } catch (err) {
+                     console.error("Failed to load product history", err);
+                     setProductHistory([]);
+                 } finally {
+                     setIsFetchingHistory(false);
+                 }
+             } else {
+                 setProductHistory([]);
+             }
+        };
+
+        const debounceTimer = setTimeout(fetchHistory, 500); // 500ms debounce
+        return () => clearTimeout(debounceTimer);
+    }, [productCodeInput, inventoryProducts]);
 
     useEffect(() => {
         const fetchInventory = async () => {
             try {
-                const res = await fetch('/api/bch/inventory/products');
+                const res = await fetch('/api/bch/inventory/qc');
                 if (res.ok) {
-                    const data = await res.json();
-                    setInventoryProducts(data);
+                    const result = await res.json();
+                    if (result.success) {
+                        setInventoryProducts(result.data || []);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to load inventory products", err);
@@ -338,22 +389,7 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
         fetchInventory();
     }, []);
 
-    // --- Calculations ---
-    const subTotal = items.reduce((sum, item) => sum + (item.qty * item.cost), 0);
-    const totalDiscount = items.reduce((sum, item) => sum + item.discount, 0);
-
-    const calculateRowTotal = (item: QuotationItem) => {
-        return (item.qty * item.cost) - (isDiscountable ? item.discount : 0);
-    };
-
-    const calculateSubTotal = () => {
-        return items.reduce((acc, item) => acc + calculateRowTotal(item), 0);
-    };
-
-    const calculatedSubTotal = calculateSubTotal();
-    const vatAmount = isTaxable ? (calculatedSubTotal * taxRate) / 100 : 0;
-    const finalTotal = calculatedSubTotal + vatAmount;
-    const balanceDue = finalTotal - advanceReceived;
+    // --- Calculations --- (Moved to end of component scope)
     // Or is "Discount" adjacent to SubTotal a global discount?
     // Image has a "Discount: [0%]" line below Sub Total.
     // Let's assume the column "Discount" is line-item discount, and there's also a global one.
@@ -390,21 +426,28 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
     const handleAddProductByCode = () => {
         if (!productCodeInput.trim()) return;
 
-        const product = inventoryProducts.find(p => p.product_code === productCodeInput.trim());
+        const p = inventoryProducts.find(prod => prod.product_code?.toLowerCase() === productCodeInput.trim().toLowerCase());
 
-        if (product) {
+        if (p) {
             const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-            // Use offer_price if available, else base_price. Ensure numbering.
-            const price = product.offer_price ? Number(product.offer_price) : Number(product.base_price);
+            const itemDescription = p.product_name || '';
+            const itemCost = Number(p.offer_price || p.base_price || 0);
 
-            setItems(prev => [...prev, {
+            const newItem = {
                 id: newId,
-                description: product.product_name,
+                description: itemDescription,
                 qty: 1,
-                cost: price,
+                cost: itemCost,
                 discount: 0,
-                product_code: product.product_code
-            }]);
+                product_code: p.product_code
+            };
+            setItems(prev => {
+                const lastItem = prev[prev.length - 1];
+                if (lastItem && !lastItem.description && !lastItem.cost) {
+                    return [...prev.slice(0, -1), newItem];
+                }
+                return [...prev, newItem];
+            });
             setProductCodeInput("");
         } else {
             setConfirmModal({
@@ -418,11 +461,73 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
         }
     };
 
+    const handleSelectFromInventory = (selectedProducts: any[]) => {
+        setItems((prev: any) => {
+            let currentItems = [...prev];
+            const lastItem = currentItems[currentItems.length - 1];
+            if (lastItem && !lastItem.description && !lastItem.cost) {
+                currentItems = currentItems.slice(0, -1);
+            }
+
+            let nextId = currentItems.length > 0 ? Math.max(...currentItems.map((i: any) => i.id)) + 1 : 1;
+
+            const newItems = selectedProducts.map(p => ({
+                id: nextId++,
+                description: p.description || p.product_name || '',
+                qty: 1,
+                cost: Number(p.offer_price || p.base_price || 0),
+                discount: 0,
+                product_code: p.sku || p.product_code,
+                source: p.source
+            }));
+
+            return [...currentItems, ...newItems];
+        });
+    };
+
+    const handleProportionalTotalEdit = (targetTotal: number) => {
+        const currentTotal = finalTotal;
+        if (currentTotal === 0) {
+            const itemsWithQty = items.filter(i => i.qty > 0);
+            if (itemsWithQty.length === 0) {
+                toast.error("Add items with quantity first");
+                return;
+            }
+            const costPerItem = targetTotal / itemsWithQty.length;
+            setItems(prev => prev.map(item => 
+                item.qty > 0 ? { ...item, cost: costPerItem / item.qty } : item
+            ));
+        } else {
+            const ratio = targetTotal / currentTotal;
+            setItems(prev => prev.map(item => ({
+                ...item,
+                cost: item.cost * ratio
+            })));
+        }
+        setIsTotalEditModalOpen(false);
+        toast.success("Total cost redistributed proportionally");
+    };
+
+    // --- Calculations ---
+    const calculateRowTotal = (item: QuotationItem) => {
+        return (item.qty * item.cost) - (isDiscountable ? item.discount : 0);
+    };
+
+    const calculateSubTotal = () => {
+        return items.reduce((acc, item) => acc + calculateRowTotal(item), 0);
+    };
+
+    const calculatedSubTotal = calculateSubTotal();
+    const totalDiscount = items.reduce((sum, item) => sum + (isDiscountable ? item.discount : 0), 0);
+    const vatAmount = isTaxable ? (calculatedSubTotal * taxRate) / 100 : 0;
+    const finalTotal = calculatedSubTotal + vatAmount;
+    const balanceDue = finalTotal - (advanceReceived || 0);
+
     const handleSave = async () => {
         if (isSaving) return;
         setIsSaving(true);
         try {
-            const customer = filteredCustomers.find(c => c.name === toDetails.name);
+            const customer = filteredCustomers.find((c: any) => c.name === toDetails.name);
             const payload = {
                 quotationNo,
                 customerId: customer ? customer.id : null,
@@ -445,12 +550,13 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                 notes: notesList.filter(t => t.checked).map(t => `• ${t.text}`).join('\n'), // Prepend bullet on save
                 terms: termsList.filter(t => t.checked).map(t => `• ${t.text}`).join('\n'),
                 advanceReceived,
-                items: items.map(item => ({
+                items: items.map((item: QuotationItem) => ({
                     description: item.description,
                     qty: item.qty,
                     cost: item.cost,
                     discount: item.discount,
-                    product_code: item.product_code, // Pass product code for inventory update
+                    product_code: item.product_code, 
+                    source: (item as any).source,
                     total: calculateRowTotal(item)
                 }))
             };
@@ -814,8 +920,66 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                         >
                             Add
                         </button>
+                        <button
+                            className="btn-secondary"
+                            onClick={() => setIsProductModalOpen(true)}
+                            title="Select from Inventory"
+                            style={{ 
+                                padding: '0.5rem', 
+                                fontSize: '1rem', 
+                                background: '#f8fafc', 
+                                color: '#475569', 
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '38px',
+                                height: '38px'
+                            }}
+                        >
+                            <i className="fas fa-boxes"></i>
+                        </button>
                     </div>
                 </div>
+
+                {/* --- Product Pricing History Table --- */}
+                {(productHistory.length > 0 || isFetchingHistory) && productCodeInput.trim() && (
+                    <div style={{ marginTop: '1rem', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                        <h4 style={{ margin: '0 0 0.75rem 0', color: '#1A2244', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <i className="fas fa-history" style={{ color: '#6b7280' }}></i> Pricing History for {productCodeInput}
+                        </h4>
+                        
+                        {isFetchingHistory ? (
+                            <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
+                                <i className="fas fa-circle-notch fa-spin" style={{ marginRight: '0.5rem' }}></i> Loading history...
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>
+                                            <th style={{ padding: '0.5rem', color: '#4b5563' }}>Date</th>
+                                            <th style={{ padding: '0.5rem', color: '#4b5563' }}>Invoice #</th>
+                                            <th style={{ padding: '0.5rem', color: '#4b5563' }}>Customer</th>
+                                            <th style={{ padding: '0.5rem', color: '#4b5563', textAlign: 'right' }}>Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {productHistory.map((h, i) => (
+                                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: i % 2 === 0 ? '#fff' : '#f9fafb' }}>
+                                                <td style={{ padding: '0.5rem' }}>{new Date(h.created_at).toLocaleDateString()}</td>
+                                                <td style={{ padding: '0.5rem' }}>#{h.invoice_no}</td>
+                                                <td style={{ padding: '0.5rem' }}>{h.customer_name}</td>
+                                                <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 600 }}>AED {Number(h.unit_price).toFixed(0)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Footer Totals */}
 
@@ -951,7 +1115,19 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
 
                             <div className="total-row final">
                                 <span>Total Amount</span>
-                                <span>AED {finalTotal.toFixed(0)}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontWeight: 600 }}>AED {finalTotal.toFixed(0)}</span>
+                                    {isEditing && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setIsTotalEditModalOpen(true)}
+                                            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                                            title="Edit Total (Redistribute Proportionally)"
+                                        >
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="total-row" style={{ marginTop: '0.5rem' }}>
@@ -991,6 +1167,13 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                     </div>
                 </div>
             </div>
+            <TotalEditModal
+                isOpen={isTotalEditModalOpen}
+                currentTotal={finalTotal}
+                onClose={() => setIsTotalEditModalOpen(false)}
+                onSave={handleProportionalTotalEdit}
+            />
+
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 title={confirmModal.title}
@@ -1075,6 +1258,13 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                     </div>
                 </div>
             )}
+
+            <ProductInventorySelector 
+                isOpen={isProductModalOpen}
+                onClose={() => setIsProductModalOpen(false)}
+                products={inventoryProducts}
+                onSelect={handleSelectFromInventory}
+            />
         </div>
     );
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(req: Request): Promise<NextResponse> {
     try {
@@ -40,38 +41,64 @@ export async function GET(req: Request): Promise<NextResponse> {
         };
 
         // 2. Fetch Items from purchase_lot_items
-        const items = await sql`
-            SELECT 
-                id as "itemId",
-                product_name as "productName",
-                product_type as "productType",
-                brand,
-                model,
-                series,
-                processor,
-                processor_gen as "processorGen",
-                ram,
-                storage,
-                graphics,
-                screen_size as "screenSize",
-                screen_resolution as "screenResolution",
-                condition_status as "conditionStatus",
-                sku, 
-                quantity,
-                qc_count as "qcCount",
-                unit_cost as "unitCost"
-            FROM purchase_lot_items
-            WHERE lot_id = ${id}
-            ORDER BY id ASC
-        ` as unknown as any[];
+        const pendingOnly = searchParams.get('pendingOnly') === 'true';
+        
+        // Parallel fetch: Filtered items + Full Lot Stats
+        const [itemsResult, statsResult] = await Promise.all([
+            sql`
+                SELECT 
+                    id as "itemId",
+                    product_name as "productName",
+                    product_type as "productType",
+                    brand,
+                    model,
+                    series,
+                    processor,
+                    processor_gen as "processorGen",
+                    ram,
+                    storage,
+                    graphics,
+                    screen_size as "screenSize",
+                    screen_resolution as "screenResolution",
+                    condition_status as "conditionStatus",
+                    sku, 
+                    quantity,
+                    qc_count,
+                    qc_count as "qcCount",
+                    unit_cost as "unitCost"
+                FROM purchase_lot_items
+                WHERE lot_id = ${id}
+                ${pendingOnly ? sql`AND qc_count < quantity` : sql``}
+                ORDER BY id ASC
+            `,
+            sql`
+                SELECT 
+                    COALESCE(SUM(quantity), 0) as "totalItems",
+                    COALESCE(SUM(qc_count), 0) as "totalChecked"
+                FROM purchase_lot_items
+                WHERE lot_id = ${id}
+            `
+        ]);
 
-        console.log(`[API] Found ${items.length} items for Lot ID: ${id}`);
+        const items = itemsResult as unknown as any[];
+        const stats = statsResult[0] as unknown as { totalItems: number, totalChecked: number };
+        
+        const lot = { 
+            ...lotMetadata, 
+            items: items,
+            totalItems: Number(stats.totalItems),
+            totalChecked: Number(stats.totalChecked)
+        };
+        
+        console.log(`[API Debug] Lot ID ${id} summary: ${stats.totalChecked}/${stats.totalItems} (shown: ${items.length})`);
 
-        // Return raw items (or aggregated if multiple rows per product)
-        // Since we insert compacted rows, we can return directly
-        const lot = { ...lotMetadata, items: items };
-
-        return NextResponse.json({ success: true, lot });
+        return NextResponse.json({ success: true, lot }, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+            }
+        });
 
     } catch (error: unknown) {
         console.error('Error fetching lot details:', error);

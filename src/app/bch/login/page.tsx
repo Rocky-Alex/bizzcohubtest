@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        const BYPASS_AUTH = true;
+        const BYPASS_AUTH = false;
 
         if (BYPASS_AUTH) {
             // Simulated login for "paused auth"

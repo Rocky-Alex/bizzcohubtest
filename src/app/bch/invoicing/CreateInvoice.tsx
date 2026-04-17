@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/create-invoice.css';
+import { toast } from 'sonner';
+import { DatabaseProduct } from '@/types';
+import '../styles/product-inventory-selector.css';
 import ConfirmModal from '../shared/ConfirmModal';
+import ProductInventorySelector from './ProductInventorySelector';
+import TotalEditModal from './TotalEditModal';
 
 interface CreateInvoiceProps {
     setActiveSection: (section: string) => void;
@@ -128,7 +133,8 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                         qty: Number(d.quantity),
                         cost: Number(d.unit_price),
                         discount: Number(d.discount),
-                        product_code: d.product_code || null
+                        product_code: d.product_code || null,
+                        source: d.source || null
                     }));
                     setItems(mappedItems.length > 0 ? mappedItems : [{ id: 1, description: "", qty: 0, cost: 0, discount: 0 }]);
 
@@ -178,12 +184,14 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                                 : DEFAULT_NOTES.map(t => ({ id: Math.random().toString(36).substr(2, 9), text: t.replace(/^•\s*/, ''), checked: true }))
                             );
 
-                            const mappedItems = itemsData.map((d: any) => ({
-                                id: d.id,
+                            const mappedItems = itemsData.map((d: any, idx: number) => ({
+                                id: idx + 1,
                                 description: d.description,
                                 qty: Number(d.quantity),
                                 cost: Number(d.unit_price),
-                                discount: Number(d.discount)
+                                discount: Number(d.discount),
+                                product_code: d.product_code || null,
+                                source: d.source || null
                             }));
                             setItems(mappedItems.length > 0 ? mappedItems : [{ id: 1, description: "", qty: 0, cost: 0, discount: 0 }]);
                         }
@@ -352,13 +360,18 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
     const [deletedNotes, setDeletedNotes] = useState<TermItem[]>([]);
 
     const [productCodeInput, setProductCodeInput] = useState("");
-    const [inventoryProducts, setInventoryProducts] = useState<any[]>([]);
+    const [showInventorySelector, setShowInventorySelector] = useState(false);
+    const [inventoryProducts, setInventoryProducts] = useState<DatabaseProduct[]>([]);
+    
+    // Total Edit State
+    const [isTotalEditModalOpen, setIsTotalEditModalOpen] = useState(false);
     const [showProductSuggestions, setShowProductSuggestions] = useState(false);
     const productSearchRef = useRef<HTMLDivElement>(null);
 
     // --- Product History State ---
     const [productHistory, setProductHistory] = useState<any[]>([]);
     const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
     // Fetch Product History when a valid product code is in the input
     useEffect(() => {
@@ -397,18 +410,20 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
     }, [productCodeInput, inventoryProducts]);
 
     useEffect(() => {
-        const fetchInventory = async () => {
+        const fetchProducts = async () => {
             try {
-                const res = await fetch('/api/bch/inventory/products');
+                const res = await fetch('/api/bch/inventory/qc');
                 if (res.ok) {
-                    const data = await res.json();
-                    setInventoryProducts(data);
+                    const result = await res.json();
+                    if (result.success) {
+                        setInventoryProducts(result.data || []);
+                    }
                 }
-            } catch (err) {
-                console.error("Failed to load inventory products", err);
+            } catch (error) {
+                console.error("Failed to fetch products", error);
             }
         };
-        fetchInventory();
+        fetchProducts();
     }, []);
 
     // --- Calculations ---
@@ -435,6 +450,33 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
         }));
     };
 
+    const handleProportionalTotalEdit = (targetTotal: number) => {
+        const currentTotal = finalTotal;
+        
+        if (currentTotal === 0) {
+            // Distribute equally among items with qty > 0
+            const itemsWithQty = items.filter(i => i.qty > 0);
+            if (itemsWithQty.length === 0) {
+                toast.error("Add items with quantity first");
+                return;
+            }
+            const costPerItem = targetTotal / itemsWithQty.length;
+            setItems(prev => prev.map(item => 
+                item.qty > 0 ? { ...item, cost: costPerItem / item.qty } : item
+            ));
+        } else {
+            // Proportional distribution
+            const ratio = targetTotal / currentTotal;
+            setItems(prev => prev.map(item => ({
+                ...item,
+                cost: item.cost * ratio
+            })));
+        }
+
+        setIsTotalEditModalOpen(false);
+        toast.success("Total cost redistributed proportionally");
+    };
+
     const addItem = () => {
         const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
         setItems([...items, { id: newId, description: "", qty: 0, cost: 0, discount: 0 }]);
@@ -448,22 +490,27 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
     const handleAddProductByCode = () => {
         if (!productCodeInput.trim()) return;
-
-        const product = inventoryProducts.find(p => p.product_code === productCodeInput.trim());
-
-        if (product) {
+        const p = inventoryProducts.find(prod => prod.product_code?.toLowerCase() === productCodeInput.trim().toLowerCase());
+        if (p) {
             const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-            // Use offer_price if available, else base_price. Ensure numbering.
-            const price = product.offer_price ? Number(product.offer_price) : Number(product.base_price);
+            const itemDescription = p.product_name || '';
+            const itemCost = Number(p.offer_price || p.base_price || 0);
 
-            setItems(prev => [...prev, {
+            const newItem = {
                 id: newId,
-                description: product.product_name,
+                description: itemDescription,
                 qty: 1,
-                cost: price,
+                cost: itemCost,
                 discount: 0,
-                product_code: product.product_code
-            }]);
+                product_code: p.product_code
+            };
+            setItems(prev => {
+                const lastItem = prev[prev.length - 1];
+                if (lastItem && !lastItem.description && !lastItem.cost) {
+                    return [...prev.slice(0, -1), newItem];
+                }
+                return [...prev, newItem];
+            });
             setProductCodeInput("");
         } else {
             setConfirmModal({
@@ -475,6 +522,31 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
             });
         }
+    };
+
+    const handleSelectFromInventory = (selectedProducts: any[]) => {
+        setItems(prev => {
+            let currentItems = [...prev];
+            // Remove last empty item if it exists
+            const lastItem = currentItems[currentItems.length - 1];
+            if (lastItem && !lastItem.description && !lastItem.cost) {
+                currentItems = currentItems.slice(0, -1);
+            }
+
+            let nextId = currentItems.length > 0 ? Math.max(...currentItems.map(i => i.id)) + 1 : 1;
+
+            const newItems = selectedProducts.map(p => ({
+                id: nextId++,
+                description: p.description || p.product_name || '',
+                qty: 1,
+                cost: Number(p.offer_price || p.base_price || 0),
+                discount: 0,
+                product_code: p.sku || p.product_code,
+                source: p.source
+            }));
+
+            return [...currentItems, ...newItems];
+        });
     };
 
     const handleSave = async () => {
@@ -509,7 +581,8 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                     qty: item.qty,
                     cost: item.cost,
                     discount: item.discount,
-                    product_code: item.product_code, // Pass product code for inventory update
+                    product_code: item.product_code, 
+                    source: (item as any).source,
                     total: calculateRowTotal(item)
                 }))
             };
@@ -971,6 +1044,26 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                         >
                             Add
                         </button>
+                        <button
+                            className="btn-secondary"
+                            onClick={() => setIsProductModalOpen(true)}
+                            title="Select from Inventory"
+                            style={{ 
+                                padding: '0.5rem', 
+                                fontSize: '1rem', 
+                                background: '#f8fafc', 
+                                color: '#475569', 
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '38px',
+                                height: '38px'
+                            }}
+                        >
+                            <i className="fas fa-boxes"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -1254,7 +1347,19 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                             )}
                             <div className="total-row final">
                                 <span>Total Amount</span>
-                                <span style={{ color: '#ea580c' }}>AED {finalTotal.toFixed(0)}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#ea580c' }}>AED {finalTotal.toFixed(0)}</span>
+                                    {isEditing && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setIsTotalEditModalOpen(true)}
+                                            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                                            title="Edit Total (Redistribute Proportionally)"
+                                        >
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="total-row">
@@ -1324,6 +1429,13 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                 type={confirmModal.type}
                 singleButton={confirmModal.singleButton}
+            />
+
+            <TotalEditModal
+                isOpen={isTotalEditModalOpen}
+                currentTotal={finalTotal}
+                onClose={() => setIsTotalEditModalOpen(false)}
+                onSave={handleProportionalTotalEdit}
             />
 
             {/* Quick Add Customer Modal */}
@@ -1400,6 +1512,13 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                     </div>
                 </div>
             )}
+
+            <ProductInventorySelector 
+                isOpen={isProductModalOpen}
+                onClose={() => setIsProductModalOpen(false)}
+                products={inventoryProducts}
+                onSelect={handleSelectFromInventory}
+            />
         </div>
     );
 }

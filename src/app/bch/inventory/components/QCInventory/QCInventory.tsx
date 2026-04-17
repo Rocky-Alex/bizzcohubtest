@@ -30,12 +30,17 @@ export default function QCInventory() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'mini' | 'detailed'>('mini');
+    const [activeTab, setActiveTab] = useState<'inventory' | 'returns'>('inventory');
+    const [returns, setReturns] = useState<any[]>([]);
+    const [returnsLoading, setReturnsLoading] = useState(false);
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (activeTab === 'inventory') fetchData();
+        else fetchReturns();
+    }, [activeTab]);
 
     const fetchData = async () => {
+        setLoading(true);
         try {
             const response = await fetch('/api/bch/inventory/qc', { cache: 'no-store' });
             const data = await response.json();
@@ -52,12 +57,90 @@ export default function QCInventory() {
         }
     };
 
+    const fetchReturns = async () => {
+        setReturnsLoading(true);
+        try {
+            const response = await fetch('/api/bch/sales/returns', { cache: 'no-store' });
+            const data = await response.json();
+            if (data.success) {
+                setReturns(data.items);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setReturnsLoading(false);
+        }
+    };
+
+    const handlePassReturn = async (id: number) => {
+        if (!confirm('Are you sure the product is OK and ready for Restocking?')) return;
+        try {
+            const res = await fetch('/api/bch/sales/returns/qc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ returnId: id, status: 'QC Passed', updatedBy: 'Admin' })
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchReturns();
+            } else {
+                alert(data.error || 'Failed to process return');
+            }
+        } catch (err) {
+            alert('Error processing return');
+        }
+    };
+
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '-';
         return new Date(dateStr).toLocaleDateString() + ' ' + new Date(dateStr).toLocaleTimeString();
     };
 
-    if (loading) return <div style={{ padding: '2rem' }}><LoadingSpinner /></div>;
+    const renderReturnsTable = () => (
+        <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                    <tr>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Product Name</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Barcode</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Return Reason</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Condition</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Returned By</th>
+                        <th style={{ padding: '1rem', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Date</th>
+                        <th style={{ padding: '1rem', textAlign: 'center', color: '#475569', fontWeight: 600 }}>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {returns.map((item, index) => (
+                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '1rem', fontWeight: 600 }}>{item.product_name}</td>
+                            <td style={{ padding: '1rem' }}>{item.barcode}</td>
+                            <td style={{ padding: '1rem' }}>{item.return_reason}</td>
+                            <td style={{ padding: '1rem' }}>
+                                <span style={{ padding: '4px 10px', borderRadius: '15px', background: '#fef3c7', color: '#92400e', fontSize: '0.8rem', fontWeight: 600 }}>{item.condition_at_return}</span>
+                            </td>
+                            <td style={{ padding: '1rem' }}>{item.returned_by}</td>
+                            <td style={{ padding: '1rem', color: '#64748b' }}>{formatDate(item.created_at)}</td>
+                            <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                <button 
+                                    onClick={() => handlePassReturn(item.id)}
+                                    style={{ padding: '6px 12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem' }}
+                                >
+                                    PASS & RESTOCK
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                    {returns.length === 0 && (
+                        <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>No pending returns for QC</td></tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+    );
+
+    if (loading && activeTab === 'inventory') return <div style={{ padding: '2rem' }}><LoadingSpinner /></div>;
+    if (returnsLoading && activeTab === 'returns') return <div style={{ padding: '2rem' }}><LoadingSpinner /></div>;
 
     const renderMiniTable = () => (
         <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
@@ -216,49 +299,82 @@ export default function QCInventory() {
     return (
         <div style={{ padding: '1rem', maxWidth: '100%', overflowX: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>Inventory QC List</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>
+                        {activeTab === 'inventory' ? 'Master Inventory' : 'Sales Return QC'}
+                    </h2>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {/* View Toggle */}
-                    <div style={{ display: 'flex', background: '#f1f5f9', padding: '0.3rem', borderRadius: '8px' }}>
-                        <button
-                            onClick={() => setViewMode('mini')}
-                            style={{
-                                padding: '0.5rem 1rem',
-                                border: 'none',
-                                background: viewMode === 'mini' ? 'white' : 'transparent',
-                                color: viewMode === 'mini' ? '#0f172a' : '#64748b',
-                                borderRadius: '6px',
-                                boxShadow: viewMode === 'mini' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                fontSize: '0.9rem'
+                    {/* Main Tabs */}
+                    <div style={{ display: 'flex', borderBottom: '2px solid #e2e8f0', gap: '0.5rem' }}>
+                        <button 
+                            onClick={() => setActiveTab('inventory')}
+                            style={{ 
+                                padding: '0.75rem 1.5rem', border: 'none', background: 'none', cursor: 'pointer',
+                                fontWeight: 700, color: activeTab === 'inventory' ? '#3b82f6' : '#64748b',
+                                borderBottom: activeTab === 'inventory' ? '3px solid #3b82f6' : 'none',
+                                marginBottom: '-2px'
                             }}
                         >
-                            Mini View
+                            <i className="fas fa-boxes" style={{ marginRight: '8px' }}></i> Inventory
                         </button>
-                        <button
-                            onClick={() => setViewMode('detailed')}
-                            style={{
-                                padding: '0.5rem 1rem',
-                                border: 'none',
-                                background: viewMode === 'detailed' ? 'white' : 'transparent',
-                                color: viewMode === 'detailed' ? '#0f172a' : '#64748b',
-                                borderRadius: '6px',
-                                boxShadow: viewMode === 'detailed' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                fontSize: '0.9rem'
+                        <button 
+                            onClick={() => setActiveTab('returns')}
+                            style={{ 
+                                padding: '0.75rem 1.5rem', border: 'none', background: 'none', cursor: 'pointer',
+                                fontWeight: 700, color: activeTab === 'returns' ? '#3b82f6' : '#64748b',
+                                borderBottom: activeTab === 'returns' ? '3px solid #3b82f6' : 'none',
+                                marginBottom: '-2px'
                             }}
                         >
-                            Detailed View
+                            <i className="fas fa-undo-alt" style={{ marginRight: '8px' }}></i> Returns QC
+                            {returns.length > 0 && <span style={{ marginLeft: '6px', background: '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem' }}>{returns.length}</span>}
                         </button>
                     </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* View Toggle (Only for inventory) */}
+                    {activeTab === 'inventory' && (
+                        <div style={{ display: 'flex', background: '#f1f5f9', padding: '0.3rem', borderRadius: '8px' }}>
+                            <button
+                                onClick={() => setViewMode('mini')}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    border: 'none',
+                                    background: viewMode === 'mini' ? 'white' : 'transparent',
+                                    color: viewMode === 'mini' ? '#0f172a' : '#64748b',
+                                    borderRadius: '6px',
+                                    boxShadow: viewMode === 'mini' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    fontSize: '0.9rem'
+                                }}
+                            >
+                                Mini View
+                            </button>
+                            <button
+                                onClick={() => setViewMode('detailed')}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    border: 'none',
+                                    background: viewMode === 'detailed' ? 'white' : 'transparent',
+                                    color: viewMode === 'detailed' ? '#0f172a' : '#64748b',
+                                    borderRadius: '6px',
+                                    boxShadow: viewMode === 'detailed' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    fontSize: '0.9rem'
+                                }}
+                            >
+                                Detailed View
+                            </button>
+                        </div>
+                    )}
 
                     <button
-                        onClick={fetchData}
+                        onClick={activeTab === 'inventory' ? fetchData : fetchReturns}
                         style={{
                             padding: '0.6rem 1.2rem',
                             background: '#0ea5e9',
@@ -280,14 +396,16 @@ export default function QCInventory() {
                 </div>
             )}
 
-            {items.length === 0 && !error ? (
+            {(activeTab === 'inventory' && items.length === 0 && !error) || (activeTab === 'returns' && returns.length === 0) ? (
                 <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', background: 'white', borderRadius: '12px' }}>
-                    <i className="fas fa-box-open" style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}></i>
-                    <p>No QC items found.</p>
+                    <i className={activeTab === 'inventory' ? "fas fa-box-open" : "fas fa-check-circle"} style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}></i>
+                    <p>{activeTab === 'inventory' ? 'No QC items found.' : 'No pending returns for QC.'}</p>
                 </div>
             ) : (
                 <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-                    {viewMode === 'mini' ? renderMiniTable() : renderDetailedTable()}
+                    {activeTab === 'inventory' ? (
+                        viewMode === 'mini' ? renderMiniTable() : renderDetailedTable()
+                    ) : renderReturnsTable()}
                 </div>
             )}
         </div>
