@@ -31,9 +31,9 @@ const ensureTableExists = async () => {
     `;
 };
 
-export async function GET(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function GET(req: Request, context: any): Promise<NextResponse> {
     try {
-        const id = parseInt(params.id);
+        const id = (await Promise.resolve(context.params)).id;
         if (isNaN(id)) {
             return NextResponse.json({ error: 'Invalid Invoice ID' }, { status: 400 });
         }
@@ -53,9 +53,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function POST(req: Request, context: any): Promise<NextResponse> {
     try {
-        const id = parseInt(params.id);
+        const id = (await Promise.resolve(context.params)).id;
         if (isNaN(id)) {
             return NextResponse.json({ error: 'Invalid Invoice ID' }, { status: 400 });
         }

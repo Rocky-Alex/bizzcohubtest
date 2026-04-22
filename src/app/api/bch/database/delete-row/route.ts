@@ -5,8 +5,8 @@ import { logActivity } from '@/lib/activity-logger';
 
 export const dynamic = 'force-dynamic';
 
-function isAdmin(): boolean {
-    const cookieStore = cookies();
+async function isAdmin(): Promise<boolean> {
+    const cookieStore = await cookies();
     const role = cookieStore.get('admin_user_role')?.value || cookieStore.get('user_role')?.value;
     return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
 }
@@ -34,7 +34,7 @@ const ALLOWED_TABLES = [
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
-        if (!isAdmin()) {
+        if (!(await isAdmin())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 

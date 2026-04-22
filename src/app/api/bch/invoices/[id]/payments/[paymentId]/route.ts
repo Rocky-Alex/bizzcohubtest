@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { invoiceSql as sql } from '@/lib/db';
 
 // PATCH: Update a specific payment
-export async function PATCH(req: Request, { params }: { params: { id: string, paymentId: string } }): Promise<NextResponse> {
+export async function PATCH(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id: invoiceId, paymentId } = params;
+        const params = await Promise.resolve(context.params);
+        const { id: invoiceId, paymentId  } = params;
         const body = await req.json();
         const { amount, date, method, notes, staff_name } = body;
 
@@ -63,9 +64,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string, pa
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string, paymentId: string } }): Promise<NextResponse> {
+export async function DELETE(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id: invoiceId, paymentId } = params;
+        const params = await Promise.resolve(context.params);
+        const { id: invoiceId, paymentId  } = params;
 
         // 1. Fetch payment to delete
         const existingPaymentResult = await sql`SELECT * FROM invoice_payments WHERE id = ${paymentId} AND invoice_id = ${invoiceId}` as unknown as any[];

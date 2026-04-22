@@ -4,10 +4,13 @@ import { logActivity } from '@/lib/activity-logger';
 
 export async function POST(
     req: Request,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> | { id: string } }
 ): Promise<NextResponse> {
     try {
-        const id = params.id;
+        // Await params to be compatible with both Next 14 and Next 15+
+        const params = await Promise.resolve(context.params);
+        const id = parseInt(params.id);
+
         const body = await req.json();
         const { newTotalCost, force } = body;
 
@@ -15,6 +18,10 @@ export async function POST(
 
         if (newTotalCost === undefined || isNaN(Number(newTotalCost))) {
             return NextResponse.json({ success: false, error: 'Invalid total cost' }, { status: 400 });
+        }
+
+        if (isNaN(id)) {
+            return NextResponse.json({ success: false, error: 'Invalid lot ID' }, { status: 400 });
         }
 
         // 1. Get all items in this lot
@@ -86,8 +93,6 @@ export async function POST(
             SET total_cost = ${newTotalCost}
             WHERE id = ${id}
         `;
-
-        return NextResponse.json({ success: true });
 
         console.log(`[API] Lot cost update complete`);
 

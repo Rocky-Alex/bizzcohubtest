@@ -5,9 +5,10 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-export async function GET(req: Request, { params }: { params: { code: string } }): Promise<NextResponse> {
+export async function GET(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { code } = params;
+        const params = await Promise.resolve(context.params);
+        const { code  } = params;
 
         if (!code) {
             return NextResponse.json({ error: 'Product code is required' }, { status: 400 });

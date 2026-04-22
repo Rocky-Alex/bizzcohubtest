@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
-export async function GET(
-    req: NextRequest,
-    { params }: { params: { orderId: string } }
-): Promise<NextResponse> {
+export async function GET(req: NextRequest, context: any): Promise<NextResponse> {
     try {
+        const params = await Promise.resolve(context.params);
         const orderId = params.orderId;
 
         if (!orderId) {

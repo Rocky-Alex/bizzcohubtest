@@ -4,14 +4,14 @@ import { cookies } from 'next/headers';
 
 // Helper to check if current user is admin
 // Helper to check if current user is admin
-function isAdmin(): boolean {
-    const role = cookies().get('admin_user_role')?.value;
+async function isAdmin(): Promise<boolean> {
+    const role = (await cookies()).get('admin_user_role')?.value;
     return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
 }
 
 export async function GET(): Promise<NextResponse> {
     try {
-        if (!isAdmin()) {
+        if (!(await isAdmin())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
@@ -53,7 +53,7 @@ export async function GET(): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
-        if (!isAdmin()) {
+        if (!(await isAdmin())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
     try {
-        if (!isAdmin()) {
+        if (!(await isAdmin())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
             `;
 
             // Logout user by clearing cookie
-            cookies().delete('customer_session');
+            (await cookies()).delete('customer_session');
 
             return NextResponse.json({
                 success: true,
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
             await sql`DELETE FROM customers WHERE id = ${customer_id}`;
 
             // Logout
-            cookies().delete('customer_session');
+            (await cookies()).delete('customer_session');
 
             return NextResponse.json({
                 success: true,

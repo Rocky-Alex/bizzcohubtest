@@ -4,8 +4,8 @@ import { cookies } from 'next/headers';
 import { logActivity } from '@/lib/activity-logger';
 
 // Helper to check if current user is admin
-function isAdmin(): boolean {
-    const role = cookies().get('admin_user_role')?.value;
+async function isAdmin(): Promise<boolean> {
+    const role = (await cookies()).get('admin_user_role')?.value;
     return role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'superadmin';
 }
 
@@ -34,7 +34,7 @@ function rawQuery(sqlFn: any, query: string, params: unknown[] = []): Promise<an
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
-        if (!isAdmin()) {
+        if (!(await isAdmin())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 

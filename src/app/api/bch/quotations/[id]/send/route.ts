@@ -13,9 +13,10 @@ import nodemailer from 'nodemailer';
 
 import fs from 'fs';
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function POST(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id } = params;
+        const params = await Promise.resolve(context.params);
+        const { id  } = params;
 
         // 1. Fetch Quotation Data
         const quotationResult = await sql`SELECT * FROM quotations WHERE id = ${id}` as unknown as any[];

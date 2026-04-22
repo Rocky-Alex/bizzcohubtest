@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 
-export async function PUT(
-    _req: Request,
-    { params }: { params: { itemId: string } }
-): Promise<NextResponse> {
+export async function PUT(_req: Request, context: any): Promise<NextResponse> {
     try {
+        const params = await Promise.resolve(context.params);
         const itemId = params.itemId;
         const body = await _req.json();
         const {
@@ -63,11 +61,9 @@ export async function PUT(
     }
 }
 
-export async function DELETE(
-    _req: Request,
-    { params }: { params: { itemId: string } }
-): Promise<NextResponse> {
+export async function DELETE(_req: Request, context: any): Promise<NextResponse> {
     try {
+        const params = await Promise.resolve(context.params);
         const itemId = params.itemId;
 
         // Get lot ID before deleting for updating grand total

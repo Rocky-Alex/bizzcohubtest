@@ -55,7 +55,7 @@ export async function POST(req: Request) {
                 'Admin',
                 'Return QC',
                 `Item ${returnRecord.barcode} FAILED return QC: ${notes}`,
-                'error',
+                'failure',
                 updatedBy || 'Admin'
             );
         }

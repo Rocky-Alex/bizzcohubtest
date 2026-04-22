@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { quotationSql as sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 
-export async function GET(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function GET(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id } = params;
+        const params = await Promise.resolve(context.params);
+        const { id  } = params;
 
         const quotationResult = await sql`
             SELECT * FROM quotations WHERE id = ${id}
@@ -26,9 +27,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function PATCH(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id } = params;
+        const params = await Promise.resolve(context.params);
+        const { id  } = params;
         const { status } = await req.json();
 
         if (!status) {
@@ -64,9 +66,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function PUT(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id } = params;
+        const params = await Promise.resolve(context.params);
+        const { id  } = params;
         const body = await req.json();
         const {
             quotationNo, customerId, customerName, customerAddress, customerEmail, customerPhone,
@@ -222,9 +225,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }):
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function DELETE(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id } = params;
+        const params = await Promise.resolve(context.params);
+        const { id  } = params;
 
         const result = await sql`
             DELETE FROM quotations

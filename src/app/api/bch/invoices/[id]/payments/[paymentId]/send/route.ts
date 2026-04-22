@@ -7,9 +7,10 @@ import nodemailer from 'nodemailer';
 // Initialize Resend
 // Resend initialized inside POST
 
-export async function POST(req: Request, { params }: { params: { id: string, paymentId: string } }): Promise<NextResponse> {
+export async function POST(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id: invoiceId, paymentId } = params;
+        const params = await Promise.resolve(context.params);
+        const { id: invoiceId, paymentId  } = params;
 
         // 1. Fetch Data
         const invoiceResult = await sql`SELECT * FROM invoices WHERE id = ${invoiceId}` as unknown as any[];

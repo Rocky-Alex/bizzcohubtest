@@ -12,9 +12,10 @@ interface Payment {
 }
 
 // PATCH: Update a specific receipt
-export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function PATCH(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id } = params;
+        const params = await Promise.resolve(context.params);
+        const { id  } = params;
         const body = await req.json();
         const { amount, date, method, notes, staff_name, customer_name } = body;
 
@@ -49,9 +50,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 // DELETE: Remove a direct payment
-export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
+export async function DELETE(req: Request, context: any): Promise<NextResponse> {
     try {
-        const { id } = params;
+        const params = await Promise.resolve(context.params);
+        const { id  } = params;
 
         if (!id) {
             return NextResponse.json({ error: 'Missing ID' }, { status: 400 });

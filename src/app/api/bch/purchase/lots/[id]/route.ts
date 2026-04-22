@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 
-export async function DELETE(
-    _req: Request,
-    { params }: { params: { id: string } }
-): Promise<NextResponse> {
+export async function DELETE(_req: Request, context: any): Promise<NextResponse> {
     try {
+        const params = await Promise.resolve(context.params);
         const id = params.id;
 
         if (!id) {

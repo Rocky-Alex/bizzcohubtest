@@ -4,8 +4,8 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-function isAdmin(): boolean {
-    const cookieStore = cookies();
+async function isAdmin(): Promise<boolean> {
+    const cookieStore = await cookies();
     // Login route sets 'admin_user_role', but some parts might use 'user_role'
     const role = cookieStore.get('admin_user_role')?.value || cookieStore.get('user_role')?.value;
     console.log('[Database API] Auth Check. Role:', role);
@@ -36,7 +36,7 @@ const ALLOWED_TABLES = [
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
-        if (!isAdmin()) {
+        if (!(await isAdmin())) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
