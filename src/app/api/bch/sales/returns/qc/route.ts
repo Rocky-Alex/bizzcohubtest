@@ -33,7 +33,7 @@ export async function POST(req: Request): Promise<NextResponse> {
             user || 'Admin',
             'Return Sent to Production QC',
             `Sales Return ID ${returnId} was transferred to Production QC for final checking.`,
-            'info',
+            'success',
             user || 'Admin'
         );
 
