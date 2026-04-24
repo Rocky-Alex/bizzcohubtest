@@ -1,0 +1,90 @@
+.sales-inventory-container {
+    padding: 1.5rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.data-table tr.clickable-row {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.data-table tr.clickable-row:hover {
+    background: #f1f5f9;
+}
+
+.expanded-row-container {
+    background: #fdfdfd;
+    padding: 1rem;
+    border-left: 4px solid #3b82f6;
+    margin: 0.5rem 0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for better aesthetics */
+.expanded-row-container::-webkit-scrollbar {
+    width: 6px;
+}
+.expanded-row-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+.expanded-row-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+.expanded-row-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.inner-table-wrapper {
+    overflow-x: auto;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.inner-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.inner-table th {
+    background: #f8fafc;
+    padding: 10px;
+    text-align: left;
+    color: #64748b;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 600;
+}
+
+.inner-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+}
+
+.chevron-icon {
+    transition: transform 0.3s ease;
+}
+
+.invoice-amount {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.qty-badge {
+    background: #eff6ff;
+    color: #2563eb;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}

@@ -24,6 +24,11 @@ interface InvoiceItem {
     cost: number;
     discount: number;
     product_code?: string;
+    ram?: string;
+    storage?: string;
+    graphics?: string;
+    inventory_id?: number;
+    source?: string;
 }
 
 interface TermItem {
@@ -191,7 +196,11 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                                 cost: Number(d.unit_price),
                                 discount: Number(d.discount),
                                 product_code: d.product_code || null,
-                                source: d.source || null
+                                source: d.source || null,
+                                ram: d.ram || null,
+                                storage: d.storage || null,
+                                graphics: d.graphics || null,
+                                inventory_id: d.inventory_id || null
                             }));
                             setItems(mappedItems.length > 0 ? mappedItems : [{ id: 1, description: "", qty: 0, cost: 0, discount: 0 }]);
                         }
@@ -542,7 +551,11 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 cost: Number(p.offer_price || p.base_price || 0),
                 discount: 0,
                 product_code: p.sku || p.product_code,
-                source: p.source
+                inventory_id: p.id,
+                source: p.source,
+                ram: p.ram || null,
+                storage: p.storage || null,
+                graphics: p.graphics_card || null
             }));
 
             return [...currentItems, ...newItems];
@@ -582,7 +595,11 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                     cost: item.cost,
                     discount: item.discount,
                     product_code: item.product_code, 
-                    source: (item as any).source,
+                    inventory_id: item.inventory_id,
+                    source: item.source,
+                    ram: item.ram,
+                    storage: item.storage,
+                    graphics: item.graphics,
                     total: calculateRowTotal(item)
                 }))
             };
@@ -1010,7 +1027,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                                             <div
                                                 key={p.id}
                                                 onClick={() => {
-                                                    setProductCodeInput(p.product_code);
+                                                    setProductCodeInput(p.product_code || '');
                                                     setShowProductSuggestions(false);
                                                 }}
                                                 style={{

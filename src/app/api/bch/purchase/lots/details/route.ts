@@ -18,6 +18,41 @@ export async function GET(req: Request): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: 'Invalid Lot ID' }, { status: 400 });
         }
 
+        // Special handling for Virtual Returns Lot (ID: -1)
+        if (id === -1) {
+            const returns = await sql`
+                SELECT 
+                    sr.id as "itemId",
+                    so.product_name as "productName",
+                    so.barcode as "sku",
+                    so.quantity as "quantity",
+                    0 as "qcCount",
+                    so.brand,
+                    so.model,
+                    so.processor_gen as "processorGen",
+                    so.ram,
+                    so.storage,
+                    so.graphics,
+                    so.unit_price as "unitCost"
+                FROM sales_returns sr
+                JOIN sale_out so ON sr.sales_out_id = so.id
+                WHERE sr.qc_status = 'Sent to Production'
+                ORDER BY sr.id ASC
+            ` as unknown as any[];
+
+            const lot = {
+                lotId: '-1',
+                lotNumber: '🔄 Customer Returns Queue',
+                supplierName: 'Sales Return Dept',
+                items: returns,
+                totalItems: returns.length,
+                totalChecked: 0,
+                status: 'Active'
+            };
+
+            return NextResponse.json({ success: true, lot });
+        }
+
         // 1. Fetch Lot Metadata from purchase_lots
         const lotInfo = await sql`
             SELECT id, lot_number, supplier_name, invoice_date, invoice_number, total_cost, notes, status

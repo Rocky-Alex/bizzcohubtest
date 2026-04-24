@@ -6,7 +6,7 @@ import ConfirmModal from "../shared/ConfirmModal";
 import DatabaseTransferTool from "./components/DatabaseTransferTool";
 
 export default function DatabasePage() {
-    type Section = "Inventory" | "Sales" | "People" | "Billing" | "System" | "Purchases";
+    type Section = "Inventory" | "Sales" | "People" | "Billing" | "System" | "Purchases" | "Accounting" | "Packing";
 
     interface TableInfo {
         name: string;
@@ -24,10 +24,23 @@ export default function DatabasePage() {
     const SCHEMA: Record<Section, Subsection[]> = {
         Inventory: [
             {
-                id: 'products', label: 'Products', tables: [
-                    { name: 'Products', tableName: 'products', description: 'Main product catalog' },
+                id: 'catalog', label: 'Product Catalog', tables: [
+                    { name: 'E-Comm Products', tableName: 'products', description: 'Main e-commerce product catalog' },
                     { name: 'Featured Config', tableName: 'featured_products_config', description: 'Homepage featured items' },
-
+                    { name: 'Product Pricing', tableName: 'products_price', description: 'Pricing rules and history' }
+                ]
+            },
+            {
+                id: 'stock', label: 'Inventory Management', tables: [
+                    { name: 'Master Inventory', tableName: 'master_inventory', description: 'Primary stock levels and barcodes' },
+                    { name: 'Return Inventory', tableName: 'sales_return_inventory', description: 'Items returned to stock' },
+                    { name: 'Drop Lists', tableName: 'drop_lists', description: 'Dropdown management data' }
+                ]
+            },
+            {
+                id: 'tracking', label: 'Sales Tracking', tables: [
+                    { name: 'Sales Out (Legacy)', tableName: 'sales_out', description: 'Previous sales exit records' },
+                    { name: 'Sale Out (Current)', tableName: 'sale_out', description: 'Current sales exit records' }
                 ]
             }
         ],
@@ -35,7 +48,9 @@ export default function DatabasePage() {
             {
                 id: 'purchase_management', label: 'Purchase Management', tables: [
                     { name: 'Purchase Lots', tableName: 'purchase_lots', description: 'Batch purchase records' },
-                    { name: 'Lot Items', tableName: 'purchase_lot_items', description: 'Individual items in purchase lots' }
+                    { name: 'Lot Items', tableName: 'purchase_lot_items', description: 'Individual items in purchase lots' },
+                    { name: 'Suppliers', tableName: 'suppliers', description: 'Supplier contact and info' },
+                    { name: 'Lots', tableName: 'lots', description: 'Generic lot records' }
                 ]
             }
         ],
@@ -54,9 +69,11 @@ export default function DatabasePage() {
                 ]
             },
             {
-                id: 'users', label: 'Users', tables: [
+                id: 'users', label: 'Access Management', tables: [
                     { name: 'Users', tableName: 'users', description: 'Admin and staff user accounts' },
-                    { name: 'Roles', tableName: 'roles', description: 'User roles and permissions' }
+                    { name: 'Roles', tableName: 'roles', description: 'User roles and permissions' },
+                    { name: 'Auth Accountants', tableName: 'authorized_accountants', description: 'Accountants with special access' },
+                    { name: 'Accountant Sessions', tableName: 'accountant_sessions', description: 'Active accountant logins' }
                 ]
             }
         ],
@@ -65,13 +82,32 @@ export default function DatabasePage() {
                 id: 'invoices', label: 'Invoices', tables: [
                     { name: 'Invoices', tableName: 'invoices', description: 'Generated invoices' },
                     { name: 'Invoice Items', tableName: 'invoice_items', description: 'Invoice line items' },
-                    { name: 'Payments', tableName: 'invoice_payments', description: 'Recorded payments' }
+                    { name: 'Invoice Payments', tableName: 'invoice_payments', description: 'Recorded invoice payments' },
+                    { name: 'Receipts', tableName: 'receipt_list', description: 'Standalone receipt records' }
                 ]
             },
             {
-                id: 'quotations', label: 'Quotations', tables: [
+                id: 'quotations', label: 'Quotations & Proformas', tables: [
                     { name: 'Quotations', tableName: 'quotations', description: 'Quotation records' },
-                    { name: 'Quotation Items', tableName: 'quotation_items', description: 'Quotation line items' }
+                    { name: 'Quotation Items', tableName: 'quotation_items', description: 'Quotation line items' },
+                    { name: 'Quotation Payments', tableName: 'quotation_payments', description: 'Recorded quotation payments' }
+                ]
+            }
+        ],
+        Accounting: [
+            {
+                id: 'ledger', label: 'Financial Ledger', tables: [
+                    { name: 'Accounting Transactions', tableName: 'accounting_transactions', description: 'General ledger transactions' },
+                    { name: 'Chart of Accounts', tableName: 'chart_of_accounts', description: 'Accounts hierarchy' },
+                    { name: 'Cash Book', tableName: 'cash_book', description: 'Cash transaction records' }
+                ]
+            }
+        ],
+        Packing: [
+            {
+                id: 'packing_ops', label: 'Packing Operations', tables: [
+                    { name: 'Packed Items', tableName: 'packed_items', description: 'Items verified and packed' },
+                    { name: 'Packing Boxes', tableName: 'packing_boxes', description: 'Shipping box details' }
                 ]
             }
         ],
@@ -84,7 +120,9 @@ export default function DatabasePage() {
             },
             {
                 id: 'config', label: 'Configuration', tables: [
-                    { name: 'Settings', tableName: 'settings', description: 'System settings' }
+                    { name: 'Settings', tableName: 'settings', description: 'System settings' },
+                    { name: 'Password Resets', tableName: 'password_resets', description: 'Active reset tokens' },
+                    { name: 'Label Settings', tableName: 'label_settings', description: 'Barcode and label configs' }
                 ]
             }
         ]
@@ -582,7 +620,7 @@ export default function DatabasePage() {
                                     gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                                     gap: '1rem'
                                 }}>
-                                    {['Inventory', 'Purchases', 'Sales', 'Billing', 'System'].map((sectionKey) => {
+                                    {['Inventory', 'Purchases', 'Sales', 'Billing', 'Accounting', 'Packing', 'System'].map((sectionKey) => {
                                         const section = sectionKey as Section;
                                         return (
                                             <button
@@ -617,6 +655,8 @@ export default function DatabasePage() {
                                                     {section === 'Billing' && <i className="fas fa-file-invoice-dollar"></i>}
                                                     {section === 'System' && <i className="fas fa-cog"></i>}
                                                     {section === 'Purchases' && <i className="fas fa-truck-loading"></i>}
+                                                    {section === 'Accounting' && <i className="fas fa-book"></i>}
+                                                    {section === 'Packing' && <i className="fas fa-box-open"></i>}
                                                 </div>
                                                 <div>
                                                     <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em' }}>{section}</h3>

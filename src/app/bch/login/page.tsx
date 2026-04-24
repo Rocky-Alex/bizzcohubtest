@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import './styles/login.css';
 
 export default function AdminLoginPage() {
@@ -164,7 +165,7 @@ export default function AdminLoginPage() {
                             disabled={isLoading}
                         >
                             {isLoading ? (
-                                <i className="fas fa-circle-notch fa-spin"></i>
+                                <LoadingSpinner size={24} text="" />
                             ) : (
                                 'Sign In'
                             )}

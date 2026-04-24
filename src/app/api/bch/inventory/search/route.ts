@@ -36,75 +36,101 @@ export async function GET(req: Request): Promise<NextResponse> {
         // Since we can't dynamic SQL easily with template tags, we'll hardcode up to 4 potential terms
         // Logic: (T1 Matches) AND (T2 Matches) ...
 
-        const t0 = searchTerms[0] ? `%${searchTerms[0]}%` : null;
-        const t1 = searchTerms[1] ? `%${searchTerms[1]}%` : null;
-        const t2 = searchTerms[2] ? `%${searchTerms[2]}%` : null;
-        const t3 = searchTerms[3] ? `%${searchTerms[3]}%` : null;
+        const t0 = searchTerms[0] ? `%${searchTerms[0]}%` : '%';
+        const t1 = searchTerms[1] ? `%${searchTerms[1]}%` : '%';
+        const t2 = searchTerms[2] ? `%${searchTerms[2]}%` : '%';
+        const t3 = searchTerms[3] ? `%${searchTerms[3]}%` : '%';
 
-        // Parallel Queries
-        const [qcResults, productResults, lotResults] = await Promise.all([
+        // Parallel Queries with individual error handling to prevent 500s
+        const results_raw = await Promise.all([
             // 1. Search QC Inventory (Now Master Inventory)
-            // Fields: brand, model, product_name, sku, series
             sql`
                 SELECT
-                    id,
+                    mi.id,
                     'qc_item' as type,
-                    product_name as label,
-                    sku as code, 
-                    condition_status as detail,
-                    brand, model, processor, ram, storage
-                FROM master_inventory 
+                    mi.product_name as label,
+                    mi.sku as code, 
+                    mi.lot_number,
+                    (SELECT COALESCE(SUM(so.quantity), 0) FROM sale_out so WHERE so.inventory_id = mi.id AND so.source = 'master' AND so.returned_at IS NULL) as sold_quantity,
+                    (mi.quantity - (SELECT COALESCE(SUM(so.quantity), 0) FROM sale_out so WHERE so.inventory_id = mi.id AND so.source = 'master' AND so.returned_at IS NULL)) as stock_quantity,
+                    mi.condition_status as detail,
+                    mi.brand, mi.model, mi.processor, mi.ram, mi.storage
+                FROM master_inventory mi
                 WHERE 
-                    (id = ${idParam} AND ${idParam} IS NOT NULL) OR
+                    (mi.id = ${idParam} AND ${idParam} IS NOT NULL) OR
                     (
-                        (${t0}::text IS NULL OR CONCAT_WS(' ', brand, model, series, product_name, sku) ILIKE ${t0}) AND
-                        (${t1}::text IS NULL OR CONCAT_WS(' ', brand, model, series, product_name, sku) ILIKE ${t1}) AND
-                        (${t2}::text IS NULL OR CONCAT_WS(' ', brand, model, series, product_name, sku) ILIKE ${t2}) AND
-                        (${t3}::text IS NULL OR CONCAT_WS(' ', brand, model, series, product_name, sku) ILIKE ${t3})
+                        CONCAT_WS(' ', mi.brand, mi.model, mi.series, mi.product_name, mi.sku) ILIKE ${t0} AND
+                        CONCAT_WS(' ', mi.brand, mi.model, mi.series, mi.product_name, mi.sku) ILIKE ${t1} AND
+                        CONCAT_WS(' ', mi.brand, mi.model, mi.series, mi.product_name, mi.sku) ILIKE ${t2} AND
+                        CONCAT_WS(' ', mi.brand, mi.model, mi.series, mi.product_name, mi.sku) ILIKE ${t3}
                     )
-                ORDER BY created_at DESC
+                ORDER BY mi.created_at DESC
                 LIMIT 15
-            ` as unknown as any[],
+            `.catch((err: unknown) => { console.error('QC Search Error:', err); return []; }),
 
             // 2. Search Master Products (Generic)
-            // Fields: brand, name, product_code, description
             sql`
                 SELECT 
                     id, 
                     'product_master' as type,
-                    name as label,
+                    product_name as label,
                     product_code as code, 
-                    description as detail,
-                    brand
+                    category as detail,
+                    brand, model, series
                 FROM products 
                 WHERE 
-                   (${t0}::text IS NULL OR CONCAT_WS(' ', brand, name, product_code, description) ILIKE ${t0}) AND
-                   (${t1}::text IS NULL OR CONCAT_WS(' ', brand, name, product_code, description) ILIKE ${t1}) AND
-                   (${t2}::text IS NULL OR CONCAT_WS(' ', brand, name, product_code, description) ILIKE ${t2}) AND
-                   (${t3}::text IS NULL OR CONCAT_WS(' ', brand, name, product_code, description) ILIKE ${t3})
+                   CONCAT_WS(' ', brand, product_name, product_code, category) ILIKE ${t0} AND
+                   CONCAT_WS(' ', brand, product_name, product_code, category) ILIKE ${t1} AND
+                   CONCAT_WS(' ', brand, product_name, product_code, category) ILIKE ${t2} AND
+                   CONCAT_WS(' ', brand, product_name, product_code, category) ILIKE ${t3}
                 LIMIT 10
-            ` as unknown as any[],
+            `.catch((err: unknown) => { console.error('Product Search Error:', err); return []; }),
 
             // 3. Search Purchase Lots
-            // Fields: lot_number, supplier_name
             sql`
                 SELECT 
-                    lot_id as id, 
+                    id, 
                     'lot' as type,
                     supplier_name as label,
                     lot_number as code, 
                     'Purchase Lot' as detail
                 FROM purchase_lots 
                 WHERE 
-                   (${t0}::text IS NULL OR CONCAT_WS(' ', lot_number, supplier_name) ILIKE ${t0}) AND
-                   (${t1}::text IS NULL OR CONCAT_WS(' ', lot_number, supplier_name) ILIKE ${t1}) 
+                   CONCAT_WS(' ', lot_number, supplier_name) ILIKE ${t0} AND
+                   CONCAT_WS(' ', lot_number, supplier_name) ILIKE ${t1} 
                 LIMIT 5
-            ` as unknown as any[]
+            `.catch((err: unknown) => { console.error('Lot Search Error:', err); return []; }),
+
+            // 4. Search Purchase Lot Items (Individual Products in Lots)
+            sql`
+                SELECT 
+                    pli.id, 
+                    'purchase_item' as type,
+                    pli.product_name as label,
+                    pli.sku as code, 
+                    pl.lot_number,
+                    (SELECT COALESCE(SUM(so.quantity), 0) FROM sale_out so WHERE so.inventory_id = pli.id AND so.source = 'purchase' AND so.returned_at IS NULL) as sold_quantity,
+                    (pli.quantity - COALESCE(pli.qc_count, 0) - (SELECT COALESCE(SUM(so.quantity), 0) FROM sale_out so WHERE so.inventory_id = pli.id AND so.source = 'purchase' AND so.returned_at IS NULL)) as stock_quantity,
+                    'Purchase Inventory' as detail,
+                    pli.brand, pli.model, pli.processor, pli.ram, pli.storage
+                FROM purchase_lot_items pli
+                JOIN purchase_lots pl ON pli.lot_id = pl.id
+                WHERE 
+                   CONCAT_WS(' ', pli.brand, pli.model, pli.series, pli.product_name, pli.sku) ILIKE ${t0} AND
+                   CONCAT_WS(' ', pli.brand, pli.model, pli.series, pli.product_name, pli.sku) ILIKE ${t1} AND
+                   CONCAT_WS(' ', pli.brand, pli.model, pli.series, pli.product_name, pli.sku) ILIKE ${t2} AND
+                   CONCAT_WS(' ', pli.brand, pli.model, pli.series, pli.product_name, pli.sku) ILIKE ${t3} AND
+                   pli.quantity > 0
+                LIMIT 15
+            `.catch((err: unknown) => { console.error('Purchase Item Search Error:', err); return []; })
         ]);
+
+        const [qcResults, productResults, lotResults, purchaseItemResults] = results_raw as any[][];
 
         // Combine and format results
         const results = [
-            ...qcResults.map(i => ({ ...i, value: `qc_${i.id}`, displayType: 'QC Unit' })),
+            ...qcResults.map(i => ({ ...i, value: `qc_${i.id}`, displayType: 'Master Inventory' })),
+            ...purchaseItemResults.map(i => ({ ...i, value: `pi_${i.id}`, displayType: 'Purchase Inventory' })),
             ...productResults.map(i => ({ ...i, value: `prod_${i.id}`, displayType: 'Master Product' })),
             ...lotResults.map(i => ({ ...i, value: `lot_${i.id}`, displayType: 'Lot' }))
         ];

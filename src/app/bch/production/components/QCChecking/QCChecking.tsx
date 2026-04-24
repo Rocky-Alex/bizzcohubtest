@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { toast } from 'sonner';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import SearchableDropdown from '@/components/ui/SearchableDropdown';
 import { QRCodeSVG } from 'qrcode.react';
@@ -454,6 +455,7 @@ export default function QCChecking() {
                 // Link back to staging for updating count
                 purchaseLotItemId: stagingItemId,
                 lotId: parseInt(selectedLotId),
+                isReturn: selectedLotId === '-1', // Flag for backend to handle return restocking
 
                 // Product Data (User might have edited it in form)
                 productName: formData.product_name,
@@ -858,7 +860,7 @@ export default function QCChecking() {
                         name="lot"
                         value={selectedLotId}
                         options={lotOptions}
-                        onChange={(e) => setSelectedLotId(e.target.value)}
+                        onChange={(e: any) => setSelectedLotId(e.target.value)}
                         placeholder="Search or select a lot..."
                         className="modern-input"
                     />
@@ -873,7 +875,7 @@ export default function QCChecking() {
                         name="product"
                         value={selectedItem?.itemId.toString() || ''}
                         options={itemOptions}
-                        onChange={(e) => {
+                        onChange={(e: any) => {
                             const itemId = parseInt(e.target.value);
                             const item = lotItems.find(i => i.itemId === itemId);
                             setSelectedItem(item || null);
@@ -922,10 +924,7 @@ export default function QCChecking() {
                     </div>
 
                     {loadingDetails ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem', background: 'white', borderRadius: '24px' }}>
-                            <LoadingSpinner />
-                            <p style={{ marginTop: '1rem', color: '#64748b', fontWeight: 500 }}>Fetching master specifications...</p>
-                        </div>
+                        <LoadingSpinner text="Fetching master specifications..." />
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
 
@@ -1084,7 +1083,7 @@ export default function QCChecking() {
                                         }}
                                     >
                                         {saving ? (
-                                            <i className="fas fa-circle-notch fa-spin"></i>
+                                            <LoadingSpinner size={24} text="" />
                                         ) : (
                                             <i className="fas fa-save"></i>
                                         )}

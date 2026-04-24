@@ -1,13 +1,11 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-    serverExternalPackages: ['@react-pdf/renderer', '@imgly/background-removal', 'onnxruntime-node', 'systeminformation'],
-    outputFileTracingIncludes: {
-        '/resources/sound-test': ['./public/Audios/**/*'],
-    },
-    turbopack: {},
-    // Disable Vercel Analytics in development to reduce console noise
     experimental: {
+        serverComponentsExternalPackages: ['@react-pdf/renderer', '@imgly/background-removal', 'onnxruntime-node', 'systeminformation'],
+        outputFileTracingIncludes: {
+            '/resources/sound-test': ['./public/Audios/**/*'],
+        },
         // Optimize resource loading
         optimizePackageImports: ['framer-motion', 'react-icons'],
     },

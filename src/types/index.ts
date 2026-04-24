@@ -47,7 +47,7 @@ export interface Product {
 
 export interface DatabaseProduct {
     id: number;
-    product_code: string;
+    product_code?: string;
     code?: string;
     product_name: string;
     name?: string;
@@ -96,6 +96,7 @@ export interface DatabaseProduct {
     ram_variants?: string;
     storage_variants?: string;
     lot_number?: string;
+    sku?: string;
     source?: 'QC Passed' | 'Purchase';
 }
 

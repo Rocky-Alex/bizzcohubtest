@@ -8,27 +8,42 @@ if (!mainUrl) {
     console.warn('⚠️ No database connection URL found in environment variables (POSTGRES_URL, DATABASE_URL, LOCAL_POSTGRES_URL, MAIN_POSTGRES_URL)! SQL queries will fail.');
 }
 
+// Define a global type to persist connections during dev hot-reloads
+const globalForDb = global as unknown as {
+    sqlHandlers: Record<string, any>;
+};
+
+if (!globalForDb.sqlHandlers) {
+    globalForDb.sqlHandlers = {};
+}
+
 const createSql = (url: string | undefined, name: string) => {
-    // Mask URL for security but show enough to identify discrepancy
+    if (globalForDb.sqlHandlers[name]) {
+        return globalForDb.sqlHandlers[name];
+    }
+
     const maskedUrl = url ? url.replace(/:[^:@/]+@/, ':***@') : 'UNDEFINED';
     console.log(`[DB] initializing ${name} with URL: ${maskedUrl}`);
     
     if (!url) {
-        return ((strings: any, ...values: any[]) => {
+        const fallback = ((strings: any, ...values: any[]) => {
             console.warn(`⚠️ ${name} SQL query ignored because Database URL is not set.`);
             return Promise.resolve([]);
         }) as any;
+        globalForDb.sqlHandlers[name] = fallback;
+        return fallback;
     }
+
     const neonHandler = neon(url);
-    return (strings: any, ...values: any[]) => {
+    const wrapper = (strings: any, ...values: any[]) => {
         if (typeof strings === 'string') {
-            // Support call as function: sql("SELECT...", [...params])
-            // We use the .query method of neon or format it ourselves safely
-            // But since neon(url) returns a tag, we need to handle this.
             return (neonHandler as any).query(strings, values);
         }
         return neonHandler(strings, ...values);
     };
+
+    globalForDb.sqlHandlers[name] = wrapper;
+    return wrapper;
 };
 
 export const sql = createSql(mainUrl, 'Main');

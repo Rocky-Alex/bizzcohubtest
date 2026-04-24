@@ -37,6 +37,25 @@ export async function GET(req: Request): Promise<NextResponse> {
                     (${statusFilter} != 'completed' AND (status IS NULL OR UPPER(TRIM(status)) != 'COMPLETED'))
                 ORDER BY created_at DESC
             ` as unknown as any[];
+
+            // Inject virtual lot for Customer Returns
+            const returnsCountResult = await sql`SELECT COUNT(*) FROM sales_returns WHERE qc_status = 'Sent to Production'` as any[];
+            const returnsCount = parseInt(returnsCountResult[0].count);
+
+            if (returnsCount > 0 && statusFilter !== 'completed') {
+                lots.unshift({
+                    id: -1, // Special ID for returns
+                    lotId: 'RETURNS',
+                    lotNumber: '🔄 Customer Returns Queue',
+                    supplierName: 'Sales Return Dept',
+                    invoiceNumber: 'RET-INTERNAL',
+                    invoiceDate: new Date().toISOString(),
+                    totalItems: returnsCount,
+                    totalQty: returnsCount,
+                    status: 'Active'
+                });
+            }
+
             return NextResponse.json({ success: true, lots });
         }
     } catch (error: unknown) {

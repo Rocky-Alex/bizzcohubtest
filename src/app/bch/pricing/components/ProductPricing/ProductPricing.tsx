@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './ProductPricing.css';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { toast } from 'sonner';
 
@@ -152,8 +153,9 @@ export default function ProductPricing() {
                         className={`btn-primary ${hasChanges ? 'pulsing-save' : ''}`}
                         onClick={handleSave}
                         disabled={!hasChanges || isSaving}
+                        style={{ position: 'relative', overflow: 'hidden' }}
                     >
-                        {isSaving ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
+                        {isSaving ? <LoadingSpinner size={18} text="" /> : <i className="fas fa-save"></i>}
                         {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
@@ -168,7 +170,7 @@ export default function ProductPricing() {
                         value={searchTerm}
                         onChange={(e) => handleSearchChange(e.target.value)}
                     />
-                    {isLoading && <i className="fas fa-circle-notch fa-spin" style={{ color: '#94a3b8', marginLeft: '0.5rem' }}></i>}
+                    {isLoading && <LoadingSpinner size={20} text="" />}
                 </div>
                 <div className="source-legend">
                     <span className="source-badge source-master">Inventory</span>
@@ -286,9 +288,8 @@ export default function ProductPricing() {
                             })
                         ) : isLoading ? (
                             <tr>
-                                <td colSpan={9} className="empty-state" style={{ padding: '4rem 2rem' }}>
-                                    <i className="fas fa-circle-notch fa-spin fa-2x" style={{ color: '#3b82f6', marginBottom: '1rem' }}></i>
-                                    <p style={{ color: '#64748b' }}>Searching products...</p>
+                                <td colSpan={9} style={{ padding: '4rem 2rem' }}>
+                                    <LoadingSpinner text="Searching products..." />
                                 </td>
                             </tr>
                         ) : (

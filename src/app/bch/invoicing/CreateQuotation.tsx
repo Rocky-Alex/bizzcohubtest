@@ -23,6 +23,11 @@ interface QuotationItem {
     cost: number;
     discount: number;
     product_code?: string;
+    ram?: string;
+    storage?: string;
+    graphics?: string;
+    inventory_id?: number;
+    source?: string;
 }
 
 interface TermItem {
@@ -159,14 +164,18 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                         );
 
                         // Map items
-                        const mappedItems = itemsData.map((item: any, idx: number) => ({
+                        const mappedItems = itemsData.map((d: any, idx: number) => ({
                             id: idx + 1,
-                            description: item.description,
-                            qty: Number(item.quantity),
-                            cost: Number(item.unit_price),
-                            discount: Number(item.discount),
-                            product_code: item.product_code || null,
-                            source: item.source || null
+                            description: d.description,
+                            qty: Number(d.quantity),
+                            cost: Number(d.unit_price),
+                            discount: Number(d.discount),
+                            product_code: d.product_code || null,
+                            ram: d.ram || null,
+                            storage: d.storage || null,
+                            graphics: d.graphics || null,
+                            inventory_id: d.inventory_id || null,
+                            source: d.source || null
                         }));
                         setItems(mappedItems.length > 0 ? mappedItems : [{ id: 1, description: "", qty: 0, cost: 0, discount: 0 }]);
                     }
@@ -478,7 +487,11 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                 cost: Number(p.offer_price || p.base_price || 0),
                 discount: 0,
                 product_code: p.sku || p.product_code,
-                source: p.source
+                inventory_id: p.id,
+                source: p.source,
+                ram: p.ram || null,
+                storage: p.storage || null,
+                graphics: p.graphics_card || null
             }));
 
             return [...currentItems, ...newItems];
@@ -550,13 +563,17 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                 notes: notesList.filter(t => t.checked).map(t => `• ${t.text}`).join('\n'), // Prepend bullet on save
                 terms: termsList.filter(t => t.checked).map(t => `• ${t.text}`).join('\n'),
                 advanceReceived,
-                items: items.map((item: QuotationItem) => ({
+                items: items.map(item => ({
                     description: item.description,
                     qty: item.qty,
                     cost: item.cost,
                     discount: item.discount,
-                    product_code: item.product_code, 
-                    source: (item as any).source,
+                    product_code: item.product_code,
+                    ram: item.ram,
+                    storage: item.storage,
+                    graphics: item.graphics,
+                    inventory_id: item.inventory_id,
+                    source: item.source,
                     total: calculateRowTotal(item)
                 }))
             };

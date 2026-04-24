@@ -1,52 +1,134 @@
 "use client";
 
 import React from 'react';
+import { motion } from 'framer-motion';
 
-const LoadingSpinner = ({ fullScreen = false }: { fullScreen?: boolean }) => {
-    const spinnerStyle = {
-        width: '50px',
-        height: '50px',
-        border: '3px solid var(--border)',
-        borderRadius: '50%',
-        borderTop: '3px solid var(--primary)',
-        animation: 'spin 1s linear infinite',
-    };
+interface LoadingSpinnerProps {
+    fullScreen?: boolean;
+    text?: string;
+    size?: number;
+}
 
+const LoadingSpinner = ({ fullScreen = false, text = "Processing...", size = 100 }: LoadingSpinnerProps) => {
     const containerStyle: React.CSSProperties = fullScreen ? {
         position: 'fixed',
         top: 0,
         left: 0,
         width: '100%',
         height: '100vh',
-        backgroundColor: 'var(--bg-primary)',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(10px)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 9999,
+        zIndex: 99999,
         flexDirection: 'column',
-        gap: '1rem'
+        gap: '1.5rem'
     } : {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: '2rem',
+        padding: '3rem',
         width: '100%',
-        flexDirection: 'column' as const, // Explicit cast for TS
-        gap: '1rem'
+        flexDirection: 'column',
+        gap: '1.2rem'
     };
 
     return (
         <div style={containerStyle}>
-            <style>
-                {`
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `}
-            </style>
-            <div style={spinnerStyle}></div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>Loading...</p>
+            <div style={{ 
+                position: 'relative', 
+                width: size, 
+                height: size,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                {/* Background "Empty" Logo */}
+                <img 
+                    src="/icon/nav-logo.png" 
+                    alt="Loading..." 
+                    style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'contain',
+                        opacity: 0.15,
+                        filter: 'grayscale(1) brightness(0.8)'
+                    }} 
+                />
+
+                {/* Animated "Filling" Logo */}
+                <motion.div
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
+                    initial={{ clipPath: 'inset(100% 0 0 0)' }}
+                    animate={{ clipPath: 'inset(0% 0 0 0)' }}
+                    transition={{ 
+                        duration: 2, 
+                        repeat: Infinity, 
+                        ease: "easeInOut",
+                        repeatDelay: 0.2
+                    }}
+                >
+                    <img 
+                        src="/icon/nav-logo.png" 
+                        alt="Loading..." 
+                        style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'contain',
+                        }} 
+                    />
+                </motion.div>
+
+                {/* Subtle Pulse Ring */}
+                <motion.div
+                    style={{
+                        position: 'absolute',
+                        width: '120%',
+                        height: '120%',
+                        borderRadius: '50%',
+                        border: '2px solid var(--primary, #3b82f6)',
+                        opacity: 0
+                    }}
+                    animate={{ 
+                        scale: [1, 1.2],
+                        opacity: [0, 0.3, 0],
+                    }}
+                    transition={{ 
+                        duration: 2, 
+                        repeat: Infinity, 
+                        ease: "easeOut" 
+                    }}
+                />
+            </div>
+
+            {text && (
+                <motion.p 
+                    initial={{ opacity: 0.5 }}
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    style={{ 
+                        color: '#1e293b', 
+                        fontSize: '0.85rem', 
+                        fontWeight: 600,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        margin: 0
+                    }}
+                >
+                    {text}
+                </motion.p>
+            )}
         </div>
     );
 };

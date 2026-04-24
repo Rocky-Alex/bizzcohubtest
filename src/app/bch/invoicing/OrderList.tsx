@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import "../styles/order-list.css";
+import LoadingSpinner from '@/app/components/LoadingSpinner';
 import OrderDetailsModal from './OrderDetailsModal';
 import ConfirmModal from '../shared/ConfirmModal';
 
@@ -262,10 +263,7 @@ const OrderList = ({
             {/* Orders Table */}
             <div className="table-card">
                 {loading ? (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
-                        <i className="fas fa-spinner fa-spin" style={{ fontSize: '2rem', marginBottom: '1rem', color: '#3b82f6' }}></i>
-                        <p>Loading orders data...</p>
-                    </div>
+                    <LoadingSpinner text="Loading orders data..." />
                 ) : filteredOrders.length > 0 ? (
                     <table className="data-table">
                         <thead>

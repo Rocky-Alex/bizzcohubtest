@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 export default function LotManagementPage() {
     const [lots, setLots] = useState<any[]>([]);
@@ -55,7 +56,7 @@ export default function LotManagementPage() {
                     <div style={styles.cardHeader}>
                         <h2>Active Lots Overview</h2>
                     </div>
-                    {loading && !selectedLot && <div style={{padding: '2rem'}}>Loading...</div>}
+                    {loading && !selectedLot && <LoadingSpinner text="Fetching lots..." />}
                     <div style={{overflowX: 'auto'}}>
                         <table style={styles.table}>
                             <thead>

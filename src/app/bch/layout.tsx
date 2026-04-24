@@ -5,12 +5,15 @@ import { useRouter, usePathname } from "next/navigation";
 import AdminSidebar from "./shared/AdminSidebar";
 import AdminHeader from "./shared/AdminHeader";
 import ConfirmModal from "./shared/ConfirmModal";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
 import "./styles/admin.css";
 import "./styles/modern-sidebar.css";
 import "./styles/dashboard.css";
 import "./styles/admin-header.css";
 import "./styles/mobile-responsive.css";
+import "./styles/sales-port.css";
+import "./styles/platform-dashboard.css";
 
 export default function AdminLayout({
     children,
@@ -155,7 +158,7 @@ export default function AdminLayout({
     ];
 
     if (!isAuthenticated && pathname !== '/bch/login') {
-        return null; // Or a loading spinner
+        return <LoadingSpinner fullScreen text="Authenticating..." />;
     }
 
     if (pathname === '/bch/login') {

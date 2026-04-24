@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { invoiceSql as sql } from '@/lib/db';
+import { invoiceSql as sql, sql as mainSql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 
 export async function GET(req: Request, context: any): Promise<NextResponse> {
@@ -16,12 +16,39 @@ export async function GET(req: Request, context: any): Promise<NextResponse> {
         }
 
         const itemsResult = await sql`
-            SELECT id, invoice_id, description, quantity, unit_price, discount, total, product_code, source 
-            FROM invoice_items 
-            WHERE invoice_id = ${id}
+            SELECT 
+                ii.*,
+                COALESCE(mi.quantity, (SELECT quantity FROM master_inventory WHERE sku = ii.product_code LIMIT 1)) as master_stock,
+                COALESCE(pli.quantity, (SELECT SUM(quantity) FROM purchase_lot_items WHERE sku = ii.product_code)) as purchase_stock
+            FROM invoice_items ii
+            LEFT JOIN master_inventory mi ON ii.inventory_id = mi.id AND (ii.source = 'master' OR ii.source = 'QC Passed')
+            LEFT JOIN purchase_lot_items pli ON ii.inventory_id = pli.id AND (ii.source = 'purchase' OR ii.source = 'Purchase')
+            WHERE ii.invoice_id = ${id}
         ` as unknown as any[];
 
-        return NextResponse.json({ invoice: invoiceResult[0], items: itemsResult }, { status: 200 });
+        // Fetch sold quantities from sale_out table (Main DB)
+        const invoiceNo = invoiceResult[0].invoice_no;
+        const soldResult = await mainSql`
+            SELECT inventory_id, source, SUM(quantity) as sold_qty 
+            FROM sale_out 
+            WHERE invoice_no = ${invoiceNo}
+            GROUP BY inventory_id, source
+        ` as unknown as any[];
+
+        // Map sold quantities to items
+        const itemsWithSold = itemsResult.map(item => {
+            const soldRecord = soldResult.find(s => 
+                s.inventory_id === item.inventory_id && 
+                (s.source?.toLowerCase() === item.source?.toLowerCase() || 
+                 (s.source === 'master' && item.source === 'QC Passed'))
+            );
+            return {
+                ...item,
+                sold_quantity: soldRecord ? parseInt(soldRecord.sold_qty) : 0
+            };
+        });
+
+        return NextResponse.json({ invoice: invoiceResult[0], items: itemsWithSold }, { status: 200 });
     } catch (error: unknown) {
         console.error('Error fetching invoice details:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -166,64 +193,18 @@ export async function PUT(req: Request, context: any): Promise<NextResponse> {
             await sql`DELETE FROM invoice_payments WHERE id = ${existingInitial.id}`;
         }
 
-        // 1. Fetch existing items to revert stock
-        const existingItems = await sql`SELECT product_code, quantity, source FROM invoice_items WHERE invoice_id = ${id}` as unknown as any[];
-
-        // 2. Revert stock (Add back old quantities)
-        for (const item of existingItems) {
-            if (item.product_code) {
-                if (item.source === 'QC Passed') {
-                    await sql`
-                        UPDATE master_inventory 
-                        SET quantity = quantity + ${Number(item.quantity)}
-                        WHERE sku = ${item.product_code} OR barcode = ${item.product_code}
-                    `;
-                } else if (item.source === 'Purchase') {
-                    await sql`
-                        UPDATE purchase_lot_items 
-                        SET quantity = quantity + ${Number(item.quantity)}
-                        WHERE sku = ${item.product_code}
-                    `;
-                }
-            }
-        }
-
         // Replace Items
         await sql`DELETE FROM invoice_items WHERE invoice_id = ${id}`;
-
-        // Ensure column exists (Migration fix for existing dbs)
-        try {
-            await sql`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS product_code TEXT`;
-        } catch (e: unknown) {
-            console.log('Migration note (invoice_items update):', e);
-        }
 
         const itemsList = Array.isArray(items) ? items : [];
         for (const item of itemsList) {
             await sql`
                 INSERT INTO invoice_items (
-                    invoice_id, description, quantity, unit_price, discount, total, product_code, source
+                    invoice_id, description, quantity, unit_price, discount, total, product_code, source, inventory_id, ram, storage, graphics
                 ) VALUES (
-                    ${id}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}, ${item.source || null}
+                    ${id}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}, ${item.source || null}, ${item.inventory_id || null}, ${item.ram || null}, ${item.storage || null}, ${item.graphics || null}
                 )
             `;
-
-            // Deduct from Inventory if product_code is provided
-            if (item.product_code) {
-                if (item.source === 'QC Passed') {
-                    await sql`
-                        UPDATE master_inventory 
-                        SET quantity = quantity - ${Number(item.qty)}
-                        WHERE sku = ${item.product_code} OR barcode = ${item.product_code}
-                    `;
-                } else if (item.source === 'Purchase') {
-                    await sql`
-                        UPDATE purchase_lot_items 
-                        SET quantity = quantity - ${Number(item.qty)}
-                        WHERE sku = ${item.product_code}
-                    `;
-                }
-            }
         }
 
         await logActivity(
@@ -248,20 +229,6 @@ export async function DELETE(req: Request, context: any): Promise<NextResponse> 
         const params = await Promise.resolve(context.params);
         const { id  } = params;
         
-        // 1. Fetch items to revert stock before deletion
-        const itemsToRevert = await sql`SELECT product_code, quantity, source FROM invoice_items WHERE invoice_id = ${id}` as unknown as any[];
-        
-        // 2. Revert stock
-        for (const item of itemsToRevert) {
-            if (item.product_code) {
-                if (item.source === 'QC Passed') {
-                    await sql`UPDATE master_inventory SET quantity = quantity + ${Number(item.quantity)} WHERE sku = ${item.product_code} OR barcode = ${item.product_code}`;
-                } else if (item.source === 'Purchase') {
-                    await sql`UPDATE purchase_lot_items SET quantity = quantity + ${Number(item.quantity)} WHERE sku = ${item.product_code}`;
-                }
-            }
-        }
-
         const result = await sql`
             DELETE FROM invoices
             WHERE id = ${id}

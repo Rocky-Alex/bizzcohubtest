@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { invoiceSql as sql } from '@/lib/db';
+import { invoiceSql as sql, sql as mainSql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 import { Invoice } from '@/types';
 
@@ -12,10 +12,33 @@ export async function GET(req: Request): Promise<NextResponse> {
         const url = new URL(req.url);
         const invoiceNo = url.searchParams.get('invoiceNo');
 
-        const data = await (invoiceNo
+        let data = await (invoiceNo
             ? sql`SELECT * FROM invoices WHERE invoice_no = ${invoiceNo} ORDER BY created_date DESC`
             : sql`SELECT * FROM invoices ORDER BY created_date DESC`
-        ) as unknown as Invoice[];
+        ) as unknown as any[];
+
+        const salesPort = url.searchParams.get('salesPort') === 'true';
+        if (salesPort) {
+            // Get total quantities for each invoice
+            const totals = await sql`
+                SELECT invoice_id, SUM(quantity) as total_qty 
+                FROM invoice_items 
+                GROUP BY invoice_id
+            ` as unknown as any[];
+
+            // Get sold quantities for each invoice from sale_out (Main DB)
+            const solds = await mainSql`
+                SELECT invoice_no, SUM(quantity) as sold_qty 
+                FROM sale_out 
+                GROUP BY invoice_no
+            ` as unknown as any[];
+
+            data = data.filter(inv => {
+                const total = totals.find(t => t.invoice_id === inv.id)?.total_qty || 0;
+                const sold = solds.find(s => s.invoice_no === inv.invoice_no)?.sold_qty || 0;
+                return Number(total) > Number(sold);
+            });
+        }
 
         return NextResponse.json({ invoices: data }, { 
             status: 200,
@@ -85,30 +108,11 @@ export async function POST(req: Request): Promise<NextResponse> {
         for (const item of items) {
             await sql`
                 INSERT INTO invoice_items (
-                    invoice_id, description, quantity, unit_price, discount, total, product_code
+                    invoice_id, description, quantity, unit_price, discount, total, product_code, inventory_id, source, ram, storage, graphics
                 ) VALUES (
-                    ${invoiceId}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}
+                    ${invoiceId}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}, ${item.inventory_id || null}, ${item.source || null}, ${item.ram || null}, ${item.storage || null}, ${item.graphics || null}
                 )
             `;
-
-            // 2. Deduct from Inventory based on source
-            if (item.product_code) {
-                if (item.source === 'QC Passed') {
-                    await sql`
-                        UPDATE master_inventory 
-                        SET quantity = quantity - ${Number(item.qty)}
-                        WHERE sku = ${item.product_code} OR barcode = ${item.product_code}
-                    `;
-                } else if (item.source === 'Purchase') {
-                    // For Purchase source, we deduct from purchase_lot_items
-                    // We might need the specific item ID since SKU might not be unique in staging
-                    await sql`
-                        UPDATE purchase_lot_items 
-                        SET quantity = quantity - ${Number(item.qty)}
-                        WHERE sku = ${item.product_code}
-                    `;
-                }
-            }
         }
 
         // 3. Handle initial payment record in dedicated table

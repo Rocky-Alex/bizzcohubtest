@@ -133,27 +133,32 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
     const filterOptions = useMemo(() => {
         const lots = new Set<string>();
         products.forEach(p => {
-            if (p.lot_number) {
-                lots.add(p.lot_number.trim());
+            const lNum = p.lot_number || (p as any).lotNumber;
+            if (lNum) {
+                lots.add(String(lNum).trim());
             }
         });
 
+        // Normalize comparison helper
+        const compare = (val1?: string, val2?: string) => 
+            (val1 || '').trim().toLowerCase() === (val2 || '').trim().toLowerCase();
+
         // 2. Available Brands (Filtered by selected Lot)
         const brands = new Set<string>();
-        products.filter(p => !filters.lot_number || p.lot_number === filters.lot_number)
+        products.filter(p => !filters.lot_number || compare(p.lot_number, filters.lot_number))
             .forEach(p => p.brand && brands.add(p.brand));
 
         // 3. Available Series (Filtered by Lot and Brand)
         const series = new Set<string>();
-        products.filter(p => (!filters.lot_number || p.lot_number === filters.lot_number) &&
-            (!filters.brand || p.brand === filters.brand))
+        products.filter(p => (!filters.lot_number || compare(p.lot_number, filters.lot_number)) &&
+            (!filters.brand || compare(p.brand, filters.brand)))
             .forEach(p => p.series && series.add(p.series));
 
         // 4. Available Models (Filtered by Lot, Brand, and Series)
         const models = new Set<string>();
-        products.filter(p => (!filters.lot_number || p.lot_number === filters.lot_number) &&
-            (!filters.brand || p.brand === filters.brand) &&
-            (!filters.series || p.series === filters.series))
+        products.filter(p => (!filters.lot_number || compare(p.lot_number, filters.lot_number)) &&
+            (!filters.brand || compare(p.brand, filters.brand)) &&
+            (!filters.series || compare(p.series, filters.series)))
             .forEach(p => p.model && models.add(p.model));
 
         // 5. Global specs (Showing all values without hierarchy restriction)
@@ -189,13 +194,15 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
     const filteredProducts = useMemo(() => {
         return products.filter(p => {
             const searchLower = searchQuery.toLowerCase().trim();
+            const pLot = p.lot_number || (p as any).lotNumber;
             const matchesSearch = !searchQuery ||
                 p.product_name?.toLowerCase().includes(searchLower) ||
                 p.product_code?.toLowerCase().includes(searchLower) ||
-                p.lot_number?.toLowerCase().includes(searchLower) ||
+                p.sku?.toLowerCase().includes(searchLower) ||
+                pLot?.toLowerCase().includes(searchLower) ||
                 p.brand?.toLowerCase().includes(searchLower);
 
-            const matchesLot = !filters.lot_number || p.lot_number?.trim().toLowerCase() === filters.lot_number.toLowerCase();
+            const matchesLot = !filters.lot_number || (pLot || '').trim().toLowerCase() === filters.lot_number.toLowerCase();
             const matchesBrand = !filters.brand || p.brand?.trim().toLowerCase() === filters.brand.toLowerCase();
             const matchesSeries = !filters.series || p.series?.trim().toLowerCase() === filters.series.toLowerCase();
             const matchesModel = !filters.model || p.model?.trim().toLowerCase() === filters.model.toLowerCase();
@@ -262,145 +269,93 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
         <div className="pis-modal-overlay" onClick={onClose}>
             <div className="pis-modal-container" onClick={e => e.stopPropagation()}>
                 <div className="pis-header">
-                    <h2><i className="fas fa-boxes"></i> Product Inventory Selector</h2>
+                    <h2><i className="fas fa-layer-group"></i> Product Inventory Selector</h2>
                     <button className="pis-close-btn" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
 
-                <div className="pis-body" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-                    {/* Sidebar Filters */}
-                    <div className="pis-sidebar">
-                        <h3 className="pis-sidebar-title">SPECIFICATIONS</h3>
+                <div className="pis-body">
+                    <div className="pis-main">
+                        <div className="pis-filter-section">
+                            <div className="pis-search-wrapper">
+                                <div className="pis-search-input-inner">
+                                    <i className="fas fa-search"></i>
+                                    <input
+                                        className="pis-search-input"
+                                        placeholder="Search by name, code, lot or brand..."
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                            </div>
 
-                        <div className="pis-filter-group">
-                            <label>Lot Number</label>
-                            <select value={filters.lot_number} onChange={e => setFilters({ ...filters, lot_number: e.target.value })}>
-                                <option value="">All Lots</option>
-                                {filterOptions.lots.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-
-                        <div className="pis-filter-group">
-                            <label>Brand</label>
-                            <select value={filters.brand} onChange={e => setFilters({ ...filters, brand: e.target.value })}>
-                                <option value="">All Brands</option>
-                                {filterOptions.brands.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-
-                        <div className="pis-filter-group">
-                            <label>Series</label>
-                            <select value={filters.series} onChange={e => setFilters({ ...filters, series: e.target.value })}>
-                                <option value="">All Series</option>
-                                {filterOptions.series.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-
-                        <div className="pis-filter-group">
-                            <label>Model</label>
-                            <select value={filters.model} onChange={e => setFilters({ ...filters, model: e.target.value })}>
-                                <option value="">All Models</option>
-                                {filterOptions.models.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-
-                        <div className="pis-filter-group">
-                            <label>Processor (Core)</label>
-                            <select value={filters.processor} onChange={e => setFilters({ ...filters, processor: e.target.value })}>
-                                <option value="">All Processors</option>
-                                {filterOptions.processors.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-
-                        <div className="pis-filter-group">
-                            <label>Generation</label>
-                            <select value={filters.gen} onChange={e => setFilters({ ...filters, gen: e.target.value })}>
-                                <option value="">All Generations</option>
-                                {filterOptions.gens.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-
-                        <button
-                            className="pis-reset-btn"
-                            style={{ marginTop: '1rem', width: '100%' }}
-                            onClick={() => setFilters({
-                                lot_number: '', brand: '', series: '', model: '',
-                                processor: '', gen: '', ram: '', storage: '', graphics: ''
-                            })}
-                        >
-                            Reset Filters
-                        </button>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="pis-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <div className="pis-search-bar" style={{ padding: '1rem' }}>
-                            <div className="pis-search-input-wrapper">
-                                <i className="fas fa-search"></i>
-                                <input
-                                    className="pis-search-input"
-                                    placeholder="Search by name, code, lot or brand..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                />
+                            <div className="pis-filter-grid">
+                                <div className="pis-filter-item">
+                                    <label>Lot Number</label>
+                                    <select value={filters.lot_number} onChange={e => setFilters({ ...filters, lot_number: e.target.value })}>
+                                        <option value="">All Lots</option>
+                                        {filterOptions.lots.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="pis-filter-item">
+                                    <label>Brand</label>
+                                    <select value={filters.brand} onChange={e => setFilters({ ...filters, brand: e.target.value })}>
+                                        <option value="">All Brands</option>
+                                        {filterOptions.brands.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="pis-filter-item">
+                                    <label>Series</label>
+                                    <select value={filters.series} onChange={e => setFilters({ ...filters, series: e.target.value })}>
+                                        <option value="">All Series</option>
+                                        {filterOptions.series.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="pis-filter-item">
+                                    <label>Model</label>
+                                    <select value={filters.model} onChange={e => setFilters({ ...filters, model: e.target.value })}>
+                                        <option value="">All Models</option>
+                                        {filterOptions.models.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="pis-filter-item">
+                                    <label>Processor</label>
+                                    <select value={filters.processor} onChange={e => setFilters({ ...filters, processor: e.target.value })}>
+                                        <option value="">All Processors</option>
+                                        {filterOptions.processors.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="pis-filter-item">
+                                    <label>Generation</label>
+                                    <select value={filters.gen} onChange={e => setFilters({ ...filters, gen: e.target.value })}>
+                                        <option value="">All Generations</option>
+                                        {filterOptions.gens.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="pis-filter-item">
+                                    <label>Graphics</label>
+                                    <select value={filters.graphics} onChange={e => setFilters({ ...filters, graphics: e.target.value })}>
+                                        <option value="">All Graphics</option>
+                                        {filterOptions.graphics.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                                <div className="pis-filter-item">
+                                    <button
+                                        className="pis-reset-btn"
+                                        onClick={() => setFilters({
+                                            lot_number: '', brand: '', series: '', model: '',
+                                            processor: '', gen: '', ram: '', storage: '', graphics: ''
+                                        })}
+                                    >
+                                        <i className="fas fa-undo-alt"></i>
+                                        Reset Filters
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Top Filter Grid */}
-                        <div className="pis-top-filter-grid">
-                            <div className="pis-filter-item">
-                                <label>Lot Number</label>
-                                <select value={filters.lot_number} onChange={e => setFilters({ ...filters, lot_number: e.target.value })}>
-                                    <option value="">All Lots</option>
-                                    {filterOptions.lots.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-                            <div className="pis-filter-item">
-                                <label>Brand</label>
-                                <select value={filters.brand} onChange={e => setFilters({ ...filters, brand: e.target.value })}>
-                                    <option value="">All Brands</option>
-                                    {filterOptions.brands.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-                            <div className="pis-filter-item">
-                                <label>Series</label>
-                                <select value={filters.series} onChange={e => setFilters({ ...filters, series: e.target.value })}>
-                                    <option value="">All Series</option>
-                                    {filterOptions.series.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-                            <div className="pis-filter-item">
-                                <label>Model</label>
-                                <select value={filters.model} onChange={e => setFilters({ ...filters, model: e.target.value })}>
-                                    <option value="">All Models</option>
-                                    {filterOptions.models.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-                            <div className="pis-filter-item">
-                                <label>Processor (Core)</label>
-                                <select value={filters.processor} onChange={e => setFilters({ ...filters, processor: e.target.value })}>
-                                    <option value="">All Processors</option>
-                                    {filterOptions.processors.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-                            <div className="pis-filter-item">
-                                <label>Generation</label>
-                                <select value={filters.gen} onChange={e => setFilters({ ...filters, gen: e.target.value })}>
-                                    <option value="">All Generations</option>
-                                    {filterOptions.gens.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-                            <div className="pis-filter-item">
-                                <label>Graphics Card</label>
-                                <select value={filters.graphics} onChange={e => setFilters({ ...filters, graphics: e.target.value })}>
-                                    <option value="">All Graphics</option>
-                                    {filterOptions.graphics.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="inventory-results-container" style={{ flex: 1, overflowY: 'auto' }}>
+                        <div className="pis-table-container">
                             <table className="inventory-table">
                                 <thead>
                                     <tr>
@@ -423,7 +378,7 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
                                 <tbody>
                                     {filteredProducts.map(p => (
                                         <tr
-                                            key={p.id}
+                                            key={`${p.id}-${p.source || 'qc'}`}
                                             className={selectedProductIds.has(p.id) ? 'selected' : ''}
                                             onClick={() => handleToggleSelect(p.id)}
                                         >
@@ -435,35 +390,46 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
                                                 />
                                             </td>
                                             <td>
-                                                <span className={`badge source-badge ${p.source === 'QC Passed' ? 'qc' : 'purchase'}`}>
-                                                    {p.source}
+                                                <span className={`source-badge ${p.source?.toLowerCase().replace(' ', '-')}`}>
+                                                    {p.source?.toUpperCase()}
                                                 </span>
                                             </td>
                                             <td>
-                                                {p.lot_number ? <span className="badge lot-badge">{p.lot_number}</span> : '-'}
+                                                {(p.lot_number || (p as any).lotNumber) ? <span className="badge lot-badge">{p.lot_number || (p as any).lotNumber}</span> : '-'}
                                             </td>
                                             <td><strong>{p.brand}</strong></td>
                                             <td>
-                                                <div>{p.product_name}</div>
-                                                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{p.product_code}</div>
+                                                <div style={{ fontWeight: 600 }}>{p.product_name}</div>
+                                                <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{p.product_code || p.sku || 'No SKU'}</div>
                                             </td>
                                             <td>
                                                 <div className="item-specs-cell">
-                                                    {p.processor && <span className="spec-tag-inline">{p.processor}</span>}
+                                                    {p.processor && <span className="spec-tag-inline"><i className="fas fa-microchip"></i> {p.processor}</span>}
                                                     {p.processor_gen && <span className="spec-tag-inline">{p.processor_gen}</span>}
-                                                    {p.ram && <span className="spec-tag-inline">{p.ram} RAM</span>}
-                                                    {p.storage && <span className="spec-tag-inline">{p.storage} SSD</span>}
-                                                    {p.graphics_card && <span className="spec-tag-inline gpu">{p.graphics_card}</span>}
+                                                    {p.ram && <span className="spec-tag-inline"><i className="fas fa-memory"></i> {p.ram}</span>}
+                                                    {p.storage && <span className="spec-tag-inline"><i className="fas fa-hdd"></i> {p.storage}</span>}
+                                                    {p.graphics_card && <span className="spec-tag-inline gpu"><i className="fas fa-video"></i> {p.graphics_card}</span>}
                                                 </div>
                                             </td>
                                             <td>
                                                 <div className="price-stack">
-                                                    <span className="price-main">{p.offer_price ? `AED ${p.offer_price}` : `AED ${p.base_price}`}</span>
-                                                    {p.offer_price && p.base_price && <span className="price-crossed">AED {p.base_price}</span>}
+                                                    {(p.offer_price && Number(p.offer_price) > 0) || (p.base_price && Number(p.base_price) > 0) ? (
+                                                        <>
+                                                            <span className="price-main">
+                                                                AED {p.offer_price && Number(p.offer_price) > 0 ? p.offer_price : p.base_price}
+                                                            </span>
+                                                            {p.offer_price && p.base_price && Number(p.offer_price) !== Number(p.base_price) && (
+                                                                <span className="price-crossed">AED {p.base_price}</span>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <span className="no-price-tag">No Price Set</span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td>
-                                                <span className={`stock-badge ${Number(p.quantity) < 5 ? 'low' : ''}`}>
+                                                <span className={`stock-badge ${Number(p.quantity) <= 0 ? 'out' : (Number(p.quantity) < 5 ? 'low' : '')}`}>
+                                                    <i className={`fas ${Number(p.quantity) <= 0 ? 'fa-times-circle' : (Number(p.quantity) < 5 ? 'fa-exclamation-circle' : 'fa-check-circle')}`}></i>
                                                     {p.quantity} in stock
                                                 </span>
                                             </td>
@@ -471,10 +437,10 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
                                     ))}
                                     {filteredProducts.length === 0 && (
                                         <tr>
-                                            <td colSpan={8} style={{ padding: '3rem', textAlign: 'center' }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', opacity: 0.5 }}>
-                                                    <i className="fas fa-search-minus" style={{ fontSize: '3rem' }}></i>
-                                                    <p style={{ fontSize: '1.1rem' }}>No products match your filters.</p>
+                                            <td colSpan={8}>
+                                                <div className="pis-empty-state">
+                                                    <i className="fas fa-search-minus"></i>
+                                                    <p>No products match your filters.</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -490,19 +456,21 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
                         {selectedProductIds.size > 0 ? (
                             <>
                                 <div className="charger-config-container">
-                                    <label className="charger-config-label">Charger Configuration</label>
+                                    <label className="charger-config-label">Charger Details</label>
                                     <div className="charger-toggle-group">
                                         <button
                                             className={`charger-toggle-btn ${hasCharger ? 'active' : ''}`}
                                             onClick={() => setHasCharger(true)}
                                         >
-                                            With Charger
+                                            <i className={`fas ${hasCharger ? 'fa-plug' : 'fa-plug'}`}></i>
+                                            Included
                                         </button>
                                         <button
                                             className={`charger-toggle-btn ${!hasCharger ? 'active' : ''}`}
                                             onClick={() => setHasCharger(false)}
                                         >
-                                            Without Charger
+                                            <i className="fas fa-times-circle"></i>
+                                            None
                                         </button>
                                     </div>
 
@@ -512,52 +480,68 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
                                         onChange={e => setSelectedWatts(e.target.value)}
                                         disabled={!hasCharger}
                                     >
-                                        <option value="">-- Select Watts --</option>
+                                        <option value="">Wattage</option>
                                         {WATTAGE_OPTIONS.map(w => (
                                             <option key={w} value={w}>{w}</option>
                                         ))}
                                     </select>
                                 </div>
 
-                                <div className="charger-config-container" style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: '1.5rem' }}>
-                                    <label className="charger-config-label">Hardware Overrides (Manual)</label>
-                                    <div style={{ display: 'flex', gap: '0.5rem', width: '450px' }}>
-                                        <select
-                                            className="charger-watts-select"
-                                            value={manualRam}
-                                            onChange={e => setManualRam(e.target.value)}
-                                        >
-                                            <option value="">-- Manual RAM --</option>
-                                            {manualOptions.rams.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
-                                        <select
-                                            className="charger-watts-select"
-                                            value={manualStorage}
-                                            onChange={e => setManualStorage(e.target.value)}
-                                        >
-                                            <option value="">-- Manual SSD --</option>
-                                            {manualOptions.storages.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
-                                        <select
-                                            className="charger-watts-select"
-                                            value={manualGraphics}
-                                            onChange={e => setManualGraphics(e.target.value)}
-                                        >
-                                            <option value="">-- Manual GPU --</option>
-                                            {manualOptions.graphics.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
+                                <div className="charger-config-container" style={{ borderLeft: '2px solid #f1f5f9', paddingLeft: '2rem' }}>
+                                    <label className="charger-config-label">Hardware Overrides</label>
+                                    <div className="hardware-overrides-grid">
+                                        <div className="hardware-select-wrapper">
+                                            <i className="fas fa-memory"></i>
+                                            <select
+                                                className="charger-watts-select"
+                                                value={manualRam}
+                                                onChange={e => setManualRam(e.target.value)}
+                                            >
+                                                <option value="">RAM</option>
+                                                {manualOptions.rams.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="hardware-select-wrapper">
+                                            <i className="fas fa-hdd"></i>
+                                            <select
+                                                className="charger-watts-select"
+                                                value={manualStorage}
+                                                onChange={e => setManualStorage(e.target.value)}
+                                            >
+                                                <option value="">SSD</option>
+                                                {manualOptions.storages.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="hardware-select-wrapper">
+                                            <i className="fas fa-microchip"></i>
+                                            <select
+                                                className="charger-watts-select"
+                                                value={manualGraphics}
+                                                onChange={e => setManualGraphics(e.target.value)}
+                                            >
+                                                <option value="">GPU</option>
+                                                {manualOptions.graphics.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </>
                         ) : (
-                            <span style={{ color: '#64748b' }}>Select products to continue</span>
+                            <div className="pis-selection-preview" style={{ opacity: 0.6, alignItems: 'center' }}>
+                                <i className="fas fa-mouse-pointer" style={{ fontSize: '1.2rem', color: '#94a3b8' }}></i>
+                                <span style={{ color: '#64748b', fontWeight: 600 }}>Select items to configure charger and hardware</span>
+                            </div>
                         )}
                     </div>
+                    
                     <div className="pis-actions">
                         {selectedProductIds.size > 0 && (
-                            <span style={{ marginRight: '1rem', fontWeight: 600, color: '#2563eb' }}>
-                                {selectedProductIds.size} Items Selected
-                            </span>
+                            <div className="pis-selection-info">
+                                <div className="pis-selection-count">
+                                    <i className="fas fa-check-circle"></i>
+                                    {selectedProductIds.size} {selectedProductIds.size === 1 ? 'Item' : 'Items'} Selected
+                                </div>
+                            </div>
                         )}
                         <button className="pis-cancel-btn" onClick={onClose}>Cancel</button>
                         <button
@@ -565,7 +549,8 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
                             disabled={selectedProductIds.size === 0}
                             onClick={handleAddSelected}
                         >
-                            Add {selectedProductIds.size > 0 ? selectedProductIds.size : ''} Items
+                            <span>Add Items</span>
+                            <i className="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>

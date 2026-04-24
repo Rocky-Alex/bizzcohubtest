@@ -92,9 +92,17 @@ export default function AdminSidebar({
                 { id: "production-inventory-qc", label: "Inventory QC Checking" },
                 { id: "production-model-checking", label: "Model Checking" },
                 { id: "production-reprint", label: "Reprint Barcode" },
-                { id: "production-sale-out", label: "Sale Out" },
-                { id: "production-sales-return", label: "Sales Return" },
                 { id: "production-sticker-printing", label: "Sticker Printing" }
+            ]
+        },
+        {
+            id: "sales",
+            icon: "fa-store",
+            label: "Sales Port",
+            subItems: [
+                { id: "sales-dashboard", label: "Sales Dashboard" },
+                { id: "sales-port", label: "Sales Port (Out)" },
+                { id: "sales-inventory", label: "Sales Inventory" }
             ]
         },
         {
@@ -254,9 +262,10 @@ export default function AdminSidebar({
             'production-inventory-qc': '/bch/production/inventoryqcchecking',
             'production-model-checking': '/bch/production/modelchecking',
             'production-reprint': '/bch/production/reprintBarcode',
-            'production-sale-out': '/bch/inventory/soldout',
-            'production-sales-return': '/bch/inventory/sales-return',
             'production-sticker-printing': '/bch/production/stickerprinting',
+            'sales-dashboard': '/bch/sales/dashboard',
+            'sales-port': '/bch/sales/port',
+            'sales-inventory': '/bch/sales/inventory',
             'inventory-dashboard': '/bch/inventory/inventorydashboard',
             'products-list': '/bch/inventory/ecommproductlist',
             'add-product': '/bch/inventory/addecommproduct',
@@ -293,6 +302,7 @@ export default function AdminSidebar({
             'activity-log': '/bch/activity-log',
             'featured-manage': '/bch/featured',
             'production': '/bch/production',
+            'sales': '/bch/sales/dashboard',
             'inventory': '/bch/inventory',
             'packing': '/bch/packing',
             'product-pricing': '/bch/pricing',
@@ -330,15 +340,16 @@ export default function AdminSidebar({
 
         const isProductionWorkspace = searchParams.get('workspace') === 'production' ||
             pathname?.startsWith('/bch/production') ||
+            pathname?.startsWith('/bch/sales') ||
             pathname?.startsWith('/bch/purchase') ||
             pathname?.startsWith('/bch/inventory') ||
             pathname?.startsWith('/bch/packing') ||
             pathname?.startsWith('/bch/labelsize');
 
         if (isProductionWorkspace) {
-            return ['dashboard', 'production', 'purchase', 'inventory', 'product-pricing', 'packing', 'labelsize'].includes(item.id);
+            return ['dashboard', 'production', 'sales', 'purchase', 'inventory', 'product-pricing', 'packing', 'labelsize'].includes(item.id);
         } else {
-            if (['production', 'purchase', 'inventory', 'packing', 'labelsize'].includes(item.id)) {
+            if (['production', 'sales', 'purchase', 'inventory', 'packing', 'labelsize'].includes(item.id)) {
                 return false;
             }
         }
@@ -358,6 +369,7 @@ export default function AdminSidebar({
             'invoicing': '/bch/billing',
             'users': '/bch/users',
             'production': '/bch/production',
+            'sales': '/bch/sales',
             'packing': '/bch/packing',
             'inventory': '/bch/inventory',
             'product-pricing': '/bch/pricing',

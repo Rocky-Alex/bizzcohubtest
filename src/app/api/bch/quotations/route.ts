@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { quotationSql as sql } from '@/lib/db';
+import { quotationSql as sql, sql as mainSql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 import { Quotation } from '@/types';
 
@@ -12,10 +12,33 @@ export async function GET(req: Request): Promise<NextResponse> {
         const url = new URL(req.url);
         const quotationNo = url.searchParams.get('quotationNo');
 
-        const data = await (quotationNo
+        let data = await (quotationNo
             ? sql`SELECT * FROM quotations WHERE quotation_no = ${quotationNo} ORDER BY created_date DESC`
             : sql`SELECT * FROM quotations ORDER BY created_date DESC`
-        ) as unknown as Quotation[];
+        ) as unknown as any[];
+
+        const salesPort = url.searchParams.get('salesPort') === 'true';
+        if (salesPort) {
+            // Get total quantities for each quotation
+            const totals = await sql`
+                SELECT quotation_id, SUM(quantity) as total_qty 
+                FROM quotation_items 
+                GROUP BY quotation_id
+            ` as unknown as any[];
+
+            // Get sold quantities for each quotation from sale_out (Main DB)
+            const solds = await mainSql`
+                SELECT invoice_no, SUM(quantity) as sold_qty 
+                FROM sale_out 
+                GROUP BY invoice_no
+            ` as unknown as any[];
+
+            data = data.filter(q => {
+                const total = totals.find(t => t.quotation_id === q.id)?.total_qty || 0;
+                const sold = solds.find(s => s.invoice_no === q.quotation_no)?.sold_qty || 0;
+                return Number(total) > Number(sold);
+            });
+        }
 
         return NextResponse.json({ quotations: data }, { 
             status: 200,
@@ -85,9 +108,9 @@ export async function POST(req: Request): Promise<NextResponse> {
         for (const item of items) {
             await sql`
                 INSERT INTO quotation_items (
-                    quotation_id, description, quantity, unit_price, discount, total, product_code
+                    quotation_id, description, quantity, unit_price, discount, total, product_code, ram, storage, graphics, inventory_id, source
                 ) VALUES (
-                    ${quotationId}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}
+                    ${quotationId}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}, ${item.ram || null}, ${item.storage || null}, ${item.graphics || null}, ${item.inventory_id || null}, ${item.source || null}
                 )
             `;
 

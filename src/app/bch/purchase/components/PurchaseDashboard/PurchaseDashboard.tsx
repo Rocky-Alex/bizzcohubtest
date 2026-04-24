@@ -80,7 +80,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
 
     return (
         <div className="billing-dashboard-container">
-            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
                         <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Purchase Dashboard</h2>
@@ -237,21 +237,21 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                                    <th style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.85rem' }}>Lot Number</th>
-                                    <th style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.85rem' }}>Supplier</th>
-                                    <th style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.85rem' }}>Date</th>
-                                    <th style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.85rem' }}>Amount</th>
-                                    <th style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.85rem' }}>Status</th>
+                                    <th style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>Lot Number</th>
+                                    <th style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>Supplier</th>
+                                    <th style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>Date</th>
+                                    <th style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>Amount</th>
+                                    <th style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.85rem' }}>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {stats.recentLots.map(lot => (
                                     <tr key={lot.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ padding: '0.75rem', fontWeight: 600, color: '#1e293b' }}>{lot.lot_number || 'N/A'}</td>
-                                        <td style={{ padding: '0.75rem', color: '#475569' }}>{lot.supplier_name}</td>
-                                        <td style={{ padding: '0.75rem', color: '#64748b' }}>{new Date(lot.invoice_date).toLocaleDateString()}</td>
-                                        <td style={{ padding: '0.75rem', fontWeight: 600 }}>AED {parseFloat(lot.total_cost).toLocaleString()}</td>
-                                        <td style={{ padding: '0.75rem' }}>
+                                        <td style={{ padding: '0.5rem', fontWeight: 600, color: '#1e293b' }}>{lot.lot_number || 'N/A'}</td>
+                                        <td style={{ padding: '0.5rem', color: '#475569' }}>{lot.supplier_name}</td>
+                                        <td style={{ padding: '0.5rem', color: '#64748b' }}>{new Date(lot.invoice_date).toLocaleDateString()}</td>
+                                        <td style={{ padding: '0.5rem', fontWeight: 600 }}>AED {parseFloat(lot.total_cost).toLocaleString()}</td>
+                                        <td style={{ padding: '0.5rem' }}>
                                             <span style={{
                                                 padding: '0.25rem 0.5rem',
                                                 borderRadius: '20px',
@@ -295,7 +295,7 @@ export default function PurchaseDashboard({ setActiveSection }: PurchaseDashboar
             </div>
 
             {/* Quick Actions */}
-            <div className="quick-actions-section" style={{ marginTop: '2rem' }}>
+            <div className="quick-actions-section" style={{ marginTop: '1.25rem' }}>
                 <h3 className="quick-actions-header">Purchase Actions</h3>
                 <div className="quick-actions-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
                     <div className="action-card" onClick={() => setActiveSection('purchase-lots-import')}>

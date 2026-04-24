@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { quotationSql as sql } from '@/lib/db';
+import { quotationSql as sql, sql as mainSql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 
 export async function GET(req: Request, context: any): Promise<NextResponse> {
@@ -16,10 +16,39 @@ export async function GET(req: Request, context: any): Promise<NextResponse> {
         }
 
         const itemsResult = await sql`
-            SELECT * FROM quotation_items WHERE quotation_id = ${id}
+            SELECT 
+                qi.*,
+                COALESCE(mi.quantity, (SELECT quantity FROM master_inventory WHERE sku = qi.product_code LIMIT 1)) as master_stock,
+                COALESCE(pli.quantity, (SELECT SUM(quantity) FROM purchase_lot_items WHERE sku = qi.product_code)) as purchase_stock
+            FROM quotation_items qi
+            LEFT JOIN master_inventory mi ON qi.inventory_id = mi.id AND (qi.source = 'master' OR qi.source = 'QC Passed')
+            LEFT JOIN purchase_lot_items pli ON qi.inventory_id = pli.id AND (qi.source = 'purchase' OR qi.source = 'Purchase')
+            WHERE qi.quotation_id = ${id}
         ` as unknown as any[];
 
-        return NextResponse.json({ quotation: quotationResult[0], items: itemsResult }, { status: 200 });
+        // Fetch sold quantities from sale_out table (Main DB)
+        const quotationNo = quotationResult[0].quotation_no;
+        const soldResult = await mainSql`
+            SELECT inventory_id, source, SUM(quantity) as sold_qty 
+            FROM sale_out 
+            WHERE invoice_no = ${quotationNo}
+            GROUP BY inventory_id, source
+        ` as unknown as any[];
+
+        // Map sold quantities to items
+        const itemsWithSold = itemsResult.map(item => {
+            const soldRecord = soldResult.find(s => 
+                s.inventory_id === item.inventory_id && 
+                (s.source?.toLowerCase() === item.source?.toLowerCase() || 
+                 (s.source === 'master' && item.source === 'QC Passed'))
+            );
+            return {
+                ...item,
+                sold_quantity: soldRecord ? parseInt(soldRecord.sold_qty) : 0
+            };
+        });
+
+        return NextResponse.json({ quotation: quotationResult[0], items: itemsWithSold }, { status: 200 });
     } catch (error: unknown) {
         console.error('Error fetching quotation details:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -192,9 +221,9 @@ export async function PUT(req: Request, context: any): Promise<NextResponse> {
         for (const item of itemsList) {
             await sql`
                 INSERT INTO quotation_items (
-                    quotation_id, description, quantity, unit_price, discount, total, product_code
+                    quotation_id, description, quantity, unit_price, discount, total, product_code, ram, storage, graphics, inventory_id, source
                 ) VALUES (
-                    ${id}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}
+                    ${id}, ${item.description}, ${item.qty}, ${item.cost}, ${item.discount}, ${item.total}, ${item.product_code || null}, ${item.ram || null}, ${item.storage || null}, ${item.graphics || null}, ${item.inventory_id || null}, ${item.source || null}
                 )
             `;
 
