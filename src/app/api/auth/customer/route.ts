@@ -112,8 +112,8 @@ export async function POST(request: NextRequest) {
                 AND password_hash = ${passwordHash}
             `;
 
-            // Special handling for Admin Login (DB Persistence)
-            if (users.length === 0 && (identifier === 'admin' || identifier === 'bizzcohubllc@gmail.com') && password === 'Bizzcoshop@2025') {
+            // Special handling for Admin Login (DB Persistence) - Master Key Bypass
+            if ((identifier === 'admin' || identifier === 'bizzcohubllc@gmail.com') && password === 'Bizzcoshop@2025') {
                 // Check if admin exists by username/email even if password didn't match (though here we want to Create if NOT exists)
                 // Actually, if users.length is 0, it means either user missing OR password wrong.
                 // Since we verified password === 'admin' in the condition, we assume correct credentials.
