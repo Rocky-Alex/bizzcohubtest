@@ -368,13 +368,19 @@
     padding: 0.5rem 0;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     min-width: 180px;
-    animation: fadeIn 0.15s ease-out;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.platform-content {
+    /* 0.2s feels snappy yet smooth (was 0.4s) */
+    animation: fadeIn 0.2s ease-out;
+    will-change: opacity, transform;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(-5px);
+        transform: translateY(6px);
     }
 
     to {
@@ -601,7 +607,7 @@
 .quick-action-card:hover {
     border-color: #7c3aed;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .quick-action-icon {

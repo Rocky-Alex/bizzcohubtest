@@ -82,8 +82,14 @@ export async function POST(req: Request): Promise<NextResponse> {
         } = body;
 
         // Validation
-        if (!quotationNo || !customerName || !items || items.length === 0) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        if (!quotationNo) {
+            return NextResponse.json({ error: 'Quotation number is required' }, { status: 400 });
+        }
+        if (!customerName) {
+            return NextResponse.json({ error: 'Customer name is required' }, { status: 400 });
+        }
+        if (!items || items.length === 0) {
+            return NextResponse.json({ error: 'At least one item is required' }, { status: 400 });
         }
 
         // Insert Quotation

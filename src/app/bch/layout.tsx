@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import AdminSidebar from "./shared/AdminSidebar";
 import AdminHeader from "./shared/AdminHeader";
 import ConfirmModal from "./shared/ConfirmModal";
@@ -29,6 +29,8 @@ export default function AdminLayout({
     const [username, setUsername] = useState("Admin");
     const [isAccountingMode, setIsAccountingMode] = useState(false);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
+    const searchParams = useSearchParams();
 
     // Modal State for global use (like Logout)
     const [confirmModal, setConfirmModal] = useState({
@@ -94,7 +96,22 @@ export default function AdminLayout({
 
     useEffect(() => {
         setIsMobileSidebarOpen(false);
-    }, [pathname]);
+        setIsNavigating(false);
+    }, [pathname, searchParams]);
+
+    // Handle global navigation events if any components trigger them manually
+    useEffect(() => {
+        const startNav = () => setIsNavigating(true);
+        const stopNav = () => setIsNavigating(false);
+        
+        window.addEventListener('bch-nav-start', startNav);
+        window.addEventListener('bch-nav-stop', stopNav);
+        
+        return () => {
+            window.removeEventListener('bch-nav-start', startNav);
+            window.removeEventListener('bch-nav-stop', stopNav);
+        };
+    }, []);
 
     const handleLogout = () => {
         setConfirmModal({
@@ -187,6 +204,12 @@ export default function AdminLayout({
 
     return (
         <div className={`admin-container ${theme === 'dark' ? 'dark-theme' : ''}`}>
+            {/* Global Top Progress Bar */}
+            {isNavigating && (
+                <div className="global-nav-progress">
+                    <div className="progress-bar-fill"></div>
+                </div>
+            )}
             <AdminSidebar
                 onLogout={handleLogout}
                 userRole={userRole}
@@ -216,7 +239,10 @@ export default function AdminLayout({
                         key={item.id}
                         type="button"
                         className={`mobile-bottom-nav-item ${item.active ? 'active' : ''}`}
-                        onClick={item.onClick}
+                        onClick={() => {
+                            if (!item.active) window.dispatchEvent(new Event('bch-nav-start'));
+                            item.onClick();
+                        }}
                     >
                         <i className={item.icon}></i>
                         <span>{item.label}</span>

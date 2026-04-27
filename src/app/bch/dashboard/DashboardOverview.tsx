@@ -482,7 +482,10 @@ export default function DashboardOverview({
                             ))}
                         </div>
 
-                        <button className="mobile-feature-link" onClick={() => setActiveSection("invoicing-all")}>
+                        <button className="mobile-feature-link" onClick={() => {
+                            window.dispatchEvent(new Event('bch-nav-start'));
+                            setActiveSection("invoicing-all");
+                        }}>
                             View Invoices
                         </button>
                         <div className="mobile-feature-glow"></div>
@@ -504,7 +507,10 @@ export default function DashboardOverview({
                 <section className="mobile-dashboard-section mobile-recent-section">
                     <div className="mobile-section-header mobile-section-header-split">
                         <div className="mobile-section-title"><h2>Recent Billing</h2></div>
-                        <button className="btn-view-all mobile-view-all-btn" onClick={() => setActiveSection("invoicing-all")}>
+                        <button className="btn-view-all mobile-view-all-btn" onClick={() => {
+                            window.dispatchEvent(new Event('bch-nav-start'));
+                            setActiveSection("invoicing-all");
+                        }}>
                             View all Billing
                         </button>
                     </div>
@@ -585,7 +591,10 @@ export default function DashboardOverview({
                         </div>
                         <button 
                             className="btn-view-all" 
-                            onClick={() => setActiveSection(activeRecentTab === "billing" ? "invoicing-all" : "purchase-history")}
+                            onClick={() => {
+                                window.dispatchEvent(new Event('bch-nav-start'));
+                                setActiveSection(activeRecentTab === "billing" ? "invoicing-all" : "purchase-history");
+                            }}
                         >
                             View all {activeRecentTab === "billing" ? "Billing" : "Purchases"}
                         </button>

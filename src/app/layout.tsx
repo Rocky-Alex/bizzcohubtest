@@ -108,7 +108,8 @@ import { Inter, Space_Grotesk, Bebas_Neue } from 'next/font/google';
 
 const inter = Inter({
     subsets: ['latin'],
-    weight: ['300', '400', '500', '600', '700', '800', '900'],
+    // Only load the 4 weights actually used in the BCH admin UI
+    weight: ['400', '500', '600', '700'],
     variable: '--font-inter',
     display: 'swap',
 });
@@ -137,10 +138,28 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${bebasNeue.variable}`}>
             <head>
+                {/* ── Resource hints ────────────────────────────────────────── */}
+                {/* Preconnect to ImageKit CDN so images resolve faster */}
+                <link rel="preconnect" href="https://ik.imagekit.io" />
+                <link rel="dns-prefetch" href="https://ik.imagekit.io" />
+                {/* Preconnect to Google Fonts (already handled by next/font, but belt-and-suspenders) */}
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+                {/* Preload the BCH nav logo — it's always visible on the loading screen */}
+                <link
+                    rel="preload"
+                    as="image"
+                    href="/icon/nav-logo.png"
+                />
+
+                {/* Font Awesome 6.4.0 */}
                 <link
                     rel="stylesheet"
                     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+                    crossOrigin="anonymous"
+                    referrerPolicy="no-referrer"
                 />
+
                 <link rel="manifest" href="/manifest.json" />
                 <OrganizationJsonLd alternateName={['Bizzcohub', 'Bizzhub', 'Bizz Co Hub']} />
                 <WebSiteJsonLd />

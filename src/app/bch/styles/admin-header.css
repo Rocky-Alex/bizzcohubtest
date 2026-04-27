@@ -155,11 +155,35 @@
     border-radius: 8px;
     border: 1px solid transparent;
     background: transparent;
-    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s;
     position: relative;
-    font-size: 1rem;
+    font-size: 1.1rem;
+}
+
+.icon-btn i {
+    color: #475569; /* Professional Slate color */
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background: #f1f5f9;
+}
+
+.icon-btn:hover i {
+    color: #1e293b;
+}
+
+[data-theme='dark'] .icon-btn i {
+    color: #94a3b8;
+}
+
+[data-theme='dark'] .icon-btn:hover {
+    background: #1e293b;
+}
+
+[data-theme='dark'] .icon-btn:hover i {
+    color: #f1f5f9;
 }
 
 .bell-btn {

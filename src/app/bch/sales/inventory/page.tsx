@@ -16,8 +16,13 @@ export default function SalesInventory() {
     const [expandedInvoices, setExpandedInvoices] = useState<string[]>([]);
     const [invoiceDetails, setInvoiceDetails] = useState<Record<string, any[]>>({});
     const [detailsLoading, setDetailsLoading] = useState<string | null>(null);
+    
+    // New states for quantity selection
+    const [selectedSaleItem, setSelectedSaleItem] = useState<any>(null);
     const [selectedReturn, setSelectedReturn] = useState<any>(null);
+    const [isReturnQtyModalOpen, setIsReturnQtyModalOpen] = useState(false);
     const [isQCModalOpen, setIsQCModalOpen] = useState(false);
+    const [quantityInput, setQuantityInput] = useState<number>(1);
     const [qcNotes, setQcNotes] = useState("");
 
     useEffect(() => {
@@ -31,7 +36,7 @@ export default function SalesInventory() {
                 const res = await fetch('/api/bch/sales/process?grouped=true');
                 const data = await res.json();
                 if (data.success) {
-                    setSalesOut(data.salesOut.filter((s: any) => s.status === 'Sold Out'));
+                    setSalesOut(data.salesOut.filter((s: any) => s.status === 'Sold Out' || s.status === 'Partial Return'));
                 }
             } else {
                 const res = await fetch('/api/bch/sales/returns/qc', { cache: 'no-store' });
@@ -69,26 +74,37 @@ export default function SalesInventory() {
         }
     };
 
-    const handleInitiateReturn = async (sale: any, e: React.MouseEvent) => {
+    const openReturnModal = (sale: any, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm(`Are you sure you want to initiate a return for Barcode ${sale.barcode}?`)) return;
+        setSelectedSaleItem(sale);
+        setQuantityInput(sale.quantity || 1);
+        setIsReturnQtyModalOpen(true);
+    };
+
+    const handleInitiateReturn = async () => {
+        if (!selectedSaleItem) return;
         
-        setActionLoading(sale.id);
+        setActionLoading(selectedSaleItem.id);
         try {
             const res = await fetch('/api/bch/sales/returns/initiate-return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ salesOutId: sale.id, returnReason: 'Customer Return' })
+                body: JSON.stringify({ 
+                    salesOutId: selectedSaleItem.id, 
+                    quantity: quantityInput,
+                    returnReason: 'Customer Return' 
+                })
             });
             const data = await res.json();
             if (data.success) {
-                toast.success("Return Initiated Successfully");
-                // Refresh both current row details and the grouped list if needed
-                if (sale.invoice_no) {
-                    const detailRes = await fetch(`/api/bch/sales/process?invoiceNo=${sale.invoice_no}`);
+                toast.success(`Return of ${quantityInput} unit(s) Initiated`);
+                setIsReturnQtyModalOpen(false);
+                // Refresh data
+                if (selectedSaleItem.invoice_no) {
+                    const detailRes = await fetch(`/api/bch/sales/process?invoiceNo=${selectedSaleItem.invoice_no}`);
                     const detailData = await detailRes.json();
                     if (detailData.success) {
-                        setInvoiceDetails(prev => ({ ...prev, [sale.invoice_no]: detailData.salesOut }));
+                        setInvoiceDetails(prev => ({ ...prev, [selectedSaleItem.invoice_no]: detailData.salesOut }));
                     }
                 }
                 fetchData();
@@ -104,6 +120,7 @@ export default function SalesInventory() {
 
     const handleConfirmQC = (ret: any) => {
         setSelectedReturn(ret);
+        setQuantityInput(ret.quantity || 1);
         setIsQCModalOpen(true);
         setQcNotes("");
     };
@@ -118,6 +135,7 @@ export default function SalesInventory() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     returnId: selectedReturn.id,
+                    quantity: quantityInput,
                     qcStatus: status === 'Passed' ? 'Confirmed QC' : 'QC Failed',
                     notes: qcNotes,
                     restock: status === 'Passed'
@@ -126,7 +144,7 @@ export default function SalesInventory() {
 
             const data = await res.json();
             if (data.success) {
-                toast.success(status === 'Passed' ? "Product Restocked Successfully" : "QC Failed Recorded");
+                toast.success(status === 'Passed' ? `${quantityInput} unit(s) Sent to Production` : "QC Failed Recorded");
                 setIsQCModalOpen(false);
                 fetchData();
             } else {
@@ -138,7 +156,6 @@ export default function SalesInventory() {
             setActionLoading(null);
         }
     };
-
 
     return (
         <div className="sales-inventory-container">
@@ -281,7 +298,7 @@ export default function SalesInventory() {
                                                                                             </td>
                                                                                             <td style={{ textAlign: 'right' }}>
                                                                                                 <button 
-                                                                                                    onClick={(e) => handleInitiateReturn(item, e)}
+                                                                                                    onClick={(e) => openReturnModal(item, e)}
                                                                                                     disabled={actionLoading === item.id}
                                                                                                     className="action-btn-cell"
                                                                                                     style={{ color: '#e67e22', border: '1px solid #f39c12', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem' }}
@@ -424,7 +441,7 @@ export default function SalesInventory() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            style={{ background: 'white', borderRadius: '20px', width: '90%', maxWidth: '500px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
+                            style={{ background: 'white', borderRadius: '20px', width: '90%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
                         >
                             <div style={{ padding: '1.5rem', background: '#4f46e5', color: 'white' }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>QC Inspection</h2>
@@ -440,6 +457,18 @@ export default function SalesInventory() {
                                     <div style={{ fontSize: '0.85rem', color: '#ef4444', marginTop: '0.5rem', fontStyle: 'italic' }}>
                                         Reason: {selectedReturn.return_reason}
                                     </div>
+                                </div>
+
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#64748b', marginBottom: '0.5rem' }}>Quantity to Send to QC (Total: {selectedReturn.quantity})</label>
+                                    <input 
+                                        type="number"
+                                        min="1"
+                                        max={selectedReturn.quantity}
+                                        value={quantityInput}
+                                        onChange={(e) => setQuantityInput(Math.min(parseInt(e.target.value) || 1, selectedReturn.quantity))}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '1rem', fontWeight: 700 }}
+                                    />
                                 </div>
 
                                 <div style={{ marginBottom: '1.5rem' }}>
@@ -459,7 +488,7 @@ export default function SalesInventory() {
                                         style={{ flex: 1, background: '#4f46e5', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                                     >
                                         <i className="fas fa-paper-plane" style={{ fontSize: '1.2rem', marginBottom: '4px' }}></i>
-                                        SEND TO PRODUCTION
+                                        SEND {quantityInput} TO PROD
                                     </button>
                                     <button 
                                         onClick={() => submitQC('Failed')}
@@ -476,6 +505,63 @@ export default function SalesInventory() {
                                     style={{ width: '100%', marginTop: '1rem', background: 'transparent', color: '#64748b', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}
                                 >
                                     Cancel Inspection
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Return Quantity Modal */}
+            <AnimatePresence>
+                {isReturnQtyModalOpen && selectedSaleItem && (
+                    <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            style={{ background: 'white', borderRadius: '20px', width: '90%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
+                        >
+                            <div style={{ padding: '1.5rem', background: '#e67e22', color: 'white' }}>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Initiate Return</h2>
+                                <p style={{ fontSize: '0.85rem', opacity: 0.9 }}>Barcode: {selectedSaleItem.barcode}</p>
+                            </div>
+                            
+                            <div style={{ padding: '1.5rem' }}>
+                                <div style={{ background: '#fff7ed', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #ffedd5' }}>
+                                    <div style={{ fontWeight: 700, color: '#9a3412' }}>{selectedSaleItem.product_name}</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#c2410c', marginTop: '0.4rem' }}>
+                                        Current Sold Quantity: <strong>{selectedSaleItem.quantity}</strong>
+                                    </div>
+                                </div>
+
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#64748b', marginBottom: '0.5rem' }}>Quantity to Return</label>
+                                    <input 
+                                        type="number"
+                                        min="1"
+                                        max={selectedSaleItem.quantity}
+                                        value={quantityInput}
+                                        onChange={(e) => setQuantityInput(Math.min(parseInt(e.target.value) || 1, selectedSaleItem.quantity))}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '1.25rem', fontWeight: 700, textAlign: 'center', color: '#e67e22' }}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <button 
+                                        onClick={handleInitiateReturn}
+                                        disabled={actionLoading === selectedSaleItem.id}
+                                        style={{ flex: 1, background: '#e67e22', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}
+                                    >
+                                        {actionLoading === selectedSaleItem.id ? 'Processing...' : `Confirm Return (${quantityInput})`}
+                                    </button>
+                                </div>
+
+                                <button 
+                                    onClick={() => setIsReturnQtyModalOpen(false)}
+                                    style={{ width: '100%', marginTop: '1rem', background: 'transparent', color: '#64748b', border: 'none', fontSize: '0.85rem', cursor: 'pointer' }}
+                                >
+                                    Cancel
                                 </button>
                             </div>
                         </motion.div>

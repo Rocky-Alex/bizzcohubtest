@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
@@ -18,6 +19,8 @@ export async function GET(req: Request): Promise<NextResponse> {
             await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS inventory_id INTEGER`;
             await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS customer_name TEXT`;
             await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS unit_price NUMERIC`;
+            await sql`ALTER TABLE sale_out ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1`;
+            await sql`UPDATE sale_out SET quantity = 1 WHERE quantity IS NULL`;
         } catch (e) {
             console.log('Migration note (sale_out):', e);
         }

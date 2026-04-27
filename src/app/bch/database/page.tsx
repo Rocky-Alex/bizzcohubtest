@@ -6,7 +6,7 @@ import ConfirmModal from "../shared/ConfirmModal";
 import DatabaseTransferTool from "./components/DatabaseTransferTool";
 
 export default function DatabasePage() {
-    type Section = "Inventory" | "Sales" | "People" | "Billing" | "System" | "Purchases" | "Accounting" | "Packing";
+    type Section = string;
 
     interface TableInfo {
         name: string;
@@ -20,109 +20,88 @@ export default function DatabasePage() {
         tables: TableInfo[];
     }
 
-    // New Schema Structure
-    const SCHEMA: Record<Section, Subsection[]> = {
-        Inventory: [
+    // Updated Schema Structure based on User's Request
+    const SCHEMA: Record<string, Subsection[]> = {
+        "User & Security Management": [
             {
-                id: 'catalog', label: 'Product Catalog', tables: [
-                    { name: 'E-Comm Products', tableName: 'products', description: 'Main e-commerce product catalog' },
-                    { name: 'Featured Config', tableName: 'featured_products_config', description: 'Homepage featured items' },
-                    { name: 'Product Pricing', tableName: 'products_price', description: 'Pricing rules and history' }
-                ]
-            },
-            {
-                id: 'stock', label: 'Inventory Management', tables: [
-                    { name: 'Master Inventory', tableName: 'master_inventory', description: 'Primary stock levels and barcodes' },
-                    { name: 'Return Inventory', tableName: 'sales_return_inventory', description: 'Items returned to stock' },
-                    { name: 'Drop Lists', tableName: 'drop_lists', description: 'Dropdown management data' }
-                ]
-            },
-            {
-                id: 'tracking', label: 'Sales Tracking', tables: [
-                    { name: 'Sales Out (Legacy)', tableName: 'sales_out', description: 'Previous sales exit records' },
-                    { name: 'Sale Out (Current)', tableName: 'sale_out', description: 'Current sales exit records' }
-                ]
-            }
-        ],
-        Purchases: [
-            {
-                id: 'purchase_management', label: 'Purchase Management', tables: [
-                    { name: 'Purchase Lots', tableName: 'purchase_lots', description: 'Batch purchase records' },
-                    { name: 'Lot Items', tableName: 'purchase_lot_items', description: 'Individual items in purchase lots' },
-                    { name: 'Suppliers', tableName: 'suppliers', description: 'Supplier contact and info' },
-                    { name: 'Lots', tableName: 'lots', description: 'Generic lot records' }
-                ]
-            }
-        ],
-        Sales: [
-            {
-                id: 'orders', label: 'Orders', tables: [
-                    { name: 'Orders', tableName: 'orders', description: 'Customer orders and transactions' }
-                ]
-            }
-        ],
-        People: [
-            {
-                id: 'customers', label: 'Customers', tables: [
-                    { name: 'Customers', tableName: 'customers', description: 'Registered customer profiles' },
-                    { name: 'Wishlist', tableName: 'wishlist', description: 'Customer wishlists' }
-                ]
-            },
-            {
-                id: 'users', label: 'Access Management', tables: [
+                id: 'users_auth', label: 'Access Control', tables: [
                     { name: 'Users', tableName: 'users', description: 'Admin and staff user accounts' },
                     { name: 'Roles', tableName: 'roles', description: 'User roles and permissions' },
-                    { name: 'Auth Accountants', tableName: 'authorized_accountants', description: 'Accountants with special access' },
-                    { name: 'Accountant Sessions', tableName: 'accountant_sessions', description: 'Active accountant logins' }
-                ]
-            }
-        ],
-        Billing: [
-            {
-                id: 'invoices', label: 'Invoices', tables: [
-                    { name: 'Invoices', tableName: 'invoices', description: 'Generated invoices' },
-                    { name: 'Invoice Items', tableName: 'invoice_items', description: 'Invoice line items' },
-                    { name: 'Invoice Payments', tableName: 'invoice_payments', description: 'Recorded invoice payments' },
-                    { name: 'Receipts', tableName: 'receipt_list', description: 'Standalone receipt records' }
-                ]
-            },
-            {
-                id: 'quotations', label: 'Quotations & Proformas', tables: [
-                    { name: 'Quotations', tableName: 'quotations', description: 'Quotation records' },
-                    { name: 'Quotation Items', tableName: 'quotation_items', description: 'Quotation line items' },
-                    { name: 'Quotation Payments', tableName: 'quotation_payments', description: 'Recorded quotation payments' }
-                ]
-            }
-        ],
-        Accounting: [
-            {
-                id: 'ledger', label: 'Financial Ledger', tables: [
-                    { name: 'Accounting Transactions', tableName: 'accounting_transactions', description: 'General ledger transactions' },
-                    { name: 'Chart of Accounts', tableName: 'chart_of_accounts', description: 'Accounts hierarchy' },
-                    { name: 'Cash Book', tableName: 'cash_book', description: 'Cash transaction records' }
-                ]
-            }
-        ],
-        Packing: [
-            {
-                id: 'packing_ops', label: 'Packing Operations', tables: [
-                    { name: 'Packed Items', tableName: 'packed_items', description: 'Items verified and packed' },
-                    { name: 'Packing Boxes', tableName: 'packing_boxes', description: 'Shipping box details' }
-                ]
-            }
-        ],
-        System: [
-            {
-                id: 'logs', label: 'Logs', tables: [
-                    { name: 'Activity Logs', tableName: 'activity_logs', description: 'System usage history' },
-                    { name: 'Admin Emails', tableName: 'admin_emails', description: 'Sent email records' }
-                ]
-            },
-            {
-                id: 'config', label: 'Configuration', tables: [
-                    { name: 'Settings', tableName: 'settings', description: 'System settings' },
                     { name: 'Password Resets', tableName: 'password_resets', description: 'Active reset tokens' },
-                    { name: 'Label Settings', tableName: 'label_settings', description: 'Barcode and label configs' }
+                    { name: 'Admin Emails', tableName: 'admin_emails', description: 'Administrative email configurations' }
+                ]
+            }
+        ],
+        "Product & Pricing Management": [
+            {
+                id: 'products_main', label: 'Product Catalog', tables: [
+                    { name: 'Products', tableName: 'products', description: 'Main product catalog' },
+                    { name: 'Products Price', tableName: 'products_price', description: 'Product pricing details' },
+                    { name: 'Featured Products', tableName: 'featured_products_config', description: 'Homepage featured configuration' },
+                    { name: 'Wishlist', tableName: 'wishlist', description: 'Customer product wishlists' }
+                ]
+            }
+        ],
+        "Inventory & Logistics": [
+            {
+                id: 'inventory_main', label: 'Inventory', tables: [
+                    { name: 'Master Inventory', tableName: 'master_inventory', description: 'Main stock and barcode tracking' },
+                    { name: 'Purchase Lots', tableName: 'purchase_lots', description: 'Batch purchase records' },
+                    { name: 'Purchase Lot Items', tableName: 'purchase_lot_items', description: 'Individual items in purchase batches' },
+                    { name: 'Lots', tableName: 'lots', description: 'Inventory lot management' }
+                ]
+            },
+            {
+                id: 'fulfillment', label: 'Fulfillment & Logistics', tables: [
+                    { name: 'Packed Items', tableName: 'packed_items', description: 'Items verified and packed for shipping' },
+                    { name: 'Packing Boxes', tableName: 'packing_boxes', description: 'Shipping container details' },
+                    { name: 'Label Settings', tableName: 'label_settings', description: 'Barcode and label configurations' },
+                    { name: 'Sale Out', tableName: 'sale_out', description: 'Current inventory exit records' },
+                    { name: 'Sales Out (Legacy)', tableName: 'sales_out', description: 'Historical inventory exit records' },
+                    { name: 'Sales Returns', tableName: 'sales_return_inventory', description: 'Returned items management' }
+                ]
+            }
+        ],
+        "Sales & Quotations": [
+            {
+                id: 'sales_ops', label: 'Sales Operations', tables: [
+                    { name: 'Orders', tableName: 'orders', description: 'Customer orders and transactions' },
+                    { name: 'Invoices', tableName: 'invoices', description: 'Primary sales invoices' },
+                    { name: 'Invoice Items', tableName: 'invoice_items', description: 'Line items for invoices' },
+                    { name: 'Invoice Payments', tableName: 'invoice_payments', description: 'Recorded payments for invoices' },
+                    { name: 'Quotations', tableName: 'quotations', description: 'Customer price quotations' },
+                    { name: 'Quotation Items', tableName: 'quotation_items', description: 'Line items for quotations' },
+                    { name: 'Quotation Payments', tableName: 'quotation_payments', description: 'Recorded payments for quotations' },
+                    { name: 'Receipt List', tableName: 'receipt_list', description: 'Stand-alone receipt records' }
+                ]
+            }
+        ],
+        "Accounting & Finance": [
+            {
+                id: 'finance_ops', label: 'Finance', tables: [
+                    { name: 'Cash Book', tableName: 'cash_book', description: 'Cash inflow and outflow records' },
+                    { name: 'Chart of Accounts', tableName: 'chart_of_accounts', description: 'Accounting ledger hierarchy' },
+                    { name: 'Accounting Transactions', tableName: 'accounting_transactions', description: 'General accounting ledger' },
+                    { name: 'Accountant Sessions', tableName: 'accountant_sessions', description: 'Active accountant logins' },
+                    { name: 'Auth Accountants', tableName: 'authorized_accountants', description: 'Authorized external accountants' }
+                ]
+            }
+        ],
+        "Contacts Management": [
+            {
+                id: 'contacts', label: 'Contacts', tables: [
+                    { name: 'Customers', tableName: 'customers', description: 'Registered customer database' },
+                    { name: 'Suppliers', tableName: 'suppliers', description: 'Vendor and supplier database' }
+                ]
+            }
+        ],
+        "System Configuration": [
+            {
+                id: 'system_config', label: 'System', tables: [
+                    { name: 'Settings', tableName: 'settings', description: 'Global system configurations' },
+                    { name: 'Drop Lists', tableName: 'drop_lists', description: 'Dynamic dropdown menu options' },
+                    { name: 'Activity Logs', tableName: 'activity_logs', description: 'User action and system logs' },
+                    { name: 'Testing (Neon)', tableName: 'playing_with_neon', description: 'Neon DB experimental table' }
                 ]
             }
         ]
@@ -526,6 +505,22 @@ export default function DatabasePage() {
                     </button>
                     <button
                         onClick={() => {
+                            window.open('/api/bch/database/export', '_blank');
+                        }}
+                        style={{
+                            padding: '0 1.25rem', height: '38px', borderRadius: '12px',
+                            border: '1px solid #2563eb', background: '#eff6ff',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            fontSize: '0.9rem', fontWeight: '600', color: '#2563eb',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#dbeafe'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#eff6ff'}
+                    >
+                        <i className="fas fa-file-excel"></i> Export Database (Excel)
+                    </button>
+                    <button
+                        onClick={() => {
                             const current = history[historyIndex];
                             let targets: string[] = [];
                             let label = "";
@@ -607,36 +602,35 @@ export default function DatabasePage() {
                             </div>
 
 
-                            {/* BUSINESS OPERATIONS GROUP */}
+                            {/* DYNAMIC COLLECTIONS GROUPS */}
                             <div style={{ marginBottom: '3rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                                     <div style={{ width: '4px', height: '24px', background: '#2563eb', borderRadius: '2px' }}></div>
                                     <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.01em', margin: 0 }}>
-                                        Business Operations
+                                        Database Collections
                                     </h2>
                                 </div>
                                 <div style={{
                                     display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                                    gap: '1rem'
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                                    gap: '1.25rem'
                                 }}>
-                                    {['Inventory', 'Purchases', 'Sales', 'Billing', 'Accounting', 'Packing', 'System'].map((sectionKey) => {
-                                        const section = sectionKey as Section;
+                                    {Object.keys(SCHEMA).map((section) => {
                                         return (
                                             <button
                                                 key={section}
                                                 onClick={() => navigateTo({ section })}
                                                 style={{
-                                                    padding: '2rem 2rem', background: 'white', borderRadius: '24px',
+                                                    padding: '1.5rem', background: 'white', borderRadius: '20px',
                                                     border: '1px solid #e2e8f0', textAlign: 'left', cursor: 'pointer',
-                                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                    display: 'flex', flexDirection: 'column', gap: '1.5rem',
+                                                    transition: 'all 0.3s ease',
+                                                    display: 'flex', flexDirection: 'column', gap: '1rem',
                                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                                                    position: 'relative', overflow: 'hidden'
+                                                    position: 'relative'
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.transform = 'translateY(-6px)';
-                                                    e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.15)';
+                                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
                                                     e.currentTarget.style.borderColor = '#2563eb';
                                                 }}
                                                 onMouseLeave={(e) => {
@@ -646,86 +640,26 @@ export default function DatabasePage() {
                                                 }}
                                             >
                                                 <div style={{
-                                                    width: '56px', height: '56px', borderRadius: '18px',
+                                                    width: '48px', height: '48px', borderRadius: '14px',
                                                     background: '#eff6ff', display: 'flex', alignItems: 'center',
-                                                    justifyContent: 'center', fontSize: '1.5rem', color: '#2563eb'
+                                                    justifyContent: 'center', fontSize: '1.25rem', color: '#2563eb'
                                                 }}>
-                                                    {section === 'Inventory' && <i className="fas fa-boxes"></i>}
-                                                    {section === 'Sales' && <i className="fas fa-shopping-cart"></i>}
-                                                    {section === 'Billing' && <i className="fas fa-file-invoice-dollar"></i>}
-                                                    {section === 'System' && <i className="fas fa-cog"></i>}
-                                                    {section === 'Purchases' && <i className="fas fa-truck-loading"></i>}
-                                                    {section === 'Accounting' && <i className="fas fa-book"></i>}
-                                                    {section === 'Packing' && <i className="fas fa-box-open"></i>}
+                                                    {section.includes('User') && <i className="fas fa-user-shield"></i>}
+                                                    {section.includes('Product') && <i className="fas fa-tag"></i>}
+                                                    {section.includes('Inventory') && <i className="fas fa-warehouse"></i>}
+                                                    {section.includes('Sales') && <i className="fas fa-shopping-bag"></i>}
+                                                    {section.includes('Accounting') && <i className="fas fa-coins"></i>}
+                                                    {section.includes('Contacts') && <i className="fas fa-address-book"></i>}
+                                                    {section.includes('System') && <i className="fas fa-cogs"></i>}
                                                 </div>
                                                 <div>
-                                                    <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em' }}>{section}</h3>
-                                                    <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '0.4rem', lineHeight: '1.5' }}>
+                                                    <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#0f172a' }}>{section}</h3>
+                                                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
                                                         {SCHEMA[section].length} categories
                                                     </p>
                                                 </div>
-                                                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2563eb', fontWeight: '700', fontSize: '0.8rem' }}>
-                                                    View <i className="fas fa-arrow-right"></i>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* PEOPLE & CRM GROUP */}
-                            <div style={{ marginBottom: '3rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                                    <div style={{ width: '4px', height: '24px', background: '#ec4899', borderRadius: '2px' }}></div>
-                                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.01em', margin: 0 }}>
-                                        People & CRM
-                                    </h2>
-                                </div>
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                                    gap: '1rem'
-                                }}>
-                                    {['People'].map((sectionKey) => {
-                                        const section = sectionKey as Section;
-                                        return (
-                                            <button
-                                                key={section}
-                                                onClick={() => navigateTo({ section })}
-                                                style={{
-                                                    padding: '2rem 2rem', background: 'white', borderRadius: '24px',
-                                                    border: '1px solid #e2e8f0', textAlign: 'left', cursor: 'pointer',
-                                                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                    display: 'flex', flexDirection: 'column', gap: '1.5rem',
-                                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                                                    position: 'relative', overflow: 'hidden'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.transform = 'translateY(-6px)';
-                                                    e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.15)';
-                                                    e.currentTarget.style.borderColor = '#ec4899';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.transform = 'translateY(0)';
-                                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
-                                                    e.currentTarget.style.borderColor = '#e2e8f0';
-                                                }}
-                                            >
-                                                <div style={{
-                                                    width: '56px', height: '56px', borderRadius: '18px',
-                                                    background: '#fdf2f8', display: 'flex', alignItems: 'center',
-                                                    justifyContent: 'center', fontSize: '1.5rem', color: '#db2777'
-                                                }}>
-                                                    <i className="fas fa-users"></i>
-                                                </div>
-                                                <div>
-                                                    <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em' }}>{section}</h3>
-                                                    <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '0.4rem', lineHeight: '1.5' }}>
-                                                        {SCHEMA[section].length} categories
-                                                    </p>
-                                                </div>
-                                                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#db2777', fontWeight: '700', fontSize: '0.8rem' }}>
-                                                    View <i className="fas fa-arrow-right"></i>
+                                                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#2563eb', fontWeight: '600', fontSize: '0.75rem' }}>
+                                                    Manage <i className="fas fa-chevron-right" style={{ fontSize: '0.6rem' }}></i>
                                                 </div>
                                             </button>
                                         );

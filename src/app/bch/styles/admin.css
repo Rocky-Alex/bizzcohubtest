@@ -51,3 +51,66 @@
     color: var(--text-secondary);
     margin: 0.5rem 0 0 0;
 }
+
+/* Global Navigation Progress Bar */
+.global-nav-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 10001;
+    background: rgba(37, 99, 235, 0.1);
+    /* Isolate repaints — the bar is 3px and never affects layout */
+    contain: strict;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+    width: 30%;
+    /* Faster: 1.4 s vs old 2 s → snappier perceived progress */
+    animation: navProgress 1.4s infinite ease-in-out;
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+    will-change: transform;
+    /* Use transform instead of width/left for GPU compositing */
+    transform-origin: left;
+}
+
+@keyframes navProgress {
+    0%   { transform: scaleX(0)   translateX(0%);   opacity: 1; }
+    50%  { transform: scaleX(0.7) translateX(20%);  opacity: 1; }
+    100% { transform: scaleX(0)   translateX(200%); opacity: 0; }
+}
+
+/* Instant Click Feedback for Premium Feel */
+button, .nav-item, .sub-nav-item, a {
+    /* 80ms is perceptually instant yet still visible */
+    transition: transform 80ms cubic-bezier(0.4, 0, 0.2, 1),
+                opacity   80ms,
+                background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+button:active, .nav-item:active, .sub-nav-item:active, a:active {
+    transform: scale(0.97) !important;
+    opacity: 0.8 !important;
+}
+
+/* Custom Scrollbar for responsiveness */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+}

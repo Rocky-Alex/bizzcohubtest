@@ -38,12 +38,11 @@
         position: fixed;
         top: 0;
         left: -280px;
-        /* Fully hide */
         height: 100vh;
         z-index: 1050;
         width: 260px;
-        /* Fixed width when open */
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* 0.2s is crisp on mobile (was 0.3s) */
+        transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .modern-sidebar.mobile-open {
@@ -100,9 +99,10 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
+        /* Simple alpha is GPU-composited; backdrop-filter causes a full repaint */
+        background: rgba(0, 0, 0, 0.45);
         z-index: 1040;
-        backdrop-filter: blur(2px);
+        transition: opacity 0.2s ease;
     }
 
     .sidebar-overlay.active {

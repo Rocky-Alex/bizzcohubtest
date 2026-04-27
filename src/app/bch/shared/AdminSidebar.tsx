@@ -20,6 +20,7 @@ interface SidebarItem {
     id: string;
     icon: string;
     label: string;
+    color?: string;
     special?: boolean;
     onClick?: () => void;
     subItems?: SidebarSubItem[];
@@ -35,16 +36,18 @@ export default function AdminSidebar({
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const menuItems: SidebarItem[] = [
-        { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard" },
+        { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard", color: "#6366f1" },
         {
             id: "featured-manage",
             icon: "fa-star",
-            label: "Featured Products"
+            label: "Featured Products",
+            color: "#f59e0b"
         },
         {
             id: "orders",
             icon: "fa-shopping-cart",
             label: "Orders Manage",
+            color: "#10b981",
             subItems: [
                 { id: "orders-all", label: "All Orders" },
                 { id: "orders-create", label: "Create Order" },
@@ -55,6 +58,7 @@ export default function AdminSidebar({
             id: "customers",
             icon: "fa-users",
             label: "Customer Manage",
+            color: "#3b82f6",
             subItems: [
                 { id: "customers-all", label: "All Customers" },
                 { id: "customers-groups", label: "Groups" }
@@ -64,6 +68,7 @@ export default function AdminSidebar({
             id: "purchase",
             icon: "fa-shopping-bag",
             label: "Purchases",
+            color: "#8b5cf6",
             subItems: [
                 { id: "purchase-dashboard", label: "Dashboard" },
                 { id: "purchase-history", label: "Purchase Lots" },
@@ -75,6 +80,7 @@ export default function AdminSidebar({
             id: "inventory",
             icon: "fa-boxes",
             label: "Inventory",
+            color: "#f97316",
             subItems: [
                 { id: "inventory-dashboard", label: "Inventory Dashboard" },
                 { id: "add-product", label: "Add E-Comm Product" },
@@ -87,6 +93,7 @@ export default function AdminSidebar({
             id: "production",
             icon: "fa-tools",
             label: "Production",
+            color: "#06b6d4",
             subItems: [
                 { id: "production-qc", label: "Production QC Checking" },
                 { id: "production-inventory-qc", label: "Inventory QC Checking" },
@@ -99,6 +106,7 @@ export default function AdminSidebar({
             id: "sales",
             icon: "fa-store",
             label: "Sales Port",
+            color: "#ec4899",
             subItems: [
                 { id: "sales-dashboard", label: "Sales Dashboard" },
                 { id: "sales-port", label: "Sales Port (Out)" },
@@ -107,8 +115,9 @@ export default function AdminSidebar({
         },
         {
             id: "packing",
-            icon: "fa-box-open",
+            icon: "fa-box",
             label: "Packing",
+            color: "#14b8a6",
             subItems: [
                 { id: "packing-dashboard", label: "Packing Dashboard" },
                 { id: "packing-v2", label: "Packing" }
@@ -117,17 +126,20 @@ export default function AdminSidebar({
         {
             id: "product-pricing",
             icon: "fa-tags",
-            label: "Product Pricing"
+            label: "Product Pricing",
+            color: "#f43f5e"
         },
         {
             id: "labelsize",
             icon: "fa-barcode",
-            label: "Label Size"
+            label: "Label Size",
+            color: "#84cc16"
         },
         {
             id: "invoicing",
             icon: "fa-file-invoice",
             label: "Billing",
+            color: "#ef4444",
             subItems: [
                 { id: "invoicing-dashboard", label: "Billing Dashboard" },
                 { id: "combined-all", label: "All Bills" },
@@ -141,6 +153,7 @@ export default function AdminSidebar({
             id: "accounting",
             icon: "fa-book-open",
             label: "Accounting",
+            color: "#7c3aed",
             subItems: [
                 { id: "accounting-dashboard", label: "Dashboard" },
                 { id: "accounting-cashbook", label: "Cash Book" },
@@ -153,6 +166,7 @@ export default function AdminSidebar({
             id: "users",
             icon: "fa-user-shield",
             label: "User Manage",
+            color: "#0ea5e9",
             subItems: [
                 { id: "users-all", label: "All Users" },
                 { id: "users-roles", label: "Roles and Permissions" }
@@ -161,22 +175,26 @@ export default function AdminSidebar({
         {
             id: "user-passwords",
             icon: "fa-key",
-            label: "User Password"
+            label: "User Password",
+            color: "#f59e0b"
         },
         {
             id: "activity-log",
-            icon: "fa-history",
-            label: "Activity Log"
+            icon: "fa-clipboard-list",
+            label: "Activity Log",
+            color: "#64748b"
         },
         {
             id: "auto-refresh",
             icon: "fa-sync-alt",
-            label: "Auto Refresh"
+            label: "Auto Refresh",
+            color: "#10b981"
         },
         {
             id: "database",
             icon: "fa-database",
-            label: "Database"
+            label: "Database",
+            color: "#475569"
         },
     ];
 
@@ -288,9 +306,8 @@ export default function AdminSidebar({
         if (returnOnly) return target;
 
         const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-        if (currentFullUrl === target) {
-            window.location.reload();
-        } else {
+        if (currentFullUrl !== target) {
+            window.dispatchEvent(new Event('bch-nav-start'));
             router.push(target);
         }
     };
@@ -318,9 +335,8 @@ export default function AdminSidebar({
             toggleMenu(item.id);
         } else {
             const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-            if (currentFullUrl === target) {
-                window.location.reload();
-            } else {
+            if (currentFullUrl !== target) {
+                window.dispatchEvent(new Event('bch-nav-start'));
                 router.push(target);
             }
         }
@@ -427,13 +443,17 @@ export default function AdminSidebar({
                                     if (item.subItems) {
                                         e.preventDefault();
                                         toggleMenu(item.id);
-                                    } else if (target && (pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')) === target) {
-                                        e.preventDefault();
-                                        window.location.reload();
+                                    } else if (target && (pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')) !== target) {
+                                        window.dispatchEvent(new Event('bch-nav-start'));
                                     }
                                 }}
                             >
-                                <i className={`fas ${item.icon}`}></i>
+                                <div className="nav-icon-wrapper" style={{ 
+                                    background: `linear-gradient(135deg, ${item.color}15 0%, ${item.color}30 100%)`,
+                                    border: `1px solid ${item.color}20`
+                                }}>
+                                    <i className={`fas ${item.icon}`} style={{ color: item.color || 'inherit' }}></i>
+                                </div>
                                 <span className="nav-text">{item.label}</span>
                                 {item.subItems && (
                                     <i className={`fas fa-chevron-right dropdown-arrow ${isExpandedFlag ? 'rotated' : ''}`}></i>
@@ -453,12 +473,15 @@ export default function AdminSidebar({
                                                 href={target || '#'}
                                                 className={`sub-nav-item ${isSubActive ? "active" : ""}`}
                                                 onClick={(e) => {
-                                                    if (target && (pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')) === target) {
+                                                    const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+                                                    if (target && currentFullUrl !== target) {
+                                                        window.dispatchEvent(new Event('bch-nav-start'));
+                                                    } else if (target === currentFullUrl) {
                                                         e.preventDefault();
-                                                        window.location.reload();
                                                     }
                                                 }}
                                             >
+                                                <i className="fas fa-circle" style={{ fontSize: '0.4rem', color: item.color || 'var(--sidebar-primary)', opacity: 0.5 }}></i>
                                                 <span className="sub-nav-text">{sub.label}</span>
                                             </Link>
                                         );

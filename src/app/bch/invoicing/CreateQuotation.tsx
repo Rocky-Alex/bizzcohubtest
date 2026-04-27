@@ -538,6 +538,19 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
 
     const handleSave = async () => {
         if (isSaving) return;
+
+        // Basic validation
+        if (!toDetails.name) {
+            toast.error("Please select or enter a customer name");
+            return;
+        }
+
+        const validItems = items.filter(item => item.description.trim() !== "");
+        if (validItems.length === 0) {
+            toast.error("Please add at least one item with a description");
+            return;
+        }
+
         setIsSaving(true);
         try {
             const customer = filteredCustomers.find((c: any) => c.name === toDetails.name);

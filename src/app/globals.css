@@ -93,7 +93,46 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+}
+
+/* ── Performance: GPU-composite hints ─────────────────────────── */
+/* Only hint will-change on elements that actually animate */
+.modern-sidebar,
+.sub-menu,
+.profile-dropdown,
+.date-dropdown-menu,
+.sidebar-overlay,
+.global-nav-progress,
+.platform-content {
+    will-change: transform, opacity;
+}
+
+/* Remove will-change once an animation is done to free compositor memory */
+.modern-sidebar:not([class*="open"]):not([class*="collapsed"]) {
+    will-change: auto;
+}
+
+/* ── Reduced Motion: Respect system preferences ───────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .progress-bar-fill {
+        animation: none !important;
+    }
+
+    .status-dot {
+        animation: none !important;
+    }
 }
 
 h1,

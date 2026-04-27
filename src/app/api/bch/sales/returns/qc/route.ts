@@ -5,39 +5,73 @@ import { logActivity } from '@/lib/activity-logger';
 export async function POST(req: Request): Promise<NextResponse> {
     try {
         const body = await req.json();
-        const { returnId, user } = body;
+        const { returnId, user, quantity: sendQuantity } = body;
+        const qtyToSend = parseInt(sendQuantity) || 1;
 
         if (!returnId) {
             return NextResponse.json({ success: false, error: 'Return ID is required' }, { status: 400 });
         }
 
-        // Migration: ensure columns exist
-        try {
-            await sql`ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS notes TEXT`;
-            await sql`ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS qc_confirmed_by TEXT`;
-            await sql`ALTER TABLE sales_returns ADD COLUMN IF NOT EXISTS qc_confirmed_at TIMESTAMP`;
-        } catch (e) {}
+        // 1. Fetch current return record
+        const returnResult = await sql`
+            SELECT * FROM sales_returns WHERE id = ${returnId}
+        ` as unknown as any[];
 
-        // Update status to 'Sent to Production'
-        // This will make it visible in the Production QC Checking page
-        await sql`
-            UPDATE sales_returns 
-            SET qc_status = 'Sent to Production', 
-                qc_confirmed_by = ${user || 'Admin'},
-                qc_confirmed_at = NOW(),
-                updated_at = NOW()
-            WHERE id = ${returnId}
-        `;
+        if (returnResult.length === 0) {
+            return NextResponse.json({ success: false, error: 'Return record not found' }, { status: 404 });
+        }
+
+        const ret = returnResult[0];
+        const currentQty = ret.quantity || 1;
+
+        if (qtyToSend > currentQty) {
+            return NextResponse.json({ success: false, error: `Cannot send more than returned (${currentQty})` }, { status: 400 });
+        }
+
+        // 2. Logic for partial vs full transfer
+        if (qtyToSend === currentQty) {
+            // Full Transfer
+            await sql`
+                UPDATE sales_returns 
+                SET qc_status = 'Sent to Production', 
+                    qc_confirmed_by = ${user || 'Admin'},
+                    qc_confirmed_at = NOW(),
+                    updated_at = NOW()
+                WHERE id = ${returnId}
+            `;
+        } else {
+            // Partial Transfer: Split the record
+            // Decrease current record quantity
+            await sql`
+                UPDATE sales_returns 
+                SET quantity = quantity - ${qtyToSend}, updated_at = NOW()
+                WHERE id = ${returnId}
+            `;
+            
+            // Create a NEW record for the quantity sent to production
+            await sql`
+                INSERT INTO sales_returns (
+                    sales_out_id, inventory_id, return_reason, qc_status, 
+                    initiated_by, initiated_at, qc_confirmed_by, qc_confirmed_at, 
+                    quantity, qc_count
+                )
+                VALUES (
+                    ${ret.sales_out_id}, ${ret.inventory_id}, ${ret.return_reason}, 'Sent to Production',
+                    ${ret.initiated_by}, ${ret.initiated_at}, ${user || 'Admin'}, NOW(),
+                    ${qtyToSend}, 0
+                )
+            `;
+        }
 
         await logActivity(
             user || 'Admin',
             'Return Sent to Production QC',
-            `Sales Return ID ${returnId} was transferred to Production QC for final checking.`,
+            `Sales Return ID ${returnId} (${qtyToSend} units) was transferred to Production QC.`,
             'success',
             user || 'Admin'
         );
 
-        return NextResponse.json({ success: true, message: 'Transferred to Production QC successfully' });
+        return NextResponse.json({ success: true, message: `Transferred ${qtyToSend} units to Production QC successfully` });
 
     } catch (error: any) {
         console.error('Error transferring return to QC:', error);

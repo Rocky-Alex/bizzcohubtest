@@ -283,7 +283,7 @@ export default function AdminHeader({ toggleSidebar, onLogout, roles = ['Adminis
                     <i className={`fas ${theme === 'dark' ? 'fa-sun' : 'fa-moon'}`}></i>
                 </button>
 
-                <button className="icon-btn notification-btn message-btn">
+                <button className="icon-btn message-btn">
                     <i className="fas fa-envelope"></i>
                     <span className="badge-count">1</span>
                 </button>

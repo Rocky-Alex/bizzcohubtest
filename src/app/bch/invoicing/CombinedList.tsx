@@ -9,6 +9,10 @@ import InvoicePDF from '../../../components/pdf/InvoicePDF';
 import QuotationPDF from '../../../components/pdf/QuotationPDF';
 import ReceiptPDF from '../../../components/pdf/ReceiptPDF';
 import { ToWords } from 'to-words';
+import { exportBillsToExcel, parseBillsFromExcel } from '@/lib/xlsx-utils';
+import { Download, Upload } from 'lucide-react';
+import { toast } from 'sonner';
+
 
 const toWords = new ToWords({
     localeCode: 'en-AE',
@@ -40,6 +44,9 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
     const [documents, setDocuments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [isImporting, setIsImporting] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
 
     // --- View Modal State ---
     const [viewData, setViewData] = useState<{ document: any, items: any[], type: 'invoice' | 'quotation' } | null>(null);
@@ -587,9 +594,100 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
         });
     };
 
+    const handleExport = async () => {
+        if (filteredDocs.length === 0) {
+            toast.error("No data to export");
+            return;
+        }
+
+        const toastId = toast.loading("Preparing detailed export...");
+        try {
+            const billIds = filteredDocs.map(doc => ({
+                id: doc.id,
+                type: doc.documentType
+            }));
+
+            const res = await fetch('/api/bch/bills/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ billIds })
+            });
+
+            const result = await res.json();
+            if (result.success) {
+                exportBillsToExcel(result.data);
+                toast.success("Detailed Excel file exported successfully", { id: toastId });
+            } else {
+                toast.error("Export failed: " + result.error, { id: toastId });
+            }
+        } catch (error) {
+            console.error("Export error:", error);
+            toast.error("Error preparing export data", { id: toastId });
+        }
+    };
+
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        const toastId = toast.loading("Parsing Excel file...");
+        try {
+            const data = await parseBillsFromExcel(file);
+            if (data.length === 0) {
+                toast.error("Excel file is empty", { id: toastId });
+                setIsImporting(false);
+                return;
+            }
+
+            toast.loading(`Importing ${data.length} records...`, { id: toastId });
+            
+            const res = await fetch('/api/bch/bills/bulk-import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bills: data })
+            });
+
+            const result = await res.json();
+            if (result.success) {
+                toast.success(`Imported ${result.importedInvoices} invoices and ${result.importedQuotations} proformas`, { id: toastId });
+                if (result.errors?.length > 0) {
+                    console.warn("Import errors:", result.errors);
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Import Summary with Warnings',
+                        message: (
+                            <div>
+                                <p>Import completed with some issues:</p>
+                                <ul style={{ maxHeight: '200px', overflowY: 'auto', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                                    {result.errors.slice(0, 10).map((err: string, i: number) => <li key={i} style={{ color: '#dc2626' }}>{err}</li>)}
+                                    {result.errors.length > 10 && <li>...and {result.errors.length - 10} more</li>}
+                                </ul>
+                            </div>
+                        ),
+                        type: 'info',
+                        singleButton: true,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+                    });
+                }
+                // Refresh list
+                window.dispatchEvent(new Event('dashboard-updated'));
+            } else {
+                toast.error("Import failed: " + result.error, { id: toastId });
+            }
+        } catch (error) {
+            console.error("Import error:", error);
+            toast.error("Error processing Excel file", { id: toastId });
+        } finally {
+            setIsImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
     const handlePrintReceipt = (pay: any) => {
         const doc = documents.find(d => d.id === selectedDocumentId && d.documentType === selectedDocumentType);
         if (!doc) return;
+
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
         const docNo = doc.documentType === 'invoice' ? doc.invoice_no : doc.quotation_no;
@@ -812,6 +910,44 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                             Proforma
                         </button>
                     </div>
+
+                    <button
+                        onClick={handleExport}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem',
+                            backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px',
+                            fontSize: '0.85rem', fontWeight: 600, color: '#475569', cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                    >
+                        <Download size={16} />
+                        Export
+                    </button>
+
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isImporting}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem',
+                            backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px',
+                            fontSize: '0.85rem', fontWeight: 600, color: '#475569', cursor: 'pointer',
+                            opacity: isImporting ? 0.6 : 1
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                    >
+                        <Upload size={16} />
+                        {isImporting ? 'Importing...' : 'Import'}
+                    </button>
+
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImport}
+                        accept=".xlsx, .xls, .csv"
+                        style={{ display: 'none' }}
+                    />
 
                     <input
                         type="text"
