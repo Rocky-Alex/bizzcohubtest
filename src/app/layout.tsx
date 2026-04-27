@@ -145,13 +145,6 @@ export default function RootLayout({
                 {/* Preconnect to Google Fonts (already handled by next/font, but belt-and-suspenders) */}
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-                {/* Preload the BCH nav logo — it's always visible on the loading screen */}
-                <link
-                    rel="preload"
-                    as="image"
-                    href="/icon/nav-logo.png"
-                />
-
                 {/* Font Awesome 6.4.0 */}
                 <link
                     rel="stylesheet"

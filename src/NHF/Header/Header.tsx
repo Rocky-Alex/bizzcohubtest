@@ -142,6 +142,7 @@ export default function Header() {
                         width={34}
                         height={34}
                         className="logo-image"
+                        priority
                     />
                     <GradientText
                         colors={theme === 'dark'
