@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
@@ -16,6 +16,14 @@ const DropListUpdates = dynamic(() => import('./components/DropListUpdates/DropL
 const ComingSoon = dynamic(() => import("../shared/ComingSoon"), { loading: () => <LoadingSpinner /> });
 
 export default function InventoryPage() {
+    return (
+        <Suspense fallback={<LoadingSpinner />}>
+            <InventoryPageContent />
+        </Suspense>
+    );
+}
+
+function InventoryPageContent() {
     const { theme } = useTheme();
     const router = useRouter();
     const searchParams = useSearchParams();

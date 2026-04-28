@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import AdminSidebar from "./shared/AdminSidebar";
 import AdminHeader from "./shared/AdminHeader";
@@ -16,6 +16,18 @@ import "./styles/sales-port.css";
 import "./styles/platform-dashboard.css";
 
 export default function AdminLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Loading Portal..." />}>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </Suspense>
+    );
+}
+
+function AdminLayoutContent({
     children,
 }: {
     children: React.ReactNode;
@@ -204,7 +216,7 @@ export default function AdminLayout({
 
     return (
         <div className={`admin-container ${theme === 'dark' ? 'dark-theme' : ''}`}>
-            {/* Global Top Progress Bar */}
+        {/* Global Top Progress Bar */}
             {isNavigating && (
                 <div className="global-nav-progress">
                     <div className="progress-bar-fill"></div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import OrderList from "../invoicing/OrderList";
 import CreateOrder from "../invoicing/CreateOrder";
 import ComingSoon from "../shared/ComingSoon";
@@ -9,6 +9,14 @@ import { toast } from "sonner";
 import { useSearchParams } from 'next/navigation';
 
 export default function OrdersPage() {
+    return (
+        <Suspense fallback={<div>Loading Orders...</div>}>
+            <OrdersPageContent />
+        </Suspense>
+    );
+}
+
+function OrdersPageContent() {
     const searchParams = useSearchParams();
     const initialView = (searchParams.get('view') as 'list' | 'create' | 'edit' | 'returns') || 'list';
 

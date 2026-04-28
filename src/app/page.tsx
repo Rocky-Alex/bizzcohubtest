@@ -1,6 +1,8 @@
 import LandingPage from './landing-page/page';
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Premium Refurbished Electronics & IT Solutions',
     description: 'Bizz Co Hub is your trusted partner for high-quality refurbished laptops, desktops, and enterprise IT services. Global bulk supply and advanced repair center.',

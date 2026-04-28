@@ -7,8 +7,8 @@ const isNetlify = process.env.NETLIFY === 'true';
 // 1. If on Vercel, use VERCEL_DATABASE_URL
 // 2. If on Netlify or Local, use LOCAL_DATABASE_URL
 // 3. Fallback to standard environment variables
-export const mainUrl = isVercel 
-    ? process.env.VERCEL_DATABASE_URL 
+export const mainUrl = isVercel
+    ? process.env.VERCEL_DATABASE_URL
     : (process.env.LOCAL_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL);
 
 export const invoiceUrl = process.env.INVOICE_DATABASE_URL || mainUrl;
@@ -34,7 +34,7 @@ const createSql = (url: string | undefined, name: string) => {
 
     const maskedUrl = url ? url.replace(/:[^:@/]+@/, ':***@') : 'UNDEFINED';
     console.log(`[DB] initializing ${name} with URL: ${maskedUrl}`);
-    
+
     if (!url) {
         const fallback = ((strings: any, ...values: any[]) => {
             console.warn(`⚠️ ${name} SQL query ignored because Database URL is not set.`);

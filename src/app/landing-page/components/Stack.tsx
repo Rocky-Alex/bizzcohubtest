@@ -1,5 +1,6 @@
 
 
+"use client";
 import { motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import '../styles/Stack.css';
