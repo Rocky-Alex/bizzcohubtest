@@ -1,11 +1,21 @@
 import { neon } from '@neondatabase/serverless';
 
-export const mainUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.LOCAL_POSTGRES_URL || process.env.MAIN_POSTGRES_URL;
+const isVercel = process.env.VERCEL === '1' || process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined;
+const isNetlify = process.env.NETLIFY === 'true';
+
+// Priority:
+// 1. If on Vercel, use VERCEL_DATABASE_URL
+// 2. If on Netlify or Local, use LOCAL_DATABASE_URL
+// 3. Fallback to standard environment variables
+export const mainUrl = isVercel 
+    ? process.env.VERCEL_DATABASE_URL 
+    : (process.env.LOCAL_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL);
+
 export const invoiceUrl = process.env.INVOICE_DATABASE_URL || mainUrl;
 export const quotationUrl = process.env.QUOTATION_DATABASE_URL || mainUrl;
 
 if (!mainUrl) {
-    console.warn('⚠️ No database connection URL found in environment variables (POSTGRES_URL, DATABASE_URL, LOCAL_POSTGRES_URL, MAIN_POSTGRES_URL)! SQL queries will fail.');
+    console.warn('⚠️ No database connection URL found! Current Platform:', isVercel ? 'Vercel' : (isNetlify ? 'Netlify' : 'Local/Other'));
 }
 
 // Define a global type to persist connections during dev hot-reloads
