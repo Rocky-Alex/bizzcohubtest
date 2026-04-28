@@ -1,7 +1,7 @@
 .apple-style-orbit {
     position: relative;
     width: 100%;
-    max-width: 580px; /* Increased to accommodate wider orbital spread */
+    max-width: 750px; /* Increased to accommodate wider orbital spread */
     aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
