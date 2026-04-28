@@ -3,6 +3,8 @@ import { neon } from '@neondatabase/serverless';
 import { logActivity } from '@/lib/activity-logger';
 import { DatabaseProduct, ProductFormData } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // Helper to get DB connection
 const getSql = () => {
     const dbUrl = process.env.INVOICE_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;

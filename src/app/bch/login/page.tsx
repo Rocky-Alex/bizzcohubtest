@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import LogoOrbit from './components/LogoOrbit';
 import './styles/login.css';
 
 export default function AdminLoginPage() {
@@ -80,45 +81,26 @@ export default function AdminLoginPage() {
         <div className="futuristic-login-container">
             <div className="content-wrapper">
 
-                {/* Visual Side (Tech Core) */}
+                {/* Visual Side (Apple ID Style Orbit) */}
                 <div className="tech-visual-container">
-                    <div className="tech-core">
-                        {/* Central Icon */}
-                        <i className="fas fa-shield-alt core-icon"></i>
-
-                        {/* Orbiting Rings */}
-                        <div className="ring ring-outer"></div>
-                        <div className="ring ring-middle"></div>
-                        <div className="ring ring-inner"></div>
-
-                        {/* Floating Items */}
-                        <div className="floating-item item-1">
-                            <i className="fas fa-database"></i>
-                        </div>
-                        <div className="floating-item item-2">
-                            <i className="fas fa-server"></i>
-                        </div>
-                        <div className="floating-item item-3">
-                            <i className="fas fa-network-wired"></i>
-                        </div>
-                    </div>
+                    <LogoOrbit />
                 </div>
 
-                {/* Login Form Side */}
-                <div className="login-card-glass">
-                    <div className="login-header">
-                        <h1 className="login-title">
-                            Secure Access
-                        </h1>
-                        <p className="login-subtitle">
-                            Bizz Co Hub Portal
-                        </p>
-                    </div>
+                {/* Login Header Section */}
+                <div className="login-header">
+                    <h1 className="login-title">
+                        Bizz Co Hub Account
+                    </h1>
+                    <p className="login-subtitle">
+                        Manage your Bizz Co Hub Account
+                    </p>
+                </div>
 
+                {/* Login Form Section */}
+                <div className="login-card-glass">
                     <form onSubmit={handleUsernameLogin}>
                         <div className="dark-form-group">
                             <div className="dark-input-container">
-                                <i className="fas fa-user dark-input-icon"></i>
                                 <input
                                     type="text"
                                     className="dark-input"
@@ -133,7 +115,6 @@ export default function AdminLoginPage() {
 
                         <div className="dark-form-group">
                             <div className="dark-input-container">
-                                <i className="fas fa-lock dark-input-icon"></i>
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     className="dark-input"
@@ -153,12 +134,6 @@ export default function AdminLoginPage() {
                             </div>
                         </div>
 
-                        <div style={{ textAlign: 'right', marginTop: '-10px', marginBottom: '20px' }}>
-                            <a href="/bch/forgot-password" className="forgot-password-link">
-                                Forgot Password?
-                            </a>
-                        </div>
-
                         <button
                             type="submit"
                             className="login-btn-glow"
@@ -171,6 +146,10 @@ export default function AdminLoginPage() {
                             )}
                         </button>
                     </form>
+
+                    <a href="/bch/forgot-password" className="forgot-password-link">
+                        Forgot Password?
+                    </a>
 
                     <div className="copyright-glass">
                         Copyright © 2026 Bizz Co Hub. All Rights Reserved.

@@ -3,6 +3,8 @@ import { sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 import { Resend } from 'resend';
 
+export const dynamic = 'force-dynamic';
+
 // Resend initialized inside POST
 
 export async function GET(): Promise<NextResponse> {

@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 
+import { Suspense } from 'react';
+
 const ComingSoon = dynamic(() => import('@/app/bch/shared/ComingSoon'));
 const QCChecking = dynamic(() => import('./components/QCChecking/QCChecking'), { loading: () => <LoadingSpinner /> });
 const ReprintBarcode = dynamic(() => import('./components/ReprintBarcode/ReprintBarcode'), { loading: () => <LoadingSpinner /> });
@@ -13,6 +15,14 @@ const ModelChecking = dynamic(() => import('./components/ModelChecking/ModelChec
 const InventoryQCChecking = dynamic(() => import('./components/InventoryQCChecking/InventoryQCChecking'), { loading: () => <LoadingSpinner /> });
 
 export default function ProductionPage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Loading Production Portal..." />}>
+            <ProductionPageContent />
+        </Suspense>
+    );
+}
+
+function ProductionPageContent() {
     const searchParams = useSearchParams();
     const section = searchParams.get('section') || 'production-dashboard';
 
@@ -53,3 +63,4 @@ export default function ProductionPage() {
         </div>
     );
 }
+

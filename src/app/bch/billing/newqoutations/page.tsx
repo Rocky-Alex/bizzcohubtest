@@ -5,7 +5,17 @@ import CreateQuotation from "../../invoicing/CreateQuotation";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 
+import { Suspense } from "react";
+
 export default function CreateProformaPage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Preparing Quotation Editor..." />}>
+            <CreateProformaPageContent />
+        </Suspense>
+    );
+}
+
+function CreateProformaPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const quotationId = searchParams.get('id');
@@ -40,3 +50,4 @@ export default function CreateProformaPage() {
 
     return <CreateQuotation setActiveSection={handleSetActiveSection} initialData={dataToEdit} />;
 }
+

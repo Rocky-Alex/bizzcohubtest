@@ -4,7 +4,18 @@ import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AddProduct from "../../inventory/components/AddProduct/AddProduct";
 
+import { Suspense } from "react";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
+
 export default function AddEcommProductPage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Loading Product Editor..." />}>
+            <AddEcommProductPageContent />
+        </Suspense>
+    );
+}
+
+function AddEcommProductPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isEdit = searchParams.get('edit') === 'true';
@@ -23,3 +34,4 @@ export default function AddEcommProductPage() {
         </div>
     );
 }
+

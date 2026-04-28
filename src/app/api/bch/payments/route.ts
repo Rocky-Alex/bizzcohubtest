@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { invoiceSql, quotationSql } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 const ensureTableExists = async () => {
     // Basic table creation
     await invoiceSql`

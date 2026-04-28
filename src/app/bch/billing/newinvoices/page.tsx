@@ -5,7 +5,17 @@ import CreateInvoice from "../../invoicing/CreateInvoice";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 
+import { Suspense } from "react";
+
 export default function CreateInvoicePage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Preparing Invoice Editor..." />}>
+            <CreateInvoicePageContent />
+        </Suspense>
+    );
+}
+
+function CreateInvoicePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const invoiceId = searchParams.get('id');
@@ -48,3 +58,4 @@ export default function CreateInvoicePage() {
 
     return <CreateInvoice setActiveSection={handleSetActiveSection} initialData={dataToEdit} />;
 }
+

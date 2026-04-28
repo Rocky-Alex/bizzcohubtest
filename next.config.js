@@ -7,6 +7,10 @@ const nextConfig = {
     // Enable React strict mode for catching issues early
     reactStrictMode: true,
 
+    compiler: {
+        styledComponents: true,
+    },
+
     experimental: {
         serverComponentsExternalPackages: [
             '@react-pdf/renderer',
@@ -50,8 +54,8 @@ const nextConfig = {
     webpack: (config, { dev, isServer }) => {
         // Server-side specific overrides
         if (isServer) {
-            config.externals.push('whatsapp-web.js');
-            config.externals.push('puppeteer');
+            // config.externals.push('whatsapp-web.js');
+            // config.externals.push('puppeteer');
         }
 
         // Fix for systeminformation optional dependencies

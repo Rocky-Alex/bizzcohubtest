@@ -4,6 +4,8 @@ import { logActivity } from '@/lib/activity-logger';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request): Promise<NextResponse> {
     try {
         const session = await getServerSession(authOptions);

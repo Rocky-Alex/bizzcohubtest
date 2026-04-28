@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { logActivity } from '@/lib/activity-logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function PUT(_req: Request, context: any): Promise<NextResponse> {
     try {
         const params = await Promise.resolve(context.params);

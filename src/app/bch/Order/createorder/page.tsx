@@ -5,7 +5,17 @@ import CreateOrder from "../../invoicing/CreateOrder";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 
+import { Suspense } from "react";
+
 export default function CreateOrderPage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Preparing Order Editor..." />}>
+            <CreateOrderPageContent />
+        </Suspense>
+    );
+}
+
+function CreateOrderPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const orderId = searchParams.get('id');
@@ -42,3 +52,4 @@ export default function CreateOrderPage() {
         />
     );
 }
+

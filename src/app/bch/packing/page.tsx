@@ -5,10 +5,20 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 
+import { Suspense } from 'react';
+
 const ComingSoon = dynamic(() => import('@/app/bch/shared/ComingSoon'));
 const PackingV2 = dynamic(() => import('./components/PackingV2/PackingV2'), { loading: () => <LoadingSpinner /> });
 
 export default function PackingPage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Loading Packing Portal..." />}>
+            <PackingPageContent />
+        </Suspense>
+    );
+}
+
+function PackingPageContent() {
     const searchParams = useSearchParams();
     const section = searchParams.get('section') || 'packing-v2';
 
@@ -26,3 +36,4 @@ export default function PackingPage() {
         </div>
     );
 }
+

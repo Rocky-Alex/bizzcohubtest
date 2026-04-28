@@ -4,6 +4,8 @@ import { sql } from '@/lib/db';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(req.url);

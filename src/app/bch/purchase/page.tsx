@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import { useTheme } from "@/context/ThemeContext";
+import { Suspense } from "react";
 
 const PurchaseDashboard = dynamic(() => import("./components/PurchaseDashboard/PurchaseDashboard"), { loading: () => <LoadingSpinner /> });
 const ImportPurchaseLot = dynamic(() => import('./components/ImportPurchaseLot/ImportPurchaseLot'), { loading: () => <LoadingSpinner /> });
@@ -14,6 +15,14 @@ const ImportFullPurchase = dynamic(() => import('./components/ImportFullPurchase
 const ComingSoon = dynamic(() => import("../shared/ComingSoon"), { loading: () => <LoadingSpinner /> });
 
 export default function PurchasePage() {
+    return (
+        <Suspense fallback={<LoadingSpinner fullScreen text="Loading Purchase Portal..." />}>
+            <PurchasePageContent />
+        </Suspense>
+    );
+}
+
+function PurchasePageContent() {
     const { theme } = useTheme();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -39,3 +48,4 @@ export default function PurchasePage() {
         </div>
     );
 }
+
