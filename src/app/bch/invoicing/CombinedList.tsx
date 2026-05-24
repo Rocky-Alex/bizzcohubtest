@@ -380,44 +380,92 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                 <head>
                     <title>${docTitle} ${docNo}</title>
                     <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-                        body { font-family: 'Inter', sans-serif; color: #1f2937; margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-                        .container { width: 210mm; min-height: 297mm; padding: 5mm; margin: 0 auto; background: white; box-sizing: border-box; position: relative; }
-                        @media print { body { background: white; } .container { width: 100%; margin: 0; padding: 5mm; border: none; box-shadow: none; } @page { size: A4; margin: 0; } }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-                        th { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; padding: 1rem; text-align: left; font-size: 0.8rem; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
-                        td { padding: 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+                        @font-face {
+                            font-family: 'Square721 BT Roman';
+                            src: url('${window.location.origin}/Square721%20BT%20Roman.ttf') format('truetype');
+                        }
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+                        body { font-family: 'Inter', sans-serif; color: #1e293b; margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                        .container { width: 210mm; min-height: 297mm; padding: 15mm 12mm; margin: 0 auto; background: white; box-sizing: border-box; position: relative; }
+                        @media print { body { background: white; } .container { width: 100%; margin: 0; padding: 12mm; border: none; box-shadow: none; } @page { size: A4; margin: 0; } }
+                        
+                        .header-line { border-bottom: 2px solid #1A2244; padding-bottom: 0.75rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; position: relative; }
+                        .trn-badge { position: absolute; left: 50%; transform: translateX(-50%); bottom: 1.2rem; text-align: center; }
+                        .trn-label { font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+                        .trn-value { color: #1A2244; font-size: 1rem; font-weight: 800; letter-spacing: 1px; }
+
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 3rem; }
+                        th { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; padding: 1rem 0.75rem; text-align: left; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+                        td { padding: 1rem 0.75rem; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; color: #334155; vertical-align: top; }
+                        .row-total { font-weight: 700; color: #1e293b; }
+
+                        .meta-section { display: flex; justify-content: space-between; margin-bottom: 4rem; }
+                        .bill-to h3 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 0.5rem; }
+                        .bill-to .name { font-size: 1.1rem; font-weight: 700; color: #1A2244; margin-bottom: 0.25rem; }
+                        
+                        .doc-meta { text-align: right; min-width: 240px; }
+                        .meta-row { display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.25rem; }
+                        .meta-label { color: #64748b; font-weight: 500; }
+                        .meta-value { color: #1A2244; font-weight: 700; }
+                        
+                        .totals-grid { display: flex; justify-content: space-between; align-items: flex-start; }
+                        .footer-branding { position: absolute; bottom: 12mm; left: 0; width: 100%; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 1.5rem; }
                     </style>
                 </head>
                 <body>
                     <div class="container">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 2px solid #1A2244; padding-bottom: 0.5rem; position: relative;">
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 0.1rem; margin-bottom: 0.1rem;">
-                                    <img src="${window.location.origin}/icon/nav-logo.png" alt="Logo" style="width: 40px; height: auto;" />
-                                    <h1 style="margin: 0; font-size: 2rem; color: #1A2244; font-weight: 700; font-family: 'Square721 BT Roman', sans-serif;">BIZZ CO HUB LLC</h1>
+                        <div class="header-line" style="${!doc.is_taxable ? 'justify-content: center; text-align: center;' : ''}">
+                            ${doc.is_taxable ? `
+                            <div style="display: flex; flex-direction: column;">
+                                <div style="display: flex; align-items: center; gap: 0.2rem; margin-bottom: 0.25rem;">
+                                    <img src="${window.location.origin}/icon/nav-logo.png" alt="Logo" style="width: 44px; height: auto;" />
+                                    <h1 style="margin: 0; font-size: 2.2rem; color: #1A2244; font-weight: 800; font-family: 'Square721 BT Roman', sans-serif; letter-spacing: -0.5px;">BIZZ CO HUB LLC</h1>
                                 </div>
-                                <p style="margin: 0; color: #1A2244; font-size: 0.7rem;">Premium Refurbished Electronics and Professional IT Services</p>
-                                <p style="margin: 0; color: #1A2244; font-size: 0.7rem;">Sharjah Media City, Sharjah, UAE</p>
-                                <p style="margin: 0; color: #1A2244; font-size: 0.7rem;">Ph: +971 52 714 6582 | +971 55 614 8279</p>
+                                <p style="margin: 0; color: #475569; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2px;">Premium Refurbished Electronics and Professional IT Services</p>
+                                <div style="margin-top: 0.4rem; color: #64748b; font-size: 0.7rem; font-weight: 500;">
+                                    <p style="margin: 0;">Sharjah Media City, Sharjah, UAE</p>
+                                    <p style="margin: 0;">Ph: +971 52 714 6582 | +971 55 614 8279</p>
+                                </div>
                             </div>
-                            ${doc.is_taxable ? `<div style="position: absolute; left: 50%; transform: translateX(-50%); top: 62px;"><p style="color: #1A2244; font-size: 1.2rem; fontWeight: 500; margin: 0;">TAX : 123456789123456</p></div>` : ''}
-                            <div><h1 style="margin: 0; font-size: 2.5rem; color: #1A2244; letter-spacing: 1px; font-weight: 700;">${docTitle}</h1></div>
+                            
+                            <div class="trn-badge">
+                                <div class="trn-label">Tax Registration Number</div>
+                                <div class="trn-value">123456789123456</div>
+                            </div>
+                            ` : ''}
+                            
+                            <div style="${!doc.is_taxable ? 'width: 100%; text-align: center;' : ''}">
+                                <h1 style="margin: 0; font-size: 2.2rem; color: #1A2244; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; white-space: nowrap; margin-bottom: 1.2rem;">${docTitle}</h1>
+                            </div>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 3rem;">
-                            <div style="max-width: 50%;">
-                                <h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem;">Bill To</h3>
-                                <div style="font-size: 0.95rem; font-weight: 600; color: #000;">${doc.customer_name}</div>
-                                <div style="white-space: pre-line; color: #374151; font-size: 0.9rem; line-height: 1.4;">${doc.customer_address || ''}</div>
-                                ${doc.customer_email ? `<div style="font-size: 0.9rem;">${doc.customer_email}</div>` : ''}
-                                ${doc.customer_phone ? `<div style="font-size: 0.9rem;">${doc.customer_phone}</div>` : ''}
+                        <div class="meta-section">
+                            <div class="bill-to">
+                                <h3>Bill To</h3>
+                                <div class="name">${doc.customer_name}</div>
+                                <div style="white-space: pre-line; color: #334155; font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.5rem;">${doc.customer_address || ''}</div>
+                                <div style="font-size: 0.85rem; color: #64748b;">
+                                    ${doc.customer_email ? `<div style="margin-bottom: 2px;">${doc.customer_email}</div>` : ''}
+                                    ${doc.customer_phone ? `<div>${doc.customer_phone}</div>` : ''}
+                                </div>
                             </div>
-                            <div style="text-align: right; min-width: 200px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;"><span style="font-size: 0.9rem;">${type === 'invoice' ? 'Invoice' : 'Pro-Inv No'} #:</span><span style="font-size: 0.9rem; font-weight: 600;">${docNo}</span></div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;"><span style="font-size: 0.9rem;">Date:</span><span style="font-size: 0.9rem; font-weight: 500;">${new Date(doc.created_date).toLocaleDateString()}</span></div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;"><span style="font-size: 0.9rem;">Due Date:</span><span style="font-size: 0.9rem; font-weight: 500;">${new Date(doc.due_date).toLocaleDateString()}</span></div>
-                                <div style="display: flex; justify-content: space-between;"><span style="font-size: 0.9rem;">Payment Type:</span><span style="font-size: 0.9rem; font-weight: 500;">${doc.payment_type}</span></div>
+                            <div class="doc-meta">
+                                <div class="meta-row">
+                                    <span class="meta-label">${type === 'invoice' ? 'Invoice' : 'Pro-Inv'} #</span>
+                                    <span class="meta-value" style="font-size: 1.1rem;">${docNo}</span>
+                                </div>
+                                <div class="meta-row">
+                                    <span class="meta-label">Date</span>
+                                    <span class="meta-value">${new Date(doc.created_date).toLocaleDateString()}</span>
+                                </div>
+                                <div class="meta-row">
+                                    <span class="meta-label">Due Date</span>
+                                    <span class="meta-value">${new Date(doc.due_date).toLocaleDateString()}</span>
+                                </div>
+                                <div class="meta-row" style="border-bottom: none;">
+                                    <span class="meta-label">Payment Method</span>
+                                    <span class="meta-value">${doc.payment_type}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -426,26 +474,48 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                             <tbody>${items.map((item: any) => `<tr><td>${item.description}</td><td style="text-align: center;">${item.quantity}</td><td style="text-align: center;">AED ${Number(item.unit_price).toFixed(0)}</td><td style="text-align: center;">AED ${Number(item.discount).toFixed(0)}</td><td style="text-align: right;">AED ${Number(item.total).toFixed(0)}</td></tr>`).join('')}</tbody>
                         </table>
 
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                            <div style="max-width: 45%;">
+                        <div class="totals-grid">
+                            <div style="max-width: 48%;">
                                 ${(doc.show_terms !== false) ? `
-                                <h4 style="font-size: 0.7rem; font-weight: 700; margin-bottom: 0.20rem; color: #1A2244;">Terms and Conditions</h4>
-                                <p style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.20rem; white-space: pre-line; line-height: .9rem;">${doc.terms_and_conditions || ''}</p>
-                                <h4 style="font-size: 0.7rem; font-weight: 700; margin-bottom: 0.20rem; color: #1A2244;">Notes</h4>
-                                <p style="font-size: 0.7rem; color: #6b7280; margin-bottom: 0.20rem; white-space: pre-line; line-height: .9rem;">${doc.notes || ''}</p>
+                                <div style="margin-bottom: 1.5rem;">
+                                    <h4 style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem; color: #1A2244; text-transform: uppercase; letter-spacing: 0.5px;">Terms and Conditions</h4>
+                                    <p style="font-size: 0.75rem; color: #64748b; white-space: pre-line; line-height: 1.4;">${doc.terms_and_conditions || ''}</p>
+                                </div>
+                                <div style="margin-bottom: 1.5rem;">
+                                    <h4 style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem; color: #1A2244; text-transform: uppercase; letter-spacing: 0.5px;">Notes</h4>
+                                    <p style="font-size: 0.75rem; color: #64748b; white-space: pre-line; line-height: 1.4;">${doc.notes || ''}</p>
+                                </div>
                                 ` : ''}
                             </div>
-                            <div style="width: 300px;">
-                                ${(doc.is_discountable || doc.is_taxable) ? `<div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;"><span>Sub Total</span><span>AED ${Number(doc.sub_total).toFixed(0)}</span></div>` : ''}
-                                ${doc.is_taxable ? `<div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;"><span>VAT (5%)</span><span>AED ${Number(doc.tax_amount).toFixed(0)}</span></div>` : ''}
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 700; color: #ea580c; border-top: 1px solid #e5e7eb; padding-top: 0.5rem;"><span>Total Amount</span><span>AED ${Number(doc.total_amount).toFixed(0)}</span></div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563;"><span>Advance Paid</span><span>AED ${Number(doc.advance_received || 0).toFixed(0)}</span></div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 700; color: #dc2626;"><span>Balance Due</span><span>AED ${(Number(doc.total_amount) - Number(doc.advance_received || 0)).toFixed(0)}</span></div>
+                            <div style="width: 280px;">
+                                <div style="background: #f8fafc; padding: 1.25rem; border-radius: 8px;">
+                                    ${(doc.is_discountable || doc.is_taxable) ? `<div style="display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.9rem; color: #64748b;"><span>Sub Total</span><span style="font-weight: 600; color: #1e293b;">AED ${Number(doc.sub_total).toFixed(0)}</span></div>` : ''}
+                                    ${doc.is_taxable ? `<div style="display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.9rem; color: #64748b;"><span>VAT (5%)</span><span style="font-weight: 600; color: #1e293b;">AED ${Number(doc.tax_amount).toFixed(0)}</span></div>` : ''}
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1.2rem; font-weight: 800; color: #ea580c; border-top: 2px solid #e2e8f0; padding-top: 0.75rem;"><span>Total</span><span>AED ${Number(doc.total_amount).toFixed(0)}</span></div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.9rem; color: #64748b;"><span>Advance Paid</span><span style="font-weight: 600; color: #1e293b;">AED ${Number(doc.advance_received || 0).toFixed(0)}</span></div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 1rem; font-weight: 700; color: #dc2626; border-top: 1px dashed #e2e8f0; padding-top: 0.75rem;"><span>Balance Due</span><span>AED ${(Number(doc.total_amount) - Number(doc.advance_received || 0)).toFixed(0)}</span></div>
+                                </div>
                             </div>
                         </div>
 
-                        <div style="margin-top: 4rem; text-align: right;"><div style="display: inline-block; text-align: center;"><div style="width: 150px; border-bottom: 1px solid #000; margin-bottom: 0.5rem;"></div><h5 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #1A2244;">${staffName || 'Muhammed Rishad'}</h5><p style="margin: 0; font-size: 0.8rem; color: #6b7280;">${staffRole || 'Accountant'}</p></div></div>
-                        <div style="position: absolute; bottom: 10mm; left: 0; width: 100%; text-align: center;"><div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.25rem;"><img src="${window.location.origin}/icon/nav-logo.png" alt="Logo" style="width: 24px; height: auto;" /><h3 style="margin: 0; font-size: 1.2rem; color: #1A2244; font-family: 'Square721 BT Roman', sans-serif;">BIZZ CO HUB LLC</h3></div><div style="font-size: 0.8rem; color: #6b7280;">Premium Refurbished Electronics and Professional IT Services</div></div>
+                        <div style="margin-top: 5rem; text-align: right;">
+                            <div style="display: inline-block; text-align: center;">
+                                <div style="width: 180px; border-bottom: 2px solid #1A2244; margin-bottom: 0.75rem;"></div>
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 800; color: #1A2244;">${staffName || 'Muhammed Rishad'}</h5>
+                                <p style="margin: 0; font-size: 0.8rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">${staffRole || 'Accountant'}</p>
+                            </div>
+                        </div>
+
+                        ${doc.is_taxable ? `
+                        <div class="footer-branding">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+                                <img src="${window.location.origin}/icon/nav-logo.png" alt="Logo" style="width: 28px; height: auto;" />
+                                <h3 style="margin: 0; font-size: 1.4rem; color: #1A2244; font-family: 'Square721 BT Roman', sans-serif; font-weight: 700;">BIZZ CO HUB LLC</h3>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #64748b; font-weight: 500; letter-spacing: 0.3px;">Premium Refurbished Electronics and Professional IT Services</div>
+                        </div>
+                        ` : ''}
+                    </div>
                     </div>
                     <script>window.onload = function() { window.print(); }</script>
                 </body>
@@ -641,7 +711,7 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
             }
 
             toast.loading(`Importing ${data.length} records...`, { id: toastId });
-            
+
             const res = await fetch('/api/bch/bills/bulk-import', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1086,12 +1156,12 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                         >
                             <i className="fas fa-hand-holding-usd"></i> Record Payment
                         </button>
-                        <button 
+                        <button
                             onClick={() => {
                                 const docNo = viewData.type === 'invoice' ? viewData.document.invoice_no : viewData.document.quotation_no;
                                 const param = viewData.type === 'invoice' ? 'invoice' : 'proforma';
                                 router.push(`/bch/inventory/soldout?${param}=${encodeURIComponent(docNo)}`);
-                            }} 
+                            }}
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#4f46e5', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', color: 'white', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', fontWeight: 500 }}
                         >
                             <i className="fas fa-cart-arrow-down"></i> Sales Out
@@ -1128,23 +1198,25 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                     }}>
                         <div style={{ padding: '1rem', color: '#1f2937', fontFamily: "'Inter', sans-serif" }}>
                             {/* Header */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', borderBottom: '2px solid #1A2244', paddingBottom: '0.5rem', position: 'relative' }}>
-                                <div style={{ width: '100%' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
-                                        <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '40px', height: 'auto' }} />
-                                        <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontWeight: 700, fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', borderBottom: '2px solid #1A2244', paddingBottom: '0.75rem', position: 'relative', minHeight: '2rem', ...(!viewData.document.is_taxable ? { justifyContent: 'center', textAlign: 'center' } : {}) }}>
+                                {viewData.document.is_taxable && (
+                                    <div style={{ width: '100%' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
+                                            <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '40px', height: 'auto' }} />
+                                            <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontWeight: 700, fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
+                                        </div>
+                                        <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
+                                        <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Sharjah Media City, Sharjah, UAE</p>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                            <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
+                                            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: '0.5rem' }}>
+                                                <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
-                                    <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Sharjah Media City, Sharjah, UAE</p>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <p style={{ margin: 0, color: '#1A2244', fontSize: '0.7rem' }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
-                                        {viewData.document.is_taxable && (
-                                            <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0, marginRight: '210px' }}>TAX : 123456789123456</p>
-                                        )}
-                                    </div>
-                                </div>
-                                <div style={{ position: 'absolute', right: 0, top: 0 }}>
-                                    <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#1A2244', letterSpacing: '1px', fontWeight: 700 }}>
+                                )}
+                                <div style={{ width: !viewData.document.is_taxable ? '100%' : 'auto', textAlign: !viewData.document.is_taxable ? 'center' : 'right' }}>
+                                    <h1 style={{ margin: 0, fontSize: '3rem', color: '#1A2244', letterSpacing: '2px', fontWeight: 700, whiteSpace: 'nowrap', marginBottom: '2rem' }}>
                                         {viewData.type === 'invoice' ? 'INVOICE' : 'PROFORMA INVOICE'}
                                     </h1>
                                 </div>
@@ -1268,15 +1340,17 @@ export default function CombinedList({ setActiveSection, onEditInvoice, onEditQu
                             </div>
 
                             {/* Bottom Branding */}
-                            <div style={{ position: 'absolute', bottom: '2rem', left: 0, width: '100%', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                    <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '24px', height: 'auto' }} />
-                                    <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h3>
+                            {viewData.document.is_taxable && (
+                                <div style={{ position: 'absolute', bottom: '2rem', left: 0, width: '100%', textAlign: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                        <img src="/icon/nav-logo.png" alt="Logo" style={{ width: '24px', height: 'auto' }} />
+                                        <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h3>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                                        Premium Refurbished Electronics and Professional IT Services
+                                    </div>
                                 </div>
-                                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                                    Premium Refurbished Electronics and Professional IT Services
-                                </div>
-                            </div>
+                            )}
 
                         </div>
                     </div>

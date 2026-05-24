@@ -7,9 +7,19 @@ Font.register({
     src: '/Square721%20BT%20Roman.ttf',
 });
 
+Font.register({
+    family: 'Inter',
+    fonts: [
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2', fontWeight: 400 },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2', fontWeight: 500 },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuG2fAZ9hiA.woff2', fontWeight: 600 },
+        { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuWAZ9hiA.woff2', fontWeight: 700 },
+    ],
+});
+
 const styles = StyleSheet.create({
     page: {
-        fontFamily: 'Helvetica',
+        fontFamily: 'Inter',
         fontSize: 9,
         padding: 40,
         color: '#333',
@@ -19,12 +29,15 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
         marginBottom: 20,
         borderBottomWidth: 2,
         borderBottomColor: '#1A2244',
-        paddingBottom: 10,
+        paddingBottom: 12,
         position: 'relative',
+    },
+    headerCentered: {
+        justifyContent: 'center',
     },
     headerLeft: {
         flexDirection: 'column',
@@ -63,9 +76,14 @@ const styles = StyleSheet.create({
     },
     invoiceTitle: {
         color: '#1A2244',
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: 'bold',
         letterSpacing: 1,
+        marginBottom: 10,
+    },
+    invoiceTitleCentered: {
+        textAlign: 'center',
+        width: '100%',
     },
     // Info Section
     infoSection: {
@@ -299,16 +317,18 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl, staffN
             <Page size="A4" style={styles.page}>
 
                 {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.headerLeft}>
-                        <View style={styles.logoRow}>
-                            {logoUrl && <Image src={logoUrl} style={{ width: 40, height: 40, objectFit: 'contain' }} />}
-                            <Text style={styles.logoText}>BIZZ CO HUB LLC</Text>
+                <View style={[styles.header, !invoice.is_taxable ? styles.headerCentered : {}]}>
+                    {invoice.is_taxable && (
+                        <View style={styles.headerLeft}>
+                            <View style={styles.logoRow}>
+                                {logoUrl && <Image src={logoUrl} style={{ width: 40, height: 40, objectFit: 'contain' }} />}
+                                <Text style={styles.logoText}>BIZZ CO HUB LLC</Text>
+                            </View>
+                            <Text style={styles.tagline}>Premium Refurbished Electronics and Professional IT Services</Text>
+                            <Text style={styles.tagline}>Sharjah Media City, Sharjah, UAE</Text>
+                            <Text style={styles.tagline}>Ph: +971 52 714 6582 | +971 55 614 8279</Text>
                         </View>
-                        <Text style={styles.tagline}>Premium Refurbished Electronics and Professional IT Services</Text>
-                        <Text style={styles.tagline}>Sharjah Media City, Sharjah, UAE</Text>
-                        <Text style={styles.tagline}>Ph: +971 52 714 6582 | +971 55 614 8279</Text>
-                    </View>
+                    )}
 
                     {invoice.is_taxable && (
                         <View style={styles.taxIdContainer}>
@@ -316,8 +336,8 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl, staffN
                         </View>
                     )}
 
-                    <View style={styles.headerRight}>
-                        <Text style={styles.invoiceTitle}>INVOICE</Text>
+                    <View style={[styles.headerRight, !invoice.is_taxable ? styles.invoiceTitleCentered : {}]}>
+                        <Text style={[styles.invoiceTitle, !invoice.is_taxable ? { textAlign: 'center' } : {}]}>INVOICE</Text>
                     </View>
                 </View>
 
@@ -422,13 +442,15 @@ const InvoicePDF: React.FC<InvoicePDFProps> = ({ invoice, items, logoUrl, staffN
                 </View>
 
                 {/* Footer */}
-                <View style={styles.footer}>
-                    <View style={styles.footerLogoRow}>
-                        {logoUrl && <Image src={logoUrl} style={{ width: 20, height: 20, objectFit: 'contain' }} />}
-                        <Text style={styles.footerLogoText}>BIZZ CO HUB LLC</Text>
+                {invoice.is_taxable && (
+                    <View style={styles.footer}>
+                        <View style={styles.footerLogoRow}>
+                            {logoUrl && <Image src={logoUrl} style={{ width: 20, height: 20, objectFit: 'contain' }} />}
+                            <Text style={styles.footerLogoText}>BIZZ CO HUB LLC</Text>
+                        </View>
+                        <Text style={styles.footerTagline}>Premium Refurbished Electronics and Professional IT Services</Text>
                     </View>
-                    <Text style={styles.footerTagline}>Premium Refurbished Electronics and Professional IT Services</Text>
-                </View>
+                )}
 
             </Page>
         </Document>

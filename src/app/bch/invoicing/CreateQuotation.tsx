@@ -348,33 +348,33 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
     // Fetch Product History when a valid product code is in the input
     useEffect(() => {
         const fetchHistory = async () => {
-             if (!productCodeInput.trim()) {
-                 setProductHistory([]);
-                 return;
-             }
+            if (!productCodeInput.trim()) {
+                setProductHistory([]);
+                return;
+            }
 
-             // Only fetch if it's an exact match in inventory to avoid spamming the API on every keystroke
-             const exactMatch = inventoryProducts.find(p => p.product_code === productCodeInput.trim() || p.product_name === productCodeInput.trim());
-             
-             if (exactMatch && exactMatch.product_code) {
-                 setIsFetchingHistory(true);
-                 try {
-                     const res = await fetch(`/api/bch/invoices/by-product/${encodeURIComponent(exactMatch.product_code)}`);
-                     if (res.ok) {
-                         const data = await res.json();
-                         setProductHistory(data.history || []);
-                     } else {
-                         setProductHistory([]);
-                     }
-                 } catch (err) {
-                     console.error("Failed to load product history", err);
-                     setProductHistory([]);
-                 } finally {
-                     setIsFetchingHistory(false);
-                 }
-             } else {
-                 setProductHistory([]);
-             }
+            // Only fetch if it's an exact match in inventory to avoid spamming the API on every keystroke
+            const exactMatch = inventoryProducts.find(p => p.product_code === productCodeInput.trim() || p.product_name === productCodeInput.trim());
+
+            if (exactMatch && exactMatch.product_code) {
+                setIsFetchingHistory(true);
+                try {
+                    const res = await fetch(`/api/bch/invoices/by-product/${encodeURIComponent(exactMatch.product_code)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setProductHistory(data.history || []);
+                    } else {
+                        setProductHistory([]);
+                    }
+                } catch (err) {
+                    console.error("Failed to load product history", err);
+                    setProductHistory([]);
+                } finally {
+                    setIsFetchingHistory(false);
+                }
+            } else {
+                setProductHistory([]);
+            }
         };
 
         const debounceTimer = setTimeout(fetchHistory, 500); // 500ms debounce
@@ -507,7 +507,7 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                 return;
             }
             const costPerItem = targetTotal / itemsWithQty.length;
-            setItems(prev => prev.map(item => 
+            setItems(prev => prev.map(item =>
                 item.qty > 0 ? { ...item, cost: costPerItem / item.qty } : item
             ));
         } else {
@@ -674,28 +674,28 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
 
             <div className="invoice-container">
                 {/* Header Section */}
-                <div className="quotation-header">
-                    <div className="quotation-left-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
-                            <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
-                            <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif", fontWeight: 700 }}>BIZZ CO HUB LLC</h1>
-                        </div>
-                        <p style={{ color: '#1A2244', margin: 0, fontSize: '0.75rem', fontWeight: 500 }}>Premium Refurbished Electronics and Professional IT Services</p>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.1rem' }}>
-                            <div style={{ color: '#1A2244', fontSize: '0.75rem', fontWeight: 500 }}>
-                                <p style={{ margin: 0 }}>Sharjah Media City, Sharjah, UAE</p>
-                                <p style={{ margin: 0 }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
+                <div className={`quotation-header ${!isTaxable ? 'centered-header' : ''}`}>
+                    {isTaxable && (
+                        <div className="quotation-left-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
+                                <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
+                                <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif", fontWeight: 700 }}>BIZZ CO HUB LLC</h1>
                             </div>
-                            {isTaxable && (
-                                <div style={{ marginRight: '6rem' }}>
-                                    <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>TAX : 123456789123456</p>
+                            <p style={{ color: '#1A2244', margin: 0, fontSize: '0.75rem', fontWeight: 500 }}>Premium Refurbished Electronics and Professional IT Services</p>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.1rem' }}>
+                                <div style={{ color: '#1A2244', fontSize: '0.75rem', fontWeight: 500 }}>
+                                    <p style={{ margin: 0 }}>Sharjah Media City, Sharjah, UAE</p>
+                                    <p style={{ margin: 0 }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
                                 </div>
-                            )}
+                                <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: '0.5rem' }}>
+                                    <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="quotation-right-header">
-                        <h1 style={{ fontSize: '2.8rem', letterSpacing: '2px' }}>PROFORMA INVOICE</h1>
+                        <h1 style={{ fontSize: '3rem', letterSpacing: '2px', margin: 0, whiteSpace: 'nowrap', marginBottom: '2rem' }}>PROFORMA INVOICE</h1>
                     </div>
                 </div>
 
@@ -954,11 +954,11 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                             className="btn-secondary"
                             onClick={() => setIsProductModalOpen(true)}
                             title="Select from Inventory"
-                            style={{ 
-                                padding: '0.5rem', 
-                                fontSize: '1rem', 
-                                background: '#f8fafc', 
-                                color: '#475569', 
+                            style={{
+                                padding: '0.5rem',
+                                fontSize: '1rem',
+                                background: '#f8fafc',
+                                color: '#475569',
                                 border: '1px solid #e2e8f0',
                                 borderRadius: '6px',
                                 display: 'flex',
@@ -979,7 +979,7 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                         <h4 style={{ margin: '0 0 0.75rem 0', color: '#1A2244', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <i className="fas fa-history" style={{ color: '#6b7280' }}></i> Pricing History for {productCodeInput}
                         </h4>
-                        
+
                         {isFetchingHistory ? (
                             <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
                                 <i className="fas fa-circle-notch fa-spin" style={{ marginRight: '0.5rem' }}></i> Loading history...
@@ -1148,8 +1148,8 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span style={{ fontWeight: 600 }}>AED {finalTotal.toFixed(0)}</span>
                                     {isEditing && (
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setIsTotalEditModalOpen(true)}
                                             style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
                                             title="Edit Total (Redistribute Proportionally)"
@@ -1289,7 +1289,7 @@ export default function CreateQuotation({ setActiveSection, customers = DEFAULT_
                 </div>
             )}
 
-            <ProductInventorySelector 
+            <ProductInventorySelector
                 isOpen={isProductModalOpen}
                 onClose={() => setIsProductModalOpen(false)}
                 products={inventoryProducts}

@@ -22,3 +22,4 @@ server_logs.txt
 tmp_check_*.ts
 scripts/
 project-diagram.html
+scratch/

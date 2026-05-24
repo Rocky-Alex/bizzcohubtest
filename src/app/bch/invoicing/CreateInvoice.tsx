@@ -371,7 +371,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
     const [productCodeInput, setProductCodeInput] = useState("");
     const [showInventorySelector, setShowInventorySelector] = useState(false);
     const [inventoryProducts, setInventoryProducts] = useState<DatabaseProduct[]>([]);
-    
+
     // Total Edit State
     const [isTotalEditModalOpen, setIsTotalEditModalOpen] = useState(false);
     const [showProductSuggestions, setShowProductSuggestions] = useState(false);
@@ -385,33 +385,33 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
     // Fetch Product History when a valid product code is in the input
     useEffect(() => {
         const fetchHistory = async () => {
-             if (!productCodeInput.trim()) {
-                 setProductHistory([]);
-                 return;
-             }
+            if (!productCodeInput.trim()) {
+                setProductHistory([]);
+                return;
+            }
 
-             // Only fetch if it's an exact match in inventory to avoid spamming the API on every keystroke
-             const exactMatch = inventoryProducts.find(p => p.product_code === productCodeInput.trim() || p.product_name === productCodeInput.trim());
-             
-             if (exactMatch && exactMatch.product_code) {
-                 setIsFetchingHistory(true);
-                 try {
-                     const res = await fetch(`/api/bch/invoices/by-product/${encodeURIComponent(exactMatch.product_code)}`);
-                     if (res.ok) {
-                         const data = await res.json();
-                         setProductHistory(data.history || []);
-                     } else {
-                         setProductHistory([]);
-                     }
-                 } catch (err) {
-                     console.error("Failed to load product history", err);
-                     setProductHistory([]);
-                 } finally {
-                     setIsFetchingHistory(false);
-                 }
-             } else {
-                 setProductHistory([]);
-             }
+            // Only fetch if it's an exact match in inventory to avoid spamming the API on every keystroke
+            const exactMatch = inventoryProducts.find(p => p.product_code === productCodeInput.trim() || p.product_name === productCodeInput.trim());
+
+            if (exactMatch && exactMatch.product_code) {
+                setIsFetchingHistory(true);
+                try {
+                    const res = await fetch(`/api/bch/invoices/by-product/${encodeURIComponent(exactMatch.product_code)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setProductHistory(data.history || []);
+                    } else {
+                        setProductHistory([]);
+                    }
+                } catch (err) {
+                    console.error("Failed to load product history", err);
+                    setProductHistory([]);
+                } finally {
+                    setIsFetchingHistory(false);
+                }
+            } else {
+                setProductHistory([]);
+            }
         };
 
         const debounceTimer = setTimeout(fetchHistory, 500); // 500ms debounce
@@ -461,7 +461,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
     const handleProportionalTotalEdit = (targetTotal: number) => {
         const currentTotal = finalTotal;
-        
+
         if (currentTotal === 0) {
             // Distribute equally among items with qty > 0
             const itemsWithQty = items.filter(i => i.qty > 0);
@@ -470,7 +470,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 return;
             }
             const costPerItem = targetTotal / itemsWithQty.length;
-            setItems(prev => prev.map(item => 
+            setItems(prev => prev.map(item =>
                 item.qty > 0 ? { ...item, cost: costPerItem / item.qty } : item
             ));
         } else {
@@ -594,7 +594,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                     qty: item.qty,
                     cost: item.cost,
                     discount: item.discount,
-                    product_code: item.product_code, 
+                    product_code: item.product_code,
                     inventory_id: item.inventory_id,
                     source: item.source,
                     ram: item.ram,
@@ -687,27 +687,27 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
 
             <div className="invoice-container">
                 {/* Header */}
-                <div className="invoice-header" style={{ position: 'relative', borderBottom: '2px solid #1A2244', paddingBottom: '0.5rem', marginBottom: '2rem' }}>
-                    <div className="company-branding">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
-                            <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
-                            <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
-                        </div>
-                        <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
-                        <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Sharjah Media City, Sharjah, UAE</p>
-                        <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
-                    </div>
-
+                <div className={`invoice-header ${!isTaxable ? 'centered-header' : ''}`} style={{ position: 'relative', borderBottom: '2px solid #1A2244', paddingBottom: '0.75rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     {isTaxable && (
-                        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '62px' }}>
-                            <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
-                        </div>
+                        <>
+                            <div className="company-branding">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.1rem', marginBottom: '0.1rem' }}>
+                                    <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '40px', height: 'auto' }} />
+                                    <h1 style={{ margin: 0, fontSize: '2rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h1>
+                                </div>
+                                <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Premium Refurbished Electronics and Professional IT Services</p>
+                                <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Sharjah Media City, Sharjah, UAE</p>
+                                <p style={{ color: '#1A2244', margin: 0, fontSize: '0.7rem' }}>Ph: +971 52 714 6582 | +971 55 614 8279</p>
+                            </div>
+                            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: '0.5rem' }}>
+                                <p style={{ color: '#1A2244', fontSize: '1.2rem', fontWeight: 500, margin: 0 }}>TAX : 123456789123456</p>
+                            </div>
+                        </>
                     )}
 
-                    <div className="invoice-right-header">
-                        <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#1A2244', letterSpacing: '2px' }}>INVOICE</h1>
+                    <div className="invoice-right-header" style={{ width: !isTaxable ? '100%' : 'auto', textAlign: !isTaxable ? 'center' : 'right' }}>
+                        <h1 style={{ margin: 0, fontSize: '3rem', color: '#1A2244', letterSpacing: '2px', textTransform: 'uppercase', whiteSpace: 'nowrap', marginBottom: '2rem' }}>INVOICE</h1>
                     </div>
-
                 </div>
 
                 {/* Addresses */}
@@ -1065,11 +1065,11 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                             className="btn-secondary"
                             onClick={() => setIsProductModalOpen(true)}
                             title="Select from Inventory"
-                            style={{ 
-                                padding: '0.5rem', 
-                                fontSize: '1rem', 
-                                background: '#f8fafc', 
-                                color: '#475569', 
+                            style={{
+                                padding: '0.5rem',
+                                fontSize: '1rem',
+                                background: '#f8fafc',
+                                color: '#475569',
                                 border: '1px solid #e2e8f0',
                                 borderRadius: '6px',
                                 display: 'flex',
@@ -1090,7 +1090,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                         <h4 style={{ margin: '0 0 0.75rem 0', color: '#1A2244', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <i className="fas fa-history" style={{ color: '#6b7280' }}></i> Pricing History for {productCodeInput}
                         </h4>
-                        
+
                         {isFetchingHistory ? (
                             <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
                                 <i className="fas fa-circle-notch fa-spin" style={{ marginRight: '0.5rem' }}></i> Loading history...
@@ -1367,8 +1367,8 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span style={{ color: '#ea580c' }}>AED {finalTotal.toFixed(0)}</span>
                                     {isEditing && (
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setIsTotalEditModalOpen(true)}
                                             style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
                                             title="Edit Total (Redistribute Proportionally)"
@@ -1428,15 +1428,17 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 </div>
 
                 {/* Bottom Branding */}
-                <div className="bottom-branding">
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                        <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '32px', height: 'auto' }} />
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h3>
+                {isTaxable && (
+                    <div className="bottom-branding">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                            <img src="/icon/nav-logo.png" alt="Bizzcohub" style={{ width: '32px', height: 'auto' }} />
+                            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#1A2244', fontFamily: "'Square721 BT Roman', sans-serif" }}>BIZZ CO HUB LLC</h3>
+                        </div>
+                        <div className="bank-details">
+                            Premium Refurbished Electronics and Professional IT Services
+                        </div>
                     </div>
-                    <div className="bank-details">
-                        Premium Refurbished Electronics and Professional IT Services
-                    </div>
-                </div>
+                )}
             </div>
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
@@ -1530,7 +1532,7 @@ export default function CreateInvoice({ setActiveSection, customers = DEFAULT_CU
                 </div>
             )}
 
-            <ProductInventorySelector 
+            <ProductInventorySelector
                 isOpen={isProductModalOpen}
                 onClose={() => setIsProductModalOpen(false)}
                 products={inventoryProducts}

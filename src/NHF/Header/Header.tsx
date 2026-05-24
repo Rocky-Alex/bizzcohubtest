@@ -166,11 +166,9 @@ export default function Header() {
                         E-Commerce
                     </Link>
 
-                    {isAdminUser && (
-                        <Link href="/resources" className={`nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}>
-                            Resources
-                        </Link>
-                    )}
+                    <Link href="/resources" className={`nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}>
+                        Resources
+                    </Link>
 
                     <Link href="/services" className={`nav-link ${isActive('/services') ? 'active' : ''}`}>
                         Services
@@ -355,15 +353,13 @@ export default function Header() {
                                 E-Commerce
                             </Link>
 
-                            {isAdminUser && (
-                                <Link
-                                    href="/resources"
-                                    className={`mobile-nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Resources
-                                </Link>
-                            )}
+                            <Link
+                                href="/resources"
+                                className={`mobile-nav-link ${pathname.startsWith('/resources') ? 'active' : ''}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Resources
+                            </Link>
 
                             <Link
                                 href="/services"

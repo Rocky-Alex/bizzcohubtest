@@ -121,11 +121,29 @@ export default function ProductInventorySelector({ isOpen, onClose, onSelect, pr
                 storage: finalStorage,
                 graphics_card: finalGraphics,
                 charger_status: finalChargerStatus,
-                acStatus: finalChargerStatus // for compatibility with legacy components
+                acStatus: finalChargerStatus, // for compatibility with legacy components
+                quantity: Number(p.quantity || 1)
             };
         });
 
-        onSelect(selectedObjects);
+        // Group identical items (Same specs, price, lot and source)
+        const groupedResult: any[] = [];
+        const groups: Record<string, any> = {};
+
+        selectedObjects.forEach(item => {
+            const price = item.offer_price && Number(item.offer_price) > 0 ? item.offer_price : (item.base_price || 0);
+            const lot = item.lot_number || (item as any).lotNumber || 'no-lot';
+            const key = `${item.description}-${price}-${lot}-${item.source}`;
+
+            if (groups[key]) {
+                groups[key].quantity += item.quantity;
+            } else {
+                groups[key] = { ...item };
+                groupedResult.push(groups[key]);
+            }
+        });
+
+        onSelect(groupedResult);
         onClose();
     };
 

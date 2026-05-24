@@ -50,34 +50,6 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ title, description, icon, h
 };
 
 export default function ResourcesContent() {
-    const [isAuthorized, setIsAuthorized] = React.useState(false);
-
-    React.useEffect(() => {
-        const checkAuth = () => {
-            const stored = localStorage.getItem('customer_user');
-            if (!stored) {
-                window.location.href = '/login';
-                return;
-            }
-
-            try {
-                const user = JSON.parse(stored);
-                if (['admin', 'sarath', 'rishadnpm'].includes(user.username) || user.email === 'bizzcohubllc@gmail.com') {
-                    setIsAuthorized(true);
-                } else {
-                    window.location.href = '/';
-                }
-            } catch (e) {
-                window.location.href = '/login';
-            }
-        };
-        checkAuth();
-    }, []);
-
-    if (!isAuthorized) {
-        return <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
-    }
-
     return (
         <div className="resources-page">
             <section className="resources-hero">
@@ -151,11 +123,19 @@ export default function ResourcesContent() {
                     />
 
                     <ResourceCard
-                        title="Specification"
-                        description="View real-time system specifications."
+                        title="SpecCheck"
+                        description="Real-time futuristic hardware & system diagnostics suite."
                         icon={<Cpu size={32} />}
-                        href="/resources/specification"
-                        actionText="View Specifications"
+                        href="/resources/spec"
+                        actionText="Run Diagnostics"
+                    />
+
+                    <ResourceCard
+                        title="SpecCheck Ultra"
+                        description="Vibrant glassmorphic telemetry dashboard with circular gauge meters."
+                        icon={<Cpu size={32} />}
+                        href="/resources/spec2"
+                        actionText="Open Telemetry"
                     />
 
                     <ResourceCard

@@ -540,7 +540,7 @@ const CreateOrder = ({ onOrderCreated, initialData }: { onOrderCreated?: () => v
             image: p.primary_image || '/placeholder.svg',
             description: p.description || '', 
             stock: Number(p.stock_quantity || 1),
-            quantity: 1,
+            quantity: Number(p.quantity) || 1,
             lot_number: p.lot_number,
             brand: p.brand,
             series: p.series,
