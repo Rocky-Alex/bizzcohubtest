@@ -1679,7 +1679,7 @@ export default function SpecCheckUltraPage() {
                                             <div>
                                                 <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Current Capacity Value</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
-                                                    {specs?.battery?.currentCapacity ? `${(specs.battery.currentCapacity / 1000).toFixed(1)} Wh` : 'Unknown'} ({specs?.battery?.percent || 100}%)
+                                                    {specs?.battery?.currentCapacity ? `${specs.battery.currentCapacity} mWh` : 'Unknown'} ({specs?.battery?.percent || 100}%)
                                                 </div>
                                             </div>
 
@@ -1687,7 +1687,7 @@ export default function SpecCheckUltraPage() {
                                             <div>
                                                 <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Full Charged Capacity</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
-                                                    {specs?.battery?.maxCapacity ? `${(specs.battery.maxCapacity / 1000).toFixed(1)} Wh` : 'Unknown'}
+                                                    {specs?.battery?.maxCapacity ? `${specs.battery.maxCapacity} mWh` : 'Unknown'}
                                                 </div>
                                             </div>
 
@@ -1695,7 +1695,7 @@ export default function SpecCheckUltraPage() {
                                             <div>
                                                 <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Designed Capacity</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
-                                                    {specs?.battery?.designedCapacity ? `${(specs.battery.designedCapacity / 1000).toFixed(1)} Wh` : 'Unknown'}
+                                                    {specs?.battery?.designedCapacity ? `${specs.battery.designedCapacity} mWh` : 'Unknown'}
                                                 </div>
                                             </div>
 
