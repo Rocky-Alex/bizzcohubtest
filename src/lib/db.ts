@@ -8,7 +8,7 @@ const isNetlify = process.env.NETLIFY === 'true';
 // 2. If on Netlify or Local, use LOCAL_DATABASE_URL
 // 3. Fallback to standard environment variables
 export const mainUrl = isVercel
-    ? process.env.VERCEL_DATABASE_URL
+    ? (process.env.VERCEL_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL)
     : (process.env.LOCAL_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL);
 
 export const invoiceUrl = process.env.INVOICE_DATABASE_URL || mainUrl;
