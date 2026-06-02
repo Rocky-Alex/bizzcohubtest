@@ -18,11 +18,14 @@
       "output": "dist-electron"
     },
     "win": {
-      "target": "portable",
+      "target": "nsis",
       "icon": "public/vite.svg"
     },
-    "portable": {
-      "requestExecutionLevel": "user"
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true
     },
     "files": [
       "dist/**/*",

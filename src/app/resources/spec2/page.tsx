@@ -1937,12 +1937,12 @@ export default function SpecCheckUltraPage() {
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <Zap size={24} color="#5BFFA1" />
-                            <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Get the Offline Desktop App</h2>
+                            <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Install the Offline Desktop App</h2>
                         </div>
                         <p style={{ fontSize: '14px', color: '#8E90A2', lineHeight: '1.6', margin: 0 }}>
                             To securely read your exact hardware capacity and battery cycle counts <b>automatically in the background</b> without manually running scripts, you need the official BizzCo Offline Desktop App.
                             <br/><br/>
-                            Do you want to download the <b>Portable Desktop App (.zip)</b> now?
+                            Do you want to download the <b>Desktop Installer (.exe)</b> now?
                         </p>
                         <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                             <button 
@@ -1952,17 +1952,17 @@ export default function SpecCheckUltraPage() {
                                 NO, CANCEL
                             </button>
                             <a 
-                                href="/BizzCo-Telemetry-Desktop.zip"
-                                download="BizzCo-Telemetry-Desktop.zip"
+                                href="/BizzCo-Telemetry-Setup.exe"
+                                download="BizzCo-Telemetry-Setup.exe"
                                 onClick={() => {
                                     setIsReloadModalOpen(false);
                                     setRefreshing(true);
-                                    toast.success("Desktop App downloaded! Extract it and run BizzCo Telemetry System.exe", { duration: 8000 });
+                                    toast.success("Installer downloaded! Run the Setup.exe to install the app.", { duration: 8000 });
                                     setTimeout(() => setRefreshing(false), 5000);
                                 }}
                                 style={{ flex: 1, padding: '14px', background: '#5BFFA1', border: 'none', color: '#000', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, textAlign: 'center', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                YES, DOWNLOAD APP
+                                YES, DOWNLOAD INSTALLER
                             </a>
                         </div>
                     </div>
