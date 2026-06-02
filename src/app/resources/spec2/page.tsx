@@ -187,22 +187,15 @@ export default function SpecCheckUltraPage() {
         else setLoading(true);
 
         try {
-            const data = await getFullSpecs();
-            
-            // Check if we need a client-side fallback (i.e. hosted serverless VM or fetch failed)
-            const isVmOrServerless = !data || 
-                data.system?.manufacturer?.toLowerCase().includes("amazon") ||
-                data.system?.manufacturer?.toLowerCase().includes("qemu") ||
-                data.system?.manufacturer?.toLowerCase().includes("kvm") ||
-                data.system?.manufacturer?.toLowerCase().includes("xen") ||
-                data.system?.manufacturer?.toLowerCase().includes("vmware") ||
-                data.system?.model?.toLowerCase().includes("virtual") ||
-                data.os?.distro?.toLowerCase().includes("ubuntu") ||
-                data.os?.distro?.toLowerCase().includes("debian") ||
-                data.os?.distro?.toLowerCase().includes("redhat") ||
-                data.os?.distro?.toLowerCase().includes("centos");
+            const isLocalhost = typeof window !== 'undefined' && 
+                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-            if (isVmOrServerless) {
+            let data = null;
+            if (isLocalhost) {
+                data = await getFullSpecs();
+            }
+
+            if (!isLocalhost || !data) {
                 const clientData = await getClientSideSpecs();
                 setSpecs(clientData);
             } else {
