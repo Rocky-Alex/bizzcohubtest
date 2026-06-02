@@ -1653,49 +1653,56 @@ export default function SpecCheckUltraPage() {
                                         </div>
                                     </div>
 
-                                    <div className="display-cards-row">
-                                        {/* Battery Capacity Card */}
-                                        <div className="display-card">
-                                            <div className="display-icon-wrapper">
-                                                <Battery size={20} color="#FFB0CB" />
-                                            </div>
-                                            <div className="display-info-container">
-                                                <span className="display-label">Battery Manufacturer</span>
-                                                <div className="display-value">
+                                    <div className="overview-left-card" style={{ width: '100%', marginTop: '8px' }}>
+                                        <span style={{ fontSize: '11px', color: '#5BFFA1', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '16px' }}>Power Grid Telemetry & Battery Specs</span>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', marginTop: '16px' }}>
+                                            
+                                            {/* 1. Manufacture Name */}
+                                            <div>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Manufacture Name</span>
+                                                <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.hasBattery ? (specs.battery.manufacturer || 'System Battery') : 'No Internal Battery'}
                                                 </div>
-                                                <div className="display-subtext">
-                                                    Designed Capacity: {specs?.battery?.designedCapacity ? `${(specs.battery.designedCapacity / 1000).toFixed(0)} Wh` : '45 Wh'}
-                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* Charger status card */}
-                                        <div className="display-card">
-                                            <div className="display-icon-wrapper green">
-                                                <Zap size={20} color="#B8FFD9" />
-                                            </div>
-                                            <div className="display-info-container">
-                                                <span className="display-label">Power System Status</span>
-                                                <div className="display-value" style={{ textTransform: 'uppercase' }}>
+                                            {/* 2. Power State */}
+                                            <div>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Power State</span>
+                                                <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.hasBattery 
-                                                        ? (specs.battery.isCharging ? 'BATTERY CHARGING' : 'BATTERY DISCHARGE') 
-                                                        : 'AC STEADY POWER'}
-                                                </div>
-                                                <div className="display-subtext">
-                                                    Current Charge Level: {specs?.battery?.percent || 100}%
+                                                        ? (specs.battery.isCharging ? 'Charging' : (specs.battery.acConnected ? 'AC Connected (Not Charging)' : 'Discharging')) 
+                                                        : 'AC Power (Desktop)'}
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Additional Diagnostics */}
-                                    <div className="overview-left-card" style={{ width: '100%', marginTop: '8px' }}>
-                                        <span style={{ fontSize: '11px', color: '#5BFFA1', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '16px' }}>Power Grid Telemetry</span>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px' }}>
+                                            {/* 3. Current Capacity Value */}
+                                            <div>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Current Capacity Value</span>
+                                                <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
+                                                    {specs?.battery?.currentCapacity ? `${(specs.battery.currentCapacity / 1000).toFixed(1)} Wh` : 'Unknown'} ({specs?.battery?.percent || 100}%)
+                                                </div>
+                                            </div>
+
+                                            {/* 4. Full Charged Capacity */}
+                                            <div>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Full Charged Capacity</span>
+                                                <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
+                                                    {specs?.battery?.maxCapacity ? `${(specs.battery.maxCapacity / 1000).toFixed(1)} Wh` : 'Unknown'}
+                                                </div>
+                                            </div>
+
+                                            {/* 5. Designed Capacity */}
+                                            <div>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Designed Capacity</span>
+                                                <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
+                                                    {specs?.battery?.designedCapacity ? `${(specs.battery.designedCapacity / 1000).toFixed(1)} Wh` : 'Unknown'}
+                                                </div>
+                                            </div>
+
+                                            {/* 6. Battery Health */}
                                             <div>
                                                 <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Battery Health</span>
-                                                <div style={{ fontSize: '15px', color: '#5BFFA1', fontWeight: 600, marginTop: '4px' }}>
+                                                <div style={{ fontSize: '15px', fontWeight: 600, marginTop: '4px' }}>
                                                     {(() => {
                                                         const health = specs?.battery?.healthPercent 
                                                             || (specs?.battery?.maxCapacity && specs?.battery?.designedCapacity 
@@ -1712,22 +1719,15 @@ export default function SpecCheckUltraPage() {
                                                     })()}
                                                 </div>
                                             </div>
+
+                                            {/* 7. Cycle Count */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>AC Connector Status</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Charge / Discharge Cycles</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
-                                                    {specs?.battery?.acConnected ? 'CONNECTED (ONLINE)' : 'DISCONNECTED (BATTERY ACTIVE)'}
+                                                    {specs?.battery?.cycleCount || 'Not Reported by OS'}
                                                 </div>
                                             </div>
-                                            <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Current Capacity</span>
-                                                <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
-                                                    {specs?.battery?.maxCapacity ? `${(specs.battery.maxCapacity / 1000).toFixed(1)} Wh / ${specs?.battery?.designedCapacity ? (specs.battery.designedCapacity / 1000).toFixed(1) : '45.0'} Wh` : '45.0 Wh'}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Load Cycle Counter</span>
-                                                <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>{specs?.battery?.cycleCount || '18 Cycles'}</div>
-                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
