@@ -321,6 +321,29 @@ export default function SpecCheckUltraPage() {
             if (isRefresh) {
                 toast.success("Telemetry refreshed!");
             }
+
+            // Check for ?data= base64 payload from SpecCheck.exe
+            if (typeof window !== 'undefined') {
+                const urlParams = new URLSearchParams(window.location.search);
+                const base64Data = urlParams.get('data');
+                if (base64Data) {
+                    try {
+                        const jsonStr = decodeURIComponent(escape(atob(base64Data)));
+                        const parsedData = JSON.parse(jsonStr);
+                        if (parsedData && parsedData.system) {
+                            setSpecs(parsedData);
+                            if (!isRefresh) toast.success("Hardware specs loaded from Scanner Tool!");
+                            
+                            // Remove the ?data= parameter from URL without reloading
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse scanner data from URL", e);
+                        toast.error("Failed to read scanner data.");
+                    }
+                }
+            }
         } catch (error) {
             console.error("Error loading specs:", error);
             try {
@@ -1138,6 +1161,15 @@ export default function SpecCheckUltraPage() {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
+                            <a
+                                href="/SpecCheck.exe"
+                                download="SpecCheck.exe"
+                                className="reload-btn"
+                                style={{ borderColor: '#5BFFA1', color: '#5BFFA1', textDecoration: 'none' }}
+                            >
+                                <Zap size={12} style={{ marginRight: '6px' }} />
+                                <span>DOWNLOAD SCANNER (12KB)</span>
+                            </a>
                             <button
                                 onClick={() => setIsConfigModalOpen(true)}
                                 className="reload-btn"
