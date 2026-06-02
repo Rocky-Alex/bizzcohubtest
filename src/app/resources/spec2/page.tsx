@@ -1696,9 +1696,20 @@ export default function SpecCheckUltraPage() {
                                             <div>
                                                 <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Battery Health</span>
                                                 <div style={{ fontSize: '15px', color: '#5BFFA1', fontWeight: 600, marginTop: '4px' }}>
-                                                    {specs?.battery?.maxCapacity && specs?.battery?.designedCapacity 
-                                                        ? `${((specs.battery.maxCapacity / specs.battery.designedCapacity) * 100).toFixed(0)}% (Healthy)` 
-                                                        : '100% (Healthy)'}
+                                                    {(() => {
+                                                        const health = specs?.battery?.healthPercent 
+                                                            || (specs?.battery?.maxCapacity && specs?.battery?.designedCapacity 
+                                                                ? (specs.battery.maxCapacity / specs.battery.designedCapacity) * 100 
+                                                                : 100);
+                                                        
+                                                        const cappedHealth = Math.min(100, Math.max(0, health));
+                                                        let label = "Healthy";
+                                                        let color = "#5BFFA1";
+                                                        if (cappedHealth < 50) { label = "Replace Battery"; color = "#FF4B4B"; }
+                                                        else if (cappedHealth < 80) { label = "Degraded"; color = "#FFD68A"; }
+                                                        
+                                                        return <span style={{ color }}>{cappedHealth.toFixed(1)}% ({label})</span>;
+                                                    })()}
                                                 </div>
                                             </div>
                                             <div>
@@ -1710,7 +1721,7 @@ export default function SpecCheckUltraPage() {
                                             <div>
                                                 <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Current Capacity</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
-                                                    {specs?.battery?.currentCapacity ? `${(specs.battery.currentCapacity / 1000).toFixed(1)} Wh` : '45.0 Wh'}
+                                                    {specs?.battery?.maxCapacity ? `${(specs.battery.maxCapacity / 1000).toFixed(1)} Wh / ${specs?.battery?.designedCapacity ? (specs.battery.designedCapacity / 1000).toFixed(1) : '45.0'} Wh` : '45.0 Wh'}
                                                 </div>
                                             </div>
                                             <div>

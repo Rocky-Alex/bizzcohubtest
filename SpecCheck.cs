@@ -153,6 +153,44 @@ namespace SpecCheck
 
                 // Battery Info
                 var battery = new Dictionary<string, object>();
+                battery["hasBattery"] = false;
+                
+                try 
+                {
+                    using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\WMI", "SELECT * FROM BatteryStaticData"))
+                    {
+                        foreach (ManagementObject obj in searcher.Get())
+                        {
+                            battery["hasBattery"] = true;
+                            battery["designedCapacity"] = Convert.ToInt32(obj["DesignedCapacity"] ?? 45000);
+                            battery["manufacturer"] = GetVal(obj, "ManufactureName", "Internal Battery");
+                            break;
+                        }
+                    }
+                    
+                    using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\WMI", "SELECT * FROM BatteryFullChargedCapacity"))
+                    {
+                        foreach (ManagementObject obj in searcher.Get())
+                        {
+                            battery["maxCapacity"] = Convert.ToInt32(obj["FullChargedCapacity"] ?? 45000);
+                            break;
+                        }
+                    }
+                    
+                    using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\WMI", "SELECT * FROM BatteryStatus"))
+                    {
+                        foreach (ManagementObject obj in searcher.Get())
+                        {
+                            battery["acConnected"] = Convert.ToBoolean(obj["PowerOnline"] ?? false);
+                            battery["isCharging"] = Convert.ToBoolean(obj["Charging"] ?? false);
+                            battery["currentCapacity"] = Convert.ToInt32(obj["RemainingCapacity"] ?? 45000);
+                            break;
+                        }
+                    }
+                }
+                catch { }
+
+                // Fallback / Percent using Win32_Battery
                 using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Battery"))
                 {
                     var results = searcher.Get();
@@ -162,21 +200,45 @@ namespace SpecCheck
                         {
                             battery["hasBattery"] = true;
                             battery["percent"] = Convert.ToInt32(obj["EstimatedChargeRemaining"] ?? 100);
-                            battery["isCharging"] = Convert.ToInt32(obj["BatteryStatus"] ?? 1) == 2;
-                            battery["manufacturer"] = GetVal(obj, "SystemName", "Internal Battery");
-                            battery["designedCapacity"] = Convert.ToInt32(obj["DesignCapacity"] ?? 45000);
-                            battery["maxCapacity"] = Convert.ToInt32(obj["FullChargeCapacity"] ?? 45000);
-                            battery["currentCapacity"] = Convert.ToInt32(obj["EstimatedChargeRemaining"] ?? 100) * 450;
-                            battery["acConnected"] = Convert.ToInt32(obj["BatteryStatus"] ?? 1) == 2;
+                            
+                            if (!battery.ContainsKey("isCharging")) 
+                                battery["isCharging"] = Convert.ToInt32(obj["BatteryStatus"] ?? 1) == 2;
+                            if (!battery.ContainsKey("acConnected")) 
+                                battery["acConnected"] = Convert.ToInt32(obj["BatteryStatus"] ?? 1) == 2;
+                            if (!battery.ContainsKey("manufacturer")) 
+                                battery["manufacturer"] = GetVal(obj, "SystemName", "Internal Battery");
+                            
+                            if (!battery.ContainsKey("maxCapacity")) {
+                                battery["designedCapacity"] = Convert.ToInt32(obj["DesignCapacity"] ?? 45000);
+                                battery["maxCapacity"] = Convert.ToInt32(obj["FullChargeCapacity"] ?? 45000);
+                                battery["currentCapacity"] = Convert.ToInt32(obj["EstimatedChargeRemaining"] ?? 100) * 450;
+                            }
+                            
+                            if (!battery.ContainsKey("percent") && battery.ContainsKey("currentCapacity") && battery.ContainsKey("maxCapacity")) {
+                                double max = Convert.ToDouble(battery["maxCapacity"]);
+                                double cur = Convert.ToDouble(battery["currentCapacity"]);
+                                battery["percent"] = (int)((cur / max) * 100);
+                            }
+                            
                             battery["cycleCount"] = 0;
                             break;
                         }
                     }
-                    else
+                }
+                
+                // Calculate actual health based on root\wmi data if available
+                if (battery.ContainsKey("designedCapacity") && battery.ContainsKey("maxCapacity"))
+                {
+                    double dCap = Convert.ToDouble(battery["designedCapacity"]);
+                    double mCap = Convert.ToDouble(battery["maxCapacity"]);
+                    if (dCap > 0) 
                     {
-                        battery["hasBattery"] = false;
+                        double health = (mCap / dCap) * 100.0;
+                        if (health > 100) health = 100;
+                        battery["healthPercent"] = Math.Round(health, 1);
                     }
                 }
+                
                 data["battery"] = battery;
 
                 // OS Info
