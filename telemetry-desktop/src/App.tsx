@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import {
     ArrowLeft,
     Cpu,
@@ -14,12 +13,16 @@ import {
     Database,
     Info,
     Check,
-    Battery,
     Settings,
     X
 } from 'lucide-react';
-import { getFullSpecs } from '../spec/actions';
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
+
+// Polyfill toast since sonner is not installed in the basic template
+const toast = {
+    success: (msg: string) => console.log(msg),
+    error: (msg: string) => console.error(msg)
+};
 
 const getClientSideSpecs = async () => {
     if (typeof window === 'undefined') return null;
@@ -304,55 +307,60 @@ export default function SpecCheckUltraPage() {
         else setLoading(true);
 
         try {
-            const isLocalhost = typeof window !== 'undefined' && 
-                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-            let data = null;
-            if (isLocalhost) {
-                data = await getFullSpecs();
-            }
-
-            if (!isLocalhost || !data) {
+            // Check if running inside Electron
+            if (window.electronAPI) {
+                // Fetch from Electron backend instantly
+                const psCommand = `
+                    $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
+                    $ram = Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum
+                    $bat = Get-WmiObject -Namespace root\\wmi -Class BatteryFullChargedCapacity -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $batStat = Get-WmiObject -Namespace root\\wmi -Class BatteryStatus -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $batStatic = Get-WmiObject -Namespace root\\wmi -Class BatteryStaticData -ErrorAction SilentlyContinue | Select-Object -First 1
+                    
+                    $sys = Get-CimInstance Win32_ComputerSystem | Select-Object -First 1
+                    $gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
+                    $disk = Get-CimInstance Win32_DiskDrive | Select-Object -First 1
+                    
+                    @{
+                        system = @{ manufacturer = $sys.Manufacturer; model = $sys.Model }
+                        cpu = @{ brand = $cpu.Name; cores = $cpu.NumberOfLogicalProcessors; physicalCores = $cpu.NumberOfCores }
+                        mem = @{ total = $ram.Sum; used = ($ram.Sum * 0.3) }
+                        battery = @{
+                            hasBattery = $($bat -ne $null)
+                            percent = $(if($batStat -and $bat){ [math]::Round(($batStat.RemainingCapacity / $bat.FullChargedCapacity) * 100) }else{ 100 })
+                            isCharging = $(if($batStat){ $batStat.Charging }else{ $true })
+                            cycleCount = $(if($bat){ $bat.CycleCount }else{ 0 })
+                            manufacturer = $(if($batStatic){ $batStatic.ManufactureName }else{ 'System Battery' })
+                        }
+                        graphics = @{ controllers = @( @{ model = $gpu.Name; vendor = $gpu.AdapterCompatibility } ) }
+                        diskLayout = @( @{ name = $disk.Model; size = $disk.Size } )
+                    } | ConvertTo-Json -Depth 10 -Compress
+                `;
+                
+                const result = await window.electronAPI.executePowerShell(psCommand);
+                if (result && !result.error && result.stdout) {
+                    try {
+                        const parsed = JSON.parse(result.stdout);
+                        setSpecs(parsed);
+                        if (isRefresh) toast.success("Telemetry refreshed directly from hardware!");
+                    } catch (e) {
+                        console.error("Failed to parse powershell JSON", e);
+                        const fallback = await getClientSideSpecs();
+                        setSpecs(fallback);
+                    }
+                } else {
+                    const fallback = await getClientSideSpecs();
+                    setSpecs(fallback);
+                }
+            } else {
+                // Browser fallback
                 const clientData = await getClientSideSpecs();
                 setSpecs(clientData);
-            } else {
-                setSpecs(data);
-            }
-
-            if (isRefresh) {
-                toast.success("Telemetry refreshed!");
-            }
-
-            // Check for ?data= base64 payload from SpecCheck.exe
-            if (typeof window !== 'undefined') {
-                const urlParams = new URLSearchParams(window.location.search);
-                const base64Data = urlParams.get('data');
-                if (base64Data) {
-                    try {
-                        const jsonStr = decodeURIComponent(escape(atob(base64Data)));
-                        const parsedData = JSON.parse(jsonStr);
-                        if (parsedData && parsedData.system) {
-                            setSpecs(parsedData);
-                            if (!isRefresh) toast.success("Hardware specs loaded from Scanner Tool!");
-                            
-                            // Remove the ?data= parameter from URL without reloading
-                            window.history.replaceState({}, document.title, window.location.pathname);
-                            return;
-                        }
-                    } catch (e) {
-                        console.error("Failed to parse scanner data from URL", e);
-                        toast.error("Failed to read scanner data.");
-                    }
-                }
             }
         } catch (error) {
             console.error("Error loading specs:", error);
-            try {
-                const clientData = await getClientSideSpecs();
-                setSpecs(clientData);
-            } catch (innerError) {
-                console.error("Client side fallback failed too:", innerError);
-            }
+            const fallback = await getClientSideSpecs();
+            setSpecs(fallback);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -1150,9 +1158,9 @@ export default function SpecCheckUltraPage() {
             {/* Header - Top Navigation Bar */}
             <div className="dashboard-header">
                 <div className="dashboard-header-inner">
-                    <Link href="/resources" className="back-link">
-                        <ArrowLeft size={12} /> BACK TO RESOURCES
-                    </Link>
+                    <a href="#" onClick={(e) => {e.preventDefault();}} className="back-link">
+                        <ArrowLeft size={12} /> BIZZCO HUB OFFLINE APP
+                    </a>
                     <div className="header-top-row">
                         <div className="header-title-container">
                             <h1 className="header-title">SYSTEM TELEMETRY</h1>
@@ -1175,8 +1183,8 @@ export default function SpecCheckUltraPage() {
                                 disabled={refreshing || loading}
                                 className="reload-btn"
                             >
-                                <Zap size={12} className={refreshing ? "animate-spin" : ""} style={{ color: '#E2E2E8' }} />
-                                <span>{refreshing ? "EXECUTING SCRIPT..." : "GET OFFLINE DESKTOP APP"}</span>
+                                <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} style={{ color: '#E2E2E8' }} />
+                                <span>{refreshing ? "EXECUTING SCRIPT..." : "RELOAD TELEMETRY"}</span>
                             </button>
                         </div>
                     </div>
@@ -1937,33 +1945,29 @@ export default function SpecCheckUltraPage() {
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <Zap size={24} color="#5BFFA1" />
-                            <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Get the Offline Desktop App</h2>
+                            <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Execute Hardware Script?</h2>
                         </div>
                         <p style={{ fontSize: '14px', color: '#8E90A2', lineHeight: '1.6', margin: 0 }}>
-                            To securely read your exact hardware capacity and battery cycle counts <b>automatically in the background</b> without manually running scripts, you need the official BizzCo Offline Desktop App.
+                            To securely read your exact hardware capacity and battery cycle counts, the system needs to run a background diagnostic script.
                             <br/><br/>
-                            Do you want to download the <b>Portable Desktop App (.zip)</b> now?
+                            Do you want to download and run the <b>SpecCheck.exe (12KB)</b> script now?
                         </p>
                         <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                             <button 
                                 onClick={() => setIsReloadModalOpen(false)}
                                 style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#E2E2E8', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '13px', letterSpacing: '0.5px' }}
                             >
-                                NO, CANCEL
+                                CANCEL
                             </button>
-                            <a 
-                                href="/BizzCo-Telemetry-Desktop.zip"
-                                download="BizzCo-Telemetry-Desktop.zip"
+                            <button 
                                 onClick={() => {
                                     setIsReloadModalOpen(false);
-                                    setRefreshing(true);
-                                    toast.success("Desktop App downloaded! Extract it and run BizzCo Telemetry System.exe", { duration: 8000 });
-                                    setTimeout(() => setRefreshing(false), 5000);
+                                    fetchSpecsData(true);
                                 }}
                                 style={{ flex: 1, padding: '14px', background: '#5BFFA1', border: 'none', color: '#000', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, textAlign: 'center', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                                YES, DOWNLOAD APP
-                            </a>
+                                RUN INSTANT SCAN
+                            </button>
                         </div>
                     </div>
                 </div>

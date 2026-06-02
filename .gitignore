@@ -1,6 +1,13 @@
 node_modules
 node_modules
 .next
+.vercel
+
+# large desktop app binaries
+public/*.zip
+telemetry-desktop/dist-electron
+telemetry-desktop/dist
+telemetry-desktop/node_modules
 .env
 .env.local
 .env*.local
