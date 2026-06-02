@@ -17,7 +17,8 @@ import {
     Settings,
     User,
     X,
-    Shield
+    Shield,
+    Info
 } from 'lucide-react';
 import { getFullSpecs } from './actions';
 import { toast } from 'sonner';
@@ -25,7 +26,26 @@ import { toast } from 'sonner';
 const getClientSideSpecs = async () => {
     if (typeof window === 'undefined') return null;
 
-    // 1. Get GPU model via WebGL
+    // 1. Try to fetch from local dev server API (helps get 100% accurate client-side specs on hosted Vercel builds)
+    try {
+        const localResponse = await fetch('http://localhost:3000/api/system', {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        if (localResponse.ok) {
+            const localData = await localResponse.json();
+            if (localData && localData.system) {
+                return localData;
+            }
+        }
+    } catch (e) {
+        // Silent catch: dev server not running locally
+    }
+
+    // 2. Get GPU model via WebGL
     let gpuModel = "Intel(R) UHD Graphics";
     try {
         const canvas = document.createElement('canvas');
@@ -43,7 +63,7 @@ const getClientSideSpecs = async () => {
         console.error(e);
     }
 
-    // 2. Get Battery status from browser API
+    // 3. Get Battery status from browser API
     let batteryInfo = {
         hasBattery: false,
         percent: 100,
@@ -74,7 +94,7 @@ const getClientSideSpecs = async () => {
         console.error(e);
     }
 
-    // 3. Detect OS from userAgent
+    // 4. Detect OS from userAgent
     const ua = navigator.userAgent;
     let osName = "Windows 11 Professional";
     let arch = "x64";
@@ -90,29 +110,71 @@ const getClientSideSpecs = async () => {
         arch = "ARM64";
     }
 
-    // 4. Memory & Cores
+    // 5. Memory & Cores
     const cores = navigator.hardwareConcurrency || 8;
     const memoryGb = (navigator as any).deviceMemory || 16;
 
+    // Load LocalStorage Custom Config if present
+    const saved = localStorage.getItem('custom_specs_override');
+    let custom: any = null;
+    if (saved) {
+        try {
+            custom = JSON.parse(saved);
+        } catch (e) {}
+    }
+
+    const finalMfg = custom?.manufacturer || 'HP';
+    const finalModel = custom?.model || (osName.startsWith("macOS") ? "Apple MacBook Pro" : "HP ProBook 455 15.6 inch G9");
+    const finalSerial = custom?.serial || "5CD242BGXC";
+    const finalCpuBrand = custom?.cpuBrand || (osName.startsWith("macOS") ? "Apple Silicon (M-Series)" : "AMD Ryzen 5 5625U with Radeon Graphics");
+    const finalCpuCores = custom?.cpuCores ? parseInt(custom.cpuCores) : cores;
+    const finalCpuSpeed = custom?.cpuSpeed ? parseFloat(custom.cpuSpeed) : 2.3;
+    const finalRamGb = custom?.ramGb ? parseFloat(custom.ramGb) : (memoryGb >= 8 ? memoryGb : 16);
+    const finalRamType = custom?.ramType || 'DDR4';
+    const finalRamSlots = custom?.ramSlotsCount ? parseInt(custom.ramSlotsCount) : 1;
+    const finalRamMfg = custom?.ramManufacturer || 'Hynix/Hyundai';
+    const finalStorageGb = custom?.storageGb ? parseFloat(custom.storageGb) : 512;
+    const finalStorageType = custom?.storageType || 'SSD';
+    const finalStorageName = custom?.storageName || 'NVMe SSD Controller';
+    const finalGpuModel = custom?.gpuModel || gpuModel;
+    const finalGpuVram = custom?.gpuVram ? parseFloat(custom.gpuVram) : 512;
+
+    const finalSlotSize = (finalRamGb / finalRamSlots) * 1024 ** 3;
+    const ramLayout = [];
+    for (let i = 0; i < finalRamSlots; i++) {
+        ramLayout.push({
+            size: finalSlotSize,
+            bank: String(i),
+            type: finalRamType,
+            ecc: false,
+            clockSpeed: 3200,
+            formFactor: 'SODIMM',
+            manufacturer: finalRamMfg,
+            partNum: 'HMA82GS6DJR8N-XN',
+            serialNum: `32A78F2${i}`,
+            voltageConfigured: 1.2
+        });
+    }
+
     return {
         system: {
-            manufacturer: 'HP',
-            model: osName.startsWith("macOS") ? "Apple MacBook Pro" : "HP ProBook 455 15.6 inch G9",
-            serial: "5CD242BGXC",
+            manufacturer: finalMfg,
+            model: finalModel,
+            serial: finalSerial,
             version: "v1.0"
         },
         cpu: {
-            manufacturer: osName.startsWith("macOS") ? "Apple" : "AMD",
-            brand: osName.startsWith("macOS") ? `Apple Silicon (M-Series)` : `AMD Ryzen 5 5625U with Radeon Graphics`,
-            speed: 2.3,
-            cores: cores,
-            physicalCores: Math.ceil(cores / 2)
+            manufacturer: finalMfg === 'Apple' ? 'Apple' : (finalCpuBrand.toLowerCase().includes('intel') ? 'Intel' : 'AMD'),
+            brand: finalCpuBrand,
+            speed: finalCpuSpeed,
+            cores: finalCpuCores,
+            physicalCores: Math.ceil(finalCpuCores / 2)
         },
         mem: {
-            total: memoryGb * 1024 ** 3,
-            used: (memoryGb * 0.32) * 1024 ** 3,
-            free: (memoryGb * 0.68) * 1024 ** 3,
-            available: (memoryGb * 0.68) * 1024 ** 3
+            total: finalRamGb * 1024 ** 3,
+            used: (finalRamGb * 0.32) * 1024 ** 3,
+            free: (finalRamGb * 0.68) * 1024 ** 3,
+            available: (finalRamGb * 0.68) * 1024 ** 3
         },
         os: {
             distro: osName,
@@ -124,9 +186,9 @@ const getClientSideSpecs = async () => {
         graphics: {
             controllers: [
                 {
-                    vendor: gpuModel.includes("AMD") ? "AMD" : gpuModel.includes("NVIDIA") ? "NVIDIA" : "Intel",
-                    model: gpuModel,
-                    vram: 512
+                    vendor: finalGpuModel.toUpperCase().includes("AMD") ? "AMD" : (finalGpuModel.toUpperCase().includes("NVIDIA") ? "NVIDIA" : "Intel"),
+                    model: finalGpuModel,
+                    vram: finalGpuVram
                 }
             ],
             displays: [
@@ -141,39 +203,14 @@ const getClientSideSpecs = async () => {
         },
         diskLayout: [
             {
-                name: 'NVMe SSD Controller',
-                type: 'SSD',
-                size: 512 * 1024 ** 3,
+                name: finalStorageName,
+                type: finalStorageType,
+                size: finalStorageGb * 1024 ** 3,
                 smartStatus: 'Ok'
             }
         ],
         battery: batteryInfo,
-        ramLayout: [
-            {
-                size: (memoryGb / 2) * 1024 ** 3 || 8 * 1024 ** 3,
-                bank: '0',
-                type: 'DDR4',
-                ecc: false,
-                clockSpeed: 3200,
-                formFactor: 'SODIMM',
-                manufacturer: 'Hynix/Hyundai',
-                partNum: 'HMA82GS6DJR8N-XN',
-                serialNum: '32A78F20',
-                voltageConfigured: 1.2
-            },
-            {
-                size: (memoryGb / 2) * 1024 ** 3 || 8 * 1024 ** 3,
-                bank: '1',
-                type: 'DDR4',
-                ecc: false,
-                clockSpeed: 3200,
-                formFactor: 'SODIMM',
-                manufacturer: 'Hynix/Hyundai',
-                partNum: 'HMA82GS6DJR8N-XN',
-                serialNum: '32A78F21',
-                voltageConfigured: 1.2
-            }
-        ]
+        ramLayout: ramLayout
     };
 };
 
@@ -197,6 +234,49 @@ export default function SpecCheckPage() {
     const [purchaseDate, setPurchaseDate] = useState('');
     const [warrantyOption, setWarrantyOption] = useState('option1');
     const [warrantyResult, setWarrantyResult] = useState<any>(null);
+
+    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+    
+    // Form fields states
+    const [cfgMfg, setCfgMfg] = useState('HP');
+    const [cfgModel, setCfgModel] = useState('HP ProBook 455 G9');
+    const [cfgSerial, setCfgSerial] = useState('5CD242BGXC');
+    const [cfgCpuBrand, setCfgCpuBrand] = useState('AMD Ryzen 5 5625U with Radeon Graphics');
+    const [cfgCpuCores, setCfgCpuCores] = useState(12);
+    const [cfgCpuSpeed, setCfgCpuSpeed] = useState(2.3);
+    const [cfgRamGb, setCfgRamGb] = useState(16);
+    const [cfgRamType, setCfgRamType] = useState('DDR4');
+    const [cfgRamSlots, setCfgRamSlots] = useState(1);
+    const [cfgRamMfg, setCfgRamMfg] = useState('Hynix/Hyundai');
+    const [cfgStorageGb, setCfgStorageGb] = useState(512);
+    const [cfgStorageType, setCfgStorageType] = useState('SSD');
+    const [cfgStorageName, setCfgStorageName] = useState('NVMe SSD Controller');
+    const [cfgGpuModel, setCfgGpuModel] = useState('AMD Radeon Graphics');
+    const [cfgGpuVram, setCfgGpuVram] = useState(512);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('custom_specs_override');
+        if (saved) {
+            try {
+                const c = JSON.parse(saved);
+                setCfgMfg(c.manufacturer || 'HP');
+                setCfgModel(c.model || 'HP ProBook 455 G9');
+                setCfgSerial(c.serial || '5CD242BGXC');
+                setCfgCpuBrand(c.cpuBrand || 'AMD Ryzen 5 5625U with Radeon Graphics');
+                setCfgCpuCores(c.cpuCores || 12);
+                setCfgCpuSpeed(c.cpuSpeed || 2.3);
+                setCfgRamGb(c.ramGb || 16);
+                setCfgRamType(c.ramType || 'DDR4');
+                setCfgRamSlots(c.ramSlotsCount || 1);
+                setCfgRamMfg(c.ramManufacturer || 'Hynix/Hyundai');
+                setCfgStorageGb(c.storageGb || 512);
+                setCfgStorageType(c.storageType || 'SSD');
+                setCfgStorageName(c.storageName || 'NVMe SSD Controller');
+                setCfgGpuModel(c.gpuModel || 'AMD Radeon Graphics');
+                setCfgGpuVram(c.gpuVram || 512);
+            } catch(e){}
+        }
+    }, []);
 
     // Initialize purchase date when modal opens
     useEffect(() => {
@@ -767,6 +847,18 @@ export default function SpecCheckPage() {
 
                     <div style={{ display: 'flex', gap: '16px' }}>
                         <button 
+                            onClick={() => setIsConfigModalOpen(true)}
+                            className="cyber-glow-btn"
+                            style={{ 
+                                borderColor: '#B8C3FF', 
+                                color: '#B8C3FF', 
+                                boxShadow: '0 0 10px rgba(99, 102, 241, 0.15)' 
+                            }}
+                        >
+                            <Settings size={14} />
+                            CONFIGURE SPECS
+                        </button>
+                        <button 
                             onClick={() => {
                                 setIsModalOpen(true);
                                 setWarrantyResult(null); // Clear previous results
@@ -791,6 +883,31 @@ export default function SpecCheckPage() {
                         </button>
                     </div>
                 </div>
+
+                {typeof window !== 'undefined' && 
+                 window.location.hostname !== 'localhost' && 
+                 window.location.hostname !== '127.0.0.1' && (
+                    <div style={{
+                        background: 'rgba(255, 126, 64, 0.08)',
+                        border: '1px solid rgba(255, 126, 64, 0.2)',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        fontSize: '12px',
+                        color: '#FF9E64',
+                        boxSizing: 'border-box',
+                        marginBottom: '16px'
+                    }}>
+                        <Info size={14} style={{ flexShrink: 0 }} />
+                        <span>
+                            <strong>Hosted Diagnostics Mode:</strong> Detailed local hardware information (such as RAM layout and Storage size) is simulated due to browser security restrictions. 
+                            Use the <strong>Configure Specs</strong> button at the top right to override and input your device's actual specifications.
+                        </span>
+                    </div>
+                )}
 
                 {loading ? (
                     /* Elegant Loading Grid Skeleton */
@@ -1213,6 +1330,144 @@ export default function SpecCheckPage() {
                 </div>
             )}
 
+
+            {/* Custom Telemetry Specs Configurator Modal */}
+            {isConfigModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ border: '1px solid rgba(184, 195, 255, 0.4)', boxShadow: '0 0 35px rgba(99, 102, 241, 0.2)' }}>
+                        <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(67, 70, 86, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#B8C3FF', margin: 0 }}>Configure Device Telemetry Specs</h3>
+                            <button onClick={() => setIsConfigModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#8E90A2', cursor: 'pointer' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const updated = {
+                                manufacturer: cfgMfg,
+                                model: cfgModel,
+                                serial: cfgSerial,
+                                cpuBrand: cfgCpuBrand,
+                                cpuCores: cfgCpuCores,
+                                cpuSpeed: cfgCpuSpeed,
+                                ramGb: cfgRamGb,
+                                ramType: cfgRamType,
+                                ramSlotsCount: cfgRamSlots,
+                                ramManufacturer: cfgRamMfg,
+                                storageGb: cfgStorageGb,
+                                storageType: cfgStorageType,
+                                storageName: cfgStorageName,
+                                gpuModel: cfgGpuModel,
+                                gpuVram: cfgGpuVram
+                            };
+                            localStorage.setItem('custom_specs_override', JSON.stringify(updated));
+                            setIsConfigModalOpen(false);
+                            fetchSpecsData(true);
+                        }} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '70vh', overflowY: 'auto' }} className="modal-body">
+                            
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Manufacturer</label>
+                                    <input type="text" value={cfgMfg} onChange={(e) => setCfgMfg(e.target.value)} required />
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Model Name</label>
+                                    <input type="text" value={cfgModel} onChange={(e) => setCfgModel(e.target.value)} required />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Serial Number</label>
+                                    <input type="text" value={cfgSerial} onChange={(e) => setCfgSerial(e.target.value)} required />
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Processor (CPU Brand)</label>
+                                    <input type="text" value={cfgCpuBrand} onChange={(e) => setCfgCpuBrand(e.target.value)} required />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>CPU Cores (Threads)</label>
+                                    <input type="number" value={cfgCpuCores} onChange={(e) => setCfgCpuCores(parseInt(e.target.value))} required min={1} />
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Base Clock Speed (GHz)</label>
+                                    <input type="number" step="0.01" value={cfgCpuSpeed} onChange={(e) => setCfgCpuSpeed(parseFloat(e.target.value))} required min={0.1} />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Total RAM (GB)</label>
+                                    <input type="number" value={cfgRamGb} onChange={(e) => setCfgRamGb(parseInt(e.target.value))} required min={1} />
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>RAM Type</label>
+                                    <select value={cfgRamType} onChange={(e) => setCfgRamType(e.target.value)}>
+                                        <option value="DDR4">DDR4</option>
+                                        <option value="DDR5">DDR5</option>
+                                        <option value="LPDDR5">LPDDR5</option>
+                                        <option value="LPDDR4">LPDDR4</option>
+                                        <option value="DDR3">DDR3</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Active RAM Slots</label>
+                                    <select value={cfgRamSlots} onChange={(e) => setCfgRamSlots(parseInt(e.target.value))}>
+                                        <option value={1}>1 Slot Occupied</option>
+                                        <option value={2}>2 Slots Occupied</option>
+                                        <option value={4}>4 Slots Occupied</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>RAM Manufacturer</label>
+                                    <input type="text" value={cfgRamMfg} onChange={(e) => setCfgRamMfg(e.target.value)} required />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Storage Size (GB)</label>
+                                    <input type="number" value={cfgStorageGb} onChange={(e) => setCfgStorageGb(parseInt(e.target.value))} required min={1} />
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Storage Type</label>
+                                    <select value={cfgStorageType} onChange={(e) => setCfgStorageType(e.target.value)}>
+                                        <option value="SSD">SSD</option>
+                                        <option value="HDD">HDD</option>
+                                        <option value="NVMe SSD">NVMe SSD</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Storage Device Name</label>
+                                <input type="text" value={cfgStorageName} onChange={(e) => setCfgStorageName(e.target.value)} required />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Graphics Card Model</label>
+                                    <input type="text" value={cfgGpuModel} onChange={(e) => setCfgGpuModel(e.target.value)} required />
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>VRAM Size (MB)</label>
+                                    <input type="number" value={cfgGpuVram} onChange={(e) => setCfgGpuVram(parseInt(e.target.value))} required min={0} />
+                                </div>
+                            </div>
+
+                            <button type="submit" className="btn-submit" style={{ borderColor: '#B8C3FF', color: '#B8C3FF', background: 'rgba(99, 102, 241, 0.1)', marginTop: '12px' }}>
+                                Apply Specifications
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

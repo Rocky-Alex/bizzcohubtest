@@ -51,6 +51,52 @@ export default function SpecificationPage() {
 const getClientSideCpuDetails = async () => {
     if (typeof window === 'undefined') return null;
 
+    // Try to fetch from local dev server system specs API first
+    try {
+        const localResponse = await fetch('http://localhost:3000/api/system', {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        if (localResponse.ok) {
+            const localData = await localResponse.json();
+            if (localData && localData.cpu) {
+                return {
+                    manufacturer: localData.cpu.manufacturer,
+                    brand: localData.cpu.brand,
+                    vendor: localData.cpu.manufacturer === 'Intel' ? 'GenuineIntel' : 'AuthenticAMD',
+                    family: '6',
+                    model: '158',
+                    stepping: '1',
+                    revision: '',
+                    voltage: '',
+                    speed: localData.cpu.speed,
+                    speedMin: localData.cpu.speed * 0.5,
+                    speedMax: localData.cpu.speed * 1.5,
+                    governor: '',
+                    cores: localData.cpu.cores,
+                    physicalCores: localData.cpu.physicalCores,
+                    processors: 1,
+                    socket: 'FP6',
+                    flags: '',
+                    virtualization: true,
+                    cache: {
+                        l1d: 32768 * localData.cpu.cores,
+                        l1i: 32768 * localData.cpu.cores,
+                        l2: 524288 * localData.cpu.cores,
+                        l3: 16777216,
+                    },
+                    currentSpeed: localData.cpu.speed,
+                    currentSpeedCores: Array.from({ length: localData.cpu.cores }, () => localData.cpu.speed)
+                };
+            }
+        }
+    } catch (e) {
+        // Silent catch: dev server not running locally
+    }
+
     // 1. Get GPU model via WebGL
     let gpuModel = "";
     try {
