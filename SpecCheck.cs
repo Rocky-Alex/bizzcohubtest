@@ -187,6 +187,15 @@ namespace SpecCheck
                             break;
                         }
                     }
+                    
+                    using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\WMI", "SELECT * FROM BatteryCycleCount"))
+                    {
+                        foreach (ManagementObject obj in searcher.Get())
+                        {
+                            battery["cycleCount"] = Convert.ToInt32(obj["CycleCount"] ?? 0);
+                            break;
+                        }
+                    }
                 }
                 catch { }
 
