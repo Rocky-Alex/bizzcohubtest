@@ -254,6 +254,7 @@ export default function SpecCheckUltraPage() {
     const [simulatedGpuTemp, setSimulatedGpuTemp] = useState(44);
 
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+    const [isReloadModalOpen, setIsReloadModalOpen] = useState(false);
     
     // Form fields states
     const [cfgMfg, setCfgMfg] = useState('HP');
@@ -1161,15 +1162,6 @@ export default function SpecCheckUltraPage() {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <a
-                                href="/SpecCheck.exe"
-                                download="SpecCheck.exe"
-                                className="reload-btn"
-                                style={{ borderColor: '#5BFFA1', color: '#5BFFA1', textDecoration: 'none' }}
-                            >
-                                <Zap size={12} style={{ marginRight: '6px' }} />
-                                <span>DOWNLOAD SCANNER (12KB)</span>
-                            </a>
                             <button
                                 onClick={() => setIsConfigModalOpen(true)}
                                 className="reload-btn"
@@ -1179,12 +1171,12 @@ export default function SpecCheckUltraPage() {
                                 <span>CONFIGURE SPECS</span>
                             </button>
                             <button
-                                onClick={() => fetchSpecsData(true)}
+                                onClick={() => setIsReloadModalOpen(true)}
                                 disabled={refreshing || loading}
                                 className="reload-btn"
                             >
                                 <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} style={{ color: '#E2E2E8' }} />
-                                <span>{refreshing ? "SYNCHRONIZING..." : "RELOAD TELEMETRY"}</span>
+                                <span>{refreshing ? "EXECUTING SCRIPT..." : "RELOAD TELEMETRY"}</span>
                             </button>
                         </div>
                     </div>
@@ -1927,6 +1919,52 @@ export default function SpecCheckUltraPage() {
                                 Apply Specifications
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Reload Telemetry Script Modal */}
+            {isReloadModalOpen && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{
+                        background: '#0C0E12', border: '1px solid rgba(91, 255, 161, 0.3)', borderRadius: '16px',
+                        width: '450px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px',
+                        boxShadow: '0 24px 48px rgba(0,0,0,0.5)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Zap size={24} color="#5BFFA1" />
+                            <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Execute Hardware Script?</h2>
+                        </div>
+                        <p style={{ fontSize: '14px', color: '#8E90A2', lineHeight: '1.6', margin: 0 }}>
+                            To securely read your exact hardware capacity and battery cycle counts, the system needs to run a background diagnostic script.
+                            <br/><br/>
+                            Do you want to download and run the <b>SpecCheck.exe (12KB)</b> script now?
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                            <button 
+                                onClick={() => setIsReloadModalOpen(false)}
+                                style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#E2E2E8', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '13px', letterSpacing: '0.5px' }}
+                            >
+                                NO, CANCEL
+                            </button>
+                            <a 
+                                href="/SpecCheck.exe"
+                                download="SpecCheck.exe"
+                                onClick={() => {
+                                    setIsReloadModalOpen(false);
+                                    setRefreshing(true);
+                                    toast.success("Script downloading! Please open it to sync telemetry.", { duration: 6000 });
+                                    setTimeout(() => setRefreshing(false), 10000);
+                                }}
+                                style={{ flex: 1, padding: '14px', background: '#5BFFA1', border: 'none', color: '#000', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, textAlign: 'center', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                YES, RUN SCRIPT
+                            </a>
+                        </div>
                     </div>
                 </div>
             )}
