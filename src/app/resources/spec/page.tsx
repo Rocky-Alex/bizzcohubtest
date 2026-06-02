@@ -15,7 +15,9 @@ import {
     Laptop, 
     Server,
     Settings,
-    User
+    User,
+    X,
+    Shield
 } from 'lucide-react';
 import { getFullSpecs } from './actions';
 import { toast } from 'sonner';
@@ -27,6 +29,30 @@ export default function SpecCheckPage() {
     const [simulatedLoad, setSimulatedLoad] = useState(12);
     const [simulatedTemp, setSimulatedTemp] = useState(42);
     const [simulatedGpuTemp, setSimulatedGpuTemp] = useState(51);
+
+    // Manual Entry States
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [brand, setBrand] = useState('');
+    const [model, setModel] = useState('');
+    const [processor, setProcessor] = useState('');
+    const [ram, setRam] = useState('');
+    const [ramCustom, setRamCustom] = useState('');
+    const [storage, setStorage] = useState('');
+    const [storageCustom, setStorageCustom] = useState('');
+    const [purchaseDate, setPurchaseDate] = useState('');
+    const [warrantyOption, setWarrantyOption] = useState('option1');
+    const [warrantyResult, setWarrantyResult] = useState<any>(null);
+
+    // Initialize purchase date when modal opens
+    useEffect(() => {
+        if (isModalOpen) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            setPurchaseDate(`${yyyy}-${mm}-${dd}`);
+        }
+    }, [isModalOpen]);
 
     // Fetch Specs from server action
     const fetchSpecsData = async (isRefresh = false) => {
@@ -112,6 +138,71 @@ export default function SpecCheckPage() {
                 })}
             </div>
         );
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setBrand('');
+        setModel('');
+        setProcessor('');
+        setRam('');
+        setRamCustom('');
+        setStorage('');
+        setStorageCustom('');
+        setWarrantyOption('option1');
+        setWarrantyResult(null);
+    };
+
+    const handleCalculateWarranty = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        let finalRam = ram;
+        if (ram === 'other') {
+            finalRam = ramCustom;
+        }
+        
+        let finalStorage = storage;
+        if (storage === 'other') {
+            finalStorage = storageCustom;
+        }
+        
+        let warrantyStatusText = '';
+        if (warrantyOption === 'option1') {
+            warrantyStatusText = 'Non-Warranty / As-Is Condition (No warranty)';
+        } else {
+            const addDays = (dateStr: string, days: number) => {
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return '';
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                const date = new Date(year, month, day + days);
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            };
+            
+            const expiryDate = addDays(purchaseDate, 7);
+            warrantyStatusText = `7-Day Warranty (Expires: ${expiryDate})`;
+        }
+        
+        setWarrantyResult({
+            laptop: `${brand} ${model}`,
+            processor,
+            specs: `${finalRam} / ${finalStorage}`,
+            warranty: warrantyStatusText
+        });
+        
+        setTimeout(() => {
+            const modalBody = document.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.scrollTo({
+                    top: modalBody.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
     };
 
     return (
@@ -241,6 +332,179 @@ export default function SpecCheckPage() {
                     color: #00E5FF;
                     text-shadow: 0 0 4px rgba(0, 229, 255, 0.4);
                 }
+                
+                /* Modal Overlay */
+                .modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background-color: rgba(5, 7, 15, 0.85);
+                    backdrop-filter: blur(8px);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    animation: fadeIn 0.3s ease forwards;
+                }
+
+                /* Modal Container */
+                .modal-content {
+                    background-color: #0A0F2D;
+                    border: 1px solid rgba(255, 126, 64, 0.4);
+                    box-shadow: 0 0 35px rgba(255, 126, 64, 0.2);
+                    width: 90%;
+                    max-width: 550px;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    position: relative;
+                    animation: slideUp 0.3s ease forwards;
+                    backdrop-filter: blur(15px);
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes slideUp {
+                    from { transform: translateY(20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+
+                /* Form Styles */
+                .form-group {
+                    margin-bottom: 20px;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .form-row {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                }
+
+                .form-group label {
+                    font-size: 11px;
+                    color: rgba(226, 232, 240, 0.5);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    margin-bottom: 8px;
+                    font-family: monospace;
+                }
+
+                .form-group input[type="text"],
+                .form-group input[type="date"],
+                .form-group select {
+                    background-color: rgba(5, 7, 15, 0.7);
+                    border: 1px solid rgba(0, 229, 255, 0.2);
+                    color: #FFFFFF;
+                    padding: 12px 16px;
+                    font-size: 14px;
+                    border-radius: 4px;
+                    outline: none;
+                    transition: all 0.3s;
+                }
+
+                .form-group input[type="text"]::placeholder {
+                    color: rgba(226, 232, 240, 0.3);
+                }
+
+                .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+                    filter: invert(1);
+                    cursor: pointer;
+                }
+
+                .form-group select {
+                    appearance: none;
+                    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 16px center;
+                    background-size: 16px;
+                    padding-right: 40px;
+                    cursor: pointer;
+                }
+
+                .form-group select:focus,
+                .form-group input[type="text"]:focus,
+                .form-group input[type="date"]:focus {
+                    border-color: #00E5FF;
+                    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+                }
+
+                .btn-submit {
+                    background: rgba(255, 126, 64, 0.1);
+                    border: 1px solid #FF7E40;
+                    color: #FF7E40;
+                    font-size: 14px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                    padding: 14px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    width: 100%;
+                    margin-top: 10px;
+                    border-radius: 4px;
+                    text-transform: uppercase;
+                }
+
+                .btn-submit:hover {
+                    background: #FF7E40;
+                    color: #05070F;
+                    box-shadow: 0 0 15px rgba(255, 126, 64, 0.4);
+                }
+
+                .result-container {
+                    background: rgba(255, 126, 64, 0.03);
+                    border: 1px solid rgba(255, 126, 64, 0.25);
+                    border-radius: 4px;
+                    padding: 20px;
+                    margin-top: 24px;
+                    animation: fadeIn 0.4s ease;
+                }
+
+                .result-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                    border-bottom: 1px dashed rgba(255, 126, 64, 0.2);
+                    padding-bottom: 10px;
+                }
+
+                .result-body {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+
+                .result-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .result-label {
+                    font-size: 11px;
+                    color: rgba(226, 232, 240, 0.4);
+                    text-transform: uppercase;
+                    font-family: monospace;
+                }
+
+                .result-val {
+                    font-size: 14px;
+                    color: #FFFFFF;
+                    font-weight: bold;
+                }
+
+                .result-val.highlighted {
+                    color: #FF7E40;
+                    font-size: 18px;
+                    text-shadow: 0 0 8px rgba(255, 126, 64, 0.3);
+                    font-family: monospace;
+                }
             ` }} />
 
             {/* Background elements */}
@@ -332,14 +596,31 @@ export default function SpecCheckPage() {
                         </div>
                     </div>
 
-                    <button 
-                        onClick={() => fetchSpecsData(true)} 
-                        disabled={refreshing || loading}
-                        className="cyber-glow-btn"
-                    >
-                        <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
-                        {refreshing ? "FETCHING..." : "FETCH DETAILS"}
-                    </button>
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                        <button 
+                            onClick={() => {
+                                setIsModalOpen(true);
+                                setWarrantyResult(null); // Clear previous results
+                            }} 
+                            className="cyber-glow-btn"
+                            style={{ 
+                                borderColor: '#FF7E40', 
+                                color: '#FF7E40', 
+                                boxShadow: '0 0 10px rgba(255, 126, 64, 0.15)' 
+                            }}
+                        >
+                            <Laptop size={14} />
+                            MANUAL ENTRY
+                        </button>
+                        <button 
+                            onClick={() => fetchSpecsData(true)} 
+                            disabled={refreshing || loading}
+                            className="cyber-glow-btn"
+                        >
+                            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+                            {refreshing ? "FETCHING..." : "FETCH DETAILS"}
+                        </button>
+                    </div>
                 </div>
 
                 {loading ? (
@@ -579,6 +860,189 @@ export default function SpecCheckPage() {
                 )}
             </main>
 
+            {/* Manual Entry Modal */}
+            {isModalOpen && (
+                <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal(); }}>
+                    <div className="modal-content">
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '20px 24px',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                        }}>
+                            <h2 style={{
+                                fontFamily: "'Outfit', monospace",
+                                fontSize: '22px',
+                                fontWeight: 'bold',
+                                color: '#FF7E40',
+                                letterSpacing: '1px',
+                                margin: 0
+                            }}>
+                                MANUAL ENTRY
+                            </h2>
+                            <button 
+                                onClick={handleCloseModal}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'rgba(226, 232, 240, 0.6)',
+                                    cursor: 'pointer',
+                                    transition: 'color 0.3s',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.color = '#FF7E40'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(226, 232, 240, 0.6)'}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="modal-body" style={{ padding: '24px', maxHeight: '75vh', overflowY: 'auto' }}>
+                            <form onSubmit={handleCalculateWarranty}>
+                                <div className="form-group">
+                                    <label>Brand</label>
+                                    <input 
+                                        type="text" 
+                                        value={brand} 
+                                        onChange={(e) => setBrand(e.target.value)} 
+                                        required 
+                                        placeholder="e.g. Dell, HP, Lenovo" 
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Model</label>
+                                    <input 
+                                        type="text" 
+                                        value={model} 
+                                        onChange={(e) => setModel(e.target.value)} 
+                                        required 
+                                        placeholder="e.g. XPS 15, ThinkPad X1" 
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Processor</label>
+                                    <input 
+                                        type="text" 
+                                        value={processor} 
+                                        onChange={(e) => setProcessor(e.target.value)} 
+                                        required 
+                                        placeholder="e.g. Intel Core i7-12700H, AMD Ryzen 7 5800U" 
+                                    />
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>RAM</label>
+                                        <select 
+                                            value={ram} 
+                                            onChange={(e) => {
+                                                setRam(e.target.value);
+                                                if (e.target.value !== 'other') setRamCustom('');
+                                            }} 
+                                            required
+                                        >
+                                            <option value="" disabled>Select RAM</option>
+                                            <option value="8 GB">8 GB</option>
+                                            <option value="16 GB">16 GB</option>
+                                            <option value="32 GB">32 GB</option>
+                                            <option value="64 GB">64 GB</option>
+                                            <option value="other">Other (Specify)</option>
+                                        </select>
+                                        {ram === 'other' && (
+                                            <input 
+                                                type="text" 
+                                                value={ramCustom} 
+                                                onChange={(e) => setRamCustom(e.target.value)} 
+                                                required 
+                                                style={{ marginTop: '10px' }} 
+                                                placeholder="e.g. 12 GB" 
+                                            />
+                                        )}
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Storage</label>
+                                        <select 
+                                            value={storage} 
+                                            onChange={(e) => {
+                                                setStorage(e.target.value);
+                                                if (e.target.value !== 'other') setStorageCustom('');
+                                            }} 
+                                            required
+                                        >
+                                            <option value="" disabled>Select Storage</option>
+                                            <option value="256 GB SSD">256 GB SSD</option>
+                                            <option value="512 GB SSD">512 GB SSD</option>
+                                            <option value="1 TB SSD">1 TB SSD</option>
+                                            <option value="2 TB SSD">2 TB SSD</option>
+                                            <option value="other">Other (Specify)</option>
+                                        </select>
+                                        {storage === 'other' && (
+                                            <input 
+                                                type="text" 
+                                                value={storageCustom} 
+                                                onChange={(e) => setStorageCustom(e.target.value)} 
+                                                required 
+                                                style={{ marginTop: '10px' }} 
+                                                placeholder="e.g. 128 GB SSD" 
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Purchase Date</label>
+                                    <input 
+                                        type="date" 
+                                        value={purchaseDate} 
+                                        onChange={(e) => setPurchaseDate(e.target.value)} 
+                                        required 
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Warranty Condition</label>
+                                    <select 
+                                        value={warrantyOption} 
+                                        onChange={(e) => setWarrantyOption(e.target.value)} 
+                                        required
+                                    >
+                                        <option value="option1">Non-Warranty / As-Is Condition</option>
+                                        <option value="option2">7-Day Warranty</option>
+                                    </select>
+                                </div>
+                                <button type="submit" className="btn-submit">SUBMIT DETAILS</button>
+                            </form>
+
+                            {/* Warranty Result Section */}
+                            {warrantyResult && (
+                                <div className="result-container">
+                                    <div className="result-header">
+                                        <span style={{ fontSize: '10px', color: 'rgba(255, 126, 64, 0.6)', fontFamily: 'monospace', letterSpacing: '0.15em' }}>WARRANTY_REPORT</span>
+                                        <Shield size={16} color="#FF7E40" />
+                                    </div>
+                                    <div className="result-body">
+                                        <div className="result-row">
+                                            <span className="result-label">Laptop:</span>
+                                            <span className="result-val">{warrantyResult.laptop}</span>
+                                        </div>
+                                        <div className="result-row">
+                                            <span className="result-label">Processor:</span>
+                                            <span className="result-val">{warrantyResult.processor}</span>
+                                        </div>
+                                        <div className="result-row">
+                                            <span className="result-label">Specs:</span>
+                                            <span className="result-val">{warrantyResult.specs}</span>
+                                        </div>
+                                        <div className="result-row" style={{ marginTop: '8px', borderTop: '1px solid rgba(255, 126, 64, 0.1)', paddingTop: '8px' }}>
+                                            <span className="result-label">Warranty:</span>
+                                            <span className="result-val highlighted">{warrantyResult.warranty}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );
