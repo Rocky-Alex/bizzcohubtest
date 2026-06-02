@@ -94,20 +94,50 @@ const getClientSideSpecs = async () => {
         console.error(e);
     }
 
-    // 4. Detect OS from userAgent
+    // 4. Detect OS and Device details dynamically
     const ua = navigator.userAgent;
-    let osName = "Windows 11 Professional";
+    let osName = "Windows PC / Laptop";
     let arch = "x64";
+    let defaultMfg = "Generic PC OEM";
+    let defaultModel = "Windows PC / Laptop";
+    let defaultCpu = "Intel/AMD Core Processor";
+    
     if (ua.indexOf("Macintosh") !== -1) {
         osName = "macOS Sequoia";
         arch = "ARM64";
-    } else if (ua.indexOf("Linux") !== -1) {
-        osName = "Linux Enterprise";
-    } else if (ua.indexOf("Android") !== -1) {
-        osName = "Android OS";
+        defaultMfg = "Apple";
+        defaultModel = "Macintosh Computer";
+        defaultCpu = "Apple Silicon";
     } else if (ua.indexOf("iPhone") !== -1 || ua.indexOf("iPad") !== -1) {
         osName = "iOS Platform";
         arch = "ARM64";
+        defaultMfg = "Apple";
+        defaultModel = ua.indexOf("iPad") !== -1 ? "Apple iPad" : "Apple iPhone";
+        defaultCpu = "Apple A-Series / M-Series Chip";
+    } else if (ua.indexOf("Android") !== -1) {
+        osName = "Android OS";
+        arch = "ARM";
+        defaultMfg = "Android OEM";
+        defaultModel = "Android Device";
+        defaultCpu = "ARM Multi-Core Processor";
+    } else if (ua.indexOf("Linux") !== -1) {
+        osName = "Linux Enterprise";
+        defaultMfg = "Generic Linux OEM";
+        defaultModel = "Linux PC / Laptop";
+        defaultCpu = "x86_64 Core Processor";
+    }
+
+    // Attempt to refine default CPU brand based on detected WebGL GPU
+    if (defaultCpu.includes("Intel/AMD")) {
+        if (gpuModel.toUpperCase().includes("INTEL")) {
+            defaultCpu = "Intel Core Processor";
+            defaultMfg = "Intel System";
+        } else if (gpuModel.toUpperCase().includes("AMD")) {
+            defaultCpu = "AMD Ryzen Processor";
+            defaultMfg = "AMD System";
+        } else if (gpuModel.toUpperCase().includes("NVIDIA")) {
+            defaultCpu = "Intel/AMD Core Processor (NVIDIA Graphics)";
+        }
     }
 
     // 5. Memory & Cores
@@ -123,19 +153,19 @@ const getClientSideSpecs = async () => {
         } catch (e) {}
     }
 
-    const finalMfg = custom?.manufacturer || 'HP';
-    const finalModel = custom?.model || (osName.startsWith("macOS") ? "Apple MacBook Pro" : "HP ProBook 455 15.6 inch G9");
-    const finalSerial = custom?.serial || "5CD242BGXC";
-    const finalCpuBrand = custom?.cpuBrand || (osName.startsWith("macOS") ? "Apple Silicon (M-Series)" : "AMD Ryzen 5 5625U with Radeon Graphics");
+    const finalMfg = custom?.manufacturer || defaultMfg;
+    const finalModel = custom?.model || defaultModel;
+    const finalSerial = custom?.serial || "Unavailable (Sandbox Protected)";
+    const finalCpuBrand = custom?.cpuBrand || defaultCpu;
     const finalCpuCores = custom?.cpuCores ? parseInt(custom.cpuCores) : cores;
-    const finalCpuSpeed = custom?.cpuSpeed ? parseFloat(custom.cpuSpeed) : 2.3;
+    const finalCpuSpeed = custom?.cpuSpeed ? parseFloat(custom.cpuSpeed) : 2.4;
     const finalRamGb = custom?.ramGb ? parseFloat(custom.ramGb) : (memoryGb >= 8 ? memoryGb : 16);
     const finalRamType = custom?.ramType || 'DDR4';
     const finalRamSlots = custom?.ramSlotsCount ? parseInt(custom.ramSlotsCount) : 1;
-    const finalRamMfg = custom?.ramManufacturer || 'Hynix/Hyundai';
+    const finalRamMfg = custom?.ramManufacturer || 'System Memory';
     const finalStorageGb = custom?.storageGb ? parseFloat(custom.storageGb) : 512;
     const finalStorageType = custom?.storageType || 'SSD';
-    const finalStorageName = custom?.storageName || 'NVMe SSD Controller';
+    const finalStorageName = custom?.storageName || 'System Disk Drive';
     const finalGpuModel = custom?.gpuModel || gpuModel;
     const finalGpuVram = custom?.gpuVram ? parseFloat(custom.gpuVram) : 512;
 

@@ -92,20 +92,50 @@ const getClientSideSpecs = async () => {
         console.error(e);
     }
 
-    // 4. Detect OS from userAgent
+    // 4. Detect OS and Device details dynamically
     const ua = navigator.userAgent;
-    let osName = "Windows 11 Professional";
+    let osName = "Windows PC / Laptop";
     let arch = "x64";
+    let defaultMfg = "Generic PC OEM";
+    let defaultModel = "Windows PC / Laptop";
+    let defaultCpu = "Intel/AMD Core Processor";
+    
     if (ua.indexOf("Macintosh") !== -1) {
         osName = "macOS Sequoia";
         arch = "ARM64";
-    } else if (ua.indexOf("Linux") !== -1) {
-        osName = "Linux Enterprise";
-    } else if (ua.indexOf("Android") !== -1) {
-        osName = "Android OS";
+        defaultMfg = "Apple";
+        defaultModel = "Macintosh Computer";
+        defaultCpu = "Apple Silicon";
     } else if (ua.indexOf("iPhone") !== -1 || ua.indexOf("iPad") !== -1) {
         osName = "iOS Platform";
         arch = "ARM64";
+        defaultMfg = "Apple";
+        defaultModel = ua.indexOf("iPad") !== -1 ? "Apple iPad" : "Apple iPhone";
+        defaultCpu = "Apple A-Series / M-Series Chip";
+    } else if (ua.indexOf("Android") !== -1) {
+        osName = "Android OS";
+        arch = "ARM";
+        defaultMfg = "Android OEM";
+        defaultModel = "Android Device";
+        defaultCpu = "ARM Multi-Core Processor";
+    } else if (ua.indexOf("Linux") !== -1) {
+        osName = "Linux Enterprise";
+        defaultMfg = "Generic Linux OEM";
+        defaultModel = "Linux PC / Laptop";
+        defaultCpu = "x86_64 Core Processor";
+    }
+
+    // Attempt to refine default CPU brand based on detected WebGL GPU
+    if (defaultCpu.includes("Intel/AMD")) {
+        if (gpuModel.toUpperCase().includes("INTEL")) {
+            defaultCpu = "Intel Core Processor";
+            defaultMfg = "Intel System";
+        } else if (gpuModel.toUpperCase().includes("AMD")) {
+            defaultCpu = "AMD Ryzen Processor";
+            defaultMfg = "AMD System";
+        } else if (gpuModel.toUpperCase().includes("NVIDIA")) {
+            defaultCpu = "Intel/AMD Core Processor (NVIDIA Graphics)";
+        }
     }
 
     // 5. Memory & Cores
@@ -121,19 +151,20 @@ const getClientSideSpecs = async () => {
         } catch (e) {}
     }
 
-    const finalMfg = custom?.manufacturer || 'HP';
-    const finalModel = custom?.model || (osName.startsWith("macOS") ? "Apple MacBook Pro" : "HP ProBook 455 15.6 inch G9");
-    const finalSerial = custom?.serial || "5CD242BGXC";
-    const finalCpuBrand = custom?.cpuBrand || (osName.startsWith("macOS") ? "Apple Silicon (M-Series)" : "AMD Ryzen 5 5625U with Radeon Graphics");
+    const finalMfg = custom?.manufacturer || defaultMfg;
+    const finalModel = custom?.model || defaultModel;
+    const finalSerial = custom?.serial || "Unavailable (Sandbox Protected)";
+    const finalCpuBrand = custom?.cpuBrand || defaultCpu;
     const finalCpuCores = custom?.cpuCores ? parseInt(custom.cpuCores) : cores;
-    const finalCpuSpeed = custom?.cpuSpeed ? parseFloat(custom.cpuSpeed) : 2.3;
+    const finalCpuSpeed = custom?.cpuSpeed ? parseFloat(custom.cpuSpeed) : 2.4;
     const finalRamGb = custom?.ramGb ? parseFloat(custom.ramGb) : (memoryGb >= 8 ? memoryGb : 16);
     const finalRamType = custom?.ramType || 'DDR4';
     const finalRamSlots = custom?.ramSlotsCount ? parseInt(custom.ramSlotsCount) : 1;
-    const finalRamMfg = custom?.ramManufacturer || 'Hynix/Hyundai';
+    const finalRamTotalSlots = custom?.ramTotalSlots ? parseInt(custom.ramTotalSlots) : 2;
+    const finalRamMfg = custom?.ramManufacturer || 'System Memory';
     const finalStorageGb = custom?.storageGb ? parseFloat(custom.storageGb) : 512;
     const finalStorageType = custom?.storageType || 'SSD';
-    const finalStorageName = custom?.storageName || 'NVMe SSD Controller';
+    const finalStorageName = custom?.storageName || 'System Disk Drive';
     const finalGpuModel = custom?.gpuModel || gpuModel;
     const finalGpuVram = custom?.gpuVram ? parseFloat(custom.gpuVram) : 512;
 
@@ -208,7 +239,8 @@ const getClientSideSpecs = async () => {
             }
         ],
         battery: batteryInfo,
-        ramLayout: ramLayout
+        ramLayout: ramLayout,
+        ramTotalSlots: finalRamTotalSlots
     };
 };
 
@@ -233,6 +265,7 @@ export default function SpecCheckUltraPage() {
     const [cfgRamGb, setCfgRamGb] = useState(16);
     const [cfgRamType, setCfgRamType] = useState('DDR4');
     const [cfgRamSlots, setCfgRamSlots] = useState(1);
+    const [cfgRamTotalSlots, setCfgRamTotalSlots] = useState(2);
     const [cfgRamMfg, setCfgRamMfg] = useState('Hynix/Hyundai');
     const [cfgStorageGb, setCfgStorageGb] = useState(512);
     const [cfgStorageType, setCfgStorageType] = useState('SSD');
@@ -254,6 +287,7 @@ export default function SpecCheckUltraPage() {
                 setCfgRamGb(c.ramGb || 16);
                 setCfgRamType(c.ramType || 'DDR4');
                 setCfgRamSlots(c.ramSlotsCount || 1);
+                setCfgRamTotalSlots(c.ramTotalSlots || 2);
                 setCfgRamMfg(c.ramManufacturer || 'Hynix/Hyundai');
                 setCfgStorageGb(c.storageGb || 512);
                 setCfgStorageType(c.storageType || 'SSD');
@@ -1352,7 +1386,11 @@ export default function SpecCheckUltraPage() {
 
                             {/* TAB 3: RAM Array */}
                             {activeTab === 'ram' && (() => {
-                                const slots = Array.from({ length: 4 }).map((_, index) => {
+                                const totalSlots = specs?.ramTotalSlots || 2;
+                                const occupiedCount = specs?.ramLayout?.length || 1;
+                                const isMultiChannel = occupiedCount >= 2;
+
+                                const slots = Array.from({ length: totalSlots }).map((_, index) => {
                                     let matchingStick = specs?.ramLayout?.find((ram: any) => {
                                         const bankStr = (ram.bank || '').toLowerCase();
                                         const firstDigitMatch = bankStr.match(/\d+/);
@@ -1368,30 +1406,15 @@ export default function SpecCheckUltraPage() {
                                         matchingStick = specs.ramLayout[index];
                                     }
 
-                                    // Fallback demo stick
-                                    let finalStick = matchingStick;
-                                    if (!finalStick && index === 0 && specs?.mem) {
-                                        finalStick = {
-                                            size: specs.mem.total || 17179869184,
-                                            type: 'DDR4',
-                                            manufacturer: 'Hynix/Hyundai',
-                                            clockSpeed: 3200,
-                                            voltageConfigured: 1.2,
-                                            ecc: false,
-                                            formFactor: 'SODIMM',
-                                            partNum: 'HMA82GS6DJR8N-XN',
-                                            serialNum: '32A78F20',
-                                            bank: '0'
-                                        };
-                                    }
-
                                     return {
                                         slotIndex: index,
-                                        slotName: `Slot #${index + 1}`,
-                                        occupied: !!finalStick,
-                                        ram: finalStick
+                                        slotName: `DIMM Slot ${index + 1}`,
+                                        occupied: !!matchingStick,
+                                        ram: matchingStick || null
                                     };
                                 });
+
+                                const occupiedSlots = slots.filter((s: any) => s.occupied);
 
                                 return (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
@@ -1399,21 +1422,47 @@ export default function SpecCheckUltraPage() {
                                             <h2 className="canvas-title">Physical Memory Slots (RAM Array Layout)</h2>
                                             <div className="diagnostics-badge">
                                                 <Activity size={12} />
-                                                <span>ALL SLOT DIAGNOSTICS: PASS</span>
+                                                <span>{occupiedSlots.length} / {totalSlots} SLOTS ACTIVE</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Summary Bar */}
+                                        <div style={{
+                                            display: 'flex',
+                                            gap: '16px',
+                                            padding: '16px 20px',
+                                            background: 'rgba(184,195,255,0.04)',
+                                            border: '1px solid rgba(184,195,255,0.1)',
+                                            borderRadius: '12px',
+                                            alignItems: 'center',
+                                            flexWrap: 'wrap'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#5BFFA1', boxShadow: '0 0 6px rgba(91,255,161,0.6)' }} />
+                                                <span style={{ fontSize: '12px', color: '#C4C5D9' }}>{occupiedSlots.length} Occupied</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }} />
+                                                <span style={{ fontSize: '12px', color: '#8E90A2' }}>{totalSlots - occupiedSlots.length} Empty</span>
+                                            </div>
+                                            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Channel Mode:</span>
+                                                <span style={{ fontSize: '12px', fontWeight: 700, color: isMultiChannel ? '#B8C3FF' : '#FFD68A', background: isMultiChannel ? 'rgba(184,195,255,0.1)' : 'rgba(255,214,138,0.1)', padding: '2px 10px', borderRadius: '6px', letterSpacing: '0.5px' }}>
+                                                    {isMultiChannel ? 'DUAL CHANNEL' : 'SINGLE CHANNEL'}
+                                                </span>
                                             </div>
                                         </div>
 
                                         <div className="ram-slots-grid">
-                                            {slots
-                                                .filter((slot: any) => slot.occupied)
-                                                .map((slot: any) => (
+                                            {slots.map((slot: any) => (
+                                                slot.occupied ? (
                                                     <div key={slot.slotIndex} className="slot-occupied-card">
                                                         <div className="slot-card-header">
                                                             <div className="slot-label-group">
                                                                 <Database size={16} color="#B8C3FF" />
                                                                 <span className="slot-label-text">{slot.slotName}</span>
                                                             </div>
-                                                            <span className="occupied-badge">Occupied</span>
+                                                            <span className="occupied-badge">● Occupied</span>
                                                         </div>
                                                         
                                                         <div className="slot-mfg-row">
@@ -1458,31 +1507,65 @@ export default function SpecCheckUltraPage() {
                                                                     <Check size={12} color="#5BFFA1" />
                                                                     <span className="verification-label">Channel Status</span>
                                                                 </div>
-                                                                <span className="verification-value">SINGLE CHANNEL</span>
+                                                                <span className="verification-value">{isMultiChannel ? 'DUAL CHANNEL' : 'SINGLE CHANNEL'}</span>
                                                             </div>
                                                         </div>
                                                         
                                                         <div className="slot-tech-specs">
                                                             <div className="tech-spec-row">
                                                                     <span className="tech-spec-label">Form Factor:</span>
-                                                                    <span className="tech-spec-value">{slot.ram.formFactor}</span>
+                                                                    <span className="tech-spec-value">{slot.ram.formFactor || 'SODIMM'}</span>
                                                             </div>
                                                             <div className="tech-spec-row">
                                                                     <span className="tech-spec-label">Part ID:</span>
-                                                                    <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.partNum}</span>
+                                                                    <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.partNum || '—'}</span>
                                                             </div>
                                                             <div className="tech-spec-row">
                                                                     <span className="tech-spec-label">Serial Key:</span>
-                                                                    <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.serialNum}</span>
+                                                                    <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.serialNum || '—'}</span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            {slots.filter((slot: any) => slot.occupied).length === 0 && (
-                                                <div style={{ color: '#8E90A2', fontSize: '14px', width: '100%', textAlign: 'center', padding: '40px' }}>
-                                                    No active RAM modules detected.
-                                                </div>
-                                            )}
+                                                ) : (
+                                                    <div key={slot.slotIndex} style={{
+                                                        background: 'rgba(255,255,255,0.01)',
+                                                        border: '1.5px dashed rgba(255,255,255,0.08)',
+                                                        borderRadius: '16px',
+                                                        padding: '28px 24px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '12px',
+                                                        minHeight: '200px',
+                                                        opacity: 0.55
+                                                    }}>
+                                                        <div style={{
+                                                            width: '48px', height: '48px',
+                                                            borderRadius: '12px',
+                                                            background: 'rgba(255,255,255,0.04)',
+                                                            border: '1px solid rgba(255,255,255,0.08)',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                        }}>
+                                                            <Database size={20} color="rgba(255,255,255,0.2)" />
+                                                        </div>
+                                                        <div style={{ textAlign: 'center' }}>
+                                                            <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.5px' }}>{slot.slotName}</div>
+                                                            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.18)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Empty — No Module Installed</div>
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: '10px',
+                                                            color: 'rgba(255,255,255,0.15)',
+                                                            background: 'rgba(255,255,255,0.03)',
+                                                            border: '1px solid rgba(255,255,255,0.06)',
+                                                            borderRadius: '6px',
+                                                            padding: '3px 10px',
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.8px'
+                                                        }}>Slot Available</div>
+                                                    </div>
+                                                )
+                                            ))}
                                         </div>
                                     </div>
                                 );
@@ -1681,6 +1764,7 @@ export default function SpecCheckUltraPage() {
                                 ramGb: cfgRamGb,
                                 ramType: cfgRamType,
                                 ramSlotsCount: cfgRamSlots,
+                                ramTotalSlots: cfgRamTotalSlots,
                                 ramManufacturer: cfgRamMfg,
                                 storageGb: cfgStorageGb,
                                 storageType: cfgStorageType,
@@ -1745,17 +1829,24 @@ export default function SpecCheckUltraPage() {
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Active RAM Slots</label>
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Total Slots on Board</label>
+                                    <select value={cfgRamTotalSlots} onChange={(e) => setCfgRamTotalSlots(parseInt(e.target.value))}>
+                                        <option value={2}>2 Slots (Standard Laptop)</option>
+                                        <option value={4}>4 Slots (Desktop / Workstation)</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Occupied / Active Slots</label>
                                     <select value={cfgRamSlots} onChange={(e) => setCfgRamSlots(parseInt(e.target.value))}>
                                         <option value={1}>1 Slot Occupied</option>
                                         <option value={2}>2 Slots Occupied</option>
                                         <option value={4}>4 Slots Occupied</option>
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>RAM Manufacturer</label>
-                                    <input type="text" value={cfgRamMfg} onChange={(e) => setCfgRamMfg(e.target.value)} required />
-                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>RAM Manufacturer</label>
+                                <input type="text" value={cfgRamMfg} onChange={(e) => setCfgRamMfg(e.target.value)} required />
                             </div>
 
                             <div className="form-row">
