@@ -263,8 +263,8 @@ namespace SpecCheck
                 string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
                 
                 // Open Browser
-                // Production URL: https://bizzcohubtest.vercel.app/resources/spec2
-                string url = "https://bizzcohubtest.vercel.app/resources/spec2?data=" + Uri.EscapeDataString(base64);
+                // Production URL: https://bizzcohubtest.netlify.app/resources/spec2
+                string url = "https://bizzcohubtest.netlify.app/resources/spec2?data=" + Uri.EscapeDataString(base64);
                 
                 Process.Start(new ProcessStartInfo
                 {
