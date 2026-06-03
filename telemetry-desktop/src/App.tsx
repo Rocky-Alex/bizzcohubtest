@@ -817,7 +817,6 @@ export default function SpecCheckUltraPage() {
                     padding: 24px;
                     gap: 24px;
                     width: 100%;
-                    min-height: 480px;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(6px);
