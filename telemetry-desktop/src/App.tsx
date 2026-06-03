@@ -829,7 +829,7 @@ export default function SpecCheckUltraPage() {
                     justify-content: space-between;
                     align-items: center;
                     padding: 0px 0px 24px;
-                    width: 1166px;
+                    width: 100%;
                     border-bottom: 1px solid rgba(67, 70, 86, 0.1);
                     margin-bottom: 16px;
                 }
