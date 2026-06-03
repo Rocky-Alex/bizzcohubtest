@@ -263,10 +263,13 @@ export default function SpecCheckUltraPage() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isUpToDate, setIsUpToDate] = useState(false);
     const [updateInfo, setUpdateInfo] = useState<any>(null);
 
     const handleCheckUpdate = async () => {
         setIsCheckingUpdate(true);
+        setIsUpToDate(false);
+        setUpdateInfo(null);
         try {
             const res = await fetch('https://bizzcohubtest.netlify.app/version.json?t=' + new Date().getTime());
             if (!res.ok) throw new Error("Could not reach update server");
@@ -275,9 +278,8 @@ export default function SpecCheckUltraPage() {
             // Assume any version !== CURRENT_VERSION is an update
             if (data.version && data.version !== CURRENT_VERSION) {
                 setUpdateInfo(data);
-                setIsUpdateModalOpen(true);
             } else {
-                alert(`You are already running the latest version! (v${CURRENT_VERSION})`);
+                setIsUpToDate(true);
             }
         } catch (e: any) {
             alert("Failed to check for updates: " + e.message);
@@ -1220,13 +1222,16 @@ export default function SpecCheckUltraPage() {
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <button
-                                onClick={handleCheckUpdate}
-                                disabled={isCheckingUpdate || isUpdating}
+                                onClick={() => {
+                                    setIsUpToDate(false);
+                                    setUpdateInfo(null);
+                                    setIsUpdateModalOpen(true);
+                                }}
                                 className="reload-btn"
                                 style={{ borderColor: '#6366F1', color: '#B8C3FF' }}
                             >
-                                <RefreshCw size={12} className={isCheckingUpdate || isUpdating ? "animate-spin" : ""} style={{ marginRight: '6px' }} />
-                                <span>{isCheckingUpdate ? "CHECKING..." : isUpdating ? "DOWNLOADING..." : "UPDATE APP"}</span>
+                                <RefreshCw size={12} style={{ marginRight: '6px' }} />
+                                <span>UPDATE APP</span>
                             </button>
                             <button
                                 onClick={() => setIsConfigModalOpen(true)}
@@ -2030,11 +2035,11 @@ export default function SpecCheckUltraPage() {
                     </div>
                 </div>
             )}
-            {isUpdateModalOpen && updateInfo && (
+            {isUpdateModalOpen && (
                 <div style={{
                     position: 'fixed',
                     top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
                     backdropFilter: 'blur(8px)',
                     zIndex: 100,
                     display: 'flex',
@@ -2051,56 +2056,99 @@ export default function SpecCheckUltraPage() {
                         flexDirection: 'column',
                         gap: '24px'
                     }}>
-                        <div>
-                            <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '24px', fontFamily: "'Hanken Grotesk', sans-serif" }}>New Update Available!</h2>
-                            <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>Version {updateInfo.version} is ready to install.</p>
-                        </div>
-                        
-                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <h3 style={{ margin: '0 0 8px 0', color: '#C4C5D9', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Release Notes</h3>
-                            <p style={{ margin: 0, color: '#E2E2E8', fontSize: '14px', lineHeight: '1.5' }}>{updateInfo.releaseNotes}</p>
-                        </div>
+                        {!updateInfo && !isUpToDate ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px', padding: '24px 0' }}>
+                                <RefreshCw size={48} color="#6366F1" className={isCheckingUpdate ? "animate-spin" : ""} style={{ marginBottom: '8px' }} />
+                                <div>
+                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}>Software Update</h2>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>Check if a new version of BizzCo Telemetry System is available.</p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                                    <button
+                                        onClick={() => setIsUpdateModalOpen(false)}
+                                        style={{ padding: '10px 24px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#E2E2E8', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                                    >
+                                        CANCEL
+                                    </button>
+                                    <button
+                                        onClick={handleCheckUpdate}
+                                        disabled={isCheckingUpdate}
+                                        style={{ padding: '10px 24px', background: '#6366F1', border: 'none', color: '#FFFFFF', borderRadius: '6px', cursor: isCheckingUpdate ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                                    >
+                                        {isCheckingUpdate ? "CHECKING..." : "CHECK FOR UPDATES"}
+                                    </button>
+                                </div>
+                            </div>
+                        ) : isUpToDate ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px', padding: '24px 0' }}>
+                                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(91, 255, 161, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                                    <Check size={32} color="#5BFFA1" />
+                                </div>
+                                <div>
+                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}>You're Up To Date!</h2>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>BizzCo Telemetry System version {CURRENT_VERSION} is currently the newest version available.</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsUpdateModalOpen(false)}
+                                    style={{ padding: '10px 32px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#FFFFFF', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', marginTop: '16px' }}
+                                >
+                                    CLOSE
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '24px', fontFamily: "'Hanken Grotesk', sans-serif" }}>New Update Available!</h2>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>Version {updateInfo.version} is ready to install.</p>
+                                </div>
+                                
+                                <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <h3 style={{ margin: '0 0 8px 0', color: '#C4C5D9', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Release Notes</h3>
+                                    <p style={{ margin: 0, color: '#E2E2E8', fontSize: '14px', lineHeight: '1.5' }}>{updateInfo.releaseNotes}</p>
+                                </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                            <button
-                                onClick={() => setIsUpdateModalOpen(false)}
-                                disabled={isUpdating}
-                                style={{
-                                    padding: '10px 20px',
-                                    background: 'transparent',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    color: '#E2E2E8',
-                                    borderRadius: '6px',
-                                    cursor: isUpdating ? 'not-allowed' : 'pointer',
-                                    fontWeight: 'bold',
-                                    fontSize: '12px',
-                                    letterSpacing: '1px'
-                                }}
-                            >
-                                CANCEL
-                            </button>
-                            <button
-                                onClick={executeUpdateDownload}
-                                disabled={isUpdating}
-                                style={{
-                                    padding: '10px 20px',
-                                    background: '#6366F1',
-                                    border: 'none',
-                                    color: '#FFFFFF',
-                                    borderRadius: '6px',
-                                    cursor: isUpdating ? 'not-allowed' : 'pointer',
-                                    fontWeight: 'bold',
-                                    fontSize: '12px',
-                                    letterSpacing: '1px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px'
-                                }}
-                            >
-                                {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : null}
-                                {isUpdating ? "DOWNLOADING & INSTALLING..." : "UPDATE NOW"}
-                            </button>
-                        </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                                    <button
+                                        onClick={() => setIsUpdateModalOpen(false)}
+                                        disabled={isUpdating}
+                                        style={{
+                                            padding: '10px 20px',
+                                            background: 'transparent',
+                                            border: '1px solid rgba(255,255,255,0.2)',
+                                            color: '#E2E2E8',
+                                            borderRadius: '6px',
+                                            cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                            fontWeight: 'bold',
+                                            fontSize: '12px',
+                                            letterSpacing: '1px'
+                                        }}
+                                    >
+                                        UPDATE LATER
+                                    </button>
+                                    <button
+                                        onClick={executeUpdateDownload}
+                                        disabled={isUpdating}
+                                        style={{
+                                            padding: '10px 20px',
+                                            background: '#6366F1',
+                                            border: 'none',
+                                            color: '#FFFFFF',
+                                            borderRadius: '6px',
+                                            cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                            fontWeight: 'bold',
+                                            fontSize: '12px',
+                                            letterSpacing: '1px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : null}
+                                        {isUpdating ? "DOWNLOADING..." : "UPDATE NOW"}
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
