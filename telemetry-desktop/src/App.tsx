@@ -512,7 +512,7 @@ export default function SpecCheckUltraPage() {
                     padding: 16px 24px;
                     gap: 16px;
                     width: 100%;
-                    max-width: 1280px;
+                    max-width: 1600px;
                     margin: 0 auto;
                 }
 
@@ -541,7 +541,7 @@ export default function SpecCheckUltraPage() {
                     justify-content: space-between;
                     align-items: center;
                     padding: 0px;
-                    width: 1232px;
+                    width: 100%;
                     height: 50px;
                 }
 
@@ -627,7 +627,7 @@ export default function SpecCheckUltraPage() {
                     align-items: center;
                     padding: 0px;
                     gap: 32px;
-                    width: 1232px;
+                    width: 100%;
                     height: 34px;
                 }
 
@@ -665,7 +665,7 @@ export default function SpecCheckUltraPage() {
                     gap: 32px;
                     position: relative;
                     width: 100%;
-                    max-width: 1280px;
+                    max-width: 1600px;
                     margin: 0 auto;
                     z-index: 10;
                 }
@@ -677,7 +677,7 @@ export default function SpecCheckUltraPage() {
                     align-items: center;
                     padding: 0px;
                     gap: 24px;
-                    width: 1232px;
+                    width: 100%;
                     height: 114px;
                     flex: none;
                     order: 0;
@@ -785,7 +785,7 @@ export default function SpecCheckUltraPage() {
                     align-items: flex-start;
                     padding: 32px;
                     gap: 32px;
-                    width: 1232px;
+                    width: 100%;
                     min-height: 570.47px;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1240,7 +1240,7 @@ export default function SpecCheckUltraPage() {
                         border: '1px solid rgba(255, 126, 64, 0.2)',
                         borderRadius: '8px',
                         padding: '12px 16px',
-                        width: '1232px',
+                        width: '100%',
                         margin: '0 auto 8px',
                         display: 'flex',
                         alignItems: 'center',
