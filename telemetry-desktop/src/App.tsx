@@ -487,12 +487,11 @@ export default function SpecCheckUltraPage() {
 
                 .telemetry-container {
                     background: radial-gradient(128.06% 160.08% at 0% 0%, #111317 0%, #050505 50%), #000000;
-                    min-height: 1036px;
+                    min-height: 100vh;
                     position: relative;
                     width: 100%;
                     color: #E2E2E8;
                     font-family: 'Inter', sans-serif;
-                    overflow-x: hidden;
                     padding-top: 0px;
                     padding-bottom: 32px;
                 }
@@ -539,7 +538,6 @@ export default function SpecCheckUltraPage() {
                     padding: 16px 24px;
                     gap: 16px;
                     width: 100%;
-                    max-width: 1600px;
                     margin: 0 auto;
                 }
 
@@ -692,7 +690,6 @@ export default function SpecCheckUltraPage() {
                     gap: 24px;
                     position: relative;
                     width: 100%;
-                    max-width: 1600px;
                     margin: 0 auto;
                     z-index: 10;
                 }
