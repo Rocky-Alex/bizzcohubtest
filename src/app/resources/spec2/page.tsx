@@ -431,7 +431,7 @@ export default function SpecCheckUltraPage() {
 
                 .telemetry-container {
                     background: radial-gradient(128.06% 160.08% at 0% 0%, #111317 0%, #050505 50%), #000000;
-                    min-height: 100vh;
+                    min-height: calc(100vh - 80px);
                     position: relative;
                     width: 100%;
                     color: #E2E2E8;
