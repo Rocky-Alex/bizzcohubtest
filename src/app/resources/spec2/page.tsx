@@ -476,10 +476,11 @@ export default function SpecCheckUltraPage() {
                 }
 
                 .dashboard-header-inner {
+                    box-sizing: border-box;
                     display: flex;
                     flex-direction: column;
                     align-items: flex-start;
-                    padding: 16px 24px;
+                    padding: 16px 4vw;
                     gap: 16px;
                     width: 100%;
                     margin: 0 auto;
@@ -505,6 +506,7 @@ export default function SpecCheckUltraPage() {
                 }
 
                 .header-top-row {
+                    box-sizing: border-box;
                     display: flex;
                     flex-direction: row;
                     justify-content: space-between;
@@ -591,6 +593,7 @@ export default function SpecCheckUltraPage() {
                 }
 
                 .nav-row {
+                    box-sizing: border-box;
                     display: flex;
                     flex-direction: row;
                     align-items: center;
@@ -627,10 +630,11 @@ export default function SpecCheckUltraPage() {
 
                 /* Main Canvas positioning */
                 .main-canvas {
+                    box-sizing: border-box;
                     display: flex;
                     flex-direction: column;
                     align-items: flex-start;
-                    padding: 24px;
+                    padding: 24px 4vw;
                     gap: 24px;
                     position: relative;
                     width: 100%;
@@ -640,6 +644,7 @@ export default function SpecCheckUltraPage() {
 
                 /* Top Metrics Section */
                 .top-metrics-row {
+                    box-sizing: border-box;
                     display: flex;
                     flex-direction: row;
                     align-items: center;
