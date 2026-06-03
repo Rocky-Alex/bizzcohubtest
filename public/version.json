@@ -1,0 +1,6 @@
+{
+  "version": "1.0.1",
+  "name": "BizzCo Telemetry System Update",
+  "releaseNotes": "Added fully responsive full-screen UI layout and a brand new automated update engine.",
+  "url": "https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe"
+}

@@ -259,20 +259,46 @@ export default function SpecCheckUltraPage() {
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
     const [isReloadModalOpen, setIsReloadModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
-    
-    const handleUpdateApp = async () => {
+    const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [updateInfo, setUpdateInfo] = useState<any>(null);
+
+    const handleCheckUpdate = async () => {
+        setIsCheckingUpdate(true);
+        try {
+            const res = await fetch('https://bizzcohubtest.netlify.app/version.json?t=' + new Date().getTime());
+            if (!res.ok) throw new Error("Could not reach update server");
+            const data = await res.json();
+            
+            // Assume any version != 1.0.0 is an update
+            if (data.version && data.version !== "1.0.0") {
+                setUpdateInfo(data);
+                setIsUpdateModalOpen(true);
+            } else {
+                alert("You are already running the latest version!");
+            }
+        } catch (e: any) {
+            alert("Failed to check for updates: " + e.message);
+        } finally {
+            setIsCheckingUpdate(false);
+        }
+    };
+
+    const executeUpdateDownload = async () => {
         if (typeof window !== 'undefined' && (window as any).electronAPI) {
             setIsUpdating(true);
             try {
                 const res = await (window as any).electronAPI.updateApp();
                 if (!res.success) {
-                    alert("Failed to update: " + res.error);
+                    alert("Failed to download update: " + res.error);
                     setIsUpdating(false);
+                    setIsUpdateModalOpen(false);
                 }
                 // If success, the app will quit automatically
             } catch (e: any) {
                 alert("Update failed: " + e.message);
                 setIsUpdating(false);
+                setIsUpdateModalOpen(false);
             }
         } else {
             alert("Auto-updater is only available in the offline desktop app.");
@@ -1191,13 +1217,13 @@ export default function SpecCheckUltraPage() {
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <button
-                                onClick={handleUpdateApp}
-                                disabled={isUpdating}
+                                onClick={handleCheckUpdate}
+                                disabled={isCheckingUpdate || isUpdating}
                                 className="reload-btn"
                                 style={{ borderColor: '#6366F1', color: '#B8C3FF' }}
                             >
-                                <RefreshCw size={12} className={isUpdating ? "animate-spin" : ""} style={{ marginRight: '6px' }} />
-                                <span>{isUpdating ? "DOWNLOADING..." : "UPDATE APP"}</span>
+                                <RefreshCw size={12} className={isCheckingUpdate || isUpdating ? "animate-spin" : ""} style={{ marginRight: '6px' }} />
+                                <span>{isCheckingUpdate ? "CHECKING..." : isUpdating ? "DOWNLOADING..." : "UPDATE APP"}</span>
                             </button>
                             <button
                                 onClick={() => setIsConfigModalOpen(true)}
@@ -1996,6 +2022,80 @@ export default function SpecCheckUltraPage() {
                                 style={{ flex: 1, padding: '14px', background: '#5BFFA1', border: 'none', color: '#000', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, textAlign: 'center', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                                 RUN INSTANT SCAN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isUpdateModalOpen && updateInfo && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: '#111317',
+                        border: '1px solid rgba(67, 70, 86, 0.5)',
+                        borderRadius: '12px',
+                        padding: '32px',
+                        width: '500px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '24px'
+                    }}>
+                        <div>
+                            <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '24px', fontFamily: "'Hanken Grotesk', sans-serif" }}>New Update Available!</h2>
+                            <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>Version {updateInfo.version} is ready to install.</p>
+                        </div>
+                        
+                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <h3 style={{ margin: '0 0 8px 0', color: '#C4C5D9', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Release Notes</h3>
+                            <p style={{ margin: 0, color: '#E2E2E8', fontSize: '14px', lineHeight: '1.5' }}>{updateInfo.releaseNotes}</p>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                            <button
+                                onClick={() => setIsUpdateModalOpen(false)}
+                                disabled={isUpdating}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: 'transparent',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    color: '#E2E2E8',
+                                    borderRadius: '6px',
+                                    cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '12px',
+                                    letterSpacing: '1px'
+                                }}
+                            >
+                                CANCEL
+                            </button>
+                            <button
+                                onClick={executeUpdateDownload}
+                                disabled={isUpdating}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: '#6366F1',
+                                    border: 'none',
+                                    color: '#FFFFFF',
+                                    borderRadius: '6px',
+                                    cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '12px',
+                                    letterSpacing: '1px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                }}
+                            >
+                                {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : null}
+                                {isUpdating ? "DOWNLOADING & INSTALLING..." : "UPDATE NOW"}
                             </button>
                         </div>
                     </div>
