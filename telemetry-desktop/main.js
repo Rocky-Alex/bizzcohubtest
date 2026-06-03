@@ -63,68 +63,36 @@ ipcMain.handle('execute-ps', async (event, command) => {
   });
 });
 
-// IPC handler to safely download updates silently without executing them yet
-ipcMain.handle('download-update', async (event, url) => {
-  return new Promise((resolve) => {
-    if (!url) {
-      resolve({ success: false, error: "No URL provided" });
-      return;
-    }
-    const tempFile = path.join(os.tmpdir(), 'BizzCoUpdate.exe');
-    
-    const file = fs.createWriteStream(tempFile);
-    
-    const startDownload = (downloadUrl) => {
-      https.get(downloadUrl, (response) => {
-        // Handle redirects
-        if (response.statusCode === 301 || response.statusCode === 302) {
-           startDownload(response.headers.location);
-           return;
-        }
+const { autoUpdater } = require('electron-updater');
 
-        const totalBytes = parseInt(response.headers['content-length'], 10);
-        let downloadedBytes = 0;
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
 
-        response.on('data', (chunk) => {
-          downloadedBytes += chunk.length;
-          if (totalBytes) {
-            const percentage = Math.round((downloadedBytes / totalBytes) * 100);
-            event.sender.send('download-progress', percentage);
-          }
-        });
-
-        response.pipe(file);
-        file.on('finish', () => {
-          file.close(() => {
-            resolve({ success: true, tempFile: tempFile });
-          });
-        });
-      }).on('error', (err) => {
-        fs.unlink(tempFile, () => {});
-        resolve({ success: false, error: err.message });
-      });
-    };
-    
-    startDownload(url);
+// Pipe the updater's download-progress event to the frontend
+autoUpdater.on('download-progress', (progressObj) => {
+  const percentage = Math.round(progressObj.percent);
+  BrowserWindow.getAllWindows().forEach(win => {
+    win.webContents.send('download-progress', percentage);
   });
 });
 
-// IPC handler to install the previously downloaded update and restart the app
-ipcMain.handle('install-update', async (event, tempFile) => {
+// IPC handler to download updates silently using delta-updates
+ipcMain.handle('download-update', async () => {
   return new Promise((resolve) => {
-    if (!fs.existsSync(tempFile)) {
-      resolve({ success: false, error: "Update file not found on disk" });
-      return;
-    }
-    const psCommand = `Start-Sleep -Seconds 2; Start-Process -FilePath '${tempFile}' -ArgumentList '/S' -Wait; Start-Process -FilePath '${process.execPath}'`;
-    const { spawn } = require('child_process');
-    const child = spawn('powershell.exe', ['-Command', psCommand], {
-      detached: true,
-      windowsHide: true,
-      stdio: 'ignore'
+    autoUpdater.downloadUpdate().catch(err => {
+      resolve({ success: false, error: err.message });
     });
-    child.unref();
-    setTimeout(() => { app.quit(); }, 500);
-    resolve({ success: true });
+    
+    autoUpdater.once('update-downloaded', () => {
+      // The update is successfully downloaded in the background
+      resolve({ success: true, tempFile: 'electron-updater-managed' });
+    });
   });
+});
+
+// IPC handler to install the previously downloaded update
+ipcMain.handle('install-update', async () => {
+  // isSilent = false (we want it to be reliable), isForceRunAfter = true
+  autoUpdater.quitAndInstall(false, true);
+  return { success: true };
 });

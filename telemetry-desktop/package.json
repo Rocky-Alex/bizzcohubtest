@@ -27,6 +27,12 @@
       "perMachine": false,
       "createDesktopShortcut": true
     },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://bizzcohubtest.netlify.app"
+      }
+    ],
     "files": [
       "dist/**/*",
       "main.js",
@@ -34,6 +40,7 @@
     ]
   },
   "dependencies": {
+    "electron-updater": "^6.8.3",
     "lucide-react": "^0.475.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
@@ -46,7 +53,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
-    "electron": "^34.2.0",
+    "electron": "^42.3.2",
     "electron-builder": "^25.1.8",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
