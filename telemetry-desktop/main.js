@@ -63,56 +63,57 @@ ipcMain.handle('execute-ps', async (event, command) => {
   });
 });
 
-// IPC handler to download and install updates silently
-ipcMain.handle('update-app', async () => {
+// IPC handler to safely download updates silently without executing them yet
+ipcMain.handle('download-update', async (event, url) => {
   return new Promise((resolve) => {
-    const url = 'https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe';
+    if (!url) {
+      resolve({ success: false, error: "No URL provided" });
+      return;
+    }
     const tempFile = path.join(os.tmpdir(), 'BizzCoUpdate.exe');
     
     const file = fs.createWriteStream(tempFile);
-    https.get(url, (response) => {
-      // Check for redirects
-      if (response.statusCode === 301 || response.statusCode === 302) {
-         https.get(response.headers.location, (res) => {
-            res.pipe(file);
-            file.on('finish', () => {
-              file.close(() => {
-                const psCommand = `Start-Sleep -Seconds 2; Start-Process -FilePath '${tempFile}' -ArgumentList '/S' -Wait; Start-Process -FilePath '${process.execPath}'`;
-                const { spawn } = require('child_process');
-                const child = spawn('powershell.exe', ['-Command', psCommand], {
-                  detached: true,
-                  windowsHide: true,
-                  stdio: 'ignore'
-                });
-                child.unref();
-                setTimeout(() => { app.quit(); }, 500);
-                resolve({ success: true });
-              });
-            });
-         }).on('error', (err) => {
-            resolve({ success: false, error: err.message });
-         });
-         return;
-      }
+    
+    const startDownload = (downloadUrl) => {
+      https.get(downloadUrl, (response) => {
+        // Handle redirects
+        if (response.statusCode === 301 || response.statusCode === 302) {
+           startDownload(response.headers.location);
+           return;
+        }
 
-      response.pipe(file);
-      file.on('finish', () => {
-        file.close(() => {
-          const psCommand = `Start-Sleep -Seconds 2; Start-Process -FilePath '${tempFile}' -ArgumentList '/S' -Wait; Start-Process -FilePath '${process.execPath}'`;
-          const { spawn } = require('child_process');
-          const child = spawn('powershell.exe', ['-Command', psCommand], {
-            detached: true,
-            windowsHide: true,
-            stdio: 'ignore'
+        response.pipe(file);
+        file.on('finish', () => {
+          file.close(() => {
+            resolve({ success: true, tempFile: tempFile });
           });
-          child.unref();
-          setTimeout(() => { app.quit(); }, 500);
-          resolve({ success: true });
         });
+      }).on('error', (err) => {
+        fs.unlink(tempFile, () => {});
+        resolve({ success: false, error: err.message });
       });
-    }).on('error', (err) => {
-      fs.unlink(tempFile, () => {});
-      resolve({ success: false, error: err.message });
+    };
+    
+    startDownload(url);
+  });
+});
+
+// IPC handler to install the previously downloaded update and restart the app
+ipcMain.handle('install-update', async (event, tempFile) => {
+  return new Promise((resolve) => {
+    if (!fs.existsSync(tempFile)) {
+      resolve({ success: false, error: "Update file not found on disk" });
+      return;
+    }
+    const psCommand = `Start-Sleep -Seconds 2; Start-Process -FilePath '${tempFile}' -ArgumentList '/S' -Wait; Start-Process -FilePath '${process.execPath}'`;
+    const { spawn } = require('child_process');
+    const child = spawn('powershell.exe', ['-Command', psCommand], {
+      detached: true,
+      windowsHide: true,
+      stdio: 'ignore'
     });
+    child.unref();
+    setTimeout(() => { app.quit(); }, 500);
+    resolve({ success: true });
   });
 });

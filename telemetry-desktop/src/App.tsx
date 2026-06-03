@@ -265,6 +265,7 @@ export default function SpecCheckUltraPage() {
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [isUpToDate, setIsUpToDate] = useState(false);
     const [updateInfo, setUpdateInfo] = useState<any>(null);
+    const [downloadedFilePath, setDownloadedFilePath] = useState<string | null>(null);
 
     const handleCheckUpdate = async () => {
         setIsCheckingUpdate(true);
@@ -292,20 +293,31 @@ export default function SpecCheckUltraPage() {
         if (typeof window !== 'undefined' && (window as any).electronAPI) {
             setIsUpdating(true);
             try {
-                const res = await (window as any).electronAPI.updateApp();
+                const downloadUrl = updateInfo?.url || 'https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe';
+                const res = await (window as any).electronAPI.downloadUpdate(downloadUrl);
                 if (!res.success) {
                     alert("Failed to download update: " + res.error);
                     setIsUpdating(false);
-                    setIsUpdateModalOpen(false);
+                } else {
+                    setDownloadedFilePath(res.tempFile);
+                    setIsUpdating(false);
                 }
-                // If success, the app will quit automatically
             } catch (e: any) {
                 alert("Update failed: " + e.message);
                 setIsUpdating(false);
-                setIsUpdateModalOpen(false);
             }
         } else {
             alert("Auto-updater is only available in the offline desktop app.");
+        }
+    };
+    
+    const executeInstallRestart = async () => {
+        if (typeof window !== 'undefined' && (window as any).electronAPI && downloadedFilePath) {
+            try {
+                await (window as any).electronAPI.installUpdate(downloadedFilePath);
+            } catch (e: any) {
+                alert("Failed to install update: " + e.message);
+            }
         }
     };
     
@@ -1224,6 +1236,7 @@ export default function SpecCheckUltraPage() {
                                 onClick={() => {
                                     setIsUpToDate(false);
                                     setUpdateInfo(null);
+                                    setDownloadedFilePath(null);
                                     setIsUpdateModalOpen(true);
                                 }}
                                 className="reload-btn"
@@ -2107,44 +2120,69 @@ export default function SpecCheckUltraPage() {
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                                    <button
-                                        onClick={() => setIsUpdateModalOpen(false)}
-                                        disabled={isUpdating}
-                                        style={{
-                                            padding: '10px 20px',
-                                            background: 'transparent',
-                                            border: '1px solid rgba(255,255,255,0.2)',
-                                            color: '#E2E2E8',
-                                            borderRadius: '6px',
-                                            cursor: isUpdating ? 'not-allowed' : 'pointer',
-                                            fontWeight: 'bold',
-                                            fontSize: '12px',
-                                            letterSpacing: '1px'
-                                        }}
-                                    >
-                                        UPDATE LATER
-                                    </button>
-                                    <button
-                                        onClick={executeUpdateDownload}
-                                        disabled={isUpdating}
-                                        style={{
-                                            padding: '10px 20px',
-                                            background: '#6366F1',
-                                            border: 'none',
-                                            color: '#FFFFFF',
-                                            borderRadius: '6px',
-                                            cursor: isUpdating ? 'not-allowed' : 'pointer',
-                                            fontWeight: 'bold',
-                                            fontSize: '12px',
-                                            letterSpacing: '1px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                        }}
-                                    >
-                                        {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : null}
-                                        {isUpdating ? "DOWNLOADING..." : "UPDATE NOW"}
-                                    </button>
+                                    {!downloadedFilePath ? (
+                                        <>
+                                            <button
+                                                onClick={() => setIsUpdateModalOpen(false)}
+                                                disabled={isUpdating}
+                                                style={{
+                                                    padding: '10px 20px',
+                                                    background: 'transparent',
+                                                    border: '1px solid rgba(255,255,255,0.2)',
+                                                    color: '#E2E2E8',
+                                                    borderRadius: '6px',
+                                                    cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                                    fontWeight: 'bold',
+                                                    fontSize: '12px',
+                                                    letterSpacing: '1px'
+                                                }}
+                                            >
+                                                UPDATE LATER
+                                            </button>
+                                            <button
+                                                onClick={executeUpdateDownload}
+                                                disabled={isUpdating}
+                                                style={{
+                                                    padding: '10px 20px',
+                                                    background: '#6366F1',
+                                                    border: 'none',
+                                                    color: '#FFFFFF',
+                                                    borderRadius: '6px',
+                                                    cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                                    fontWeight: 'bold',
+                                                    fontSize: '12px',
+                                                    letterSpacing: '1px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}
+                                            >
+                                                {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : null}
+                                                {isUpdating ? "DOWNLOADING..." : "UPDATE NOW"}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            onClick={executeInstallRestart}
+                                            style={{
+                                                padding: '10px 20px',
+                                                background: '#5BFFA1',
+                                                border: 'none',
+                                                color: '#000000',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                fontSize: '12px',
+                                                letterSpacing: '1px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px'
+                                            }}
+                                        >
+                                            <Zap size={14} />
+                                            RESTART TO INSTALL
+                                        </button>
+                                    )}
                                 </div>
                             </>
                         )}
