@@ -248,6 +248,8 @@ const getClientSideSpecs = async () => {
 };
 
 export default function SpecCheckUltraPage() {
+    const CURRENT_VERSION = "1.0.2";
+
     const [loading, setLoading] = useState(true);
     const [specs, setSpecs] = useState<any>(null);
     const [refreshing, setRefreshing] = useState(false);
@@ -270,12 +272,12 @@ export default function SpecCheckUltraPage() {
             if (!res.ok) throw new Error("Could not reach update server");
             const data = await res.json();
             
-            // Assume any version != 1.0.0 is an update
-            if (data.version && data.version !== "1.0.0") {
+            // Assume any version !== CURRENT_VERSION is an update
+            if (data.version && data.version !== CURRENT_VERSION) {
                 setUpdateInfo(data);
                 setIsUpdateModalOpen(true);
             } else {
-                alert("You are already running the latest version!");
+                alert(`You are already running the latest version! (v${CURRENT_VERSION})`);
             }
         } catch (e: any) {
             alert("Failed to check for updates: " + e.message);

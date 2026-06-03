@@ -77,8 +77,15 @@ ipcMain.handle('update-app', async () => {
             res.pipe(file);
             file.on('finish', () => {
               file.close(() => {
-                exec(`"${tempFile}" /S`);
-                setTimeout(() => { app.quit(); }, 1500);
+                const psCommand = `Start-Sleep -Seconds 2; Start-Process -FilePath '${tempFile}' -ArgumentList '/S' -Wait; Start-Process -FilePath '${process.execPath}'`;
+                const { spawn } = require('child_process');
+                const child = spawn('powershell.exe', ['-Command', psCommand], {
+                  detached: true,
+                  windowsHide: true,
+                  stdio: 'ignore'
+                });
+                child.unref();
+                setTimeout(() => { app.quit(); }, 500);
                 resolve({ success: true });
               });
             });
@@ -91,8 +98,15 @@ ipcMain.handle('update-app', async () => {
       response.pipe(file);
       file.on('finish', () => {
         file.close(() => {
-          exec(`"${tempFile}" /S`);
-          setTimeout(() => { app.quit(); }, 1500);
+          const psCommand = `Start-Sleep -Seconds 2; Start-Process -FilePath '${tempFile}' -ArgumentList '/S' -Wait; Start-Process -FilePath '${process.execPath}'`;
+          const { spawn } = require('child_process');
+          const child = spawn('powershell.exe', ['-Command', psCommand], {
+            detached: true,
+            windowsHide: true,
+            stdio: 'ignore'
+          });
+          child.unref();
+          setTimeout(() => { app.quit(); }, 500);
           resolve({ success: true });
         });
       });
