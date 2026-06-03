@@ -431,14 +431,13 @@ export default function SpecCheckUltraPage() {
 
                 .telemetry-container {
                     background: radial-gradient(128.06% 160.08% at 0% 0%, #111317 0%, #050505 50%), #000000;
-                    min-height: 1036px;
+                    min-height: 100vh;
                     position: relative;
                     width: 100%;
                     color: #E2E2E8;
                     font-family: 'Inter', sans-serif;
-                    overflow-x: hidden;
-                    padding-top: 80px;
-                    padding-bottom: 80px;
+                    padding-top: 0px;
+                    padding-bottom: 32px;
                 }
 
                 .aurora-bg {
@@ -470,7 +469,6 @@ export default function SpecCheckUltraPage() {
                     align-items: flex-start;
                     padding: 0px;
                     position: relative;
-                    height: 149px;
                     width: 100%;
                     background: #111317;
                     border-bottom: 1px solid rgba(67, 70, 86, 0.2);
@@ -484,7 +482,6 @@ export default function SpecCheckUltraPage() {
                     padding: 16px 24px;
                     gap: 16px;
                     width: 100%;
-                    max-width: 1280px;
                     margin: 0 auto;
                 }
 
@@ -513,7 +510,7 @@ export default function SpecCheckUltraPage() {
                     justify-content: space-between;
                     align-items: center;
                     padding: 0px;
-                    width: 1232px;
+                    width: 100%;
                     height: 50px;
                 }
 
@@ -599,7 +596,7 @@ export default function SpecCheckUltraPage() {
                     align-items: center;
                     padding: 0px;
                     gap: 32px;
-                    width: 1232px;
+                    width: 100%;
                     height: 34px;
                 }
 
@@ -633,11 +630,10 @@ export default function SpecCheckUltraPage() {
                     display: flex;
                     flex-direction: column;
                     align-items: flex-start;
-                    padding: 32px 24px;
-                    gap: 32px;
+                    padding: 24px;
+                    gap: 24px;
                     position: relative;
                     width: 100%;
-                    max-width: 1280px;
                     margin: 0 auto;
                     z-index: 10;
                 }
@@ -649,8 +645,8 @@ export default function SpecCheckUltraPage() {
                     align-items: center;
                     padding: 0px;
                     gap: 24px;
-                    width: 1232px;
-                    height: 114px;
+                    width: 100%;
+                    height: 96px;
                     flex: none;
                     order: 0;
                     align-self: stretch;
@@ -662,10 +658,10 @@ export default function SpecCheckUltraPage() {
                     display: flex;
                     flex-direction: row;
                     align-items: center;
-                    padding: 24px;
+                    padding: 16px 24px;
                     gap: 24px;
                     flex: 1;
-                    height: 114px;
+                    height: 96px;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(6px);
@@ -755,10 +751,10 @@ export default function SpecCheckUltraPage() {
                     display: flex;
                     flex-direction: column;
                     align-items: flex-start;
-                    padding: 32px;
-                    gap: 32px;
-                    width: 1232px;
-                    min-height: 570.47px;
+                    padding: 24px;
+                    gap: 24px;
+                    width: 100%;
+                    min-height: 480px;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(6px);
@@ -773,7 +769,7 @@ export default function SpecCheckUltraPage() {
                     justify-content: space-between;
                     align-items: center;
                     padding: 0px 0px 24px;
-                    width: 1166px;
+                    width: 100%;
                     border-bottom: 1px solid rgba(67, 70, 86, 0.1);
                     margin-bottom: 16px;
                 }
