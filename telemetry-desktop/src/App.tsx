@@ -258,6 +258,26 @@ export default function SpecCheckUltraPage() {
 
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
     const [isReloadModalOpen, setIsReloadModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    
+    const handleUpdateApp = async () => {
+        if (typeof window !== 'undefined' && (window as any).electronAPI) {
+            setIsUpdating(true);
+            try {
+                const res = await (window as any).electronAPI.updateApp();
+                if (!res.success) {
+                    alert("Failed to update: " + res.error);
+                    setIsUpdating(false);
+                }
+                // If success, the app will quit automatically
+            } catch (e: any) {
+                alert("Update failed: " + e.message);
+                setIsUpdating(false);
+            }
+        } else {
+            alert("Auto-updater is only available in the offline desktop app.");
+        }
+    };
     
     // Form fields states
     const [cfgMfg, setCfgMfg] = useState('HP');
@@ -1170,6 +1190,15 @@ export default function SpecCheckUltraPage() {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={handleUpdateApp}
+                                disabled={isUpdating}
+                                className="reload-btn"
+                                style={{ borderColor: '#6366F1', color: '#B8C3FF' }}
+                            >
+                                <RefreshCw size={12} className={isUpdating ? "animate-spin" : ""} style={{ marginRight: '6px' }} />
+                                <span>{isUpdating ? "DOWNLOADING..." : "UPDATE APP"}</span>
+                            </button>
                             <button
                                 onClick={() => setIsConfigModalOpen(true)}
                                 className="reload-btn"

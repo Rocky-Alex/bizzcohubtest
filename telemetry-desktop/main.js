@@ -1,14 +1,17 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { exec } = require('child_process');
+const https = require('https');
+const fs = require('fs');
+const os = require('os');
 
 // Determine if we are running in dev mode
 const isDev = process.env.NODE_ENV === 'development';
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1400,
+    height: 900,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -16,6 +19,8 @@ function createWindow() {
       contextIsolation: true
     }
   });
+
+  mainWindow.maximize();
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
@@ -54,6 +59,46 @@ ipcMain.handle('execute-ps', async (event, command) => {
       } else {
         resolve({ error: null, stdout: stdout, stderr: stderr });
       }
+    });
+  });
+});
+
+// IPC handler to download and install updates silently
+ipcMain.handle('update-app', async () => {
+  return new Promise((resolve) => {
+    const url = 'https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe';
+    const tempFile = path.join(os.tmpdir(), 'BizzCoUpdate.exe');
+    
+    const file = fs.createWriteStream(tempFile);
+    https.get(url, (response) => {
+      // Check for redirects
+      if (response.statusCode === 301 || response.statusCode === 302) {
+         https.get(response.headers.location, (res) => {
+            res.pipe(file);
+            file.on('finish', () => {
+              file.close(() => {
+                exec(`"${tempFile}" /S`);
+                setTimeout(() => { app.quit(); }, 1500);
+                resolve({ success: true });
+              });
+            });
+         }).on('error', (err) => {
+            resolve({ success: false, error: err.message });
+         });
+         return;
+      }
+
+      response.pipe(file);
+      file.on('finish', () => {
+        file.close(() => {
+          exec(`"${tempFile}" /S`);
+          setTimeout(() => { app.quit(); }, 1500);
+          resolve({ success: true });
+        });
+      });
+    }).on('error', (err) => {
+      fs.unlink(tempFile, () => {});
+      resolve({ success: false, error: err.message });
     });
   });
 });
