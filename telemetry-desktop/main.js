@@ -82,6 +82,17 @@ ipcMain.handle('download-update', async (event, url) => {
            return;
         }
 
+        const totalBytes = parseInt(response.headers['content-length'], 10);
+        let downloadedBytes = 0;
+
+        response.on('data', (chunk) => {
+          downloadedBytes += chunk.length;
+          if (totalBytes) {
+            const percentage = Math.round((downloadedBytes / totalBytes) * 100);
+            event.sender.send('download-progress', percentage);
+          }
+        });
+
         response.pipe(file);
         file.on('finish', () => {
           file.close(() => {

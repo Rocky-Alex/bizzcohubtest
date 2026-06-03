@@ -267,6 +267,7 @@ export default function SpecCheckUltraPage() {
     const [isUpToDate, setIsUpToDate] = useState(false);
     const [updateInfo, setUpdateInfo] = useState<any>(null);
     const [downloadedFilePath, setDownloadedFilePath] = useState<string | null>(null);
+    const [downloadProgress, setDownloadProgress] = useState(0);
 
     const handleCheckUpdate = async () => {
         setIsCheckingUpdate(true);
@@ -293,9 +294,22 @@ export default function SpecCheckUltraPage() {
     const executeUpdateDownload = async () => {
         if (typeof window !== 'undefined' && (window as any).electronAPI) {
             setIsUpdating(true);
+            setDownloadProgress(0);
             try {
                 const downloadUrl = updateInfo?.url || 'https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe';
+                
+                if ((window as any).electronAPI.onDownloadProgress) {
+                    (window as any).electronAPI.onDownloadProgress((percentage: number) => {
+                        setDownloadProgress(percentage);
+                    });
+                }
+
                 const res = await (window as any).electronAPI.downloadUpdate(downloadUrl);
+                
+                if ((window as any).electronAPI.removeDownloadProgress) {
+                    (window as any).electronAPI.removeDownloadProgress();
+                }
+                
                 if (!res.success) {
                     alert("Failed to download update: " + res.error);
                     setIsUpdating(false);
@@ -1442,7 +1456,7 @@ export default function SpecCheckUltraPage() {
                                                 }}
                                             >
                                                 {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : null}
-                                                {isUpdating ? "DOWNLOADING..." : "UPDATE NOW"}
+                                                {isUpdating ? `DOWNLOADING... ${downloadProgress}%` : "UPDATE NOW"}
                                             </button>
                                         </>
                                     ) : (
