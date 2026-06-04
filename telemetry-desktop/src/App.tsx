@@ -249,7 +249,7 @@ const getClientSideSpecs = async () => {
 };
 
 export default function SpecCheckUltraPage() {
-    const CURRENT_VERSION = "1.0.2";
+    const CURRENT_VERSION = "1.0.4";
 
     const [loading, setLoading] = useState(true);
     const [specs, setSpecs] = useState<any>(null);
