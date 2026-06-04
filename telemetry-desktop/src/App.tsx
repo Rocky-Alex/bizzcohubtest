@@ -249,7 +249,7 @@ const getClientSideSpecs = async () => {
 };
 
 export default function SpecCheckUltraPage() {
-    const CURRENT_VERSION = "1.0.4";
+    const CURRENT_VERSION = "1.0.5";
 
     const [loading, setLoading] = useState(true);
     const [specs, setSpecs] = useState<any>(null);
@@ -281,14 +281,17 @@ export default function SpecCheckUltraPage() {
                     setIsUpToDate(false);
                 } else {
                     setIsUpToDate(true);
+                    setIsUpdateModalOpen(true);
                 }
             } catch (err) {
                 setIsCheckingUpdate(false);
                 setIsUpToDate(true);
+                setIsUpdateModalOpen(true);
             }
         } else {
             setIsCheckingUpdate(false);
             setIsUpToDate(true);
+            setIsUpdateModalOpen(true);
         }
     };
 
