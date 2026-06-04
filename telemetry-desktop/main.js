@@ -86,14 +86,16 @@ ipcMain.handle('check-for-updates', async () => {
         releaseNotes: result.updateInfo.releaseNotes || 'A new update is ready to be installed via Delta-Update.',
       };
     }
-    return { version: '1.0.3-dev', releaseNotes: 'Dev Mode Mock Update' };
-  } catch (err) {
-    // If we are testing visually in dev mode, electron-updater will throw because the update check is mocked in the frontend
-    if (err.message.includes("Update info is not set") || err.message.includes("Please check update first")) {
+    if (isDev) {
       return { version: '1.0.3-dev', releaseNotes: 'Dev Mode Mock Update' };
     }
+    return null;
+  } catch (err) {
     console.error("Update check failed:", err);
-    return { version: '1.0.3-dev-fallback', releaseNotes: 'Dev Mode Fallback Update (Visual Test)' };
+    if (isDev) {
+      return { version: '1.0.3-dev-fallback', releaseNotes: 'Dev Mode Fallback Update (Visual Test)' };
+    }
+    return null;
   }
 });
 
@@ -102,7 +104,7 @@ ipcMain.handle('download-update', async () => {
   return new Promise((resolve) => {
     autoUpdater.downloadUpdate().catch(err => {
       // If we are testing visually in dev mode, electron-updater will throw
-      if (err.message.includes("Update info is not set") || err.message.includes("Please check update first")) {
+      if (isDev && (err.message.includes("Update info is not set") || err.message.includes("Please check update first"))) {
         let progress = 0;
         const interval = setInterval(() => {
           progress += 5;

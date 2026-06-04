@@ -532,12 +532,8 @@ export default function SpecCheckUltraPage() {
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <button
-                                onClick={() => {
-                                    setIsUpToDate(false);
-                                    setUpdateInfo(null);
-                                    setDownloadedFilePath(null);
-                                    setIsUpdateModalOpen(true);
-                                }}
+                                onClick={handleCheckUpdate}
+                                disabled={isCheckingUpdate || isUpdating}
                                 className="reload-btn"
                                 style={{ borderColor: '#6366F1', color: '#B8C3FF' }}
                             >
