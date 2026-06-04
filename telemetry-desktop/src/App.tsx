@@ -271,23 +271,24 @@ export default function SpecCheckUltraPage() {
 
     const handleCheckUpdate = async () => {
         setIsCheckingUpdate(true);
-        setIsUpToDate(false);
-        setUpdateInfo(null);
-        try {
-            const res = await fetch('https://bizzcohubtest.netlify.app/version.json?t=' + new Date().getTime());
-            if (!res.ok) throw new Error("Could not reach update server");
-            const data = await res.json();
-            
-            // Assume any version !== CURRENT_VERSION is an update
-            if (data.version && data.version !== CURRENT_VERSION) {
-                setUpdateInfo(data);
-            } else {
+        if (typeof window !== 'undefined' && (window as any).electronAPI?.checkForUpdates) {
+            try {
+                const result = await (window as any).electronAPI.checkForUpdates();
+                setIsCheckingUpdate(false);
+                if (result) {
+                    setUpdateInfo(result);
+                    setIsUpdateModalOpen(true);
+                    setIsUpToDate(false);
+                } else {
+                    setIsUpToDate(true);
+                }
+            } catch (err) {
+                setIsCheckingUpdate(false);
                 setIsUpToDate(true);
             }
-        } catch (e: any) {
-            alert("Failed to check for updates: " + e.message);
-        } finally {
+        } else {
             setIsCheckingUpdate(false);
+            setIsUpToDate(true);
         }
     };
 
@@ -1487,6 +1488,20 @@ export default function SpecCheckUltraPage() {
                     </div>
                 </div>
             )}
+            {/* Version Watermark */}
+            <div style={{
+                position: 'fixed',
+                bottom: '12px',
+                right: '16px',
+                color: 'rgba(255, 255, 255, 0.2)',
+                fontSize: '11px',
+                fontFamily: "'Inter', sans-serif",
+                pointerEvents: 'none',
+                letterSpacing: '0.5px',
+                zIndex: 9999
+            }}>
+                Bizz Co Hub QC V{CURRENT_VERSION}
+            </div>
         </div>
     );
 }
