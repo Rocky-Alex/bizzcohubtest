@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { DetailedPackingList } from './DetailedPackingList';
 import { QtyPackingList } from './QtyPackingList';
-import * as XLSX from 'xlsx';
 
 // --- Interfaces ---
 
@@ -452,10 +451,12 @@ export default function PackingV2() {
         setStartTime(null);
     };
 
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
         if (!selectedOrderId) return;
         const currentOrder = orders.find(o => o.id.toString() === selectedOrderId);
         const soNumber = currentOrder ? `SO-${Number(currentOrder.id) + 100}` : 'Unknown';
+
+        const XLSX = await import('xlsx');
 
         if (printViewType === 'detailed') {
             const data = packedItems.map(item => ({

@@ -1,6 +1,5 @@
-import * as XLSX from 'xlsx';
-
-export const exportBillsToExcel = (bills: any[]) => {
+export const exportBillsToExcel = async (bills: any[]) => {
+    const XLSX = await import('xlsx');
     const rows: any[] = [];
 
     bills.forEach(bill => {
@@ -61,8 +60,9 @@ export const exportBillsToExcel = (bills: any[]) => {
 export const parseBillsFromExcel = (file: File): Promise<any[]> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
+                const XLSX = await import('xlsx');
                 const bstr = e.target?.result;
                 const workbook = XLSX.read(bstr, { type: 'binary' });
                 const firstSheetName = workbook.SheetNames[0];

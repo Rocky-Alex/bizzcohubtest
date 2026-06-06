@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import * as XLSX from 'xlsx';
 import ConfirmModal from '@/app/bch/shared/ConfirmModal';
 
 interface ImportPurchaseLotProps {
@@ -161,7 +160,8 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
 
     const parseFile = (file: File) => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
+            const XLSX = await import('xlsx');
             const data = e.target?.result;
             const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
             const sheetName = workbook.SheetNames[0];
@@ -397,7 +397,8 @@ export default function ImportPurchaseLot({ onCancel, onSuccess }: ImportPurchas
         setPreviewData(prev => prev.filter((_, i) => i !== index));
     };
 
-    const downloadTemplate = () => {
+    const downloadTemplate = async () => {
+        const XLSX = await import('xlsx');
         // Create a worksheet with metadata fields and headers
         const ws = XLSX.utils.aoa_to_sheet([
             ['Lot Number', ''],

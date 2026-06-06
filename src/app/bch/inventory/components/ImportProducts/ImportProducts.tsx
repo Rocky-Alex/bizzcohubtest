@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import * as XLSX from 'xlsx';
 import ConfirmModal from '@/app/bch/shared/ConfirmModal';
 
 interface ImportProductsProps {
@@ -45,7 +44,8 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
 
     const parseFile = (file: File) => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
+            const XLSX = await import('xlsx');
             const data = e.target?.result;
             const workbook = XLSX.read(data, { type: 'binary' });
             const sheetName = workbook.SheetNames[0];
@@ -144,6 +144,7 @@ export default function ImportProducts({ onCancel, onSuccess }: ImportProductsPr
     const handleExport = async () => {
         setExportLoading(true);
         try {
+            const XLSX = await import('xlsx');
             const response = await fetch('/api/bch/inventory/products');
             if (!response.ok) throw new Error('Failed to fetch products');
 

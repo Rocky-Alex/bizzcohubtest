@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
 type ViewMode = 'overview' | 'Brand' | 'Series' | 'Model' | 'RAM' | 'Storage' | 'Graphics' | 'Processor' | 'Gen' | 'Screen Size' | 'Resolution' | 'Keyboard Type' | 'Keyboard Backlit' | 'Condition';
@@ -127,6 +126,7 @@ const DropListUpdates = () => {
 
         reader.onload = async (evt) => {
             try {
+                const XLSX = await import('xlsx');
                 const bstr = evt.target?.result;
                 const wb = XLSX.read(bstr, { type: 'binary' });
                 const wsname = wb.SheetNames[0];
@@ -159,7 +159,8 @@ const DropListUpdates = () => {
         reader.readAsBinaryString(file);
     };
 
-    const downloadTemplate = (category: string) => {
+    const downloadTemplate = async (category: string) => {
+        const XLSX = await import('xlsx');
         let headers: string[] = [];
         let fileName = '';
 

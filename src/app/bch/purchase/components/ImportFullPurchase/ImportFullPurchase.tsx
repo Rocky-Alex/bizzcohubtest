@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import ConfirmModal from '@/app/bch/shared/ConfirmModal';
 
@@ -143,7 +142,8 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
     // --- Parsing Logic (Kept from ImportFullPurchase but adapted) ---
     const parseFile = (file: File) => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
+            const XLSX = await import('xlsx');
             const data = e.target?.result;
             const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
             const sheetName = workbook.SheetNames[0];
@@ -368,7 +368,8 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
         }
     };
 
-    const handleDownloadTemplate = () => {
+    const handleDownloadTemplate = async () => {
+        const XLSX = await import('xlsx');
         // Create Headers
         const ws = XLSX.utils.aoa_to_sheet([
             ['Lot Number', ''],
