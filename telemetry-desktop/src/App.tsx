@@ -345,7 +345,7 @@ export const THEME_PRESETS: ThemeConfig[] = [
 ];
 
 export default function SpecCheckUltraPage() {
-    const CURRENT_VERSION = "1.0.6";
+    const CURRENT_VERSION = "1.0.7";
 
     const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
     const [themeConfig, setThemeConfig] = useState<ThemeConfig>(THEME_PRESETS[0]);
@@ -380,7 +380,6 @@ export default function SpecCheckUltraPage() {
     const [simulatedGpuTemp, setSimulatedGpuTemp] = useState(44);
 
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-    const [isReloadModalOpen, setIsReloadModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -714,7 +713,7 @@ export default function SpecCheckUltraPage() {
                                 <span>CONFIGURE SPECS</span>
                             </button>
                             <button
-                                onClick={() => setIsReloadModalOpen(true)}
+                                onClick={() => fetchSpecsData(true)}
                                 disabled={refreshing || loading}
                                 className="reload-btn"
                             >
@@ -1323,11 +1322,11 @@ export default function SpecCheckUltraPage() {
             {/* Custom Telemetry Specs Configurator Modal */}
             {isConfigModalOpen && (
                 <div className="modal-overlay">
-                    <div className="modal-content" style={{ border: '1px solid rgba(184, 195, 255, 0.4)', boxShadow: '0 0 35px rgba(99, 102, 241, 0.2)' }}>
-                        <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(67, 70, 86, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#B8C3FF', margin: 0 }}>Configure Device Telemetry Specs</h3>
-                            <button onClick={() => setIsConfigModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#8E90A2', cursor: 'pointer' }}>
-                                <X size={20} />
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3>Configure Device Telemetry Specs</h3>
+                            <button onClick={() => setIsConfigModalOpen(false)} className="modal-close-btn">
+                                <X size={18} />
                             </button>
                         </div>
                         <form onSubmit={(e) => {
@@ -1353,157 +1352,139 @@ export default function SpecCheckUltraPage() {
                             localStorage.setItem('custom_specs_override', JSON.stringify(updated));
                             setIsConfigModalOpen(false);
                             fetchSpecsData(true);
-                        }} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '70vh', overflowY: 'auto' }} className="modal-body">
-                            
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Manufacturer</label>
-                                    <input type="text" value={cfgMfg} onChange={(e) => setCfgMfg(e.target.value)} required />
-                                </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Model Name</label>
-                                    <input type="text" value={cfgModel} onChange={(e) => setCfgModel(e.target.value)} required />
-                                </div>
-                            </div>
+                        }}>
+                            <div className="modal-body-scroll">
+                                <div className="spec-group-grid">
+                                    {/* Category 1: Device Identity */}
+                                    <div className="spec-category-card">
+                                        <div className="spec-category-header">
+                                            <Settings size={14} className="spec-category-icon" />
+                                            <span>Device Identity</span>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Manufacturer</label>
+                                            <input type="text" value={cfgMfg} onChange={(e) => setCfgMfg(e.target.value)} required />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Model Name</label>
+                                            <input type="text" value={cfgModel} onChange={(e) => setCfgModel(e.target.value)} required />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Serial Number</label>
+                                            <input type="text" value={cfgSerial} onChange={(e) => setCfgSerial(e.target.value)} required />
+                                        </div>
+                                    </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Serial Number</label>
-                                    <input type="text" value={cfgSerial} onChange={(e) => setCfgSerial(e.target.value)} required />
-                                </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Processor (CPU Brand)</label>
-                                    <input type="text" value={cfgCpuBrand} onChange={(e) => setCfgCpuBrand(e.target.value)} required />
-                                </div>
-                            </div>
+                                    {/* Category 2: Processor (CPU) */}
+                                    <div className="spec-category-card">
+                                        <div className="spec-category-header">
+                                            <Cpu size={14} className="spec-category-icon" />
+                                            <span>Processor (CPU)</span>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Processor Brand</label>
+                                            <input type="text" value={cfgCpuBrand} onChange={(e) => setCfgCpuBrand(e.target.value)} required />
+                                        </div>
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Cores / Threads</label>
+                                                <input type="number" value={cfgCpuCores} onChange={(e) => setCfgCpuCores(parseInt(e.target.value))} required min={1} />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Speed (GHz)</label>
+                                                <input type="number" step="0.01" value={cfgCpuSpeed} onChange={(e) => setCfgCpuSpeed(parseFloat(e.target.value))} required min={0.1} />
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>CPU Cores (Threads)</label>
-                                    <input type="number" value={cfgCpuCores} onChange={(e) => setCfgCpuCores(parseInt(e.target.value))} required min={1} />
-                                </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Base Clock Speed (GHz)</label>
-                                    <input type="number" step="0.01" value={cfgCpuSpeed} onChange={(e) => setCfgCpuSpeed(parseFloat(e.target.value))} required min={0.1} />
-                                </div>
-                            </div>
+                                    {/* Category 3: Memory (RAM) */}
+                                    <div className="spec-category-card">
+                                        <div className="spec-category-header">
+                                            <Database size={14} className="spec-category-icon" />
+                                            <span>Memory (RAM)</span>
+                                        </div>
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Total RAM (GB)</label>
+                                                <input type="number" value={cfgRamGb} onChange={(e) => setCfgRamGb(parseInt(e.target.value))} required min={1} />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>RAM Type</label>
+                                                <select value={cfgRamType} onChange={(e) => setCfgRamType(e.target.value)}>
+                                                    <option value="DDR4">DDR4</option>
+                                                    <option value="DDR5">DDR5</option>
+                                                    <option value="LPDDR5">LPDDR5</option>
+                                                    <option value="LPDDR4">LPDDR4</option>
+                                                    <option value="DDR3">DDR3</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Slots on Board</label>
+                                                <select value={cfgRamTotalSlots} onChange={(e) => setCfgRamTotalSlots(parseInt(e.target.value))}>
+                                                    <option value={2}>2 Slots (Standard)</option>
+                                                    <option value={4}>4 Slots (Desktop)</option>
+                                                </select>
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Active Slots</label>
+                                                <select value={cfgRamSlots} onChange={(e) => setCfgRamSlots(parseInt(e.target.value))}>
+                                                    <option value={1}>1 Slot Active</option>
+                                                    <option value={2}>2 Slots Active</option>
+                                                    <option value={4}>4 Slots Active</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>RAM Manufacturer</label>
+                                            <input type="text" value={cfgRamMfg} onChange={(e) => setCfgRamMfg(e.target.value)} required />
+                                        </div>
+                                    </div>
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Total RAM (GB)</label>
-                                    <input type="number" value={cfgRamGb} onChange={(e) => setCfgRamGb(parseInt(e.target.value))} required min={1} />
-                                </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>RAM Type</label>
-                                    <select value={cfgRamType} onChange={(e) => setCfgRamType(e.target.value)}>
-                                        <option value="DDR4">DDR4</option>
-                                        <option value="DDR5">DDR5</option>
-                                        <option value="LPDDR5">LPDDR5</option>
-                                        <option value="LPDDR4">LPDDR4</option>
-                                        <option value="DDR3">DDR3</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Total Slots on Board</label>
-                                    <select value={cfgRamTotalSlots} onChange={(e) => setCfgRamTotalSlots(parseInt(e.target.value))}>
-                                        <option value={2}>2 Slots (Standard Laptop)</option>
-                                        <option value={4}>4 Slots (Desktop / Workstation)</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Occupied / Active Slots</label>
-                                    <select value={cfgRamSlots} onChange={(e) => setCfgRamSlots(parseInt(e.target.value))}>
-                                        <option value={1}>1 Slot Occupied</option>
-                                        <option value={2}>2 Slots Occupied</option>
-                                        <option value={4}>4 Slots Occupied</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>RAM Manufacturer</label>
-                                <input type="text" value={cfgRamMfg} onChange={(e) => setCfgRamMfg(e.target.value)} required />
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Storage Size (GB)</label>
-                                    <input type="number" value={cfgStorageGb} onChange={(e) => setCfgStorageGb(parseInt(e.target.value))} required min={1} />
-                                </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Storage Type</label>
-                                    <select value={cfgStorageType} onChange={(e) => setCfgStorageType(e.target.value)}>
-                                        <option value="SSD">SSD</option>
-                                        <option value="HDD">HDD</option>
-                                        <option value="NVMe SSD">NVMe SSD</option>
-                                    </select>
+                                    {/* Category 4: Storage & Graphics */}
+                                    <div className="spec-category-card">
+                                        <div className="spec-category-header">
+                                            <HardDrive size={14} className="spec-category-icon" />
+                                            <span>Storage & Graphics</span>
+                                        </div>
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Storage Size (GB)</label>
+                                                <input type="number" value={cfgStorageGb} onChange={(e) => setCfgStorageGb(parseInt(e.target.value))} required min={1} />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Storage Type</label>
+                                                <select value={cfgStorageType} onChange={(e) => setCfgStorageType(e.target.value)}>
+                                                    <option value="SSD">SSD</option>
+                                                    <option value="HDD">HDD</option>
+                                                    <option value="NVMe SSD">NVMe SSD</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Storage Device Name</label>
+                                            <input type="text" value={cfgStorageName} onChange={(e) => setCfgStorageName(e.target.value)} required />
+                                        </div>
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>GPU Model</label>
+                                                <input type="text" value={cfgGpuModel} onChange={(e) => setCfgGpuModel(e.target.value)} required />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>VRAM (MB)</label>
+                                                <input type="number" value={cfgGpuVram} onChange={(e) => setCfgGpuVram(parseInt(e.target.value))} required min={0} />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="form-group">
-                                <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Storage Device Name</label>
-                                <input type="text" value={cfgStorageName} onChange={(e) => setCfgStorageName(e.target.value)} required />
+                            <div className="modal-footer">
+                                <button type="submit" className="btn-submit">
+                                    Apply Specifications
+                                </button>
                             </div>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>Graphics Card Model</label>
-                                    <input type="text" value={cfgGpuModel} onChange={(e) => setCfgGpuModel(e.target.value)} required />
-                                </div>
-                                <div className="form-group">
-                                    <label style={{ fontSize: '11px', color: 'rgba(226, 232, 240, 0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontFamily: 'monospace' }}>VRAM Size (MB)</label>
-                                    <input type="number" value={cfgGpuVram} onChange={(e) => setCfgGpuVram(parseInt(e.target.value))} required min={0} />
-                                </div>
-                            </div>
-
-                            <button type="submit" className="btn-submit" style={{ borderColor: '#B8C3FF', color: '#B8C3FF', background: 'rgba(99, 102, 241, 0.1)', marginTop: '12px' }}>
-                                Apply Specifications
-                            </button>
                         </form>
-                    </div>
-                </div>
-            )}
-            {/* Reload Telemetry Script Modal */}
-            {isReloadModalOpen && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    backdropFilter: 'blur(10px)'
-                }}>
-                    <div style={{
-                        background: '#0C0E12', border: '1px solid rgba(91, 255, 161, 0.3)', borderRadius: '16px',
-                        width: '450px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px',
-                        boxShadow: '0 24px 48px rgba(0,0,0,0.5)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <Zap size={24} color="#5BFFA1" />
-                            <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Execute Hardware Script?</h2>
-                        </div>
-                        <p style={{ fontSize: '14px', color: '#8E90A2', lineHeight: '1.6', margin: 0 }}>
-                            To securely read your exact hardware capacity and battery cycle counts, the system needs to run a background diagnostic script.
-                            <br/><br/>
-                            Do you want to download and run the <b>SpecCheck.exe (12KB)</b> script now?
-                        </p>
-                        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                            <button 
-                                onClick={() => setIsReloadModalOpen(false)}
-                                style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#E2E2E8', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '13px', letterSpacing: '0.5px' }}
-                            >
-                                CANCEL
-                            </button>
-                            <button 
-                                onClick={() => {
-                                    setIsReloadModalOpen(false);
-                                    fetchSpecsData(true);
-                                }}
-                                style={{ flex: 1, padding: '14px', background: '#5BFFA1', border: 'none', color: '#000', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, textAlign: 'center', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                RUN INSTANT SCAN
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}

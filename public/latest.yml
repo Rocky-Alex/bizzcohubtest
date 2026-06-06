@@ -1,8 +1,8 @@
-version: 1.0.6
+version: 1.0.7
 files:
-  - url: BizzCo Telemetry System Setup 1.0.6.exe
-    sha512: s3aiEJxhbl+oXQe7CmRi7H72jbYMW6ZR8RggI1fGW66hfj7ej0Atd6MmMIuR8OMmDSsJ4CljC5LDt5qgtfjzCA==
-    size: 104552474
-path: BizzCo Telemetry System Setup 1.0.6.exe
-sha512: s3aiEJxhbl+oXQe7CmRi7H72jbYMW6ZR8RggI1fGW66hfj7ej0Atd6MmMIuR8OMmDSsJ4CljC5LDt5qgtfjzCA==
-releaseDate: '2026-06-06T12:26:57.262Z'
+  - url: BizzCo Telemetry System Setup 1.0.7.exe
+    sha512: kYwtIA8+uOQS1i6i9TZmbAtpfI9grImhmqkjEctFY33M06VJaSKN75Ij7/mL21eYd4+6vR2lO5fFlqA+FzYAEQ==
+    size: 104552808
+path: BizzCo Telemetry System Setup 1.0.7.exe
+sha512: kYwtIA8+uOQS1i6i9TZmbAtpfI9grImhmqkjEctFY33M06VJaSKN75Ij7/mL21eYd4+6vR2lO5fFlqA+FzYAEQ==
+releaseDate: '2026-06-06T12:52:00.023Z'

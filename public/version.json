@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6",
+  "version": "1.0.7",
   "name": "BizzCo Telemetry System Update",
-  "releaseNotes": "Added dynamic Theme Configurator featuring custom highlights, Solid & Gradient background settings, typography selectors, and persistent preset palettes!",
+  "releaseNotes": "Improved 'Configure Specs' UI with a beautiful categorized card layout, and bypassed the confirmation alert when reloading telemetry.",
   "url": "https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe"
 }
