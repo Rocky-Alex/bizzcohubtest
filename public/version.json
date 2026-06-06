@@ -1,6 +1,6 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.6",
   "name": "BizzCo Telemetry System Update",
-  "releaseNotes": "Added fully responsive full-screen UI layout and a brand new automated update engine.",
+  "releaseNotes": "Added dynamic Theme Configurator featuring custom highlights, Solid & Gradient background settings, typography selectors, and persistent preset palettes!",
   "url": "https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe"
 }

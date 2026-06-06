@@ -15,7 +15,8 @@ import {
     Info,
     Check,
     Settings,
-    X
+    X,
+    Palette
 } from 'lucide-react';
 // import { toast } from 'sonner';
 
@@ -248,8 +249,127 @@ const getClientSideSpecs = async () => {
     };
 };
 
+export interface ThemeConfig {
+    id: string;
+    name: string;
+    bgType: 'gradient' | 'solid';
+    bgColor: string;
+    bgGradientStart: string;
+    bgGradientEnd: string;
+    accentColor: string;
+    accentSecColor: string;
+    accentLightColor: string;
+    textColor: string;
+    fontFamily: string;
+}
+
+export const THEME_PRESETS: ThemeConfig[] = [
+    {
+        id: "cyber",
+        name: "Cyber Space (Default)",
+        bgType: "gradient",
+        bgColor: "#111317",
+        bgGradientStart: "#111317",
+        bgGradientEnd: "#050505",
+        accentColor: "#6366F1",
+        accentSecColor: "#8B5CF6",
+        accentLightColor: "#B8C3FF",
+        textColor: "#E2E2E8",
+        fontFamily: "'Inter', sans-serif"
+    },
+    {
+        id: "emerald",
+        name: "Emerald Shield",
+        bgType: "gradient",
+        bgColor: "#061612",
+        bgGradientStart: "#061612",
+        bgGradientEnd: "#020807",
+        accentColor: "#10B981",
+        accentSecColor: "#059669",
+        accentLightColor: "#A7F3D0",
+        textColor: "#E6F4EA",
+        fontFamily: "'Outfit', sans-serif"
+    },
+    {
+        id: "ruby",
+        name: "Ruby Forge",
+        bgType: "gradient",
+        bgColor: "#1C090D",
+        bgGradientStart: "#1C090D",
+        bgGradientEnd: "#0A0204",
+        accentColor: "#EF4444",
+        accentSecColor: "#F97316",
+        accentLightColor: "#FECACA",
+        textColor: "#FCE8E6",
+        fontFamily: "'Hanken Grotesk', sans-serif"
+    },
+    {
+        id: "ocean",
+        name: "Ocean Drift",
+        bgType: "gradient",
+        bgColor: "#0b132b",
+        bgGradientStart: "#0b132b",
+        bgGradientEnd: "#010409",
+        accentColor: "#0EA5E9",
+        accentSecColor: "#06B6D4",
+        accentLightColor: "#BAE6FD",
+        textColor: "#E0F2FE",
+        fontFamily: "'Inter', sans-serif"
+    },
+    {
+        id: "solar",
+        name: "Solar Flare",
+        bgType: "gradient",
+        bgColor: "#1C150C",
+        bgGradientStart: "#1C150C",
+        bgGradientEnd: "#0A0703",
+        accentColor: "#F59E0B",
+        accentSecColor: "#D97706",
+        accentLightColor: "#FEF3C7",
+        textColor: "#FEFDF6",
+        fontFamily: "'Outfit', sans-serif"
+    },
+    {
+        id: "monochrome",
+        name: "Monochrome Carbon",
+        bgType: "gradient",
+        bgColor: "#262626",
+        bgGradientStart: "#262626",
+        bgGradientEnd: "#0A0A0A",
+        accentColor: "#D4D4D8",
+        accentSecColor: "#71717A",
+        accentLightColor: "#F4F4F5",
+        textColor: "#F4F4F5",
+        fontFamily: "'JetBrains Mono', monospace"
+    }
+];
+
 export default function SpecCheckUltraPage() {
-    const CURRENT_VERSION = "1.0.5";
+    const CURRENT_VERSION = "1.0.6";
+
+    const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+    const [themeConfig, setThemeConfig] = useState<ThemeConfig>(THEME_PRESETS[0]);
+
+    // Temp inputs for custom editing in the modal
+    const [customBgType, setCustomBgType] = useState<'gradient' | 'solid'>('gradient');
+    const [customBgColor, setCustomBgColor] = useState('#111317');
+    const [customBgGradientStart, setCustomBgGradientStart] = useState('#111317');
+    const [customBgGradientEnd, setCustomBgGradientEnd] = useState('#050505');
+    const [customAccent, setCustomAccent] = useState('#6366F1');
+    const [customAccentSec, setCustomAccentSec] = useState('#8B5CF6');
+    const [customTextColor, setCustomTextColor] = useState('#E2E2E8');
+    const [customFont, setCustomFont] = useState("'Inter', sans-serif");
+
+    const applyPreset = (preset: ThemeConfig) => {
+        setCustomBgType(preset.bgType);
+        setCustomBgColor(preset.bgColor);
+        setCustomBgGradientStart(preset.bgGradientStart);
+        setCustomBgGradientEnd(preset.bgGradientEnd);
+        setCustomAccent(preset.accentColor);
+        setCustomAccentSec(preset.accentSecColor);
+        setCustomTextColor(preset.textColor);
+        setCustomFont(preset.fontFamily);
+    };
 
     const [loading, setLoading] = useState(true);
     const [specs, setSpecs] = useState<any>(null);
@@ -383,6 +503,26 @@ export default function SpecCheckUltraPage() {
         }
     }, []);
 
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('custom_theme_config');
+        if (savedTheme) {
+            try {
+                const parsed = JSON.parse(savedTheme);
+                setThemeConfig(parsed);
+                setCustomBgType(parsed.bgType || 'gradient');
+                setCustomBgColor(parsed.bgColor || '#111317');
+                setCustomBgGradientStart(parsed.bgGradientStart || '#111317');
+                setCustomBgGradientEnd(parsed.bgGradientEnd || '#050505');
+                setCustomAccent(parsed.accentColor || '#6366F1');
+                setCustomAccentSec(parsed.accentSecColor || '#8B5CF6');
+                setCustomTextColor(parsed.textColor || '#E2E2E8');
+                setCustomFont(parsed.fontFamily || "'Inter', sans-serif");
+            } catch (e) {
+                console.error("Failed to parse custom theme config", e);
+            }
+        }
+    }, []);
+
     const fetchSpecsData = async (isRefresh = false) => {
         if (isRefresh) setRefreshing(true);
         else setLoading(true);
@@ -512,8 +652,22 @@ export default function SpecCheckUltraPage() {
     // Calculation shortcuts
     const ramUsedPercent = specs?.mem ? (specs.mem.used / specs.mem.total) * 100 : 32;
 
+    const bgValue = themeConfig.bgType === 'gradient'
+        ? `radial-gradient(128.06% 160.08% at 0% 0%, ${themeConfig.bgGradientStart} 0%, ${themeConfig.bgGradientEnd} 50%), ${themeConfig.bgGradientEnd}`
+        : themeConfig.bgColor;
+
+    const containerStyle = {
+        '--theme-bg': bgValue,
+        '--theme-accent': themeConfig.accentColor,
+        '--theme-accent-sec': themeConfig.accentSecColor,
+        '--theme-accent-light': themeConfig.accentLightColor,
+        '--theme-text': themeConfig.textColor,
+        '--theme-font-sans': themeConfig.fontFamily,
+        '--theme-font-heading': themeConfig.fontFamily.includes('Mono') ? themeConfig.fontFamily : `'Hanken Grotesk', sans-serif`,
+    } as React.CSSProperties;
+
     return (
-        <div className="telemetry-container">
+        <div className="telemetry-container" style={containerStyle}>
             
 
             <div className="aurora-bg aurora-1" />
@@ -534,6 +688,14 @@ export default function SpecCheckUltraPage() {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={() => setIsThemeModalOpen(true)}
+                                className="reload-btn"
+                                style={{ borderColor: 'var(--theme-accent-light)', color: 'var(--theme-accent-light)' }}
+                            >
+                                <Palette size={12} style={{ marginRight: '6px' }} />
+                                <span>THEMES</span>
+                            </button>
                             <button
                                 onClick={handleCheckUpdate}
                                 disabled={isCheckingUpdate || isUpdating}
@@ -1487,6 +1649,346 @@ export default function SpecCheckUltraPage() {
                     </div>
                 </div>
             )}
+
+            {/* Theme Customizer Modal */}
+            {isThemeModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(10px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: '#0e1116',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        width: '560px',
+                        maxHeight: '90vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px',
+                        boxShadow: `0 24px 48px rgba(0, 0, 0, 0.6), 0 0 40px ${customAccent}22`,
+                        color: '#E2E2E8',
+                        fontFamily: 'var(--theme-font-sans)'
+                    }}>
+                        {/* Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '16px' }}>
+                            <div>
+                                <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Palette size={20} color={customAccent} /> THEME CONFIGURATOR
+                                </h2>
+                                <p style={{ margin: '4px 0 0 0', color: '#8E90A2', fontSize: '12px' }}>Customize fonts, highlights and visual style for your workspace.</p>
+                            </div>
+                            <button onClick={() => setIsThemeModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#8E90A2', cursor: 'pointer', transition: 'color 0.2s' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Body (Scrollable) */}
+                        <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {/* Preset Themes Section */}
+                            <div>
+                                <h3 style={{ margin: '0 0 12px 0', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}>Theme Presets</h3>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                                    {THEME_PRESETS.map((preset) => {
+                                        const isActive = 
+                                            customBgType === preset.bgType &&
+                                            customBgColor === preset.bgColor &&
+                                            customBgGradientStart === preset.bgGradientStart &&
+                                            customBgGradientEnd === preset.bgGradientEnd &&
+                                            customAccent === preset.accentColor &&
+                                            customAccentSec === preset.accentSecColor &&
+                                            customTextColor === preset.textColor &&
+                                            customFont === preset.fontFamily;
+
+                                        return (
+                                            <div
+                                                key={preset.id}
+                                                onClick={() => applyPreset(preset)}
+                                                style={{
+                                                    background: preset.bgType === 'gradient'
+                                                        ? `linear-gradient(135deg, ${preset.bgGradientStart} 0%, ${preset.bgGradientEnd} 100%)`
+                                                        : preset.bgColor,
+                                                    border: isActive 
+                                                        ? `2px solid ${preset.accentColor}`
+                                                        : '1px solid rgba(255, 255, 255, 0.08)',
+                                                    borderRadius: '8px',
+                                                    padding: '12px 14px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    justifyContent: 'space-between',
+                                                    height: '74px',
+                                                    transition: 'all 0.2s ease',
+                                                    boxShadow: isActive ? `0 0 12px ${preset.accentColor}33` : 'none'
+                                                }}
+                                            >
+                                                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <span>{preset.name}</span>
+                                                    {isActive && <Check size={14} color={preset.accentColor} style={{ strokeWidth: 3 }} />}
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+                                                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
+                                                        {preset.fontFamily.split(',')[0].replace(/'/g, '')}
+                                                    </span>
+                                                    <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
+                                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: preset.accentColor }} title="Primary Accent" />
+                                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: preset.accentSecColor }} title="Secondary Accent" />
+                                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: preset.textColor }} title="Text color" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Divider */}
+                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
+
+                            {/* Custom Controls Section */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                <h3 style={{ margin: '0', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}>Custom Style Override</h3>
+                                
+                                {/* Background Type */}
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}>Background Type</span>
+                                    <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '6px', padding: '2px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCustomBgType('gradient')}
+                                            style={{
+                                                padding: '4px 12px',
+                                                border: 'none',
+                                                borderRadius: '4px',
+                                                fontSize: '11px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                background: customBgType === 'gradient' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                                                color: customBgType === 'gradient' ? '#FFFFFF' : '#8E90A2',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            Gradient
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCustomBgType('solid')}
+                                            style={{
+                                                padding: '4px 12px',
+                                                border: 'none',
+                                                borderRadius: '4px',
+                                                fontSize: '11px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                background: customBgType === 'solid' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                                                color: customBgType === 'solid' ? '#FFFFFF' : '#8E90A2',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            Solid Color
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Background Colors */}
+                                {customBgType === 'solid' ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span style={{ fontSize: '13px', color: '#8E90A2' }}>Solid Color</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <input 
+                                                type="color" 
+                                                value={customBgColor} 
+                                                onChange={(e) => setCustomBgColor(e.target.value)}
+                                                style={{ border: 'none', background: 'none', width: '32px', height: '24px', cursor: 'pointer', padding: 0 }}
+                                            />
+                                            <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{customBgColor.toUpperCase()}</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{ fontSize: '12px', color: '#8E90A2' }}>Gradient Start</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <input 
+                                                    type="color" 
+                                                    value={customBgGradientStart} 
+                                                    onChange={(e) => setCustomBgGradientStart(e.target.value)}
+                                                    style={{ border: 'none', background: 'none', width: '32px', height: '24px', cursor: 'pointer', padding: 0 }}
+                                                />
+                                                <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{customBgGradientStart.toUpperCase()}</span>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{ fontSize: '12px', color: '#8E90A2' }}>Gradient End</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <input 
+                                                    type="color" 
+                                                    value={customBgGradientEnd} 
+                                                    onChange={(e) => setCustomBgGradientEnd(e.target.value)}
+                                                    style={{ border: 'none', background: 'none', width: '32px', height: '24px', cursor: 'pointer', padding: 0 }}
+                                                />
+                                                <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{customBgGradientEnd.toUpperCase()}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Accent & Text Colors */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <span style={{ fontSize: '12px', color: '#8E90A2' }}>Primary Accent</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <input 
+                                                type="color" 
+                                                value={customAccent} 
+                                                onChange={(e) => setCustomAccent(e.target.value)}
+                                                style={{ border: 'none', background: 'none', width: '32px', height: '24px', cursor: 'pointer', padding: 0 }}
+                                            />
+                                            <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{customAccent.toUpperCase()}</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <span style={{ fontSize: '12px', color: '#8E90A2' }}>Secondary Accent</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <input 
+                                                type="color" 
+                                                value={customAccentSec} 
+                                                onChange={(e) => setCustomAccentSec(e.target.value)}
+                                                style={{ border: 'none', background: 'none', width: '32px', height: '24px', cursor: 'pointer', padding: 0 }}
+                                            />
+                                            <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{customAccentSec.toUpperCase()}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}>Main Text Color</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <input 
+                                            type="color" 
+                                            value={customTextColor} 
+                                            onChange={(e) => setCustomTextColor(e.target.value)}
+                                            style={{ border: 'none', background: 'none', width: '32px', height: '24px', cursor: 'pointer', padding: 0 }}
+                                        />
+                                        <span style={{ fontSize: '12px', fontFamily: 'monospace' }}>{customTextColor.toUpperCase()}</span>
+                                    </div>
+                                </div>
+
+                                {/* Typography / Fonts Selection */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}>Font Family Selection</span>
+                                    <select
+                                        value={customFont}
+                                        onChange={(e) => setCustomFont(e.target.value)}
+                                        style={{
+                                            padding: '8px 12px',
+                                            background: '#161a22',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '6px',
+                                            color: '#FFFFFF',
+                                            fontSize: '13px',
+                                            fontFamily: customFont,
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <option value="'Inter', sans-serif">Inter (Clean Sans)</option>
+                                        <option value="'Hanken Grotesk', sans-serif">Hanken Grotesk (Tech/Futuristic)</option>
+                                        <option value="'Outfit', sans-serif">Outfit (Geometric & Elegant)</option>
+                                        <option value="'JetBrains Mono', monospace">JetBrains Mono (Developer Code)</option>
+                                        <option value="'Roboto Mono', monospace">Roboto Mono (Clean Code)</option>
+                                        <option value="system-ui, sans-serif">System UI (Fallback OS)</option>
+                                        <option value="Georgia, serif">Georgia (Classic Serif)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div style={{ display: 'flex', gap: '10px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    applyPreset(THEME_PRESETS[0]);
+                                    toast.success("Reset values to Default Cyber");
+                                }}
+                                style={{
+                                    padding: '10px 16px',
+                                    background: 'rgba(255,255,255,0.03)',
+                                    border: '1px dashed rgba(255,255,255,0.15)',
+                                    color: '#8E90A2',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                RESET DEFAULT
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsThemeModalOpen(false)}
+                                style={{
+                                    padding: '10px 16px',
+                                    background: 'transparent',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    color: '#E2E2E8',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold',
+                                    marginLeft: 'auto',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                CANCEL
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const customConfig: ThemeConfig = {
+                                        id: 'custom',
+                                        name: 'Custom Theme',
+                                        bgType: customBgType,
+                                        bgColor: customBgColor,
+                                        bgGradientStart: customBgGradientStart,
+                                        bgGradientEnd: customBgGradientEnd,
+                                        accentColor: customAccent,
+                                        accentSecColor: customAccentSec,
+                                        accentLightColor: customAccent,
+                                        textColor: customTextColor,
+                                        fontFamily: customFont
+                                    };
+                                    setThemeConfig(customConfig);
+                                    localStorage.setItem('custom_theme_config', JSON.stringify(customConfig));
+                                    setIsThemeModalOpen(false);
+                                    toast.success("Theme configuration saved and applied!");
+                                }}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: customAccent,
+                                    border: 'none',
+                                    color: '#FFFFFF',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold',
+                                    boxShadow: `0 4px 12px ${customAccent}33`
+                                }}
+                            >
+                                APPLY THEME
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Version Watermark */}
             <div style={{
                 position: 'fixed',

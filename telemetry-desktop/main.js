@@ -78,25 +78,52 @@ autoUpdater.on('download-progress', (progressObj) => {
 
 // IPC handler to check for updates using autoUpdater
 ipcMain.handle('check-for-updates', async () => {
-  try {
-    const result = await autoUpdater.checkForUpdates();
-    if (result && result.updateInfo) {
-      return {
-        version: result.updateInfo.version,
-        releaseNotes: result.updateInfo.releaseNotes || 'A new update is ready to be installed via Delta-Update.',
-      };
-    }
-    if (isDev) {
-      return { version: '1.0.3-dev', releaseNotes: 'Dev Mode Mock Update' };
-    }
-    return null;
-  } catch (err) {
-    console.error("Update check failed:", err);
-    if (isDev) {
-      return { version: '1.0.3-dev-fallback', releaseNotes: 'Dev Mode Fallback Update (Visual Test)' };
-    }
-    return null;
-  }
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    // Wait for actual update-available event
+    autoUpdater.once('update-available', (info) => {
+      if (!resolved) {
+        resolved = true;
+        resolve({
+          version: info.version,
+          releaseNotes: info.releaseNotes || 'A new update is ready to be installed via Delta-Update.',
+        });
+      }
+    });
+
+    // Wait for update-not-available event (means same version or older)
+    autoUpdater.once('update-not-available', () => {
+      if (!resolved) {
+        resolved = true;
+        resolve(null);
+      }
+    });
+
+    autoUpdater.once('error', (err) => {
+      if (!resolved) {
+        resolved = true;
+        console.error("Update check failed:", err);
+        if (isDev) {
+          resolve({ version: '1.0.3-dev-fallback', releaseNotes: 'Dev Mode Fallback Update (Visual Test)' });
+        } else {
+          resolve(null);
+        }
+      }
+    });
+
+    autoUpdater.checkForUpdates().catch((err) => {
+      if (!resolved) {
+        resolved = true;
+        console.error("checkForUpdates promise rejected:", err);
+        if (isDev) {
+          resolve({ version: '1.0.3-dev-fallback', releaseNotes: 'Dev Mode Fallback Update (Visual Test)' });
+        } else {
+          resolve(null);
+        }
+      }
+    });
+  });
 });
 
 // IPC handler to download updates silently using delta-updates

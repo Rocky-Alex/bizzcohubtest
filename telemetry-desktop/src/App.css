@@ -1,12 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap');
+
+                :root {
+                    --theme-bg: radial-gradient(128.06% 160.08% at 0% 0%, #111317 0%, #050505 50%), #000000;
+                    --theme-accent: #6366F1;
+                    --theme-accent-sec: #8B5CF6;
+                    --theme-accent-light: #B8C3FF;
+                    --theme-text: #E2E2E8;
+                    --theme-text-muted: #8E90A2;
+                    --theme-font-sans: 'Inter', sans-serif;
+                    --theme-font-heading: 'Hanken Grotesk', sans-serif;
+                }
 
                 .telemetry-container {
-                    background: radial-gradient(128.06% 160.08% at 0% 0%, #111317 0%, #050505 50%), #000000;
+                    background: var(--theme-bg);
                     min-height: 100vh;
                     position: relative;
                     width: 100%;
-                    color: #E2E2E8;
-                    font-family: 'Inter', sans-serif;
+                    color: var(--theme-text);
+                    font-family: var(--theme-font-sans);
                     padding-top: 0px;
                     padding-bottom: 32px;
                 }
@@ -24,12 +35,12 @@
                 .aurora-1 {
                     top: -10%;
                     right: -10%;
-                    background: radial-gradient(circle, #6366F1 0%, transparent 80%);
+                    background: radial-gradient(circle, var(--theme-accent) 0%, transparent 80%);
                 }
                 .aurora-2 {
                     bottom: -20%;
                     left: -10%;
-                    background: radial-gradient(circle, #8B5CF6 0%, transparent 80%);
+                    background: radial-gradient(circle, var(--theme-accent-sec) 0%, transparent 80%);
                 }
 
                 /* Header - Top Navigation Bar */
@@ -95,13 +106,13 @@
                 }
 
                 .header-title {
-                    font-family: 'Hanken Grotesk', sans-serif;
+                    font-family: var(--theme-font-heading);
                     font-weight: 700;
                     font-size: 32px;
                     line-height: 38px;
                     letter-spacing: -0.8px;
                     text-transform: uppercase;
-                    color: #E2E2E8;
+                    color: var(--theme-text);
                     margin: 0;
                 }
 
@@ -129,7 +140,7 @@
                 }
 
                 .status-text {
-                    font-family: 'Inter', sans-serif;
+                    font-family: var(--theme-font-sans);
                     font-weight: 700;
                     font-size: 11px;
                     line-height: 11px;
@@ -147,8 +158,8 @@
                     background: rgba(51, 53, 57, 0.1);
                     border: 1px solid rgba(67, 70, 86, 0.3);
                     border-radius: 8px;
-                    color: #E2E2E8;
-                    font-family: 'Inter', sans-serif;
+                    color: var(--theme-text);
+                    font-family: var(--theme-font-sans);
                     font-weight: 700;
                     font-size: 11px;
                     line-height: 11px;
@@ -178,7 +189,7 @@
                     background: transparent;
                     border: none;
                     padding: 0px 0px 8px;
-                    font-family: 'Inter', sans-serif;
+                    font-family: var(--theme-font-sans);
                     font-style: normal;
                     font-weight: 400;
                     font-size: 16px;
@@ -195,8 +206,8 @@
 
                 .nav-link.active {
                     font-weight: 700;
-                    color: #B8C3FF;
-                    border-bottom: 2px solid #B8C3FF;
+                    color: var(--theme-accent-light);
+                    border-bottom: 2px solid var(--theme-accent-light);
                 }
 
                 /* Main Canvas positioning */
@@ -350,12 +361,12 @@
                 }
 
                 .canvas-title {
-                    font-family: 'Hanken Grotesk', sans-serif;
+                    font-family: var(--theme-font-heading);
                     font-weight: 700;
                     font-size: 32px;
                     line-height: 38px;
                     letter-spacing: -0.8px;
-                    color: #E2E2E8;
+                    color: var(--theme-text);
                     margin: 0;
                 }
 
@@ -372,7 +383,7 @@
                     box-shadow: 0px 0px 10px rgba(0, 227, 131, 0.3);
                     border-radius: 9999px;
                     color: #5BFFA1;
-                    font-family: 'Inter', sans-serif;
+                    font-family: var(--theme-font-sans);
                     font-weight: 700;
                     font-size: 11px;
                     line-height: 11px;
@@ -418,7 +429,7 @@
                     left: 0;
                     width: 100%;
                     height: 3px;
-                    background: linear-gradient(90deg, #6366F1, #8B5CF6);
+                    background: linear-gradient(90deg, var(--theme-accent), var(--theme-accent-sec));
                 }
 
                 .slot-card-header {
@@ -438,12 +449,12 @@
                 }
 
                 .slot-label-text {
-                    font-family: 'Inter', sans-serif;
+                    font-family: var(--theme-font-sans);
                     font-weight: 700;
                     font-size: 11px;
                     line-height: 11px;
                     letter-spacing: 1.1px;
-                    color: #E2E2E8;
+                    color: var(--theme-text);
                     text-transform: uppercase;
                 }
 
@@ -454,7 +465,7 @@
                     padding: 2px 8px;
                     background: rgba(91, 255, 161, 0.2);
                     border-radius: 4px;
-                    font-family: 'Inter', sans-serif;
+                    font-family: var(--theme-font-sans);
                     font-weight: 700;
                     font-size: 10px;
                     line-height: 15px;
@@ -469,7 +480,7 @@
                 }
 
                 .mfg-name {
-                    font-family: 'Inter', sans-serif;
+                    font-family: var(--theme-font-sans);
                     font-weight: 700;
                     font-size: 24px;
                     line-height: 20px;
@@ -485,7 +496,7 @@
                 }
 
                 .capacity-text {
-                    font-family: 'Hanken Grotesk', sans-serif;
+                    font-family: var(--theme-font-heading);
                     font-weight: 700;
                     font-size: 32px;
                     line-height: 38px;
