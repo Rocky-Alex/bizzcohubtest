@@ -1058,7 +1058,6 @@ export default function SpecCheckUltraPage() {
                         </>
                     )}
                 </div>
-
             </main>
 
             {/* Custom Telemetry Specs Configurator Modal */}
