@@ -882,6 +882,8 @@
                 .form-group input[type="text"],
                 .form-group input[type="number"],
                 .form-group select {
+                    width: 100%;
+                    box-sizing: border-box;
                     background: rgba(255, 255, 255, 0.02);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     color: #FFFFFF;

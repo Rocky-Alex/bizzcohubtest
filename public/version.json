@@ -1,6 +1,6 @@
 {
-  "version": "1.0.7",
+  "version": "1.0.8",
   "name": "BizzCo Telemetry System Update",
-  "releaseNotes": "Improved 'Configure Specs' UI with a beautiful categorized card layout, and bypassed the confirmation alert when reloading telemetry.",
+  "releaseNotes": "Fixed column layout overflow bug for 'Speed (GHz)' and 'VRAM (MB)' fields on the Configure Specs modal.",
   "url": "https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe"
 }

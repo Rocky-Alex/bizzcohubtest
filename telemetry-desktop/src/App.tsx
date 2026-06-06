@@ -345,7 +345,7 @@ export const THEME_PRESETS: ThemeConfig[] = [
 ];
 
 export default function SpecCheckUltraPage() {
-    const CURRENT_VERSION = "1.0.7";
+    const CURRENT_VERSION = "1.0.8";
 
     const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
     const [themeConfig, setThemeConfig] = useState<ThemeConfig>(THEME_PRESETS[0]);
