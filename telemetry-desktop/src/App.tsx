@@ -531,29 +531,152 @@ export default function SpecCheckUltraPage() {
             if (window.electronAPI) {
                 // Fetch from Electron backend instantly
                 const psCommand = `
-                    $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
-                    $ram = Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum
-                    $bat = Get-WmiObject -Namespace root\\wmi -Class BatteryFullChargedCapacity -ErrorAction SilentlyContinue | Select-Object -First 1
-                    $batStat = Get-WmiObject -Namespace root\\wmi -Class BatteryStatus -ErrorAction SilentlyContinue | Select-Object -First 1
-                    $batStatic = Get-WmiObject -Namespace root\\wmi -Class BatteryStaticData -ErrorAction SilentlyContinue | Select-Object -First 1
-                    
-                    $sys = Get-CimInstance Win32_ComputerSystem | Select-Object -First 1
-                    $gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
-                    $disk = Get-CimInstance Win32_DiskDrive | Select-Object -First 1
-                    
-                    @{
-                        system = @{ manufacturer = $sys.Manufacturer; model = $sys.Model }
-                        cpu = @{ brand = $cpu.Name; cores = $cpu.NumberOfLogicalProcessors; physicalCores = $cpu.NumberOfCores }
-                        mem = @{ total = $ram.Sum; used = ($ram.Sum * 0.3) }
-                        battery = @{
-                            hasBattery = $($bat -ne $null)
-                            percent = $(if($batStat -and $bat){ [math]::Round(($batStat.RemainingCapacity / $bat.FullChargedCapacity) * 100) }else{ 100 })
-                            isCharging = $(if($batStat){ $batStat.Charging }else{ $true })
-                            cycleCount = $(if($bat){ $bat.CycleCount }else{ 0 })
-                            manufacturer = $(if($batStatic){ $batStatic.ManufactureName }else{ 'System Battery' })
+                    $sys = Get-CimInstance Win32_ComputerSystem -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $bios = Get-CimInstance Win32_Bios -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $cpu = Get-CimInstance Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $os = Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue | Select-Object -First 1
+
+                    $memSum = Get-CimInstance Win32_PhysicalMemory -ErrorAction SilentlyContinue | Measure-Object -Property Capacity -Sum
+                    $memTotal = if ($memSum.Sum) { [double]$memSum.Sum } else { 16GB }
+                    $memFree = if ($os) { [double]$os.FreePhysicalMemory * 1024 } else { $memTotal * 0.7 }
+                    $memUsed = $memTotal - $memFree
+
+                    $bat = Get-CimInstance -Namespace root\\wmi -ClassName BatteryFullChargedCapacity -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $batStat = Get-CimInstance -Namespace root\\wmi -ClassName BatteryStatus -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $batCycle = Get-CimInstance -Namespace root\\wmi -ClassName BatteryCycleCount -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $batStatic = Get-CimInstance -Namespace root\\wmi -ClassName BatteryStaticData -ErrorAction SilentlyContinue | Select-Object -First 1
+
+                    $hasBattery = $null -ne $bat
+                    $percent = 100
+                    $isCharging = $true
+                    $acConnected = $true
+                    if ($hasBattery) {
+                        if ($batStat) {
+                            if ($bat.FullChargedCapacity -gt 0) {
+                                $percent = [math]::Round(($batStat.RemainingCapacity / $bat.FullChargedCapacity) * 100)
+                            }
+                            $isCharging = $batStat.Charging
+                            $acConnected = $batStat.PowerOnline
                         }
-                        graphics = @{ controllers = @( @{ model = $gpu.Name; vendor = $gpu.AdapterCompatibility } ) }
-                        diskLayout = @( @{ name = $disk.Model; size = $disk.Size } )
+                    }
+
+                    $gpus = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | ForEach-Object {
+                        $vram = $_.AdapterRAM
+                        if ($vram -lt 0) { $vram = [Math]::Abs($vram) }
+                        $vramMb = [Math]::Round($vram / 1024 / 1024)
+                        if ($vramMb -le 0) { $vramMb = 512 }
+                        @{
+                            model = $_.Name
+                            vendor = $_.AdapterCompatibility
+                            vram = $vramMb
+                        }
+                    }
+
+                    $displays = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | Where-Object { $_.CurrentHorizontalResolution } | ForEach-Object {
+                        @{
+                            vendor = "Primary Display Monitor"
+                            model = "Generic PnP Monitor"
+                            resolutionX = [int]$_.CurrentHorizontalResolution
+                            resolutionY = [int]$_.CurrentVerticalResolution
+                            currentRefreshRate = [int]$_.CurrentRefreshRate
+                        }
+                    }
+
+                    $disks = Get-CimInstance Win32_DiskDrive -ErrorAction SilentlyContinue | ForEach-Object {
+                        $smart = "Ok"
+                        if ($_.Status -ne "OK") { $smart = "Warning" }
+                        $type = "SSD"
+                        if ($_.Model -like "*SSD*" -or $_.MediaType -like "*Solid State*") { $type = "SSD" }
+                        elseif ($_.Model -like "*NVMe*") { $type = "NVMe SSD" }
+                        else { $type = "HDD" }
+                        @{
+                            name = $_.Model
+                            type = $type
+                            size = [double]$_.Size
+                            smartStatus = $smart
+                        }
+                    }
+
+                    $ramArray = Get-CimInstance Win32_PhysicalMemoryArray -ErrorAction SilentlyContinue | Select-Object -First 1
+                    $ramTotalSlots = if ($ramArray) { $ramArray.MemoryDevices } else { 2 }
+
+                    $ramLayout = Get-CimInstance Win32_PhysicalMemory -ErrorAction SilentlyContinue | ForEach-Object {
+                        $type = "DDR4"
+                        if ($_.SMBIOSMemoryType -eq 20) { $type = "DDR" }
+                        elseif ($_.SMBIOSMemoryType -eq 21) { $type = "DDR2" }
+                        elseif ($_.SMBIOSMemoryType -eq 24) { $type = "DDR3" }
+                        elseif ($_.SMBIOSMemoryType -eq 26) { $type = "DDR4" }
+                        elseif ($_.SMBIOSMemoryType -eq 30) { $type = "DDR5" }
+                        elseif ($_.SMBIOSMemoryType -eq 34) { $type = "LPDDR4" }
+                        elseif ($_.SMBIOSMemoryType -eq 35) { $type = "LPDDR5" }
+
+                        $form = "SODIMM"
+                        if ($_.FormFactor -eq 8) { $form = "DIMM" }
+                        elseif ($_.FormFactor -eq 12) { $form = "SODIMM" }
+
+                        @{
+                            size = [double]$_.Capacity
+                            bank = $_.BankLabel
+                            type = $type
+                            ecc = $(if ($_.TotalWidth -gt $_.DataWidth) { $true } else { $false })
+                            clockSpeed = [int]$_.ConfiguredClockSpeed
+                            formFactor = $form
+                            manufacturer = $_.Manufacturer.Trim()
+                            partNum = $_.PartNumber.Trim()
+                            serialNum = $_.SerialNumber.Trim()
+                            voltageConfigured = $(if ($_.ConfiguredVoltage) { [double]($_.ConfiguredVoltage / 1000) } else { 1.2 })
+                        }
+                    }
+
+                    $uefi = $false
+                    if ($env:firmware_type -eq 'UEFI') { $uefi = $true }
+                    elseif (Test-Path HKLM:\\System\\CurrentControlSet\\Control\\SecureBoot\\State) { $uefi = $true }
+
+                    @{
+                        system = @{
+                            manufacturer = $sys.Manufacturer
+                            model = $sys.Model
+                            serial = $bios.SerialNumber
+                            version = $sys.SystemType
+                        }
+                        cpu = @{
+                            manufacturer = if ($cpu.Manufacturer -like "*Intel*") { "Intel" } else { "AMD" }
+                            brand = $cpu.Name.Trim()
+                            speed = [double][math]::Round($cpu.MaxClockSpeed / 1000, 2)
+                            cores = $cpu.NumberOfLogicalProcessors
+                            physicalCores = $cpu.NumberOfCores
+                        }
+                        mem = @{
+                            total = $memTotal
+                            used = $memUsed
+                            free = $memFree
+                            available = $memFree
+                        }
+                        os = @{
+                            distro = $os.Caption
+                            arch = $os.OSArchitecture
+                            release = "Build " + $os.BuildNumber
+                            hostname = $os.CSName
+                            uefi = $uefi
+                        }
+                        graphics = @{
+                            controllers = [array]$gpus
+                            displays = [array]$displays
+                        }
+                        diskLayout = [array]$disks
+                        battery = @{
+                            hasBattery = $hasBattery
+                            percent = $percent
+                            isCharging = $isCharging
+                            acConnected = $acConnected
+                            manufacturer = $(if ($batStatic -and $batStatic.ManufactureName) { $batStatic.ManufactureName } else { 'System Battery' })
+                            designedCapacity = $(if ($batStatic -and $batStatic.DesignedCapacity) { $batStatic.DesignedCapacity } else { 45000 })
+                            maxCapacity = $(if ($bat -and $bat.FullChargedCapacity) { $bat.FullChargedCapacity } else { 45000 })
+                            currentCapacity = $(if ($batStat -and $batStat.RemainingCapacity) { $batStat.RemainingCapacity } else { 45000 })
+                            cycleCount = $(if ($batCycle) { $batCycle.CycleCount } else { 0 })
+                        }
+                        ramLayout = [array]$ramLayout
+                        ramTotalSlots = $ramTotalSlots
                     } | ConvertTo-Json -Depth 10 -Compress
                 `;
                 

@@ -275,6 +275,15 @@ export default function SpecCheckUltraPage() {
     const [cfgGpuModel, setCfgGpuModel] = useState('AMD Radeon Graphics');
     const [cfgGpuVram, setCfgGpuVram] = useState(512);
 
+    const handleTabChange = (tab: 'overview' | 'hardware' | 'ram' | 'memory' | 'battery' | 'graphics') => {
+        setActiveTab(tab);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('spec2_active_tab', tab);
+            const newUrl = `${window.location.pathname}?tab=${tab}`;
+            window.history.pushState({}, '', newUrl);
+        }
+    };
+
     useEffect(() => {
         const saved = localStorage.getItem('custom_specs_override');
         if (saved) {
@@ -361,6 +370,24 @@ export default function SpecCheckUltraPage() {
     };
 
     useEffect(() => {
+        // Read tab from query parameter or localStorage
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const queryTab = params.get('tab');
+            const validTabs = ['overview', 'hardware', 'ram', 'memory', 'battery', 'graphics'];
+            if (queryTab && validTabs.includes(queryTab)) {
+                setActiveTab(queryTab as any);
+            } else {
+                const savedTab = localStorage.getItem('spec2_active_tab');
+                if (savedTab && validTabs.includes(savedTab)) {
+                    setActiveTab(savedTab as any);
+                    // Sync with URL query parameter
+                    const newUrl = `${window.location.pathname}?tab=${savedTab}`;
+                    window.history.replaceState({}, '', newUrl);
+                }
+            }
+        }
+
         fetchSpecsData();
 
         // Simulate fluctuations
@@ -466,12 +493,12 @@ export default function SpecCheckUltraPage() {
                     </div>
 
                     <div className="nav-row">
-                        <button onClick={() => setActiveTab('overview')} className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}>Overview</button>
-                        <button onClick={() => setActiveTab('hardware')} className={`nav-link ${activeTab === 'hardware' ? 'active' : ''}`}>Processor Info</button>
-                        <button onClick={() => setActiveTab('ram')} className={`nav-link ${activeTab === 'ram' ? 'active' : ''}`}>RAM Array</button>
-                        <button onClick={() => setActiveTab('memory')} className={`nav-link ${activeTab === 'memory' ? 'active' : ''}`}>Storage Array</button>
-                        <button onClick={() => setActiveTab('battery')} className={`nav-link ${activeTab === 'battery' ? 'active' : ''}`}>Battery & Power</button>
-                        <button onClick={() => setActiveTab('graphics')} className={`nav-link ${activeTab === 'graphics' ? 'active' : ''}`}>Graphics & Display</button>
+                        <button onClick={() => handleTabChange('overview')} className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}>Overview</button>
+                        <button onClick={() => handleTabChange('hardware')} className={`nav-link ${activeTab === 'hardware' ? 'active' : ''}`}>Processor Info</button>
+                        <button onClick={() => handleTabChange('ram')} className={`nav-link ${activeTab === 'ram' ? 'active' : ''}`}>RAM Array</button>
+                        <button onClick={() => handleTabChange('memory')} className={`nav-link ${activeTab === 'memory' ? 'active' : ''}`}>Storage Array</button>
+                        <button onClick={() => handleTabChange('battery')} className={`nav-link ${activeTab === 'battery' ? 'active' : ''}`}>Battery & Power</button>
+                        <button onClick={() => handleTabChange('graphics')} className={`nav-link ${activeTab === 'graphics' ? 'active' : ''}`}>Graphics & Display</button>
                     </div>
                 </div>
             </div>
