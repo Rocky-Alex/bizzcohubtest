@@ -1059,6 +1059,8 @@ export default function SpecCheckUltraPage() {
                     )}
                 </div>
 
+            </main>
+
             {/* Custom Telemetry Specs Configurator Modal */}
             {isConfigModalOpen && (
                 <div className="modal-overlay">
