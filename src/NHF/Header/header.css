@@ -79,7 +79,7 @@
     /* Removed absolute positioning to use flex space-between */
 }
 
-.nav-link {
+.main-nav .nav-link {
     display: flex;
     align-items: center;
     gap: 4px;
@@ -88,18 +88,37 @@
     font-size: 0.95rem;
     /* Larger font */
     font-weight: 500;
-    padding: 4px 0;
+    padding: 6px 0;
     transition: color 0.2s ease;
     position: relative;
     white-space: nowrap;
 }
 
-.nav-link:hover {
+.main-nav .nav-link:hover {
     color: var(--text-primary);
 }
 
-.nav-link.active {
+.main-nav .nav-link.active {
     color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Underline navigation indicator for active and hover states */
+.main-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #6366f1; /* Brand Indigo/Blue */
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.main-nav .nav-link:hover::after,
+.main-nav .nav-link.active::after {
+    width: 100%;
 }
 
 /* Header Actions - Right Side */
