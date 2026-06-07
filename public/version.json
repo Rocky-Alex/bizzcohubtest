@@ -1,6 +1,0 @@
-{
-  "version": "1.0.8",
-  "name": "BizzCo Telemetry System Update",
-  "releaseNotes": "Fixed column layout overflow bug for 'Speed (GHz)' and 'VRAM (MB)' fields on the Configure Specs modal.",
-  "url": "https://github.com/Rocky-Alex/bizzcohubtest/releases/download/v1.0.8/BizzCo-Telemetry-Setup.exe"
-}
