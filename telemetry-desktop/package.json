@@ -1,7 +1,7 @@
 {
   "name": "bch-qc",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "main.js",
   "scripts": {
     "dev": "vite",
@@ -20,7 +20,9 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "public/icon.png"
+      "icon": "public/icon.png",
+      "certificateFile": "bizzco-cert.pfx",
+      "certificatePassword": "bizzco123"
     },
     "nsis": {
       "oneClick": false,
