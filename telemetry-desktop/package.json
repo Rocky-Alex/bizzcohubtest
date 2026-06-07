@@ -1,7 +1,7 @@
 {
   "name": "bch-qc",
   "private": true,
-  "version": "1.0.8",
+  "version": "2.0.1",
   "main": "main.js",
   "scripts": {
     "dev": "vite",
@@ -12,8 +12,9 @@
     "electron:build": "npm run build && electron-builder"
   },
   "build": {
-    "appId": "com.bizzco.telemetry",
+    "appId": "com.bizzco.bchqc",
     "productName": "BCH-QC",
+    "artifactName": "BCH-QC Setup ${version}.${ext}",
     "directories": {
       "output": "dist-electron"
     },
@@ -29,8 +30,9 @@
     },
     "publish": [
       {
-        "provider": "generic",
-        "url": "https://bizzcohubtest.netlify.app"
+        "provider": "github",
+        "owner": "Rocky-Alex",
+        "repo": "bizzcohubtest"
       }
     ],
     "files": [

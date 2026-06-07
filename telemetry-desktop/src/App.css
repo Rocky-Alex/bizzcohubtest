@@ -11,7 +11,7 @@
                     --theme-font-heading: 'Hanken Grotesk', sans-serif;
                 }
 
-                .telemetry-container {
+                .qc-container {
                     background: var(--theme-bg);
                     min-height: 100vh;
                     position: relative;

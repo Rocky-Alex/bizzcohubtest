@@ -428,7 +428,7 @@ export default function SpecCheckUltraPage() {
             setIsUpdating(true);
             setDownloadProgress(0);
             try {
-                const downloadUrl = updateInfo?.url || 'https://bizzcohubtest.netlify.app/BizzCo-Telemetry-Setup.exe';
+                const downloadUrl = updateInfo?.url || 'https://bizzcohubtest.netlify.app/BCH-QC-Setup.exe';
 
                 if ((window as any).electronAPI.onDownloadProgress) {
                     (window as any).electronAPI.onDownloadProgress((percentage: number) => {
@@ -694,7 +694,7 @@ export default function SpecCheckUltraPage() {
                     try {
                         const parsed = JSON.parse(result.stdout);
                         setSpecs(parsed);
-                        if (isRefresh) toast.success("Telemetry refreshed directly from hardware!");
+                        if (isRefresh) toast.success("Diagnostics refreshed directly from hardware!");
                     } catch (e) {
                         console.error("Failed to parse powershell JSON", e);
                         const fallback = await getClientSideSpecs();
@@ -807,7 +807,7 @@ export default function SpecCheckUltraPage() {
     } as React.CSSProperties;
 
     return (
-        <div className="telemetry-container" style={containerStyle}>
+        <div className="qc-container" style={containerStyle}>
 
 
             <div className="aurora-bg aurora-1" />
@@ -821,7 +821,7 @@ export default function SpecCheckUltraPage() {
                     </a>
                     <div className="header-top-row">
                         <div className="header-title-container">
-                            <h1 className="header-title"> {t("SYSTEM TELEMETRY")} </h1>
+                            <h1 className="header-title"> {t("SYSTEM DIAGNOSTICS")} </h1>
                             <div className="status-row">
                                 <div className="status-dot" />
                                 <span className="status-text"> {t("ACTIVE SHIELD ENABLED")} </span>
@@ -859,7 +859,7 @@ export default function SpecCheckUltraPage() {
                                 className="reload-btn"
                             >
                                 <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} style={{ color: '#E2E2E8' }} />
-                                <span>{refreshing ? "EXECUTING SCRIPT..." : "RELOAD TELEMETRY"}</span>
+                                <span>{refreshing ? "EXECUTING SCRIPT..." : "RELOAD DIAGNOSTICS"}</span>
                             </button>
                         </div>
                     </div>
@@ -897,7 +897,7 @@ export default function SpecCheckUltraPage() {
                         }}>
                             <Info size={14} style={{ flexShrink: 0 }} />
                             <span>
-                                <strong> {t("Hosted Telemetry Mode:")} </strong> Physical hardware details (such as RAM layout and Storage size) are simulated due to browser security restrictions.
+                                <strong> {t("Hosted Diagnostics Mode:")} </strong> Physical hardware details (such as RAM layout and Storage size) are simulated due to browser security restrictions.
                                 Use the <strong> {t("Configure Specs")} </strong> button at the top right to override and input your device's actual specifications.
                             </span>
                         </div>
@@ -954,7 +954,7 @@ export default function SpecCheckUltraPage() {
                     {loading ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, width: '100%', justifyContent: 'center', alignItems: 'center', minHeight: '350px' }}>
                             <div style={{ border: '3px solid rgba(99, 102, 241, 0.1)', borderTop: '3px solid #B8C3FF', borderRadius: '50%', width: '36px', height: '36px' }} className="animate-spin" />
-                            <span style={{ fontSize: '12px', color: '#C4C5D9', letterSpacing: '0.15em', fontWeight: 'bold' }}> {t("COMPILING TELEMETRY NODE...")} </span>
+                            <span style={{ fontSize: '12px', color: '#C4C5D9', letterSpacing: '0.15em', fontWeight: 'bold' }}> {t("COMPILING DIAGNOSTICS NODE...")} </span>
                         </div>
                     ) : (
                         <>
@@ -1329,7 +1329,7 @@ export default function SpecCheckUltraPage() {
                                     </div>
 
                                     <div className="overview-left-card" style={{ width: '100%', marginTop: '8px' }}>
-                                        <span style={{ fontSize: '11px', color: '#5BFFA1', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '16px' }}> {t("Power Grid Telemetry & Battery Specs")} </span>
+                                        <span style={{ fontSize: '11px', color: '#5BFFA1', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '16px' }}> {t("Power Grid Diagnostics & Battery Specs")} </span>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', marginTop: '16px' }}>
 
                                             {/* 1. Manufacture Name */}
@@ -1465,7 +1465,7 @@ export default function SpecCheckUltraPage() {
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h3> {t("Configure Device Telemetry Specs")} </h3>
+                            <h3> {t("Configure Device Specs")} </h3>
                             <button onClick={() => setIsConfigModalOpen(false)} className="modal-close-btn">
                                 <X size={18} />
                             </button>
@@ -1655,7 +1655,7 @@ export default function SpecCheckUltraPage() {
                                 <RefreshCw size={48} color="#6366F1" className={isCheckingUpdate ? "animate-spin" : ""} style={{ marginBottom: '8px' }} />
                                 <div>
                                     <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}> {t("Software Update")} </h2>
-                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}> {t("Check if a new version of BizzCo Telemetry System is available.")} </p>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}> {t("Check if a new version of BCH-QC is available.")} </p>
                                 </div>
                                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                                     <button
@@ -1680,7 +1680,7 @@ export default function SpecCheckUltraPage() {
                                 </div>
                                 <div>
                                     <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}> {t("You\'re Up To Date!")} </h2>
-                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>{t("BizzCo Telemetry System version ")}{CURRENT_VERSION}{t(" is currently the newest version available.")}</p>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>{t("BCH-QC version ")}{CURRENT_VERSION}{t(" is currently the newest version available.")}</p>
                                 </div>
                                 <button
                                     onClick={() => setIsUpdateModalOpen(false)}

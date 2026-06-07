@@ -1,7 +1,10 @@
+/* eslint-disable */
 "use client";
 import './page.css';
 
 import React, { useState, useEffect } from 'react';
+
+const t = (str: string) => str;
 import Link from 'next/link';
 import {
     ArrowLeft,
@@ -466,10 +469,10 @@ export default function SpecCheckUltraPage() {
                     </Link>
                     <div className="header-top-row">
                         <div className="header-title-container">
-                            <h1 className="header-title">SYSTEM TELEMETRY</h1>
+                            <h1 className="header-title">{t("SYSTEM TELEMETRY")}</h1>
                             <div className="status-row">
                                 <div className="status-dot" />
-                                <span className="status-text">ACTIVE SHIELD ENABLED</span>
+                                <span className="status-text">{t("ACTIVE SHIELD ENABLED")}</span>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
@@ -479,7 +482,7 @@ export default function SpecCheckUltraPage() {
                                 style={{ borderColor: '#B8C3FF', color: '#B8C3FF' }}
                             >
                                 <Settings size={12} style={{ marginRight: '6px' }} />
-                                <span>CONFIGURE SPECS</span>
+                                <span>{t("CONFIGURE SPECS")}</span>
                             </button>
                             <button
                                 onClick={() => setIsReloadModalOpen(true)}
@@ -493,10 +496,10 @@ export default function SpecCheckUltraPage() {
                     </div>
 
                     <div className="nav-row">
-                        <button onClick={() => handleTabChange('overview')} className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}>Overview</button>
-                        <button onClick={() => handleTabChange('hardware')} className={`nav-link ${activeTab === 'hardware' ? 'active' : ''}`}>Processor Info</button>
-                        <button onClick={() => handleTabChange('ram')} className={`nav-link ${activeTab === 'ram' ? 'active' : ''}`}>RAM Array</button>
-                        <button onClick={() => handleTabChange('memory')} className={`nav-link ${activeTab === 'memory' ? 'active' : ''}`}>Storage Array</button>
+                        <button onClick={() => handleTabChange('overview')} className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}>{t("Overview")}</button>
+                        <button onClick={() => handleTabChange('hardware')} className={`nav-link ${activeTab === 'hardware' ? 'active' : ''}`}>{t("Processor Info")}</button>
+                        <button onClick={() => handleTabChange('ram')} className={`nav-link ${activeTab === 'ram' ? 'active' : ''}`}>{t("RAM Array")}</button>
+                        <button onClick={() => handleTabChange('memory')} className={`nav-link ${activeTab === 'memory' ? 'active' : ''}`}>{t("Storage Array")}</button>
                         <button onClick={() => handleTabChange('battery')} className={`nav-link ${activeTab === 'battery' ? 'active' : ''}`}>Battery & Power</button>
                         <button onClick={() => handleTabChange('graphics')} className={`nav-link ${activeTab === 'graphics' ? 'active' : ''}`}>Graphics & Display</button>
                     </div>
@@ -525,8 +528,8 @@ export default function SpecCheckUltraPage() {
                     }}>
                         <Info size={14} style={{ flexShrink: 0 }} />
                         <span>
-                            <strong>Hosted Telemetry Mode:</strong> Physical hardware details (such as RAM layout and Storage size) are simulated due to browser security restrictions. 
-                            Use the <strong>Configure Specs</strong> button at the top right to override and input your device's actual specifications.
+                            <strong>{t("Hosted Telemetry Mode:")}</strong> Physical hardware details (such as RAM layout and Storage size) are simulated due to browser security restrictions. 
+                            Use the <strong>{t("Configure Specs")}</strong> button at the top right to override and input your device's actual specifications.
                         </span>
                     </div>
                 )}
@@ -538,7 +541,7 @@ export default function SpecCheckUltraPage() {
                         <div className="metric-info">
                             <div className="metric-label-row">
                                 <div className="metric-label-icon"><Cpu size={12} /></div>
-                                <span className="metric-label-text">Processor Load</span>
+                                <span className="metric-label-text">{t("Processor Load")}</span>
                             </div>
                             <div className="metric-value">
                                 {specs?.cpu?.cores || 12} LOGICAL CORES
@@ -552,7 +555,7 @@ export default function SpecCheckUltraPage() {
                         <div className="metric-info">
                             <div className="metric-label-row">
                                 <div className="metric-label-icon"><Database size={12} /></div>
-                                <span className="metric-label-text">Memory Allocation</span>
+                                <span className="metric-label-text">{t("Memory Allocation")}</span>
                             </div>
                             <div className="metric-value">
                                 {(specs?.mem?.used / 1024 ** 3 || 5.1).toFixed(1)} / {(specs?.mem?.total / 1024 ** 3 || 16.0).toFixed(0)} GB
@@ -566,7 +569,7 @@ export default function SpecCheckUltraPage() {
                         <div className="metric-info">
                             <div className="metric-label-row">
                                 <div className="metric-label-icon"><Zap size={12} /></div>
-                                <span className="metric-label-text">Power Reserve</span>
+                                <span className="metric-label-text">{t("Power Reserve")}</span>
                             </div>
                             <div className="metric-value" style={{ textTransform: 'uppercase' }}>
                                 {specs?.battery?.hasBattery 
@@ -582,7 +585,7 @@ export default function SpecCheckUltraPage() {
                     {loading ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, width: '100%', justifyContent: 'center', alignItems: 'center', minHeight: '350px' }}>
                             <div style={{ border: '3px solid rgba(99, 102, 241, 0.1)', borderTop: '3px solid #B8C3FF', borderRadius: '50%', width: '36px', height: '36px' }} className="animate-spin" />
-                            <span style={{ fontSize: '12px', color: '#C4C5D9', letterSpacing: '0.15em', fontWeight: 'bold' }}>COMPILING TELEMETRY NODE...</span>
+                            <span style={{ fontSize: '12px', color: '#C4C5D9', letterSpacing: '0.15em', fontWeight: 'bold' }}>{t("COMPILING TELEMETRY NODE...")}</span>
                         </div>
                     ) : (
                         <>
@@ -590,16 +593,16 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'overview' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">System Overview</h2>
+                                        <h2 className="canvas-title">{t("System Overview")}</h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>All Diagnostics: Pass</span>
+                                            <span>{t("All Diagnostics: Pass")}</span>
                                         </div>
                                     </div>
 
                                     <div className="overview-grid">
                                         <div className="overview-left-card">
-                                            <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}>Device Configuration</span>
+                                            <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}>{t("Device Configuration")}</span>
                                             <h2 style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: '28px', fontWeight: 600, color: '#E2E2E8', margin: '0 0 16px 0' }}>
                                                 {specs?.system?.manufacturer} {specs?.system?.model}
                                             </h2>
@@ -609,38 +612,38 @@ export default function SpecCheckUltraPage() {
                                             
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Platform OS</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Platform OS")}</span>
                                                     <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.distro || 'N/A'}</div>
                                                 </div>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Architecture</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Architecture")}</span>
                                                     <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.arch || 'N/A'} ({specs?.os?.release || 'N/A'})</div>
                                                 </div>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Host Node</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Host Node")}</span>
                                                     <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.hostname || 'N/A'}</div>
                                                 </div>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Board UEFI</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Board UEFI")}</span>
                                                     <div style={{ fontSize: '15px', color: '#5BFFA1', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.uefi ? 'SECURE_BOOT' : 'COMPATIBLE'}</div>
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <div className="overview-right-card">
-                                            <span style={{ fontSize: '11px', color: '#D30078', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase' }}>Live Hardware Temps</span>
+                                            <span style={{ fontSize: '11px', color: '#D30078', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase' }}>{t("Live Hardware Temps")}</span>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                                                    <span style={{ color: '#C4C5D9' }}>CPU Core Temp</span>
+                                                    <span style={{ color: '#C4C5D9' }}>{t("CPU Core Temp")}</span>
                                                     <span style={{ color: '#B8C3FF', fontWeight: 'bold' }}>{simulatedTemp}°C</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                                                    <span style={{ color: '#C4C5D9' }}>GPU Controller Temp</span>
+                                                    <span style={{ color: '#C4C5D9' }}>{t("GPU Controller Temp")}</span>
                                                     <span style={{ color: '#D30078', fontWeight: 'bold' }}>{simulatedGpuTemp}°C</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '12px' }}>
-                                                    <span style={{ color: '#C4C5D9' }}>System Status</span>
-                                                    <span style={{ color: '#5BFFA1', fontWeight: 'bold' }}>COOL</span>
+                                                    <span style={{ color: '#C4C5D9' }}>{t("System Status")}</span>
+                                                    <span style={{ color: '#5BFFA1', fontWeight: 'bold' }}>{t("COOL")}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -652,34 +655,34 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'hardware' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Processor Details</h2>
+                                        <h2 className="canvas-title">{t("Processor Details")}</h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Cores Online</span>
+                                            <span>{t("Cores Online")}</span>
                                         </div>
                                     </div>
 
                                     <div className="overview-left-card" style={{ width: '100%' }}>
-                                        <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}>Processor load sensors</span>
+                                        <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}>{t("Processor load sensors")}</span>
                                         <h2 style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: '28px', fontWeight: 600, color: '#E2E2E8', margin: '0 0 24px 0' }}>
                                             {specs?.cpu?.brand}
                                         </h2>
                                         
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px' }}>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Manufacturer</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Manufacturer")}</span>
                                                 <div style={{ fontSize: '16px', color: '#FFFFFF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.manufacturer}</div>
                                             </div>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Physical Cores</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Physical Cores")}</span>
                                                 <div style={{ fontSize: '16px', color: '#FFFFFF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.physicalCores || 6} Cores</div>
                                             </div>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Logical Threads</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Logical Threads")}</span>
                                                 <div style={{ fontSize: '16px', color: '#FFFFFF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.cores || 12} Threads</div>
                                             </div>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Base Frequency</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>{t("Base Frequency")}</span>
                                                 <div style={{ fontSize: '16px', color: '#B8C3FF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.speed ? specs.cpu.speed.toFixed(2) : '2.60'} GHz</div>
                                             </div>
                                         </div>
@@ -687,7 +690,7 @@ export default function SpecCheckUltraPage() {
                                         {/* Real-time Load details */}
                                         <div style={{ marginTop: '32px', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '24px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                                <span style={{ fontSize: '12px', color: '#C4C5D9', fontWeight: 'bold' }}>REAL-TIME CORE LOAD SCALE</span>
+                                                <span style={{ fontSize: '12px', color: '#C4C5D9', fontWeight: 'bold' }}>{t("REAL-TIME CORE LOAD SCALE")}</span>
                                                 <span style={{ fontSize: '16px', color: '#B8C3FF', fontWeight: 'bold', fontFamily: 'monospace' }}>{simulatedLoad}%</span>
                                             </div>
                                             <div style={{ display: 'flex', gap: '6px', height: '16px', width: '100%' }}>
@@ -710,9 +713,9 @@ export default function SpecCheckUltraPage() {
                                                 })}
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#8E90A2', marginTop: '8px' }}>
-                                                <span>MIN_CYCLE</span>
-                                                <span>MID_SCALE</span>
-                                                <span>MAX_CYCLE_BOOST</span>
+                                                <span>{t("MIN_CYCLE")}</span>
+                                                <span>{t("MID_SCALE")}</span>
+                                                <span>{t("MAX_CYCLE_BOOST")}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -754,7 +757,7 @@ export default function SpecCheckUltraPage() {
                                 return (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                         <div className="canvas-header-row">
-                                            <h2 className="canvas-title">Physical Memory Slots (RAM Array Layout)</h2>
+                                            <h2 className="canvas-title">{t("Physical Memory Slots (RAM Array Layout)")}</h2>
                                             <div className="diagnostics-badge">
                                                 <Activity size={12} />
                                                 <span>{occupiedSlots.length} / {totalSlots} SLOTS ACTIVE</span>
@@ -781,7 +784,7 @@ export default function SpecCheckUltraPage() {
                                                 <span style={{ fontSize: '12px', color: '#8E90A2' }}>{totalSlots - occupiedSlots.length} Empty</span>
                                             </div>
                                             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Channel Mode:</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{t("Channel Mode:")}</span>
                                                 <span style={{ fontSize: '12px', fontWeight: 700, color: isMultiChannel ? '#B8C3FF' : '#FFD68A', background: isMultiChannel ? 'rgba(184,195,255,0.1)' : 'rgba(255,214,138,0.1)', padding: '2px 10px', borderRadius: '6px', letterSpacing: '0.5px' }}>
                                                     {isMultiChannel ? 'DUAL CHANNEL' : 'SINGLE CHANNEL'}
                                                 </span>
@@ -811,12 +814,12 @@ export default function SpecCheckUltraPage() {
                                                         </div>
                                                         
                                                         <div className="hw-verification-card">
-                                                            <div className="hw-verification-title">Hardware Verification</div>
+                                                            <div className="hw-verification-title">{t("Hardware Verification")}</div>
                                                             
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">Voltage Check</span>
+                                                                    <span className="verification-label">{t("Voltage Check")}</span>
                                                                 </div>
                                                                 <span className="verification-value">{slot.ram.voltageConfigured || '1.20'} V</span>
                                                             </div>
@@ -824,7 +827,7 @@ export default function SpecCheckUltraPage() {
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">Speed Clock Match</span>
+                                                                    <span className="verification-label">{t("Speed Clock Match")}</span>
                                                                 </div>
                                                                 <span className="verification-value">{slot.ram.clockSpeed || '3200'} MHz</span>
                                                             </div>
@@ -832,7 +835,7 @@ export default function SpecCheckUltraPage() {
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">ECC Integrity</span>
+                                                                    <span className="verification-label">{t("ECC Integrity")}</span>
                                                                 </div>
                                                                 <span className="verification-value">{slot.ram.ecc ? 'ECC Active' : 'NON-ECC'}</span>
                                                             </div>
@@ -840,7 +843,7 @@ export default function SpecCheckUltraPage() {
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">Channel Status</span>
+                                                                    <span className="verification-label">{t("Channel Status")}</span>
                                                                 </div>
                                                                 <span className="verification-value">{isMultiChannel ? 'DUAL CHANNEL' : 'SINGLE CHANNEL'}</span>
                                                             </div>
@@ -848,15 +851,15 @@ export default function SpecCheckUltraPage() {
                                                         
                                                         <div className="slot-tech-specs">
                                                             <div className="tech-spec-row">
-                                                                    <span className="tech-spec-label">Form Factor:</span>
+                                                                    <span className="tech-spec-label">{t("Form Factor:")}</span>
                                                                     <span className="tech-spec-value">{slot.ram.formFactor || 'SODIMM'}</span>
                                                             </div>
                                                             <div className="tech-spec-row">
-                                                                    <span className="tech-spec-label">Part ID:</span>
+                                                                    <span className="tech-spec-label">{t("Part ID:")}</span>
                                                                     <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.partNum || '—'}</span>
                                                             </div>
                                                             <div className="tech-spec-row">
-                                                                    <span className="tech-spec-label">Serial Key:</span>
+                                                                    <span className="tech-spec-label">{t("Serial Key:")}</span>
                                                                     <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.serialNum || '—'}</span>
                                                             </div>
                                                         </div>
@@ -886,7 +889,7 @@ export default function SpecCheckUltraPage() {
                                                         </div>
                                                         <div style={{ textAlign: 'center' }}>
                                                             <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.5px' }}>{slot.slotName}</div>
-                                                            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.18)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Empty — No Module Installed</div>
+                                                            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.18)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>{t("Empty — No Module Installed")}</div>
                                                         </div>
                                                         <div style={{
                                                             fontSize: '10px',
@@ -897,7 +900,7 @@ export default function SpecCheckUltraPage() {
                                                             padding: '3px 10px',
                                                             textTransform: 'uppercase',
                                                             letterSpacing: '0.8px'
-                                                        }}>Slot Available</div>
+                                                        }}>{t("Slot Available")}</div>
                                                     </div>
                                                 )
                                             ))}
@@ -910,10 +913,10 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'memory' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Storage Disk Arrays</h2>
+                                        <h2 className="canvas-title">{t("Storage Disk Arrays")}</h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Optimal Smart</span>
+                                            <span>{t("Optimal Smart")}</span>
                                         </div>
                                     </div>
 
@@ -949,10 +952,10 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'battery' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Battery Diagnostic Console</h2>
+                                        <h2 className="canvas-title">{t("Battery Diagnostic Console")}</h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Power Optimal</span>
+                                            <span>{t("Power Optimal")}</span>
                                         </div>
                                     </div>
 
@@ -962,7 +965,7 @@ export default function SpecCheckUltraPage() {
                                             
                                             {/* 1. Manufacture Name */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Manufacture Name</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>{t("Manufacture Name")}</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.hasBattery ? (specs.battery.manufacturer || 'System Battery') : 'No Internal Battery'}
                                                 </div>
@@ -970,7 +973,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 2. Power State */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Power State</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>{t("Power State")}</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.hasBattery 
                                                         ? (specs.battery.isCharging ? 'Charging' : (specs.battery.acConnected ? 'AC Connected (Not Charging)' : 'Discharging')) 
@@ -980,7 +983,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 3. Current Capacity Value */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Current Capacity Value</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>{t("Current Capacity Value")}</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.currentCapacity ? `${specs.battery.currentCapacity} mWh` : 'Unknown'} ({specs?.battery?.percent || 100}%)
                                                 </div>
@@ -988,7 +991,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 4. Full Charged Capacity */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Full Charged Capacity</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>{t("Full Charged Capacity")}</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.maxCapacity ? `${specs.battery.maxCapacity} mWh` : 'Unknown'}
                                                 </div>
@@ -996,7 +999,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 5. Designed Capacity */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Designed Capacity</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>{t("Designed Capacity")}</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.designedCapacity ? `${specs.battery.designedCapacity} mWh` : 'Unknown'}
                                                 </div>
@@ -1004,7 +1007,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 6. Battery Health */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Battery Health</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>{t("Battery Health")}</span>
                                                 <div style={{ fontSize: '15px', fontWeight: 600, marginTop: '4px' }}>
                                                     {(() => {
                                                         const health = specs?.battery?.healthPercent 
@@ -1025,7 +1028,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 7. Cycle Count */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Charge / Discharge Cycles</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>{t("Charge / Discharge Cycles")}</span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.cycleCount || 'Not Reported by OS'}
                                                 </div>
@@ -1040,10 +1043,10 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'graphics' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Display Controllers & Monitor Console</h2>
+                                        <h2 className="canvas-title">{t("Display Controllers & Monitor Console")}</h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Display Online</span>
+                                            <span>{t("Display Online")}</span>
                                         </div>
                                     </div>
 
@@ -1054,7 +1057,7 @@ export default function SpecCheckUltraPage() {
                                                 <Monitor size={20} color="#FFB0CB" />
                                             </div>
                                             <div className="display-info-container">
-                                                <span className="display-label">Controller Model</span>
+                                                <span className="display-label">{t("Controller Model")}</span>
                                                 <div className="display-value">
                                                     {specs?.graphics?.controllers?.[0]?.vendor} {specs?.graphics?.controllers?.[0]?.model}
                                                 </div>
@@ -1130,7 +1133,7 @@ export default function SpecCheckUltraPage() {
                                             <span>Device Identity</span>
                                         </div>
                                         <div className="form-group">
-                                            <label>Manufacturer</label>
+                                            <label>{t("Manufacturer")}</label>
                                             <input type="text" value={cfgMfg} onChange={(e) => setCfgMfg(e.target.value)} required />
                                         </div>
                                         <div className="form-group">
@@ -1274,9 +1277,9 @@ export default function SpecCheckUltraPage() {
                             <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Install the Offline Desktop App</h2>
                         </div>
                         <p style={{ fontSize: '14px', color: '#8E90A2', lineHeight: '1.6', margin: 0 }}>
-                            To securely read your exact hardware capacity and battery cycle counts <b>automatically in the background</b> without manually running scripts, you need the official BizzCo Offline Desktop App.
+                            To securely read your exact hardware capacity and battery cycle counts <b>automatically in the background</b> without manually running scripts, you need to install <b>BCH-QC (v1.0.8)</b>.
                             <br/><br/>
-                            Do you want to download the <b>Desktop Installer (.exe)</b> now?
+                            Would you like to download the official <b>BCH-QC Setup (.exe)</b> now?
                         </p>
                         <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                             <button 
@@ -1286,8 +1289,8 @@ export default function SpecCheckUltraPage() {
                                 NO, CANCEL
                             </button>
                             <a 
-                                href="/BizzCo-Telemetry-Setup.exe"
-                                download="BizzCo-Telemetry-Setup.exe"
+                                href="/BCH-QC Setup 1.0.8.exe"
+                                download="BCH-QC Setup 1.0.8.exe"
                                 onClick={() => {
                                     setIsReloadModalOpen(false);
                                     setRefreshing(true);
