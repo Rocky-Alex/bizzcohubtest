@@ -1,7 +1,9 @@
+/* eslint-disable i18next/no-literal-string, react/jsx-no-literals, formatjs/no-literal-string-in-jsx, @next/next/no-html-link-for-pages */
 import './App.css';
+const t = (s: string) => s;
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ArrowLeft,
     Cpu,
@@ -815,14 +817,14 @@ export default function SpecCheckUltraPage() {
             <div className="dashboard-header">
                 <div className="dashboard-header-inner">
                     <a href="#" onClick={(e) => { e.preventDefault(); }} className="back-link">
-                        <ArrowLeft size={12} /> BIZZCO HUB OFFLINE APP
+                        <ArrowLeft size={12} /> BCH-QC
                     </a>
                     <div className="header-top-row">
                         <div className="header-title-container">
-                            <h1 className="header-title">SYSTEM TELEMETRY</h1>
+                            <h1 className="header-title"> {t("SYSTEM TELEMETRY")} </h1>
                             <div className="status-row">
                                 <div className="status-dot" />
-                                <span className="status-text">ACTIVE SHIELD ENABLED</span>
+                                <span className="status-text"> {t("ACTIVE SHIELD ENABLED")} </span>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
@@ -832,7 +834,7 @@ export default function SpecCheckUltraPage() {
                                 style={{ borderColor: 'var(--theme-accent-light)', color: 'var(--theme-accent-light)' }}
                             >
                                 <Palette size={12} style={{ marginRight: '6px' }} />
-                                <span>THEMES</span>
+                                <span> {t("THEMES")} </span>
                             </button>
                             <button
                                 onClick={handleCheckUpdate}
@@ -841,7 +843,7 @@ export default function SpecCheckUltraPage() {
                                 style={{ borderColor: '#6366F1', color: '#B8C3FF' }}
                             >
                                 <RefreshCw size={12} style={{ marginRight: '6px' }} />
-                                <span>UPDATE APP</span>
+                                <span> {t("UPDATE APP")} </span>
                             </button>
                             <button
                                 onClick={() => setIsConfigModalOpen(true)}
@@ -849,7 +851,7 @@ export default function SpecCheckUltraPage() {
                                 style={{ borderColor: '#B8C3FF', color: '#B8C3FF' }}
                             >
                                 <Settings size={12} style={{ marginRight: '6px' }} />
-                                <span>CONFIGURE SPECS</span>
+                                <span> {t("CONFIGURE SPECS")} </span>
                             </button>
                             <button
                                 onClick={() => fetchSpecsData(true)}
@@ -863,12 +865,12 @@ export default function SpecCheckUltraPage() {
                     </div>
 
                     <div className="nav-row">
-                        <button onClick={() => handleTabChange('overview')} className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}>Overview</button>
-                        <button onClick={() => handleTabChange('hardware')} className={`nav-link ${activeTab === 'hardware' ? 'active' : ''}`}>Processor Info</button>
-                        <button onClick={() => handleTabChange('ram')} className={`nav-link ${activeTab === 'ram' ? 'active' : ''}`}>RAM Array</button>
-                        <button onClick={() => handleTabChange('memory')} className={`nav-link ${activeTab === 'memory' ? 'active' : ''}`}>Storage Array</button>
-                        <button onClick={() => handleTabChange('battery')} className={`nav-link ${activeTab === 'battery' ? 'active' : ''}`}>Battery & Power</button>
-                        <button onClick={() => handleTabChange('graphics')} className={`nav-link ${activeTab === 'graphics' ? 'active' : ''}`}>Graphics & Display</button>
+                        <button onClick={() => handleTabChange('overview')} className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}> {t("Overview")} </button>
+                        <button onClick={() => handleTabChange('hardware')} className={`nav-link ${activeTab === 'hardware' ? 'active' : ''}`}> {t("Processor Info")} </button>
+                        <button onClick={() => handleTabChange('ram')} className={`nav-link ${activeTab === 'ram' ? 'active' : ''}`}> {t("RAM Array")} </button>
+                        <button onClick={() => handleTabChange('memory')} className={`nav-link ${activeTab === 'memory' ? 'active' : ''}`}> {t("Storage Array")} </button>
+                        <button onClick={() => handleTabChange('battery')} className={`nav-link ${activeTab === 'battery' ? 'active' : ''}`}> {t("Battery & Power")} </button>
+                        <button onClick={() => handleTabChange('graphics')} className={`nav-link ${activeTab === 'graphics' ? 'active' : ''}`}> {t("Graphics & Display")} </button>
                     </div>
                 </div>
             </div>
@@ -895,8 +897,8 @@ export default function SpecCheckUltraPage() {
                         }}>
                             <Info size={14} style={{ flexShrink: 0 }} />
                             <span>
-                                <strong>Hosted Telemetry Mode:</strong> Physical hardware details (such as RAM layout and Storage size) are simulated due to browser security restrictions.
-                                Use the <strong>Configure Specs</strong> button at the top right to override and input your device's actual specifications.
+                                <strong> {t("Hosted Telemetry Mode:")} </strong> Physical hardware details (such as RAM layout and Storage size) are simulated due to browser security restrictions.
+                                Use the <strong> {t("Configure Specs")} </strong> button at the top right to override and input your device's actual specifications.
                             </span>
                         </div>
                     )}
@@ -908,7 +910,7 @@ export default function SpecCheckUltraPage() {
                         <div className="metric-info">
                             <div className="metric-label-row">
                                 <div className="metric-label-icon"><Cpu size={12} /></div>
-                                <span className="metric-label-text">Processor Load</span>
+                                <span className="metric-label-text"> {t("Processor Load")} </span>
                             </div>
                             <div className="metric-value">
                                 {specs?.cpu?.cores || 12} LOGICAL CORES
@@ -922,7 +924,7 @@ export default function SpecCheckUltraPage() {
                         <div className="metric-info">
                             <div className="metric-label-row">
                                 <div className="metric-label-icon"><Database size={12} /></div>
-                                <span className="metric-label-text">Memory Allocation</span>
+                                <span className="metric-label-text"> {t("Memory Allocation")} </span>
                             </div>
                             <div className="metric-value">
                                 {(specs?.mem?.used / 1024 ** 3 || 5.1).toFixed(1)} / {(specs?.mem?.total / 1024 ** 3 || 16.0).toFixed(0)} GB
@@ -936,7 +938,7 @@ export default function SpecCheckUltraPage() {
                         <div className="metric-info">
                             <div className="metric-label-row">
                                 <div className="metric-label-icon"><Zap size={12} /></div>
-                                <span className="metric-label-text">Power Reserve</span>
+                                <span className="metric-label-text"> {t("Power Reserve")} </span>
                             </div>
                             <div className="metric-value" style={{ textTransform: 'uppercase' }}>
                                 {specs?.battery?.hasBattery
@@ -952,7 +954,7 @@ export default function SpecCheckUltraPage() {
                     {loading ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, width: '100%', justifyContent: 'center', alignItems: 'center', minHeight: '350px' }}>
                             <div style={{ border: '3px solid rgba(99, 102, 241, 0.1)', borderTop: '3px solid #B8C3FF', borderRadius: '50%', width: '36px', height: '36px' }} className="animate-spin" />
-                            <span style={{ fontSize: '12px', color: '#C4C5D9', letterSpacing: '0.15em', fontWeight: 'bold' }}>COMPILING TELEMETRY NODE...</span>
+                            <span style={{ fontSize: '12px', color: '#C4C5D9', letterSpacing: '0.15em', fontWeight: 'bold' }}> {t("COMPILING TELEMETRY NODE...")} </span>
                         </div>
                     ) : (
                         <>
@@ -960,16 +962,16 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'overview' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">System Overview</h2>
+                                        <h2 className="canvas-title"> {t("System Overview")} </h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>All Diagnostics: Pass</span>
+                                            <span> {t("All Diagnostics: Pass")} </span>
                                         </div>
                                     </div>
 
                                     <div className="overview-grid">
                                         <div className="overview-left-card">
-                                            <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}>Device Configuration</span>
+                                            <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}> {t("Device Configuration")} </span>
                                             <h2 style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: '28px', fontWeight: 600, color: '#E2E2E8', margin: '0 0 16px 0' }}>
                                                 {specs?.system?.manufacturer} {specs?.system?.model}
                                             </h2>
@@ -979,38 +981,38 @@ export default function SpecCheckUltraPage() {
 
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Platform OS</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Platform OS")} </span>
                                                     <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.distro || 'N/A'}</div>
                                                 </div>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Architecture</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Architecture")} </span>
                                                     <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.arch || 'N/A'} ({specs?.os?.release || 'N/A'})</div>
                                                 </div>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Host Node</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Host Node")} </span>
                                                     <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.hostname || 'N/A'}</div>
                                                 </div>
                                                 <div>
-                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Board UEFI</span>
+                                                    <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Board UEFI")} </span>
                                                     <div style={{ fontSize: '15px', color: '#5BFFA1', fontWeight: 600, marginTop: '4px' }}>{specs?.os?.uefi ? 'SECURE_BOOT' : 'COMPATIBLE'}</div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="overview-right-card">
-                                            <span style={{ fontSize: '11px', color: '#D30078', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase' }}>Live Hardware Temps</span>
+                                            <span style={{ fontSize: '11px', color: '#D30078', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase' }}> {t("Live Hardware Temps")} </span>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                                                    <span style={{ color: '#C4C5D9' }}>CPU Core Temp</span>
+                                                    <span style={{ color: '#C4C5D9' }}> {t("CPU Core Temp")} </span>
                                                     <span style={{ color: '#B8C3FF', fontWeight: 'bold' }}>{simulatedTemp}°C</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                                                    <span style={{ color: '#C4C5D9' }}>GPU Controller Temp</span>
+                                                    <span style={{ color: '#C4C5D9' }}> {t("GPU Controller Temp")} </span>
                                                     <span style={{ color: '#D30078', fontWeight: 'bold' }}>{simulatedGpuTemp}°C</span>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '12px' }}>
-                                                    <span style={{ color: '#C4C5D9' }}>System Status</span>
-                                                    <span style={{ color: '#5BFFA1', fontWeight: 'bold' }}>COOL</span>
+                                                    <span style={{ color: '#C4C5D9' }}> {t("System Status")} </span>
+                                                    <span style={{ color: '#5BFFA1', fontWeight: 'bold' }}> {t("COOL")} </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1022,34 +1024,34 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'hardware' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Processor Details</h2>
+                                        <h2 className="canvas-title"> {t("Processor Details")} </h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Cores Online</span>
+                                            <span> {t("Cores Online")} </span>
                                         </div>
                                     </div>
 
                                     <div className="overview-left-card" style={{ width: '100%' }}>
-                                        <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}>Processor load sensors</span>
+                                        <span style={{ fontSize: '11px', color: '#B8C3FF', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '8px' }}> {t("Processor load sensors")} </span>
                                         <h2 style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: '28px', fontWeight: 600, color: '#E2E2E8', margin: '0 0 24px 0' }}>
                                             {specs?.cpu?.brand}
                                         </h2>
 
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px' }}>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Manufacturer</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Manufacturer")} </span>
                                                 <div style={{ fontSize: '16px', color: '#FFFFFF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.manufacturer}</div>
                                             </div>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Physical Cores</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Physical Cores")} </span>
                                                 <div style={{ fontSize: '16px', color: '#FFFFFF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.physicalCores || 6} Cores</div>
                                             </div>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Logical Threads</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Logical Threads")} </span>
                                                 <div style={{ fontSize: '16px', color: '#FFFFFF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.cores || 12} Threads</div>
                                             </div>
                                             <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '20px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}>Base Frequency</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '1.1px' }}> {t("Base Frequency")} </span>
                                                 <div style={{ fontSize: '16px', color: '#B8C3FF', fontWeight: 600, marginTop: '6px' }}>{specs?.cpu?.speed ? specs.cpu.speed.toFixed(2) : '2.60'} GHz</div>
                                             </div>
                                         </div>
@@ -1057,7 +1059,7 @@ export default function SpecCheckUltraPage() {
                                         {/* Real-time Load details */}
                                         <div style={{ marginTop: '32px', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '24px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                                <span style={{ fontSize: '12px', color: '#C4C5D9', fontWeight: 'bold' }}>REAL-TIME CORE LOAD SCALE</span>
+                                                <span style={{ fontSize: '12px', color: '#C4C5D9', fontWeight: 'bold' }}> {t("REAL-TIME CORE LOAD SCALE")} </span>
                                                 <span style={{ fontSize: '16px', color: '#B8C3FF', fontWeight: 'bold', fontFamily: 'monospace' }}>{simulatedLoad}%</span>
                                             </div>
                                             <div style={{ display: 'flex', gap: '6px', height: '16px', width: '100%' }}>
@@ -1080,9 +1082,9 @@ export default function SpecCheckUltraPage() {
                                                 })}
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#8E90A2', marginTop: '8px' }}>
-                                                <span>MIN_CYCLE</span>
-                                                <span>MID_SCALE</span>
-                                                <span>MAX_CYCLE_BOOST</span>
+                                                <span> {t("MIN_CYCLE")} </span>
+                                                <span> {t("MID_SCALE")} </span>
+                                                <span> {t("MAX_CYCLE_BOOST")} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -1107,8 +1109,8 @@ export default function SpecCheckUltraPage() {
                                     });
 
                                     // Fallback to array index matching if bank locator didn't yield a match
-                                    if (!matchingStick && specs?.ramLayout && specs.ramLayout[index]) {
-                                        matchingStick = specs.ramLayout[index];
+                                    if (!matchingStick && specs?.ramLayout && specs.ramLayout.at(index)) {
+                                        matchingStick = specs.ramLayout.at(index);
                                     }
 
                                     return {
@@ -1124,7 +1126,7 @@ export default function SpecCheckUltraPage() {
                                 return (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                         <div className="canvas-header-row">
-                                            <h2 className="canvas-title">Physical Memory Slots (RAM Array Layout)</h2>
+                                            <h2 className="canvas-title"> {t("Physical Memory Slots (RAM Array Layout)")} </h2>
                                             <div className="diagnostics-badge">
                                                 <Activity size={12} />
                                                 <span>{occupiedSlots.length} / {totalSlots} SLOTS ACTIVE</span>
@@ -1151,7 +1153,7 @@ export default function SpecCheckUltraPage() {
                                                 <span style={{ fontSize: '12px', color: '#8E90A2' }}>{totalSlots - occupiedSlots.length} Empty</span>
                                             </div>
                                             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '0.8px' }}>Channel Mode:</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase', letterSpacing: '0.8px' }}> {t("Channel Mode:")} </span>
                                                 <span style={{ fontSize: '12px', fontWeight: 700, color: isMultiChannel ? '#B8C3FF' : '#FFD68A', background: isMultiChannel ? 'rgba(184,195,255,0.1)' : 'rgba(255,214,138,0.1)', padding: '2px 10px', borderRadius: '6px', letterSpacing: '0.5px' }}>
                                                     {isMultiChannel ? 'DUAL CHANNEL' : 'SINGLE CHANNEL'}
                                                 </span>
@@ -1167,7 +1169,7 @@ export default function SpecCheckUltraPage() {
                                                                 <Database size={16} color="#B8C3FF" />
                                                                 <span className="slot-label-text">{slot.slotName}</span>
                                                             </div>
-                                                            <span className="occupied-badge">● Occupied</span>
+                                                            <span className="occupied-badge"> {t("● Occupied")} </span>
                                                         </div>
 
                                                         <div className="slot-mfg-row">
@@ -1181,12 +1183,12 @@ export default function SpecCheckUltraPage() {
                                                         </div>
 
                                                         <div className="hw-verification-card">
-                                                            <div className="hw-verification-title">Hardware Verification</div>
+                                                            <div className="hw-verification-title"> {t("Hardware Verification")} </div>
 
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">Voltage Check</span>
+                                                                    <span className="verification-label"> {t("Voltage Check")} </span>
                                                                 </div>
                                                                 <span className="verification-value">{slot.ram.voltageConfigured || '1.20'} V</span>
                                                             </div>
@@ -1194,7 +1196,7 @@ export default function SpecCheckUltraPage() {
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">Speed Clock Match</span>
+                                                                    <span className="verification-label"> {t("Speed Clock Match")} </span>
                                                                 </div>
                                                                 <span className="verification-value">{slot.ram.clockSpeed || '3200'} MHz</span>
                                                             </div>
@@ -1202,7 +1204,7 @@ export default function SpecCheckUltraPage() {
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">ECC Integrity</span>
+                                                                    <span className="verification-label"> {t("ECC Integrity")} </span>
                                                                 </div>
                                                                 <span className="verification-value">{slot.ram.ecc ? 'ECC Active' : 'NON-ECC'}</span>
                                                             </div>
@@ -1210,7 +1212,7 @@ export default function SpecCheckUltraPage() {
                                                             <div className="verification-row">
                                                                 <div className="verification-item">
                                                                     <Check size={12} color="#5BFFA1" />
-                                                                    <span className="verification-label">Channel Status</span>
+                                                                    <span className="verification-label"> {t("Channel Status")} </span>
                                                                 </div>
                                                                 <span className="verification-value">{isMultiChannel ? 'DUAL CHANNEL' : 'SINGLE CHANNEL'}</span>
                                                             </div>
@@ -1218,15 +1220,15 @@ export default function SpecCheckUltraPage() {
 
                                                         <div className="slot-tech-specs">
                                                             <div className="tech-spec-row">
-                                                                <span className="tech-spec-label">Form Factor:</span>
+                                                                <span className="tech-spec-label"> {t("Form Factor:")} </span>
                                                                 <span className="tech-spec-value">{slot.ram.formFactor || 'SODIMM'}</span>
                                                             </div>
                                                             <div className="tech-spec-row">
-                                                                <span className="tech-spec-label">Part ID:</span>
+                                                                <span className="tech-spec-label"> {t("Part ID:")} </span>
                                                                 <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.partNum || '—'}</span>
                                                             </div>
                                                             <div className="tech-spec-row">
-                                                                <span className="tech-spec-label">Serial Key:</span>
+                                                                <span className="tech-spec-label"> {t("Serial Key:")} </span>
                                                                 <span className="tech-spec-value" style={{ fontFamily: 'monospace' }}>{slot.ram.serialNum || '—'}</span>
                                                             </div>
                                                         </div>
@@ -1256,7 +1258,7 @@ export default function SpecCheckUltraPage() {
                                                         </div>
                                                         <div style={{ textAlign: 'center' }}>
                                                             <div style={{ fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.5px' }}>{slot.slotName}</div>
-                                                            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.18)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Empty — No Module Installed</div>
+                                                            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.18)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}> {t("Empty — No Module Installed")} </div>
                                                         </div>
                                                         <div style={{
                                                             fontSize: '10px',
@@ -1267,7 +1269,7 @@ export default function SpecCheckUltraPage() {
                                                             padding: '3px 10px',
                                                             textTransform: 'uppercase',
                                                             letterSpacing: '0.8px'
-                                                        }}>Slot Available</div>
+                                                        }}> {t("Slot Available")} </div>
                                                     </div>
                                                 )
                                             ))}
@@ -1280,10 +1282,10 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'memory' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Storage Disk Arrays</h2>
+                                        <h2 className="canvas-title"> {t("Storage Disk Arrays")} </h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Optimal Smart</span>
+                                            <span> {t("Optimal Smart")} </span>
                                         </div>
                                     </div>
 
@@ -1302,7 +1304,7 @@ export default function SpecCheckUltraPage() {
                                                     <HardDrive size={20} color="#B8C3FF" />
                                                     <div>
                                                         <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#E2E2E8' }}>{disk.name}</div>
-                                                        <span style={{ fontSize: '11px', color: '#8E90A2' }}>Type: {disk.type} | interface: SCSI/NVMe</span>
+                                                        <span style={{ fontSize: '11px', color: '#8E90A2' }}>{t("Type: ")}{disk.type} {t("| interface: SCSI/NVMe")}</span>
                                                     </div>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
@@ -1319,20 +1321,20 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'battery' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Battery Diagnostic Console</h2>
+                                        <h2 className="canvas-title"> {t("Battery Diagnostic Console")} </h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Power Optimal</span>
+                                            <span> {t("Power Optimal")} </span>
                                         </div>
                                     </div>
 
                                     <div className="overview-left-card" style={{ width: '100%', marginTop: '8px' }}>
-                                        <span style={{ fontSize: '11px', color: '#5BFFA1', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '16px' }}>Power Grid Telemetry & Battery Specs</span>
+                                        <span style={{ fontSize: '11px', color: '#5BFFA1', fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', marginBottom: '16px' }}> {t("Power Grid Telemetry & Battery Specs")} </span>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', marginTop: '16px' }}>
 
                                             {/* 1. Manufacture Name */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Manufacture Name</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}> {t("Manufacture Name")} </span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.hasBattery ? (specs.battery.manufacturer || 'System Battery') : 'No Internal Battery'}
                                                 </div>
@@ -1340,7 +1342,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 2. Power State */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Power State</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}> {t("Power State")} </span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.hasBattery
                                                         ? (specs.battery.isCharging ? 'Charging' : (specs.battery.acConnected ? 'AC Connected (Not Charging)' : 'Discharging'))
@@ -1350,7 +1352,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 3. Current Capacity Value */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Current Capacity Value</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}> {t("Current Capacity Value")} </span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.currentCapacity ? `${specs.battery.currentCapacity} mWh` : 'Unknown'} ({specs?.battery?.percent || 100}%)
                                                 </div>
@@ -1358,7 +1360,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 4. Full Charged Capacity */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Full Charged Capacity</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}> {t("Full Charged Capacity")} </span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.maxCapacity ? `${specs.battery.maxCapacity} mWh` : 'Unknown'}
                                                 </div>
@@ -1366,7 +1368,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 5. Designed Capacity */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Designed Capacity</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}> {t("Designed Capacity")} </span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.designedCapacity ? `${specs.battery.designedCapacity} mWh` : 'Unknown'}
                                                 </div>
@@ -1374,7 +1376,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 6. Battery Health */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Battery Health</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}> {t("Battery Health")} </span>
                                                 <div style={{ fontSize: '15px', fontWeight: 600, marginTop: '4px' }}>
                                                     {(() => {
                                                         const health = specs?.battery?.healthPercent
@@ -1395,7 +1397,7 @@ export default function SpecCheckUltraPage() {
 
                                             {/* 7. Cycle Count */}
                                             <div>
-                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}>Charge / Discharge Cycles</span>
+                                                <span style={{ fontSize: '11px', color: '#8E90A2', textTransform: 'uppercase' }}> {t("Charge / Discharge Cycles")} </span>
                                                 <div style={{ fontSize: '15px', color: '#E2E2E8', fontWeight: 600, marginTop: '4px' }}>
                                                     {specs?.battery?.cycleCount || 'Not Reported by OS'}
                                                 </div>
@@ -1410,10 +1412,10 @@ export default function SpecCheckUltraPage() {
                             {activeTab === 'graphics' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                                     <div className="canvas-header-row">
-                                        <h2 className="canvas-title">Display Controllers & Monitor Console</h2>
+                                        <h2 className="canvas-title"> {t("Display Controllers & Monitor Console")} </h2>
                                         <div className="diagnostics-badge">
                                             <Activity size={12} />
-                                            <span>Display Online</span>
+                                            <span> {t("Display Online")} </span>
                                         </div>
                                     </div>
 
@@ -1424,7 +1426,7 @@ export default function SpecCheckUltraPage() {
                                                 <Monitor size={20} color="#FFB0CB" />
                                             </div>
                                             <div className="display-info-container">
-                                                <span className="display-label">Controller Model</span>
+                                                <span className="display-label"> {t("Controller Model")} </span>
                                                 <div className="display-value">
                                                     {specs?.graphics?.controllers?.[0]?.vendor} {specs?.graphics?.controllers?.[0]?.model}
                                                 </div>
@@ -1440,7 +1442,7 @@ export default function SpecCheckUltraPage() {
                                                 <Tv size={20} color="#B8FFD9" />
                                             </div>
                                             <div className="display-info-container">
-                                                <span className="display-label">Primary Display</span>
+                                                <span className="display-label"> {t("Primary Display")} </span>
                                                 <div className="display-value">
                                                     {specs?.graphics?.displays?.[0]?.resolutionX || 1920} x {specs?.graphics?.displays?.[0]?.resolutionY || 1080}
                                                 </div>
@@ -1463,7 +1465,7 @@ export default function SpecCheckUltraPage() {
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h3>Configure Device Telemetry Specs</h3>
+                            <h3> {t("Configure Device Telemetry Specs")} </h3>
                             <button onClick={() => setIsConfigModalOpen(false)} className="modal-close-btn">
                                 <X size={18} />
                             </button>
@@ -1498,18 +1500,18 @@ export default function SpecCheckUltraPage() {
                                     <div className="spec-category-card">
                                         <div className="spec-category-header">
                                             <Settings size={14} className="spec-category-icon" />
-                                            <span>Device Identity</span>
+                                            <span> {t("Device Identity")} </span>
                                         </div>
                                         <div className="form-group">
-                                            <label>Manufacturer</label>
+                                            <label> {t("Manufacturer")} </label>
                                             <input type="text" value={cfgMfg} onChange={(e) => setCfgMfg(e.target.value)} required />
                                         </div>
                                         <div className="form-group">
-                                            <label>Model Name</label>
+                                            <label> {t("Model Name")} </label>
                                             <input type="text" value={cfgModel} onChange={(e) => setCfgModel(e.target.value)} required />
                                         </div>
                                         <div className="form-group">
-                                            <label>Serial Number</label>
+                                            <label> {t("Serial Number")} </label>
                                             <input type="text" value={cfgSerial} onChange={(e) => setCfgSerial(e.target.value)} required />
                                         </div>
                                     </div>
@@ -1518,19 +1520,19 @@ export default function SpecCheckUltraPage() {
                                     <div className="spec-category-card">
                                         <div className="spec-category-header">
                                             <Cpu size={14} className="spec-category-icon" />
-                                            <span>Processor (CPU)</span>
+                                            <span> {t("Processor (CPU)")} </span>
                                         </div>
                                         <div className="form-group">
-                                            <label>Processor Brand</label>
+                                            <label> {t("Processor Brand")} </label>
                                             <input type="text" value={cfgCpuBrand} onChange={(e) => setCfgCpuBrand(e.target.value)} required />
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group">
-                                                <label>Cores / Threads</label>
+                                                <label> {t("Cores / Threads")} </label>
                                                 <input type="number" value={cfgCpuCores} onChange={(e) => setCfgCpuCores(parseInt(e.target.value))} required min={1} />
                                             </div>
                                             <div className="form-group">
-                                                <label>Speed (GHz)</label>
+                                                <label> {t("Speed (GHz)")} </label>
                                                 <input type="number" step="0.01" value={cfgCpuSpeed} onChange={(e) => setCfgCpuSpeed(parseFloat(e.target.value))} required min={0.1} />
                                             </div>
                                         </div>
@@ -1540,43 +1542,43 @@ export default function SpecCheckUltraPage() {
                                     <div className="spec-category-card">
                                         <div className="spec-category-header">
                                             <Database size={14} className="spec-category-icon" />
-                                            <span>Memory (RAM)</span>
+                                            <span> {t("Memory (RAM)")} </span>
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group">
-                                                <label>Total RAM (GB)</label>
+                                                <label> {t("Total RAM (GB)")} </label>
                                                 <input type="number" value={cfgRamGb} onChange={(e) => setCfgRamGb(parseInt(e.target.value))} required min={1} />
                                             </div>
                                             <div className="form-group">
-                                                <label>RAM Type</label>
+                                                <label> {t("RAM Type")} </label>
                                                 <select value={cfgRamType} onChange={(e) => setCfgRamType(e.target.value)}>
-                                                    <option value="DDR4">DDR4</option>
-                                                    <option value="DDR5">DDR5</option>
-                                                    <option value="LPDDR5">LPDDR5</option>
-                                                    <option value="LPDDR4">LPDDR4</option>
-                                                    <option value="DDR3">DDR3</option>
+                                                    <option value="DDR4"> {t("DDR4")} </option>
+                                                    <option value="DDR5"> {t("DDR5")} </option>
+                                                    <option value="LPDDR5"> {t("LPDDR5")} </option>
+                                                    <option value="LPDDR4"> {t("LPDDR4")} </option>
+                                                    <option value="DDR3"> {t("DDR3")} </option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group">
-                                                <label>Slots on Board</label>
+                                                <label> {t("Slots on Board")} </label>
                                                 <select value={cfgRamTotalSlots} onChange={(e) => setCfgRamTotalSlots(parseInt(e.target.value))}>
-                                                    <option value={2}>2 Slots (Standard)</option>
-                                                    <option value={4}>4 Slots (Desktop)</option>
+                                                    <option value={2}> {t("2 Slots (Standard)")} </option>
+                                                    <option value={4}> {t("4 Slots (Desktop)")} </option>
                                                 </select>
                                             </div>
                                             <div className="form-group">
-                                                <label>Active Slots</label>
+                                                <label> {t("Active Slots")} </label>
                                                 <select value={cfgRamSlots} onChange={(e) => setCfgRamSlots(parseInt(e.target.value))}>
-                                                    <option value={1}>1 Slot Active</option>
-                                                    <option value={2}>2 Slots Active</option>
-                                                    <option value={4}>4 Slots Active</option>
+                                                    <option value={1}> {t("1 Slot Active")} </option>
+                                                    <option value={2}> {t("2 Slots Active")} </option>
+                                                    <option value={4}> {t("4 Slots Active")} </option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div className="form-group">
-                                            <label>RAM Manufacturer</label>
+                                            <label> {t("RAM Manufacturer")} </label>
                                             <input type="text" value={cfgRamMfg} onChange={(e) => setCfgRamMfg(e.target.value)} required />
                                         </div>
                                     </div>
@@ -1585,33 +1587,33 @@ export default function SpecCheckUltraPage() {
                                     <div className="spec-category-card">
                                         <div className="spec-category-header">
                                             <HardDrive size={14} className="spec-category-icon" />
-                                            <span>Storage & Graphics</span>
+                                            <span> {t("Storage & Graphics")} </span>
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group">
-                                                <label>Storage Size (GB)</label>
+                                                <label> {t("Storage Size (GB)")} </label>
                                                 <input type="number" value={cfgStorageGb} onChange={(e) => setCfgStorageGb(parseInt(e.target.value))} required min={1} />
                                             </div>
                                             <div className="form-group">
-                                                <label>Storage Type</label>
+                                                <label> {t("Storage Type")} </label>
                                                 <select value={cfgStorageType} onChange={(e) => setCfgStorageType(e.target.value)}>
-                                                    <option value="SSD">SSD</option>
-                                                    <option value="HDD">HDD</option>
-                                                    <option value="NVMe SSD">NVMe SSD</option>
+                                                    <option value="SSD"> {t("SSD")} </option>
+                                                    <option value="HDD"> {t("HDD")} </option>
+                                                    <option value="NVMe SSD"> {t("NVMe SSD")} </option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div className="form-group">
-                                            <label>Storage Device Name</label>
+                                            <label> {t("Storage Device Name")} </label>
                                             <input type="text" value={cfgStorageName} onChange={(e) => setCfgStorageName(e.target.value)} required />
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group">
-                                                <label>GPU Model</label>
+                                                <label> {t("GPU Model")} </label>
                                                 <input type="text" value={cfgGpuModel} onChange={(e) => setCfgGpuModel(e.target.value)} required />
                                             </div>
                                             <div className="form-group">
-                                                <label>VRAM (MB)</label>
+                                                <label> {t("VRAM (MB)")} </label>
                                                 <input type="number" value={cfgGpuVram} onChange={(e) => setCfgGpuVram(parseInt(e.target.value))} required min={0} />
                                             </div>
                                         </div>
@@ -1652,8 +1654,8 @@ export default function SpecCheckUltraPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px', padding: '24px 0' }}>
                                 <RefreshCw size={48} color="#6366F1" className={isCheckingUpdate ? "animate-spin" : ""} style={{ marginBottom: '8px' }} />
                                 <div>
-                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}>Software Update</h2>
-                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>Check if a new version of BizzCo Telemetry System is available.</p>
+                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}> {t("Software Update")} </h2>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}> {t("Check if a new version of BizzCo Telemetry System is available.")} </p>
                                 </div>
                                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                                     <button
@@ -1677,8 +1679,8 @@ export default function SpecCheckUltraPage() {
                                     <Check size={32} color="#5BFFA1" />
                                 </div>
                                 <div>
-                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}>You're Up To Date!</h2>
-                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>BizzCo Telemetry System version {CURRENT_VERSION} is currently the newest version available.</p>
+                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif" }}> {t("You\'re Up To Date!")} </h2>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>{t("BizzCo Telemetry System version ")}{CURRENT_VERSION}{t(" is currently the newest version available.")}</p>
                                 </div>
                                 <button
                                     onClick={() => setIsUpdateModalOpen(false)}
@@ -1690,12 +1692,12 @@ export default function SpecCheckUltraPage() {
                         ) : (
                             <>
                                 <div>
-                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '24px', fontFamily: "'Hanken Grotesk', sans-serif" }}>New Update Available!</h2>
-                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>Version {updateInfo.version} is ready to install.</p>
+                                    <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '24px', fontFamily: "'Hanken Grotesk', sans-serif" }}> {t("New Update Available!")} </h2>
+                                    <p style={{ margin: '8px 0 0 0', color: '#8E90A2', fontSize: '14px' }}>{t("Version ")}{updateInfo.version}{t(" is ready to install.")}</p>
                                 </div>
 
                                 <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <h3 style={{ margin: '0 0 8px 0', color: '#C4C5D9', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Release Notes</h3>
+                                    <h3 style={{ margin: '0 0 8px 0', color: '#C4C5D9', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}> {t("Release Notes")} </h3>
                                     <p style={{ margin: 0, color: '#E2E2E8', fontSize: '14px', lineHeight: '1.5' }}>{updateInfo.releaseNotes}</p>
                                 </div>
 
@@ -1802,7 +1804,7 @@ export default function SpecCheckUltraPage() {
                                 <h2 style={{ margin: 0, color: '#FFFFFF', fontSize: '20px', fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Palette size={20} color={customAccent} /> THEME CONFIGURATOR
                                 </h2>
-                                <p style={{ margin: '4px 0 0 0', color: '#8E90A2', fontSize: '12px' }}>Customize fonts, highlights and visual style for your workspace.</p>
+                                <p style={{ margin: '4px 0 0 0', color: '#8E90A2', fontSize: '12px' }}> {t("Customize fonts, highlights and visual style for your workspace.")} </p>
                             </div>
                             <button onClick={() => setIsThemeModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#8E90A2', cursor: 'pointer', transition: 'color 0.2s' }}>
                                 <X size={20} />
@@ -1813,7 +1815,7 @@ export default function SpecCheckUltraPage() {
                         <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             {/* Preset Themes Section */}
                             <div>
-                                <h3 style={{ margin: '0 0 12px 0', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}>Theme Presets</h3>
+                                <h3 style={{ margin: '0 0 12px 0', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}> {t("Theme Presets")} </h3>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
                                     {THEME_PRESETS.map((preset) => {
                                         const isActive =
@@ -1873,11 +1875,11 @@ export default function SpecCheckUltraPage() {
 
                             {/* Custom Controls Section */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                                <h3 style={{ margin: '0', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}>Custom Style Override</h3>
+                                <h3 style={{ margin: '0', color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'monospace' }}> {t("Custom Style Override")} </h3>
 
                                 {/* Background Type */}
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}>Background Type</span>
+                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}> {t("Background Type")} </span>
                                     <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '6px', padding: '2px', border: '1px solid rgba(255,255,255,0.06)' }}>
                                         <button
                                             type="button"
@@ -1919,7 +1921,7 @@ export default function SpecCheckUltraPage() {
                                 {/* Background Colors */}
                                 {customBgType === 'solid' ? (
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <span style={{ fontSize: '13px', color: '#8E90A2' }}>Solid Color</span>
+                                        <span style={{ fontSize: '13px', color: '#8E90A2' }}> {t("Solid Color")} </span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <input
                                                 type="color"
@@ -1933,7 +1935,7 @@ export default function SpecCheckUltraPage() {
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <span style={{ fontSize: '12px', color: '#8E90A2' }}>Gradient Start</span>
+                                            <span style={{ fontSize: '12px', color: '#8E90A2' }}> {t("Gradient Start")} </span>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <input
                                                     type="color"
@@ -1945,7 +1947,7 @@ export default function SpecCheckUltraPage() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <span style={{ fontSize: '12px', color: '#8E90A2' }}>Gradient End</span>
+                                            <span style={{ fontSize: '12px', color: '#8E90A2' }}> {t("Gradient End")} </span>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <input
                                                     type="color"
@@ -1962,7 +1964,7 @@ export default function SpecCheckUltraPage() {
                                 {/* Accent & Text Colors */}
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <span style={{ fontSize: '12px', color: '#8E90A2' }}>Primary Accent</span>
+                                        <span style={{ fontSize: '12px', color: '#8E90A2' }}> {t("Primary Accent")} </span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <input
                                                 type="color"
@@ -1974,7 +1976,7 @@ export default function SpecCheckUltraPage() {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <span style={{ fontSize: '12px', color: '#8E90A2' }}>Secondary Accent</span>
+                                        <span style={{ fontSize: '12px', color: '#8E90A2' }}> {t("Secondary Accent")} </span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <input
                                                 type="color"
@@ -1988,7 +1990,7 @@ export default function SpecCheckUltraPage() {
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}>Main Text Color</span>
+                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}> {t("Main Text Color")} </span>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <input
                                             type="color"
@@ -2002,7 +2004,7 @@ export default function SpecCheckUltraPage() {
 
                                 {/* Typography / Fonts Selection */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}>Font Family Selection</span>
+                                    <span style={{ fontSize: '13px', color: '#C4C5D9' }}> {t("Font Family Selection")} </span>
                                     <select
                                         value={customFont}
                                         onChange={(e) => setCustomFont(e.target.value)}
@@ -2017,13 +2019,13 @@ export default function SpecCheckUltraPage() {
                                             cursor: 'pointer'
                                         }}
                                     >
-                                        <option value="'Inter', sans-serif">Inter (Clean Sans)</option>
-                                        <option value="'Hanken Grotesk', sans-serif">Hanken Grotesk (Tech/Futuristic)</option>
-                                        <option value="'Outfit', sans-serif">Outfit (Geometric & Elegant)</option>
-                                        <option value="'JetBrains Mono', monospace">JetBrains Mono (Developer Code)</option>
-                                        <option value="'Roboto Mono', monospace">Roboto Mono (Clean Code)</option>
-                                        <option value="system-ui, sans-serif">System UI (Fallback OS)</option>
-                                        <option value="Georgia, serif">Georgia (Classic Serif)</option>
+                                        <option value="'Inter', sans-serif"> {t("Inter (Clean Sans)")} </option>
+                                        <option value="'Hanken Grotesk', sans-serif"> {t("Hanken Grotesk (Tech/Futuristic)")} </option>
+                                        <option value="'Outfit', sans-serif"> {t("Outfit (Geometric & Elegant)")} </option>
+                                        <option value="'JetBrains Mono', monospace"> {t("JetBrains Mono (Developer Code)")} </option>
+                                        <option value="'Roboto Mono', monospace"> {t("Roboto Mono (Clean Code)")} </option>
+                                        <option value="system-ui, sans-serif"> {t("System UI (Fallback OS)")} </option>
+                                        <option value="Georgia, serif"> {t("Georgia (Classic Serif)")} </option>
                                     </select>
                                 </div>
                             </div>

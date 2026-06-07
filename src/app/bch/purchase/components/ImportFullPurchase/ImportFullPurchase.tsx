@@ -421,8 +421,8 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
             {/* 1. Header Section */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>Import Purchase (Full Details)</h2>
-                    <p style={{ color: '#64748b' }}>Upload an Excel file with detailed specs to bulk import items.</p>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>{"Import Purchase (Full Details)"}</h2>
+                    <p style={{ color: '#64748b' }}>{"Upload an Excel file with detailed specs to bulk import items."}</p>
                 </div>
                 <button
                     onClick={handleDownloadTemplate}
@@ -439,7 +439,7 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 {/* Supplier Field */}
                 <div style={{ position: 'relative' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>Supplier Name *</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>{"Supplier Name *"}</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <div style={{ width: '100%', position: 'relative' }}>
                             <input
@@ -477,7 +477,7 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>Lot Number</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>{"Lot Number"}</label>
                     <input
                         type="text"
                         name="lotNumber"
@@ -488,7 +488,7 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
                     />
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>Invoice Number *</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>{"Invoice Number *"}</label>
                     <input
                         type="text"
                         name="invoiceNumber"
@@ -499,7 +499,7 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
                     />
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>Invoice Date</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>{"Invoice Date"}</label>
                     <input
                         type="date"
                         name="invoiceDate"
@@ -511,7 +511,7 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
             </div>
 
             <div style={{ marginBottom: '2rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>Notes</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.85rem' }}>{"Notes"}</label>
                 <textarea
                     name="notes"
                     value={lotMetadata.notes}
@@ -523,7 +523,7 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
 
             {/* 3. Items List Section */}
             <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Item List</h3>
+                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>{"Item List"}</h3>
 
                 {/* File Upload Area */}
                 {!file && previewData.length === 0 ? (
@@ -536,8 +536,8 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
                         >
                             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".xlsx, .csv" style={{ display: 'none' }} />
                             <i className="fas fa-file-excel" style={{ fontSize: '2rem', color: '#10b981', marginBottom: '1rem' }}></i>
-                            <p style={{ fontWeight: 600, color: '#475569' }}>Click to Upload Excel Sheet</p>
-                            <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Expects columns: Product Name, SKU, Qty, Unit Cost, + Specs</p>
+                            <p style={{ fontWeight: 600, color: '#475569' }}>{"Click to Upload Excel Sheet"}</p>
+                            <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{"Expects columns: Product Name, SKU, Qty, Unit Cost, + Specs"}</p>
                         </div>
                         <div style={{ position: 'relative', height: '1px', background: '#e2e8f0', margin: '2rem 1rem' }}>
                             <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '0 1rem', color: '#94a3b8', fontSize: '0.875rem' }}>OR</span>
@@ -578,11 +578,11 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
                                 <thead style={{ background: '#f8fafc', position: 'sticky', top: 0, zIndex: 10 }}>
                                     <tr>
                                         <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>#</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Product</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Specs</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>Qty</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Cost</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Total</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>{"Product"}</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>{"Specs"}</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>{"Qty"}</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>{"Cost"}</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>{"Total"}</th>
                                         <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}></th>
                                     </tr>
                                 </thead>
@@ -637,11 +637,11 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
             {showAddSupplierModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
                     <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '400px' }}>
-                        <h3 style={{ marginBottom: '1rem' }}>Add New Supplier</h3>
+                        <h3 style={{ marginBottom: '1rem' }}>{"Add New Supplier"}</h3>
                         <input value={newSupplierData.name} onChange={e => setNewSupplierData(p => ({ ...p, name: e.target.value }))} placeholder="Supplier Name" style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button onClick={() => setShowAddSupplierModal(false)} style={{ padding: '0.5rem 1rem' }}>Cancel</button>
-                            <button onClick={handleAddSupplier} style={{ padding: '0.5rem 1rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px' }}>Save</button>
+                            <button onClick={() => setShowAddSupplierModal(false)} style={{ padding: '0.5rem 1rem' }}>{"Cancel"}</button>
+                            <button onClick={handleAddSupplier} style={{ padding: '0.5rem 1rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px' }}>{"Save"}</button>
                         </div>
                     </div>
                 </div>
@@ -651,40 +651,40 @@ export default function ImportFullPurchase({ onCancel, onSuccess }: FullImportPr
             {isManualItemModalOpen && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
                     <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 600 }}>Add Item Manually</h3>
+                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: 600 }}>{"Add Item Manually"}</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
                             <div>
-                                <label style={{ fontSize: '0.8rem' }}>Category</label>
+                                <label style={{ fontSize: '0.8rem' }}>{"Category"}</label>
                                 <select value={manualItem.category} onChange={e => setManualItem({ ...manualItem, category: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
-                                    <option value="Laptop">Laptop</option><option value="Desktop">Desktop</option><option value="Monitor">Monitor</option>
+                                    <option value="Laptop">{"Laptop"}</option><option value="Desktop">{"Desktop"}</option><option value="Monitor">{"Monitor"}</option>
                                 </select>
                             </div>
                             <div>
-                                <label style={{ fontSize: '0.8rem' }}>Brand</label>
+                                <label style={{ fontSize: '0.8rem' }}>{"Brand"}</label>
                                 <input value={manualItem.brand} onChange={e => setManualItem({ ...manualItem, brand: e.target.value })} list="brandList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} />
                                 <datalist id="brandList">{dropLists.brands.map(b => <option key={b} value={b} />)}</datalist>
                             </div>
-                            <div><label style={{ fontSize: '0.8rem' }}>Series</label><input value={manualItem.series} onChange={e => setManualItem({ ...manualItem, series: e.target.value })} list="seriesList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="seriesList">{dropLists.series.map(s => <option key={s} value={s} />)}</datalist></div>
-                            <div><label style={{ fontSize: '0.8rem' }}>Model</label><input value={manualItem.model} onChange={e => setManualItem({ ...manualItem, model: e.target.value })} list="modelList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="modelList">{dropLists.models.map(m => <option key={m} value={m} />)}</datalist></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Series"}</label><input value={manualItem.series} onChange={e => setManualItem({ ...manualItem, series: e.target.value })} list="seriesList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="seriesList">{dropLists.series.map(s => <option key={s} value={s} />)}</datalist></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Model"}</label><input value={manualItem.model} onChange={e => setManualItem({ ...manualItem, model: e.target.value })} list="modelList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="modelList">{dropLists.models.map(m => <option key={m} value={m} />)}</datalist></div>
 
-                            <div><label style={{ fontSize: '0.8rem' }}>Processor</label><input value={manualItem.processor} onChange={e => setManualItem({ ...manualItem, processor: e.target.value })} list="procList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="procList">{dropLists.processors.map(p => <option key={p} value={p} />)}</datalist></div>
-                            <div><label style={{ fontSize: '0.8rem' }}>Gen</label><input value={manualItem.gen} onChange={e => setManualItem({ ...manualItem, gen: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                            <div><label style={{ fontSize: '0.8rem' }}>RAM</label><input value={manualItem.ram} onChange={e => setManualItem({ ...manualItem, ram: e.target.value })} list="ramList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="ramList">{dropLists.ram.map(r => <option key={r} value={r} />)}</datalist></div>
-                            <div><label style={{ fontSize: '0.8rem' }}>Storage</label><input value={manualItem.storage} onChange={e => setManualItem({ ...manualItem, storage: e.target.value })} list="storageList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="storageList">{dropLists.storage.map(s => <option key={s} value={s} />)}</datalist></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Processor"}</label><input value={manualItem.processor} onChange={e => setManualItem({ ...manualItem, processor: e.target.value })} list="procList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="procList">{dropLists.processors.map(p => <option key={p} value={p} />)}</datalist></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Gen"}</label><input value={manualItem.gen} onChange={e => setManualItem({ ...manualItem, gen: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"RAM"}</label><input value={manualItem.ram} onChange={e => setManualItem({ ...manualItem, ram: e.target.value })} list="ramList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="ramList">{dropLists.ram.map(r => <option key={r} value={r} />)}</datalist></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Storage"}</label><input value={manualItem.storage} onChange={e => setManualItem({ ...manualItem, storage: e.target.value })} list="storageList" style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /><datalist id="storageList">{dropLists.storage.map(s => <option key={s} value={s} />)}</datalist></div>
 
                             {/* Additional Specs */}
-                            <div><label style={{ fontSize: '0.8rem' }}>Graphics</label><input value={manualItem.graphics} onChange={e => setManualItem({ ...manualItem, graphics: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                            <div><label style={{ fontSize: '0.8rem' }}>Screen Size</label><input value={manualItem.screenSize} onChange={e => setManualItem({ ...manualItem, screenSize: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                            <div><label style={{ fontSize: '0.8rem' }}>Condition</label><input value={manualItem.condition} onChange={e => setManualItem({ ...manualItem, condition: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                            <div><label style={{ fontSize: '0.8rem' }}>Backlit</label><select value={manualItem.backlit} onChange={e => setManualItem({ ...manualItem, backlit: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}><option value="">-</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Graphics"}</label><input value={manualItem.graphics} onChange={e => setManualItem({ ...manualItem, graphics: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Screen Size"}</label><input value={manualItem.screenSize} onChange={e => setManualItem({ ...manualItem, screenSize: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Condition"}</label><input value={manualItem.condition} onChange={e => setManualItem({ ...manualItem, condition: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                            <div><label style={{ fontSize: '0.8rem' }}>{"Backlit"}</label><select value={manualItem.backlit} onChange={e => setManualItem({ ...manualItem, backlit: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}><option value="">-</option><option value="Yes">{"Yes"}</option><option value="No">{"No"}</option></select></div>
 
-                            <div style={{ gridColumn: 'span 2' }}><label style={{ fontSize: '0.8rem' }}>SKU</label><input value={manualItem.sku} onChange={e => setManualItem({ ...manualItem, sku: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                            <div><label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Qty</label><input type="number" value={manualItem.qty} onChange={e => setManualItem({ ...manualItem, qty: parseInt(e.target.value) || 1 })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
-                            <div><label style={{ fontSize: '0.8rem', fontWeight: 600 }}>Unit Cost</label><input type="number" value={manualItem.unitCost} onChange={e => setManualItem({ ...manualItem, unitCost: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                            <div style={{ gridColumn: 'span 2' }}><label style={{ fontSize: '0.8rem' }}>{"SKU"}</label><input value={manualItem.sku} onChange={e => setManualItem({ ...manualItem, sku: e.target.value })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                            <div><label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{"Qty"}</label><input type="number" value={manualItem.qty} onChange={e => setManualItem({ ...manualItem, qty: parseInt(e.target.value) || 1 })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
+                            <div><label style={{ fontSize: '0.8rem', fontWeight: 600 }}>{"Unit Cost"}</label><input type="number" value={manualItem.unitCost} onChange={e => setManualItem({ ...manualItem, unitCost: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }} /></div>
                         </div>
                         <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                            <button onClick={() => setIsManualItemModalOpen(false)} style={{ padding: '0.75rem 1.5rem', border: '1px solid #cbd5e1', background: 'white', borderRadius: '4px' }}>Cancel</button>
-                            <button onClick={handleAddManualItem} style={{ padding: '0.75rem 1.5rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px' }}>Add Item</button>
+                            <button onClick={() => setIsManualItemModalOpen(false)} style={{ padding: '0.75rem 1.5rem', border: '1px solid #cbd5e1', background: 'white', borderRadius: '4px' }}>{"Cancel"}</button>
+                            <button onClick={handleAddManualItem} style={{ padding: '0.75rem 1.5rem', background: '#2563eb', color: 'white', border: 'none', borderRadius: '4px' }}>{"Add Item"}</button>
                         </div>
                     </div>
                 </div>
