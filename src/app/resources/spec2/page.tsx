@@ -22,7 +22,7 @@ import {
     Settings,
     X
 } from 'lucide-react';
-import { getFullSpecs } from '../spec/actions';
+import { getFullSpecs } from './actions';
 import { toast } from 'sonner';
 
 const getClientSideSpecs = async () => {
@@ -1277,7 +1277,7 @@ export default function SpecCheckUltraPage() {
                             <h2 style={{ fontSize: '18px', color: '#FFF', margin: 0, fontWeight: 700 }}>Install the Offline Desktop App</h2>
                         </div>
                         <p style={{ fontSize: '14px', color: '#8E90A2', lineHeight: '1.6', margin: 0 }}>
-                            To securely read your exact hardware capacity and battery cycle counts <b>automatically in the background</b> without manually running scripts, you need to install <b>BCH-QC (v1.0.8)</b>.
+                            To securely read your exact hardware capacity and battery cycle counts <b>automatically in the background</b> without manually running scripts, you need to install <b>BCH-QC (v2.0.5)</b>.
                             <br/><br/>
                             Would you like to download the official <b>BCH-QC Setup (.exe)</b> now?
                         </p>
@@ -1289,8 +1289,8 @@ export default function SpecCheckUltraPage() {
                                 NO, CANCEL
                             </button>
                             <a 
-                                href="/BCH-QC Setup 1.0.8.exe"
-                                download="BCH-QC Setup 1.0.8.exe"
+                                href="https://github.com/Rocky-Alex/bizzcohubtest/releases/download/v2.0.5/BCH-QC-Setup-2.0.5.exe"
+                                download="BCH-QC-Setup-2.0.5.exe"
                                 onClick={() => {
                                     setIsReloadModalOpen(false);
                                     setRefreshing(true);

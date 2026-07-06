@@ -4,6 +4,7 @@ const t = (s: string) => s;
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import packageJson from '../package.json';
 import {
     ArrowLeft,
     Cpu,
@@ -343,11 +344,115 @@ export const THEME_PRESETS: ThemeConfig[] = [
         accentLightColor: "#F4F4F5",
         textColor: "#F4F4F5",
         fontFamily: "'JetBrains Mono', monospace"
+    },
+    {
+        id: "synthwave",
+        name: "Neon Synthwave",
+        bgType: "gradient",
+        bgColor: "#1A0B2E",
+        bgGradientStart: "#1A0B2E",
+        bgGradientEnd: "#0B0316",
+        accentColor: "#FF2A6D",
+        accentSecColor: "#05D9E8",
+        accentLightColor: "#FF71CE",
+        textColor: "#F8F0FA",
+        fontFamily: "'Outfit', sans-serif"
+    },
+    {
+        id: "matrix",
+        name: "The Matrix",
+        bgType: "solid",
+        bgColor: "#020A04",
+        bgGradientStart: "#020A04",
+        bgGradientEnd: "#010502",
+        accentColor: "#00FF41",
+        accentSecColor: "#008F11",
+        accentLightColor: "#B3FFC2",
+        textColor: "#E0FFE6",
+        fontFamily: "'JetBrains Mono', monospace"
+    },
+    {
+        id: "amethyst",
+        name: "Amethyst Dream",
+        bgType: "gradient",
+        bgColor: "#170B24",
+        bgGradientStart: "#170B24",
+        bgGradientEnd: "#090212",
+        accentColor: "#A855F7",
+        accentSecColor: "#D946EF",
+        accentLightColor: "#E9D5FF",
+        textColor: "#F5F3FF",
+        fontFamily: "'Hanken Grotesk', sans-serif"
+    },
+    {
+        id: "glacier",
+        name: "Glacier Ice",
+        bgType: "gradient",
+        bgColor: "#E0F2FE",
+        bgGradientStart: "#E0F2FE",
+        bgGradientEnd: "#F0F9FF",
+        accentColor: "#0284C7",
+        accentSecColor: "#0369A1",
+        accentLightColor: "#38BDF8",
+        textColor: "#082F49",
+        fontFamily: "'Inter', sans-serif"
+    },
+    {
+        id: "dracula",
+        name: "Dracula Night",
+        bgType: "gradient",
+        bgColor: "#282A36",
+        bgGradientStart: "#282A36",
+        bgGradientEnd: "#191A21",
+        accentColor: "#BD93F9",
+        accentSecColor: "#FF79C6",
+        accentLightColor: "#F8F8F2",
+        textColor: "#F8F8F2",
+        fontFamily: "'JetBrains Mono', monospace"
+    },
+    {
+        id: "gold",
+        name: "Royal Gold",
+        bgType: "gradient",
+        bgColor: "#14120C",
+        bgGradientStart: "#14120C",
+        bgGradientEnd: "#080704",
+        accentColor: "#EAB308",
+        accentSecColor: "#CA8A04",
+        accentLightColor: "#FEF08A",
+        textColor: "#FEFCE8",
+        fontFamily: "'Outfit', sans-serif"
+    },
+    {
+        id: "midnight",
+        name: "Deep Midnight",
+        bgType: "solid",
+        bgColor: "#09090B",
+        bgGradientStart: "#09090B",
+        bgGradientEnd: "#09090B",
+        accentColor: "#A1A1AA",
+        accentSecColor: "#52525B",
+        accentLightColor: "#E4E4E7",
+        textColor: "#FAFAFA",
+        fontFamily: "'Inter', sans-serif"
+    },
+    {
+        id: "sunset",
+        name: "Sunset Horizon",
+        bgType: "gradient",
+        bgColor: "#2A0E1A",
+        bgGradientStart: "#2A0E1A",
+        bgGradientEnd: "#14040A",
+        accentColor: "#F43F5E",
+        accentSecColor: "#FB923C",
+        accentLightColor: "#FDA4AF",
+        textColor: "#FFF1F2",
+        fontFamily: "'Hanken Grotesk', sans-serif"
     }
 ];
 
 export default function SpecCheckUltraPage() {
-    const CURRENT_VERSION = "1.0.8";
+    const CURRENT_VERSION = packageJson.version;
 
     const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
     const [themeConfig, setThemeConfig] = useState<ThemeConfig>(THEME_PRESETS[0]);

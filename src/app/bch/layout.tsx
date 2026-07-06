@@ -39,7 +39,6 @@ function AdminLayoutContent({
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState("accountant");
     const [username, setUsername] = useState("Admin");
-    const [isAccountingMode, setIsAccountingMode] = useState(false);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isNavigating, setIsNavigating] = useState(false);
     const searchParams = useSearchParams();
@@ -54,25 +53,7 @@ function AdminLayoutContent({
         onConfirm: () => { }
     });
 
-    useEffect(() => {
-        // Check for persisted accounting mode
-        const savedMode = sessionStorage.getItem('bch_accounting_mode');
-        if (savedMode === 'true') {
-            setIsAccountingMode(true);
-        }
 
-        const handleModeSwitch = (e: any) => {
-            const mode = e.detail?.mode;
-            setIsAccountingMode(mode);
-            sessionStorage.setItem('bch_accounting_mode', String(mode));
-            if (!mode) {
-                router.push('/bch/dashboard');
-            }
-        };
-
-        window.addEventListener('bch-switch-accounting-mode', handleModeSwitch);
-        return () => window.removeEventListener('bch-switch-accounting-mode', handleModeSwitch);
-    }, [router]);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -140,7 +121,6 @@ function AdminLayoutContent({
         try {
             await fetch('/api/auth/logout', { method: 'POST' });
             sessionStorage.removeItem('admin_authenticated');
-            sessionStorage.removeItem('bch_accounting_mode');
             router.push('/bch/login');
         } catch (error) {
             console.error('Logout error:', error);
@@ -157,18 +137,11 @@ function AdminLayoutContent({
             onClick: () => router.push('/bch/dashboard')
         },
         {
-            id: 'purchase',
-            label: 'Purchase',
-            icon: 'fas fa-cart-shopping',
-            active: pathname.startsWith('/bch/purchase') || pathname.startsWith('/bch/purchases'),
-            onClick: () => router.push('/bch/purchases/Dashboard')
-        },
-        {
-            id: 'inventory',
-            label: 'Inventory',
-            icon: 'fas fa-box',
-            active: pathname.startsWith('/bch/inventory'),
-            onClick: () => router.push('/bch/inventory/inventorydashboard')
+            id: 'orders',
+            label: 'Orders',
+            icon: 'fas fa-shopping-cart',
+            active: pathname.startsWith('/bch/Order') || pathname.startsWith('/bch/orders'),
+            onClick: () => router.push('/bch/Order/dashboard')
         },
         {
             id: 'billing',
@@ -194,25 +167,7 @@ function AdminLayoutContent({
         return <>{children}</>;
     }
 
-    // Specialized Mobile Accounting View Silo
-    if (isAccountingMode) {
-        return (
-            <div className={`admin-container accounting-mode-active ${theme === 'dark' ? 'dark-theme' : ''}`}>
-                <main className="accounting-silo-content">
-                    {children}
-                </main>
-                <ConfirmModal
-                    isOpen={confirmModal.isOpen}
-                    title={confirmModal.title}
-                    message={confirmModal.message}
-                    type={confirmModal.type}
-                    onConfirm={confirmModal.onConfirm}
-                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                    singleButton={confirmModal.singleButton}
-                />
-            </div>
-        );
-    }
+
 
     return (
         <div className={`admin-container ${theme === 'dark' ? 'dark-theme' : ''}`}>

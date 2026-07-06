@@ -1,7 +1,7 @@
 {
   "name": "bch-qc",
   "private": true,
-  "version": "2.0.5",
+  "version": "2.0.8",
   "main": "main.js",
   "scripts": {
     "dev": "vite",
@@ -37,7 +37,8 @@
       {
         "provider": "github",
         "owner": "Rocky-Alex",
-        "repo": "bizzcohubtest"
+        "repo": "bizzcohubtest",
+        "releaseType": "draft"
       }
     ],
     "files": [

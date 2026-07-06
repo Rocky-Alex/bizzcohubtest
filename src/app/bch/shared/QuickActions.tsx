@@ -36,8 +36,7 @@ export default function QuickActions({ setActiveSection }: QuickActionsProps) {
             title: "Administration",
             actions: [
                 { id: "users-all", label: "Manage Users", icon: "fa-user-shield", color: "#db2777" },
-                { id: "users-roles", label: "Roles & Perms", icon: "fa-key", color: "#be185d" },
-                { id: "reports-sales", label: "Sales Reports", icon: "fa-chart-line", color: "#ef4444" }
+                { id: "users-roles", label: "Roles & Perms", icon: "fa-key", color: "#be185d" }
             ]
         }
     ];

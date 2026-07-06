@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+; ==============================================================================
+; Bizz Co Hub QA - Windows Registry Template for Batch Controller Bridge
+# Registers: bizzco-qa:// custom URI protocol scheme
+; ==============================================================================
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa]
+@="URL:Bizz Co QA Protocol"
+"URL Protocol"=""
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open\command]
+@="\"C:\\BizzCo_QC_Software\\controller.bat\" \"%1\""

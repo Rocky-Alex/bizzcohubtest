@@ -65,18 +65,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         // Define a base order for known dependencies, merge with discovered tables
         const PREFERRED_ORDER = [
-            'roles', 'users', 'settings', 'admin_emails', 'suppliers', 'customers',
-            'products', 'featured_products_config', 'purchase_lots', 'purchase_lot_items',
+            'roles', 'users', 'settings', 'admin_emails', 'customers',
             'quotations', 'quotation_items', 'orders', 'invoices',
-            'invoice_items', 'invoice_payments', 'wishlist', 'activity_logs',
+            'invoice_items', 'invoice_payments', 'activity_logs',
             'drop_lists', 'password_resets'
         ];
 
-        // All tables to be processed, starting with preferred order ones that exist in source
-        const allTables = [
-            ...PREFERRED_ORDER.filter((t: string) => discoveredTables.includes(t)),
-            ...discoveredTables.filter((t: string) => !PREFERRED_ORDER.includes(t))
-        ];
+        // All tables to be processed, restricted strictly to our preferred order ones that exist in source
+        const allTables = PREFERRED_ORDER.filter((t: string) => discoveredTables.includes(t));
 
         console.log(`[Database Transfer] Processing ${allTables.length} tables: ${allTables.join(', ')}`);
 

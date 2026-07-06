@@ -12,22 +12,16 @@ async function isAdmin(): Promise<boolean> {
 }
 
 const ALLOWED_TABLES = [
-    'products',
-    'featured_products_config',
     'orders',
     'customers',
     'users',
     'settings',
     'admin_emails',
-
-    'purchase_lots',
-    'purchase_lot_items',
     'invoice_items',
     'quotation_items',
     'roles',
     'quotations',
     'invoice_payments',
-    'wishlist',
     'activity_logs',
     'invoices'
 ];
@@ -66,22 +60,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // Actually, the easiest way to stay 100% safe and consistent with the existing codebase's style:
 
         switch (tableName) {
-            case 'products': await sql`DELETE FROM products WHERE id = ${id}`; break;
-            case 'featured_products_config': await sql`DELETE FROM featured_products_config WHERE id = ${id}`; break;
             case 'orders': await sql`DELETE FROM orders WHERE id = ${id}`; break;
             case 'customers': await sql`DELETE FROM customers WHERE id = ${id}`; break;
             case 'users': await sql`DELETE FROM users WHERE id = ${id}`; break;
             case 'settings': await sql`DELETE FROM settings WHERE id = ${id}`; break;
             case 'admin_emails': await sql`DELETE FROM admin_emails WHERE id = ${id}`; break;
-            case 'inventory_qc': await sql`DELETE FROM inventory_qc WHERE id = ${id}`; break;
-            case 'purchase_lots': await sql`DELETE FROM purchase_lots WHERE id = ${id}`; break;
-            case 'purchase_lot_items': await sql`DELETE FROM purchase_lot_items WHERE id = ${id}`; break;
             case 'invoice_items': await sql`DELETE FROM invoice_items WHERE id = ${id}`; break;
             case 'quotation_items': await sql`DELETE FROM quotation_items WHERE id = ${id}`; break;
             case 'roles': await sql`DELETE FROM roles WHERE id = ${id}`; break;
             case 'quotations': await sql`DELETE FROM quotations WHERE id = ${id}`; break;
             case 'invoice_payments': await sql`DELETE FROM invoice_payments WHERE id = ${id}`; break;
-            case 'wishlist': await sql`DELETE FROM wishlist WHERE id = ${id}`; break;
             case 'activity_logs': await sql`DELETE FROM activity_logs WHERE id = ${id}`; break;
             case 'invoices': await sql`DELETE FROM invoices WHERE id = ${id}`; break;
             default:

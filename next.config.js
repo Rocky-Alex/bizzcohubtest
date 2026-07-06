@@ -71,30 +71,32 @@ const nextConfig = {
             },
         });
 
-        // Production: proper chunk splitting for better caching
+        // Production: proper chunk splitting for better caching on client side only
         if (!dev) {
-            config.optimization = {
-                ...config.optimization,
-                splitChunks: {
-                    chunks: 'all',
-                    cacheGroups: {
-                        framework: {
-                            name: 'framework',
-                            test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
-                            priority: 40,
-                            enforce: true,
-                        },
-                        vendor: {
-                            name: 'vendor',
-                            test: /[\\/]node_modules[\\/]/,
-                            priority: 20,
-                            minChunks: 2,
+            if (!isServer) {
+                config.optimization = {
+                    ...config.optimization,
+                    splitChunks: {
+                        chunks: 'all',
+                        cacheGroups: {
+                            framework: {
+                                name: 'framework',
+                                test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
+                                priority: 40,
+                                enforce: true,
+                            },
+                            vendor: {
+                                name: 'vendor',
+                                test: /[\\/]node_modules[\\/]/,
+                                priority: 20,
+                                minChunks: 2,
+                            },
                         },
                     },
-                },
-            };
+                };
+            }
         } else {
-            // Dev: keep async-only splitting to avoid preload waterfall warnings
+            // Dev: keep async-only splitting to avoid preload waterfall warnings on both client and server
             config.optimization = {
                 ...config.optimization,
                 splitChunks: {

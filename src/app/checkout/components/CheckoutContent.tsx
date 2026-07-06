@@ -90,6 +90,9 @@ export default function CheckoutContent() {
                                 zip: u.shipping_zip || u.billing_zip || '',
                                 country: u.shipping_country || u.billing_country || 'United Arab Emirates'
                             }));
+                        } else if (res.status === 404 || res.status === 410) {
+                            localStorage.removeItem('customer_user');
+                            router.refresh();
                         }
                     } catch (err) {
                         console.error("Failed to fetch user profile for checkout autofill", err);

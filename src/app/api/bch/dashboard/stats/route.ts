@@ -54,7 +54,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         const prevTo = prevEndDate.toISOString();
 
         // Execute queries with individual error handling for better debugging
-        let invGeneral, miscStats, invDetails, quotDetails, recentBilling, recentPurchases;
+        let invGeneral, miscStats, invDetails, quotDetails, recentBilling;
 
             const results = await Promise.all([
                 // 1. Invoices General Stats
@@ -72,16 +72,11 @@ export async function GET(request: Request): Promise<NextResponse> {
                     SELECT * FROM periods
                 `.catch((e: unknown) => { console.error('Query 1 failed:', e); throw e; }),
 
-                // 2. Customers, Products, Purchases
+                // 2. Customers
                 sql`
                     SELECT
                         (SELECT COUNT(*) FROM customers WHERE created_at >= ${from}::timestamp AND created_at <= ${to}::timestamp) as curr_cust,
-                        (SELECT COUNT(*) FROM customers WHERE created_at >= ${prevFrom}::timestamp AND created_at <= ${prevTo}::timestamp) as prev_cust,
-                        (SELECT COUNT(*) FROM products) as prod_count,
-                        (SELECT COALESCE(SUM(total_cost), 0) FROM purchase_lots WHERE created_at >= ${from}::timestamp AND created_at <= ${to}::timestamp) as pur_total,
-                        (SELECT COALESCE(SUM(quantity), 0) FROM purchase_lot_items WHERE created_at >= ${from}::timestamp AND created_at <= ${to}::timestamp) as pur_qty,
-                        (SELECT COALESCE(SUM(quantity), 0) FROM master_inventory WHERE created_at >= ${from}::timestamp AND created_at <= ${to}::timestamp) as qc_qty,
-                        (SELECT COUNT(*) FROM sale_out WHERE sold_at >= ${from}::timestamp AND sold_at <= ${to}::timestamp) as sold_qty
+                        (SELECT COUNT(*) FROM customers WHERE created_at >= ${prevFrom}::timestamp AND created_at <= ${prevTo}::timestamp) as prev_cust
                 `.catch((e: unknown) => { console.error('Query 2 failed:', e); throw e; }),
 
                 // 3. Invoices Detailed Stats & Payments
@@ -162,36 +157,28 @@ export async function GET(request: Request): Promise<NextResponse> {
                                COALESCE(p.paid_amount, 0) as paid_amount, i.payment_type, i.status, i.due_date,
                                'Invoice' as doc_type,
                                c.image_url as customer_avatar
-                        FROM invoices i
-                        LEFT JOIN customers c ON i.customer_name = c.name
-                        LEFT JOIN (
-                            SELECT invoice_id, COALESCE(SUM(amount), 0) as paid_amount
-                            FROM invoice_payments
-                            GROUP BY invoice_id
-                        ) p ON i.id = p.invoice_id
-                        UNION ALL
-                        SELECT q.id, q.quotation_no as doc_no, q.customer_name, q.created_date, q.total_amount,
+                         FROM invoices i
+                         LEFT JOIN customers c ON i.customer_name = c.name
+                         LEFT JOIN (
+                             SELECT invoice_id, COALESCE(SUM(amount), 0) as paid_amount
+                             FROM invoice_payments
+                             GROUP BY invoice_id
+                         ) p ON i.id = p.invoice_id
+                         UNION ALL
+                         SELECT q.id, q.quotation_no as doc_no, q.customer_name, q.created_date, q.total_amount,
                                COALESCE(p.paid_amount, 0) as paid_amount, q.payment_type, q.status, q.due_date,
                                'Proforma' as doc_type,
                                CAST(NULL AS TEXT) as customer_avatar
-                        FROM quotations q
-                        LEFT JOIN (
-                            SELECT quotation_id, COALESCE(SUM(amount), 0) as paid_amount
-                            FROM quotation_payments
-                            GROUP BY quotation_id
-                        ) p ON q.id = p.quotation_id
+                         FROM quotations q
+                         LEFT JOIN (
+                             SELECT quotation_id, COALESCE(SUM(amount), 0) as paid_amount
+                             FROM quotation_payments
+                             GROUP BY quotation_id
+                         ) p ON q.id = p.quotation_id
                     ) t
                     ORDER BY created_date DESC
                     LIMIT 5
-                `.catch((e: unknown) => { console.error('Query 5 failed:', e); throw e; }),
-
-                // 6. Recent Purchases
-                sql`
-                    SELECT id, lot_number, supplier_name, invoice_number, total_cost, created_at
-                    FROM purchase_lots
-                    ORDER BY created_at DESC
-                    LIMIT 5
-                `.catch((e: unknown) => { console.error('Query 6 failed:', e); throw e; })
+                `.catch((e: unknown) => { console.error('Query 5 failed:', e); throw e; })
             ]);
 
         invGeneral = results[0];
@@ -199,10 +186,9 @@ export async function GET(request: Request): Promise<NextResponse> {
         invDetails = results[2];
         quotDetails = results[3];
         recentBilling = results[4];
-        recentPurchases = results[5];
 
         const invGen = invGeneral?.[0] || { curr_count: 0, curr_total: 0, curr_received: 0, prev_count: 0, prev_total: 0 };
-        const misc = miscStats?.[0] || { curr_cust: 0, prev_cust: 0, prod_count: 0, pur_total: 0, pur_qty: 0, qc_qty: 0, sold_qty: 0 };
+        const misc = miscStats?.[0] || { curr_cust: 0, prev_cust: 0 };
         const invDet = invDetails?.[0] || { pending: 0, overdue: 0, total_paid: 0, count: 0 };
         const quotDet = quotDetails?.[0] || { curr_count: 0, curr_total: 0, curr_received: 0, prev_count: 0, prev_total: 0, pending: 0, overdue: 0, total_paid: 0 };
 
@@ -217,16 +203,13 @@ export async function GET(request: Request): Promise<NextResponse> {
         const totalPendingInvoicedAmount = (Number(invDet.pending) || 0) + (Number(quotDet.pending) || 0);
         const totalOverdueAmount = (Number(invDet.overdue) || 0) + (Number(quotDet.overdue) || 0);
         const totalPaidInvoicedAmount = totalInvoicedAmount - totalPendingInvoicedAmount;
-        
-        const totalProductQty = (Number(misc.pur_qty) || 0) - (Number(misc.sold_qty) || 0);
-        const totalSoldQty = Number(misc.sold_qty) || 0;
 
         const data = {
             invoices: Number(invGen.curr_count) || 0,
             proformaCount: Number(quotDet.curr_count) || 0,
             receiptCount: Number(invDet.count) || 0,
-            totalProductQty,
-            totalSoldQty,
+            totalProductQty: 0,
+            totalSoldQty: 0,
             totalInvoicedAmount,
             totalPaidInvoicedAmount,
             totalPendingInvoicedAmount,
@@ -234,16 +217,16 @@ export async function GET(request: Request): Promise<NextResponse> {
             amountDue: (Number(invDet.pending) || 0) + (Number(invDet.overdue) || 0),
             quotations: Number(quotDet.curr_count) || 0,
             sales: Number(invGen.curr_total) || 0,
-            purchase: Number(misc.pur_total) || 0,
+            purchase: 0,
             expenses: 0,
             credits: (Number(invDet.pending) || 0) + (Number(invDet.overdue) || 0),
             invoicedAmt: Number(invGen.curr_total) || 0,
             receivedAmt: Number(invGen.curr_received) || 0,
             outstandingAmt: Number(invDet.pending) || 0,
             overdueAmt: totalOverdueAmount,
-            products: Number(misc.prod_count) || 0,
+            products: 0,
             recentBilling: recentBilling || [],
-            recentPurchases: recentPurchases || [],
+            recentPurchases: [],
             trends: {
                 sales: calcTrend(invGen.curr_total, invGen.prev_total),
                 quotations: calcTrend(quotDet.curr_count, quotDet.prev_count),

@@ -1,18 +1,12 @@
 "use client";
 
 import React from "react";
-import "../resources.css"; // Adjusted path
 import {
-    Download,
-    MonitorCheck,
     Eraser,
     Minimize2,
     Sparkles,
-    Wrench,
     ArrowRight,
     Cpu,
-    HardDrive,
-    Search,
     Monitor,
     Keyboard,
     Battery,
@@ -20,7 +14,8 @@ import {
     Video,
     Touchpad,
     Wifi,
-    MousePointer2
+    MousePointer2,
+    Terminal
 } from "lucide-react";
 import Link from "next/link";
 
@@ -53,19 +48,18 @@ export default function ResourcesContent() {
     return (
         <div className="resources-page">
             <section className="resources-hero">
-                <h1 className="resources-title">Developer & Tech Resources</h1>
+                <h1 className="resources-title">{"Developer & Tech Resources"}</h1>
                 <p className="resources-subtitle">
-                    Essential tools for developers, designers, and technicians.
-                    Manage your workflow with our premium suite of utilities.
+                    {"Essential tools for developers, designers, and technicians. Manage your workflow with our premium suite of utilities."}
                 </p>
             </section>
 
             {/* Laptop & Desktop Quality Checking Section */}
             <section className="section-wrapper">
                 <div className="section-header">
-                    <h2 className="section-title">Laptop & Desktop Quality Checking</h2>
+                    <h2 className="section-title">{"Laptop & Desktop Quality Checking"}</h2>
                     <p className="section-subtitle">
-                        Comprehensive diagnostic suite to verify hardware integrity. Test displays, inputs, audio, and performance.
+                        {"Comprehensive diagnostic suite to verify hardware integrity. Test displays, inputs, audio, and performance."}
                     </p>
                 </div>
                 <div className="resources-grid" style={{ paddingTop: '1rem' }}>
@@ -122,13 +116,6 @@ export default function ResourcesContent() {
                         actionText="Check Network"
                     />
 
-                    <ResourceCard
-                        title="SpecCheck"
-                        description="Real-time futuristic hardware & system diagnostics suite."
-                        icon={<Cpu size={32} />}
-                        href="/resources/spec"
-                        actionText="Run Diagnostics"
-                    />
 
                     <ResourceCard
                         title="SpecCheck Ultra"
@@ -144,6 +131,14 @@ export default function ResourcesContent() {
                         icon={<Touchpad size={32} />}
                         href="/resources/touch-test"
                         actionText="Test Touch"
+                    />
+
+                    <ResourceCard
+                        title="Web-to-Local Bridge"
+                        description="Diagnostic Tool Controller for laptop refurbishment & quality checking workstations."
+                        icon={<Terminal size={32} />}
+                        href="/qc"
+                        actionText="Open Bridge"
                     />
 
                 </div>

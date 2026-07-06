@@ -6,12 +6,9 @@ export const dynamic = 'force-dynamic';
 
 const SECTIONS = {
     "User & Security Management": ["users", "roles", "password_resets", "admin_emails"],
-    "Product & Pricing Management": ["products", "products_price", "featured_products_config", "wishlist"],
-    "Inventory & Logistics": ["master_inventory", "purchase_lots", "purchase_lot_items", "lots", "packed_items", "packing_boxes", "label_settings", "sale_out", "sales_returns"],
-    "Sales & Quotations": ["orders", "invoices", "invoice_items", "invoice_payments", "quotations", "quotation_items", "quotation_payments", "receipt_list"],
-    "Accounting & Finance": ["cash_book", "chart_of_accounts", "accounting_transactions", "accountant_sessions", "authorized_accountants"],
-    "Contacts Management": ["customers", "suppliers"],
-    "System Configuration": ["settings", "drop_lists", "activity_logs", "playing_with_neon"]
+    "Order & Billing Management": ["orders", "invoices", "invoice_items", "invoice_payments", "quotations", "quotation_items", "quotation_payments", "receipt_list"],
+    "Customer Management": ["customers"],
+    "System Configuration": ["settings", "drop_lists", "activity_logs"]
 };
 
 export async function GET(request: NextRequest) {

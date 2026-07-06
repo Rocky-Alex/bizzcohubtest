@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+; ==============================================================================
+; Bizz Co Hub QA - Windows Registry Template for PowerShell Controller Bridge
+# Registers: bizzco-qa:// custom URI protocol scheme
+; ==============================================================================
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa]
+@="URL:Bizz Co QA Protocol"
+"URL Protocol"=""
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open\command]
+@="powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File \"C:\\BizzCo_QC_Software\\controller.ps1\" \"%1\""

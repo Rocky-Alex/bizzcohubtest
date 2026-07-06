@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Diagnostic Control Center | Bizz Co Hub LLC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary-glow: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.05) 70%);
+
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #ea580c;
+            --accent-pink: #ec4899;
+
+            --btn-blue-glow: rgba(59, 130, 246, 0.4);
+            --btn-purple-glow: rgba(139, 92, 246, 0.4);
+            --btn-green-glow: rgba(16, 185, 129, 0.4);
+            --btn-orange-glow: rgba(234, 88, 12, 0.4);
+            --btn-pink-glow: rgba(236, 72, 153, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Decorative background glow */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: 20%;
+            width: 60vw;
+            height: 60vw;
+            background: var(--primary-glow);
+            z-index: -1;
+            filter: blur(100px);
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            z-index: 1;
+        }
+
+        /* Header Style */
+        header {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .logo-area {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--accent-blue);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-blue);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.9);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.9);
+                opacity: 0.6;
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* Dashboard Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Glassmorphism Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.15) inset;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card.harddrive:hover::before {
+            background: var(--accent-blue);
+        }
+
+        .card.lcd:hover::before {
+            background: var(--accent-purple);
+        }
+
+        .card.battery:hover::before {
+            background: var(--accent-green);
+        }
+
+        .card.keyboard:hover::before {
+            background: var(--accent-orange);
+        }
+
+        .card.audio:hover::before {
+            background: var(--accent-pink);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .harddrive .icon-wrapper {
+            color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .lcd .icon-wrapper {
+            color: var(--accent-purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .battery .icon-wrapper {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .keyboard .icon-wrapper {
+            color: var(--accent-orange);
+            background: rgba(234, 88, 12, 0.1);
+        }
+
+        .audio .icon-wrapper {
+            color: var(--accent-pink);
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        .file-info {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Action Buttons & Groups */
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .btn {
+            flex-grow: 1;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover svg {
+            transform: translateX(4px);
+        }
+
+        .btn-download {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            width: 50px;
+            padding: 0.85rem 0;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-download:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-download svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-download:hover svg {
+            transform: translateY(2px);
+        }
+
+        /* Specific Button Colors */
+        .btn-blue {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 15px var(--btn-blue-glow);
+        }
+
+        .btn-blue:hover {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            box-shadow: 0 4px 15px var(--btn-purple-glow);
+        }
+
+        .btn-purple:hover {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            box-shadow: 0 4px 15px var(--btn-green-glow);
+        }
+
+        .btn-green:hover {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, #ea580c, #c2410c);
+            color: white;
+            box-shadow: 0 4px 15px var(--btn-orange-glow);
+        }
+
+        .btn-orange:hover {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, #db2777, #be185d);
+            color: white;
+            box-shadow: 0 4px 15px var(--btn-pink-glow);
+        }
+
+        .btn-pink:hover {
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6);
+        }
+
+        /* Status Toast System */
+        .status-container {
+            background: rgba(17, 24, 39, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .status-header {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .status-log {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--accent-blue);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        /* Guide / Documentation section */
+        .guide-section {
+            background: rgba(17, 24, 39, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .guide-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .guide-steps {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .guide-steps li {
+            position: relative;
+            padding-left: 1.75rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .guide-steps li strong {
+            color: var(--text-main);
+        }
+
+        .guide-steps li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+        }
+
+        .download-links-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .download-pill {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+
+        .download-pill:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .code-box {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            color: #f43f5e;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header>
+            <div class="logo-area">
+                <span class="logo-dot"></span>
+                Bizz Co Hub LLC
+            </div>
+            <h1>Quality Checking</h1>
+            <p class="subtitle">Web-to-Local Bridge Control System for Refurbishment Workstations</p>
+        </header>
+
+        <!-- Main QC Master Suite Banner -->
+        <div class="card master-suite"
+            style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); border: 2px solid var(--accent-blue); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2); width: 100%;">
+            <div>
+                <div class="card-header">
+                    <div class="icon-wrapper" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="card-title" style="font-size: 1.5rem; font-weight: 700;">Bizz Co QC Master Suite</h2>
+                        <span
+                            style="font-size: 0.8rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 0.1rem;">Workstation
+                            Master Client</span>
+                    </div>
+                </div>
+                <p class="card-desc" style="font-size: 1rem; line-height: 1.6; color: var(--text-muted);">Launches the
+                    main control panel application (QC_Software.exe). If the tool is not installed, clicking Launch will
+                    automatically download and install it in C:\BizzCo_QC_Software\.</p>
+                <div class="file-info">Target: QC_Software.exe</div>
+            </div>
+            <div class="btn-group">
+                <button onclick="triggerDiagnostic('check-qc')" class="btn btn-blue"
+                    style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); padding: 1rem 0; font-size: 1.05rem;">
+                    Launch QC Master Suite
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </button>
+                <a href="../public/qc_softwaes/QC_Software.exe" download="QC_Software.exe" class="btn-download"
+                    style="width: 60px; padding: 1rem 0;" title="Download Tool">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+
+
+
+
+
+
+    </div>
+
+    <!-- Script to trigger local actions and update status -->
+    <script>
+        function triggerDiagnostic(command) {
+            const statusLog = document.getElementById('statusLog');
+            // Include web server origin for auto-download capability
+            const originParam = encodeURIComponent(window.location.origin);
+            const protocolUrl = `bizzco-qa://${command}?origin=${originParam}`;
+
+            if (statusLog) {
+                statusLog.style.color = '#3b82f6';
+                statusLog.textContent = `Attempting to launch: ${protocolUrl}`;
+            }
+
+            // Trigger custom URI protocol scheme
+            window.location.href = protocolUrl;
+
+            // Reset status after a brief duration
+            if (statusLog) {
+                setTimeout(() => {
+                    statusLog.style.color = '#10b981';
+                    statusLog.textContent = `Triggered command "${command}" successfully. Check your desktop workspace!`;
+                }, 1800);
+            }
+        }
+    </script>
+</body>
+
+</html>

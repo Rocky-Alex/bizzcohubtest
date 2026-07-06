@@ -79,6 +79,10 @@ export default function Header() {
                             // Update state and storage
                             setCurrentUser(freshUser);
                             localStorage.setItem('customer_user', JSON.stringify(freshUser));
+                        } else if (res.status === 404 || res.status === 410) {
+                            // Account no longer exists or has been deactivated/deleted
+                            localStorage.removeItem('customer_user');
+                            setCurrentUser(null);
                         }
                     }
                 } catch (e) {

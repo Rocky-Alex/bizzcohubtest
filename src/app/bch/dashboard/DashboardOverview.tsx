@@ -282,16 +282,9 @@ export default function DashboardOverview({
         { label: "Overdue", value: formatCurrency(overviewStatsData?.overdueAmt || 0), icon: "fas fa-exclamation-triangle", tone: "red" }
     ];
 
-    const inventoryStats = [
-        { label: "Total Product Qty", value: formatNumber(overviewStatsData?.totalProductQty || 0), icon: "fas fa-boxes", tone: "orange" },
-        { label: "Total Sold Product Qty", value: formatNumber(overviewStatsData?.totalSoldQty || 0), icon: "fas fa-box-open", tone: "red" },
-        { label: "Purchase Cost", value: formatCurrency(overviewStatsData?.purchase || 0), icon: "fas fa-cart-shopping", tone: "green" }
-    ];
-
     const desktopSections = [
         { title: "Billing Overview", headerIcon: "fas fa-th-large", stats: overviewStats },
-        { title: "Payment Summary", headerIcon: "fas fa-chart-bar", stats: billingStats },
-        { title: "Inventory & Purchases", headerIcon: "fas fa-file-invoice-dollar", stats: inventoryStats }
+        { title: "Payment Summary", headerIcon: "fas fa-chart-bar", stats: billingStats }
     ];
 
     const dateOptions = ["Today", "Yesterday", "Last 7 Days", "Last 30 Days", "This Month", "Last Month", "Custom Range"];
@@ -494,15 +487,7 @@ export default function DashboardOverview({
                     <div className="mobile-stat-grid mobile-sales-grid">{billingStats.map(renderMobileStatCard)}</div>
                 </section>
 
-                <section className="mobile-dashboard-section">
-                    <div className="mobile-section-header">
-                        <div className="mobile-section-title">
-                            <i className="fas fa-file-invoice-dollar"></i>
-                            <h2>Inventory & Purchases</h2>
-                        </div>
-                    </div>
-                    <div className="mobile-stat-grid mobile-invoice-grid">{inventoryStats.map(renderMobileStatCard)}</div>
-                </section>
+
 
                 <section className="mobile-dashboard-section mobile-recent-section">
                     <div className="mobile-section-header mobile-section-header-split">
@@ -572,107 +557,60 @@ export default function DashboardOverview({
 
 
 
-                <div className="invoices-section dual-tab-section">
+                <div className="invoices-section">
                     <div className="section-header-row">
-                        <div className="tab-switcher">
-                            <button 
-                                className={`tab-btn ${activeRecentTab === "billing" ? "active" : ""}`}
-                                onClick={() => setActiveRecentTab("billing")}
-                            >
-                                Recent Billing
-                            </button>
-                            <button 
-                                className={`tab-btn ${activeRecentTab === "purchases" ? "active" : ""}`}
-                                onClick={() => setActiveRecentTab("purchases")}
-                            >
-                                Recent Purchases
-                            </button>
-                            <div className={`tab-slider ${activeRecentTab === "purchases" ? "purchases" : ""}`} />
-                        </div>
+                        <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 600 }}>Recent Billing</h2>
                         <button 
                             className="btn-view-all" 
                             onClick={() => {
                                 window.dispatchEvent(new Event('bch-nav-start'));
-                                setActiveSection(activeRecentTab === "billing" ? "invoicing-all" : "purchase-history");
+                                setActiveSection("invoicing-all");
                             }}
                         >
-                            View all {activeRecentTab === "billing" ? "Billing" : "Purchases"}
+                            View all Billing
                         </button>
                     </div>
 
                     <div className="table-wrapper">
-                        {activeRecentTab === "billing" ? (
-                            <table className="dashboard-table">
-                                <thead>
-                                    <tr>
-                                        <th>Doc</th>
-                                        <th>Type</th>
-                                        <th>Customer</th>
-                                        <th>Created On</th>
-                                        <th>Amount</th>
-                                        <th>Paid</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {aggregatedStats.recentBilling.length > 0 ? (
-                                        aggregatedStats.recentBilling.map((inv) => (
-                                            <tr key={`${inv.doc_type}-${inv.id}`}>
-                                                <td style={{ color: "var(--text-secondary)" }}>{inv.doc_no}</td>
-                                                <td style={{ color: "var(--text-secondary)" }}>{inv.doc_type}</td>
-                                                <td>
-                                                    <div className="customer-info">
-                                                        <img src={inv.customer_avatar || getAvatarUrl(inv.customer_name)} alt={inv.customer_name} className="avatar" />
-                                                        <span style={{ fontWeight: 500 }}>{inv.customer_name}</span>
-                                                    </div>
-                                                </td>
-                                                <td style={{ color: "var(--text-secondary)" }}>{new Date(inv.created_date).toLocaleDateString()}</td>
-                                                <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{formatCurrency(inv.total_amount)}</td>
-                                                <td style={{ color: "var(--text-secondary)" }}>{formatCurrency(inv.paid_amount || 0)}</td>
-                                                <td><span className="payment-mode-pill">{inv.status || "N/A"}</span></td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "var(--text-tertiary)" }}>
-                                                No recent billing found.
+                        <table className="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Doc</th>
+                                    <th>Type</th>
+                                    <th>Customer</th>
+                                    <th>Created On</th>
+                                    <th>Amount</th>
+                                    <th>Paid</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {aggregatedStats.recentBilling.length > 0 ? (
+                                    aggregatedStats.recentBilling.map((inv) => (
+                                        <tr key={`${inv.doc_type}-${inv.id}`}>
+                                            <td style={{ color: "var(--text-secondary)" }}>{inv.doc_no}</td>
+                                            <td style={{ color: "var(--text-secondary)" }}>{inv.doc_type}</td>
+                                            <td>
+                                                <div className="customer-info">
+                                                    <img src={inv.customer_avatar || getAvatarUrl(inv.customer_name)} alt={inv.customer_name} className="avatar" />
+                                                    <span style={{ fontWeight: 500 }}>{inv.customer_name}</span>
+                                                </div>
                                             </td>
+                                            <td style={{ color: "var(--text-secondary)" }}>{new Date(inv.created_date).toLocaleDateString()}</td>
+                                            <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{formatCurrency(inv.total_amount)}</td>
+                                            <td style={{ color: "var(--text-secondary)" }}>{formatCurrency(inv.paid_amount || 0)}</td>
+                                            <td><span className="payment-mode-pill">{inv.status || "N/A"}</span></td>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        ) : (
-                            <table className="dashboard-table">
-                                <thead>
+                                    ))
+                                ) : (
                                     <tr>
-                                        <th>Lot #</th>
-                                        <th>Supplier</th>
-                                        <th>Invoice #</th>
-                                        <th>Total Cost</th>
-                                        <th>Created On</th>
+                                        <td colSpan={7} style={{ textAlign: "center", padding: "2rem", color: "var(--text-tertiary)" }}>
+                                            No recent billing found.
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {aggregatedStats.recentPurchases.length > 0 ? (
-                                        aggregatedStats.recentPurchases.map((purchase) => (
-                                            <tr key={purchase.id}>
-                                                <td style={{ color: "var(--text-secondary)" }}>{purchase.lot_number || purchase.id}</td>
-                                                <td>{purchase.supplier_name || 'N/A'}</td>
-                                                <td>{purchase.invoice_number || 'N/A'}</td>
-                                                <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{formatCurrency(purchase.total_cost)}</td>
-                                                <td style={{ color: "var(--text-secondary)" }}>{new Date(purchase.created_at).toLocaleDateString()}</td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={5} style={{ textAlign: "center", padding: "2rem", color: "var(--text-tertiary)" }}>
-                                                No recent purchases found.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        )}
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

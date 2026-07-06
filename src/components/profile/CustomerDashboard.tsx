@@ -60,6 +60,10 @@ export default function CustomerDashboard({ user, theme, onToggleTheme }: Custom
             if (profileRes.ok) {
                 const data = await profileRes.json();
                 setProfile(data.user);
+            } else if (profileRes.status === 404 || profileRes.status === 410) {
+                localStorage.removeItem('customer_user');
+                window.location.href = '/login';
+                return;
             }
 
             // Fetch Orders

@@ -32,37 +32,7 @@ export default function DatabasePage() {
                 ]
             }
         ],
-        "Product & Pricing Management": [
-            {
-                id: 'products_main', label: 'Product Catalog', tables: [
-                    { name: 'Products', tableName: 'products', description: 'Main product catalog' },
-                    { name: 'Products Price', tableName: 'products_price', description: 'Product pricing details' },
-                    { name: 'Featured Products', tableName: 'featured_products_config', description: 'Homepage featured configuration' },
-                    { name: 'Wishlist', tableName: 'wishlist', description: 'Customer product wishlists' }
-                ]
-            }
-        ],
-        "Inventory & Logistics": [
-            {
-                id: 'inventory_main', label: 'Inventory', tables: [
-                    { name: 'Master Inventory', tableName: 'master_inventory', description: 'Main stock and barcode tracking' },
-                    { name: 'Purchase Lots', tableName: 'purchase_lots', description: 'Batch purchase records' },
-                    { name: 'Purchase Lot Items', tableName: 'purchase_lot_items', description: 'Individual items in purchase batches' },
-                    { name: 'Lots', tableName: 'lots', description: 'Inventory lot management' }
-                ]
-            },
-            {
-                id: 'fulfillment', label: 'Fulfillment & Logistics', tables: [
-                    { name: 'Packed Items', tableName: 'packed_items', description: 'Items verified and packed for shipping' },
-                    { name: 'Packing Boxes', tableName: 'packing_boxes', description: 'Shipping container details' },
-                    { name: 'Label Settings', tableName: 'label_settings', description: 'Barcode and label configurations' },
-                    { name: 'Sale Out', tableName: 'sale_out', description: 'Current inventory exit records' },
-                    { name: 'Sales Out (Legacy)', tableName: 'sales_out', description: 'Historical inventory exit records' },
-                    { name: 'Sales Returns', tableName: 'sales_return_inventory', description: 'Returned items management' }
-                ]
-            }
-        ],
-        "Sales & Quotations": [
+        "Order & Billing Management": [
             {
                 id: 'sales_ops', label: 'Sales Operations', tables: [
                     { name: 'Orders', tableName: 'orders', description: 'Customer orders and transactions' },
@@ -76,22 +46,10 @@ export default function DatabasePage() {
                 ]
             }
         ],
-        "Accounting & Finance": [
-            {
-                id: 'finance_ops', label: 'Finance', tables: [
-                    { name: 'Cash Book', tableName: 'cash_book', description: 'Cash inflow and outflow records' },
-                    { name: 'Chart of Accounts', tableName: 'chart_of_accounts', description: 'Accounting ledger hierarchy' },
-                    { name: 'Accounting Transactions', tableName: 'accounting_transactions', description: 'General accounting ledger' },
-                    { name: 'Accountant Sessions', tableName: 'accountant_sessions', description: 'Active accountant logins' },
-                    { name: 'Auth Accountants', tableName: 'authorized_accountants', description: 'Authorized external accountants' }
-                ]
-            }
-        ],
-        "Contacts Management": [
+        "Customer Management": [
             {
                 id: 'contacts', label: 'Contacts', tables: [
-                    { name: 'Customers', tableName: 'customers', description: 'Registered customer database' },
-                    { name: 'Suppliers', tableName: 'suppliers', description: 'Vendor and supplier database' }
+                    { name: 'Customers', tableName: 'customers', description: 'Registered customer database' }
                 ]
             }
         ],
@@ -100,8 +58,7 @@ export default function DatabasePage() {
                 id: 'system_config', label: 'System', tables: [
                     { name: 'Settings', tableName: 'settings', description: 'Global system configurations' },
                     { name: 'Drop Lists', tableName: 'drop_lists', description: 'Dynamic dropdown menu options' },
-                    { name: 'Activity Logs', tableName: 'activity_logs', description: 'User action and system logs' },
-                    { name: 'Testing (Neon)', tableName: 'playing_with_neon', description: 'Neon DB experimental table' }
+                    { name: 'Activity Logs', tableName: 'activity_logs', description: 'User action and system logs' }
                 ]
             }
         ]

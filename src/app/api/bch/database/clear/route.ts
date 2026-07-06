@@ -11,23 +11,17 @@ async function isAdmin(): Promise<boolean> {
 }
 
 const ALLOWED_TABLES = [
-    'products',
-    'featured_products_config',
     'orders',
     'customers',
     'users',
     'settings',
     'admin_emails',
-
-    'purchase_lots',
-    'purchase_lot_items',
     'invoices',
     'invoice_items',
     'quotation_items',
     'roles',
     'quotations',
     'invoice_payments',
-    'wishlist',
     'activity_logs'
 ];
 
@@ -60,12 +54,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 await sql`DELETE FROM users WHERE username != 'superadmin'`;
             } else {
                 switch (t) {
-                    case 'products':
-                        await sql`DELETE FROM products`;
-                        break;
-                    case 'featured_products_config':
-                        await sql`DELETE FROM featured_products_config`;
-                        break;
                     case 'orders':
                         await sql`DELETE FROM orders`;
                         break;
@@ -79,16 +67,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                     case 'quotations':
                         await sql`DELETE FROM quotations`;
                         await sql`DELETE FROM quotation_items`;
-                        break;
-                    case 'purchase_lots':
-                        await sql`DELETE FROM purchase_lots`;
-                        try { await sql`DELETE FROM purchase_lot_items`; } catch (e: unknown) { }
-                        break;
-                    case 'purchase_lot_items':
-                        await sql`DELETE FROM purchase_lot_items`;
-                        break;
-                    case 'inventory_qc':
-                        await sql`DELETE FROM inventory_qc`;
                         break;
                     case 'admin_emails':
                         await sql`DELETE FROM admin_emails`;
@@ -107,9 +85,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                         break;
                     case 'invoice_payments':
                         await sql`DELETE FROM invoice_payments`;
-                        break;
-                    case 'wishlist':
-                        await sql`DELETE FROM wishlist`;
                         break;
                     case 'activity_logs':
                         await sql`DELETE FROM activity_logs`;

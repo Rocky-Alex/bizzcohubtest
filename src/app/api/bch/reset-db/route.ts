@@ -12,7 +12,7 @@ export async function POST(): Promise<NextResponse> {
         // Using TRUNCATE CASCADE to clear data but keep structure
 
         // E-Commerce / Main DB
-        await sql`TRUNCATE TABLE products, orders, activity_logs CASCADE`;
+        await sql`TRUNCATE TABLE orders, activity_logs CASCADE`;
         await sql`TRUNCATE TABLE customers CASCADE`; // Customers might be linked to orders
 
         // Invoice DB

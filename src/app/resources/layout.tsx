@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import "./resources.css";
 
 export const metadata: Metadata = {
     title: 'Developer & Tech Resources | Free Online Tools',

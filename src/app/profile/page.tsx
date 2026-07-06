@@ -131,6 +131,10 @@ function ProfileContent() {
                 });
             } else {
                 console.error('Failed to load profile');
+                if (res.status === 404 || res.status === 410) {
+                    localStorage.removeItem('customer_user');
+                    router.push('/login');
+                }
             }
         } catch (error) {
             console.error('Error loading profile:', error);

@@ -38,12 +38,6 @@ export default function AdminSidebar({
     const menuItems: SidebarItem[] = [
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard", color: "#6366f1" },
         {
-            id: "featured-manage",
-            icon: "fa-star",
-            label: "Featured Products",
-            color: "#f59e0b"
-        },
-        {
             id: "orders",
             icon: "fa-shopping-cart",
             label: "Orders Manage",
@@ -65,77 +59,6 @@ export default function AdminSidebar({
             ]
         },
         {
-            id: "purchase",
-            icon: "fa-shopping-bag",
-            label: "Purchases",
-            color: "#8b5cf6",
-            subItems: [
-                { id: "purchase-dashboard", label: "Dashboard" },
-                { id: "purchase-history", label: "Purchase Lots" },
-                { id: "purchase-lot-inventory", label: "Purchase Lot Inventory" },
-                { id: "suppliers", label: "Suppliers Manage" }
-            ]
-        },
-        {
-            id: "inventory",
-            icon: "fa-boxes",
-            label: "Inventory",
-            color: "#f97316",
-            subItems: [
-                { id: "inventory-dashboard", label: "Inventory Dashboard" },
-                { id: "add-product", label: "Add E-Comm Product" },
-                { id: "products-list", label: "E-Comm Products List" },
-                { id: "inventory-qc", label: "Master Inventory" },
-                { id: "inventory-drops", label: "Dropdown Manage" }
-            ]
-        },
-        {
-            id: "production",
-            icon: "fa-tools",
-            label: "Production",
-            color: "#06b6d4",
-            subItems: [
-                { id: "production-qc", label: "Production QC Checking" },
-                { id: "production-inventory-qc", label: "Inventory QC Checking" },
-                { id: "production-model-checking", label: "Model Checking" },
-                { id: "production-reprint", label: "Reprint Barcode" },
-                { id: "production-sticker-printing", label: "Sticker Printing" }
-            ]
-        },
-        {
-            id: "sales",
-            icon: "fa-store",
-            label: "Sales Port",
-            color: "#ec4899",
-            subItems: [
-                { id: "sales-dashboard", label: "Sales Dashboard" },
-                { id: "sales-port", label: "Sales Port (Out)" },
-                { id: "sales-inventory", label: "Sales Inventory" }
-            ]
-        },
-        {
-            id: "packing",
-            icon: "fa-box",
-            label: "Packing",
-            color: "#14b8a6",
-            subItems: [
-                { id: "packing-dashboard", label: "Packing Dashboard" },
-                { id: "packing-v2", label: "Packing" }
-            ]
-        },
-        {
-            id: "product-pricing",
-            icon: "fa-tags",
-            label: "Product Pricing",
-            color: "#f43f5e"
-        },
-        {
-            id: "labelsize",
-            icon: "fa-barcode",
-            label: "Label Size",
-            color: "#84cc16"
-        },
-        {
             id: "invoicing",
             icon: "fa-file-invoice",
             label: "Billing",
@@ -150,19 +73,6 @@ export default function AdminSidebar({
             ]
         },
         {
-            id: "accounting",
-            icon: "fa-book-open",
-            label: "Accounting",
-            color: "#7c3aed",
-            subItems: [
-                { id: "accounting-dashboard", label: "Dashboard" },
-                { id: "accounting-cashbook", label: "Cash Book" },
-                { id: "accounting-statements", label: "Financial Statements" },
-                { id: "accounting-lots", label: "Lot Management" },
-                { id: "accounting-settings", label: "Settings" }
-            ]
-        },
-        {
             id: "users",
             icon: "fa-user-shield",
             label: "User Manage",
@@ -171,12 +81,6 @@ export default function AdminSidebar({
                 { id: "users-all", label: "All Users" },
                 { id: "users-roles", label: "Roles and Permissions" }
             ]
-        },
-        {
-            id: "user-passwords",
-            icon: "fa-key",
-            label: "User Password",
-            color: "#f59e0b"
         },
         {
             id: "activity-log",
@@ -343,67 +247,27 @@ export default function AdminSidebar({
     };
 
     const displayedItems = menuItems.filter(item => {
-        if (item.id === 'mobile-accounts') return true;
-
         if (userRole?.toLowerCase() === 'accountant') {
-            return ['dashboard', 'orders', 'invoicing', 'accounting', 'accounts'].includes(item.id);
+            return ['dashboard', 'orders', 'invoicing'].includes(item.id);
         }
-
-        if (['user-passwords', 'activity-log'].includes(item.id)) {
-            const isSuperAdmin = userRole === 'superadmin' || username === 'superadmin';
-            return isSuperAdmin;
-        }
-
-        const isProductionWorkspace = searchParams.get('workspace') === 'production' ||
-            pathname?.startsWith('/bch/production') ||
-            pathname?.startsWith('/bch/sales') ||
-            pathname?.startsWith('/bch/purchase') ||
-            pathname?.startsWith('/bch/inventory') ||
-            pathname?.startsWith('/bch/packing') ||
-            pathname?.startsWith('/bch/labelsize');
-
-        if (isProductionWorkspace) {
-            return ['dashboard', 'production', 'sales', 'purchase', 'inventory', 'product-pricing', 'packing', 'labelsize'].includes(item.id);
-        } else {
-            if (['production', 'sales', 'purchase', 'inventory', 'packing', 'labelsize'].includes(item.id)) {
-                return false;
-            }
-        }
-
         return true;
     });
 
     const isMainItemActive = (item: any) => {
         const routeMap: Record<string, string> = {
             'dashboard': '/bch/dashboard',
-            'user-passwords': '/bch/passwords',
-            'activity-log': '/bch/activity-log',
-            'featured-manage': '/bch/featured',
             'orders': '/bch/Order',
             'customers': '/bch/customers',
-            'accounts': '/bch/accounts',
             'invoicing': '/bch/billing',
             'users': '/bch/users',
-            'production': '/bch/production',
-            'sales': '/bch/sales',
-            'packing': '/bch/packing',
-            'inventory': '/bch/inventory',
-            'product-pricing': '/bch/pricing',
-            'accounting': '/bch/accounting',
+            'activity-log': '/bch/activity-log',
             'database': '/bch/database',
             'auto-refresh': '/bch/autorefresh'
         };
         const targetRoute = routeMap[item.id];
         if (pathname === targetRoute) return true;
-
-        if (item.subItems) {
-            const currentFullUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-            return item.subItems.some((sub: any) => {
-                const subTarget = `/bch/${sub.id.replace(/-/g, '/')}`; // Generic fallback
-                // Check if the current path matches any of the sub-item logic
-                return currentFullUrl.includes('/bch/accounts') && item.id === 'accounts';
-            });
-        }
+        if (targetRoute && pathname.startsWith(targetRoute)) return true;
+        if (item.id === 'orders' && pathname.startsWith('/bch/orders')) return true;
         return false;
     };
 

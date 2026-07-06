@@ -14,14 +14,10 @@ async function isAdmin(): Promise<boolean> {
 
 // Reuse or import ALLOWED_TABLES to prevent SQL Injection
 const ALLOWED_TABLES = [
-    'products', 'products_price', 'featured_products_config', 'wishlist',
-    'master_inventory', 'purchase_lots', 'purchase_lot_items', 'lots',
-    'packed_items', 'packing_boxes', 'label_settings', 'sale_out', 'sales_out', 'sales_return_inventory',
     'orders', 'invoices', 'invoice_items', 'invoice_payments', 'quotations', 'quotation_items', 'quotation_payments', 'receipt_list',
-    'cash_book', 'chart_of_accounts', 'accounting_transactions', 'accountant_sessions', 'authorized_accountants',
     'users', 'roles', 'password_resets', 'admin_emails',
-    'customers', 'suppliers',
-    'settings', 'drop_lists', 'activity_logs', 'playing_with_neon'
+    'customers',
+    'settings', 'drop_lists', 'activity_logs'
 ];
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
