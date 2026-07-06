@@ -149,18 +149,35 @@ if ($whitelist.ContainsKey($command)) {
         # Quiet download without running
         $downloadUrl = "$origin/qc_softwaes/$fileName"
         try {
+            # Show Save File Dialog to choose target directory and filename
+            Add-Type -AssemblyName System.Windows.Forms
+            $saveDialog = New-Object System.Windows.Forms.SaveFileDialog
+            $saveDialog.Filter = "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*"
+            $saveDialog.FileName = $fileName
+            $saveDialog.Title = "Choose where to save Bizz Co QC Software"
+            
+            # Show dialog
+            $dialogResult = $saveDialog.ShowDialog()
+            if ($dialogResult -ne [System.Windows.Forms.DialogResult]::OK) {
+                # User cancelled dialog
+                exit 0
+            }
+            
+            $targetPath = $saveDialog.FileName
+            
+            # Show progress console window
             Show-ConsoleWindow
             Write-Host "=========================================================" -ForegroundColor Cyan
             Write-Host "Bizz Co Hub - Downloading QC Software..." -ForegroundColor Cyan
-            Write-Host "Destination: $fullPath" -ForegroundColor White
+            Write-Host "Destination: $targetPath" -ForegroundColor White
             Write-Host "Source:      $downloadUrl" -ForegroundColor White
             Write-Host "=========================================================" -ForegroundColor Cyan
             Write-Host ""
-            Download-FileWithProgress -Uri $downloadUrl -OutFile $fullPath
-            if (Test-Path $fullPath) {
-                [System.Windows.MessageBox]::Show("Bizz Co QC Software downloaded successfully to C:\BizzCo_QC_Software\QC_Software.exe", "Download Successful", "OK", "Information")
+            Download-FileWithProgress -Uri $downloadUrl -OutFile $targetPath
+            if (Test-Path $targetPath) {
+                [System.Windows.MessageBox]::Show("Bizz Co QC Software downloaded successfully to $targetPath", "Download Successful", "OK", "Information")
             } else {
-                [System.Windows.MessageBox]::Show("Download completed, but file could not be written to '$fullPath'.", "Download Failed", "OK", "Error")
+                [System.Windows.MessageBox]::Show("Download completed, but file could not be written to '$targetPath'.", "Download Failed", "OK", "Error")
             }
         } catch {
             [System.Windows.MessageBox]::Show("Failed to download the tool from:`n$downloadUrl`n`nPlease ensure the local server is running.", "Download Error", "OK", "Error")
