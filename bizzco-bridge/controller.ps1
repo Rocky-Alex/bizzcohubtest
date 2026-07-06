@@ -12,6 +12,61 @@ param (
 # Load PresentationFramework for GUI popups (MessageBox)
 Add-Type -AssemblyName PresentationFramework
 
+function Download-FileWithProgress {
+    param (
+        [string]$Uri,
+        [string]$OutFile
+    )
+    
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
+    
+    try {
+        $request = [System.Net.HttpWebRequest]::Create($Uri)
+        $request.Method = "GET"
+        $request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        $request.Timeout = 30000
+        
+        $response = $request.GetResponse()
+        $totalBytes = $response.ContentLength
+        
+        $responseStream = $response.GetResponseStream()
+        $fileStream = [System.IO.File]::Create($OutFile)
+        
+        $buffer = New-Object byte[] 65536
+        $bytesReadTotal = 0
+        $totalSizeMb = if ($totalBytes -gt 0) { [Math]::Round($totalBytes / 1MB, 2) } else { "Unknown" }
+        
+        while ($true) {
+            $bytesRead = $responseStream.Read($buffer, 0, $buffer.Length)
+            if ($bytesRead -eq 0) { break }
+            
+            $fileStream.Write($buffer, 0, $bytesRead)
+            $bytesReadTotal += $bytesRead
+            
+            $currentMb = [Math]::Round($bytesReadTotal / 1MB, 2)
+            if ($totalBytes -gt 0) {
+                $percent = [Math]::Round(($bytesReadTotal / $totalBytes) * 100, 0)
+                Write-Host -NoNewline "`rDownloaded: $currentMb MB / $totalSizeMb MB ($percent%)"
+                Write-Progress -Activity "Downloading file" -Status "$currentMb MB / $totalSizeMb MB ($percent%)" -PercentComplete $percent
+            } else {
+                Write-Host -NoNewline "`rDownloaded: $currentMb MB"
+                Write-Progress -Activity "Downloading file" -Status "$currentMb MB"
+            }
+        }
+        
+        $fileStream.Close()
+        $responseStream.Close()
+        $fileStream.Dispose()
+        $responseStream.Dispose()
+        $response.Close()
+        
+        Write-Host "`nDownload complete!" -ForegroundColor Green
+    } catch {
+        if ($fileStream) { $fileStream.Close(); $fileStream.Dispose() }
+        throw $_
+    }
+}
+
 # 1. Check if argument was received
 if (-not $Url) {
     [System.Windows.MessageBox]::Show(
@@ -85,7 +140,7 @@ if ($whitelist.ContainsKey($command)) {
             Write-Host "Source:      $downloadUrl" -ForegroundColor White
             Write-Host "=========================================================" -ForegroundColor Cyan
             Write-Host ""
-            Invoke-WebRequest -Uri $downloadUrl -OutFile $fullPath -UseBasicParsing
+            Download-FileWithProgress -Uri $downloadUrl -OutFile $fullPath
             if (Test-Path $fullPath) {
                 [System.Windows.MessageBox]::Show("Bizz Co QC Software downloaded successfully to C:\BizzCo_QC_Software\QC_Software.exe", "Download Successful", "OK", "Information")
             } else {
@@ -110,7 +165,7 @@ if ($whitelist.ContainsKey($command)) {
                 Write-Host "=========================================================" -ForegroundColor Cyan
                 Write-Host ""
                 # Perform the download request
-                Invoke-WebRequest -Uri $downloadUrl -OutFile $fullPath -UseBasicParsing
+                Download-FileWithProgress -Uri $downloadUrl -OutFile $fullPath
                 
                 if (Test-Path $fullPath) {
                     # Run it
