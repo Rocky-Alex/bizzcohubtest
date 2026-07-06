@@ -12,6 +12,21 @@ param (
 # Load PresentationFramework for GUI popups (MessageBox)
 Add-Type -AssemblyName PresentationFramework
 
+# Define Win32 API to show/hide console window dynamically
+$win32Console = Add-Type -MemberDefinition @'
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr GetConsoleWindow();
+'@ -Name "Win32Console" -Namespace "Win32" -PassThru
+
+function Show-ConsoleWindow {
+    $hwnd = $win32Console::GetConsoleWindow()
+    if ($hwnd -ne [IntPtr]::Zero) {
+        $win32Console::ShowWindow($hwnd, 5) # 5 = SW_SHOW (Show/Restore)
+    }
+}
+
 function Download-FileWithProgress {
     param (
         [string]$Uri,
@@ -134,6 +149,7 @@ if ($whitelist.ContainsKey($command)) {
         # Quiet download without running
         $downloadUrl = "$origin/qc_softwaes/$fileName"
         try {
+            Show-ConsoleWindow
             Write-Host "=========================================================" -ForegroundColor Cyan
             Write-Host "Bizz Co Hub - Downloading QC Software..." -ForegroundColor Cyan
             Write-Host "Destination: $fullPath" -ForegroundColor White
@@ -158,6 +174,7 @@ if ($whitelist.ContainsKey($command)) {
             # Auto-installer block: create folder and download file if missing (without prompt query)
             $downloadUrl = "$origin/qc_softwaes/$fileName"
             try {
+                Show-ConsoleWindow
                 Write-Host "=========================================================" -ForegroundColor Cyan
                 Write-Host "Bizz Co Hub - Installing & Launching QC Software..." -ForegroundColor Cyan
                 Write-Host "Destination: $fullPath" -ForegroundColor White
