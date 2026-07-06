@@ -79,6 +79,12 @@ if ($whitelist.ContainsKey($command)) {
         # Quiet download without running
         $downloadUrl = "$origin/qc_softwaes/$fileName"
         try {
+            Write-Host "=========================================================" -ForegroundColor Cyan
+            Write-Host "Bizz Co Hub - Downloading QC Software..." -ForegroundColor Cyan
+            Write-Host "Destination: $fullPath" -ForegroundColor White
+            Write-Host "Source:      $downloadUrl" -ForegroundColor White
+            Write-Host "=========================================================" -ForegroundColor Cyan
+            Write-Host ""
             Invoke-WebRequest -Uri $downloadUrl -OutFile $fullPath -UseBasicParsing
             if (Test-Path $fullPath) {
                 [System.Windows.MessageBox]::Show("Bizz Co QC Software downloaded successfully to C:\BizzCo_QC_Software\QC_Software.exe", "Download Successful", "OK", "Information")
@@ -97,6 +103,12 @@ if ($whitelist.ContainsKey($command)) {
             # Auto-installer block: create folder and download file if missing (without prompt query)
             $downloadUrl = "$origin/qc_softwaes/$fileName"
             try {
+                Write-Host "=========================================================" -ForegroundColor Cyan
+                Write-Host "Bizz Co Hub - Installing & Launching QC Software..." -ForegroundColor Cyan
+                Write-Host "Destination: $fullPath" -ForegroundColor White
+                Write-Host "Source:      $downloadUrl" -ForegroundColor White
+                Write-Host "=========================================================" -ForegroundColor Cyan
+                Write-Host ""
                 # Perform the download request
                 Invoke-WebRequest -Uri $downloadUrl -OutFile $fullPath -UseBasicParsing
                 

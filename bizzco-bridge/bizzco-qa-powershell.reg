@@ -14,4 +14,4 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open]
 
 [HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open\command]
-@="powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File \"C:\\BizzCo_QC_Software\\controller.ps1\" \"%1\""
+@="powershell.exe -ExecutionPolicy Bypass -File \"C:\\BizzCo_QC_Software\\controller.ps1\" \"%1\""
