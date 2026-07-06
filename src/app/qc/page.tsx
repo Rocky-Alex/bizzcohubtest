@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import {
     Play,
     Download
@@ -15,38 +15,6 @@ export default function QaBridgePage() {
         window.location.href = protocolUrl;
         toast.success(`Triggered diagnostic command: ${command}`);
     };
-
-    useEffect(() => {
-        let launched = false;
-        
-        const triggerLaunch = () => {
-            if (!launched) {
-                launched = true;
-                triggerDiagnostic("check-qc");
-            }
-        };
-
-        // Try immediate launch on page load
-        triggerLaunch();
-
-        // Fallback: trigger launch on first user gesture anywhere on the page
-        const handleGesture = (e: MouseEvent | KeyboardEvent) => {
-            const target = e.target as HTMLElement;
-            // Ignore if user clicked a button/link directly to avoid double execution
-            if (target && (target.closest("button") || target.closest("a"))) {
-                return;
-            }
-            triggerLaunch();
-        };
-
-        window.addEventListener("click", handleGesture);
-        window.addEventListener("keydown", handleGesture);
-
-        return () => {
-            window.removeEventListener("click", handleGesture);
-            window.removeEventListener("keydown", handleGesture);
-        };
-    }, []);
 
     return (
         <div className="resources-page" style={{ paddingBottom: "4rem" }}>
