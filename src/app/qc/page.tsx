@@ -3,7 +3,10 @@
 import React from "react";
 import {
     Play,
-    Download
+    Download,
+    Monitor,
+    Keyboard,
+    Battery
 } from "lucide-react";
 import { toast } from "sonner";
 import "../resources/resources.css";
@@ -68,6 +71,36 @@ export default function QaBridgePage() {
                             >
                                 <Download size={20} /> Download QC Software
                             </button>
+                        </div>
+
+                        {/* Quick links to diagnostic tests */}
+                        <div className="qc-shortcuts-section">
+                            <span className="qc-shortcuts-label">
+                                Quick Diagnostics:
+                            </span>
+                            <div className="qc-shortcuts-list">
+                                <a 
+                                    href="/resources/lcd-check" 
+                                    title="LCD Screen Check"
+                                    className="qc-shortcut-btn"
+                                >
+                                    <Monitor size={18} />
+                                </a>
+                                <a 
+                                    href="/resources/keyboard-test" 
+                                    title="Keyboard Test"
+                                    className="qc-shortcut-btn"
+                                >
+                                    <Keyboard size={18} />
+                                </a>
+                                <a 
+                                    href="/resources/battery-status" 
+                                    title="Battery Status"
+                                    className="qc-shortcut-btn"
+                                >
+                                    <Battery size={18} />
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
