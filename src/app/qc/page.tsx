@@ -18,13 +18,21 @@ export default function QaManagementPortal() {
 
             if (data.success) {
                 toast.success("QC Software started successfully on your workstation!");
+            } else if (data.useProtocol) {
+                // Cloud fallback: trigger browser protocol launcher
+                toast.info("Routing launch request via browser protocol...");
+                const originParam = encodeURIComponent(window.location.origin);
+                window.location.href = `bizzco-qa://check-qc?origin=${originParam}`;
             } else {
                 // Requirement 1.C: If file is not found, trigger alert: 'QC Software not found. Please download and install the software first.'
                 alert(data.error || "QC Software not found. Please download and install the software first.");
             }
         } catch (error) {
             console.error("API call failed:", error);
-            toast.error("Failed to connect to the local bridge API.");
+            // General offline/serverless fallback
+            toast.info("Routing request via browser protocol handler...");
+            const originParam = encodeURIComponent(window.location.origin);
+            window.location.href = `bizzco-qa://check-qc?origin=${originParam}`;
         } finally {
             setLoading(false);
         }

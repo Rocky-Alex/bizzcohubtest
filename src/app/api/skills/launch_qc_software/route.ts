@@ -13,6 +13,15 @@ export async function GET() {
     const targetPath = "C:\\QC Software\\QC Software.exe";
     const sourcePath = path.join(process.cwd(), "public", "QC_Software", "QC_Software.exe");
 
+    // Check if running on a non-Windows server (like Netlify serverless cloud)
+    if (process.platform !== "win32") {
+        return NextResponse.json({
+            success: false,
+            useProtocol: true,
+            error: "Cloud Mode: The server is running in the cloud. We will attempt to launch the software using the custom bizzco-qa:// browser protocol."
+        });
+    }
+
     try {
         // Step A: Check if the file exists at C:\QC Software\QC Software.exe
         if (!fs.existsSync(targetPath)) {
