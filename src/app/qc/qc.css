@@ -1,0 +1,271 @@
+/* ==============================================================================
+   QC Software Management Portal Styles
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+.qc-portal-container {
+    min-height: 100vh;
+    padding-top: 100px;
+    padding-bottom: 5rem;
+    background: #0b0f19;
+    color: #f3f4f6;
+    font-family: 'Outfit', -apple-system, sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background Glow Orb */
+.qc-glow-orb {
+    position: absolute;
+    top: -10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 75%);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Hero Header */
+.qc-portal-hero {
+    position: relative;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    padding: 0 1.5rem;
+    z-index: 1;
+}
+
+.qc-portal-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.qc-portal-subtitle {
+    font-size: 1.05rem;
+    color: #9ca3af;
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+/* Content Area */
+.qc-portal-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Glassmorphic Portal Card */
+.qc-portal-card {
+    background: rgba(17, 24, 39, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 2.25rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.qc-portal-card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.qc-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.qc-card-icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+    flex-shrink: 0;
+}
+
+.qc-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #f3f4f6;
+    margin: 0;
+}
+
+.qc-card-subtitle-sub {
+    font-size: 0.8rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    margin-top: 0.2rem;
+}
+
+/* Alert Banner */
+.qc-alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(245, 158, 11, 0.07);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: #d1d5db;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.qc-alert-icon {
+    color: #fbbf24;
+    flex-shrink: 0;
+}
+
+.qc-alert-banner strong {
+    color: #fbbf24;
+}
+
+/* Buttons Group */
+.qc-portal-btn-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.qc-portal-btn-primary {
+    flex: 1;
+    min-width: 200px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.875rem 1.5rem;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+    transition: all 0.2s ease;
+}
+
+.qc-portal-btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+}
+
+.qc-portal-btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.qc-portal-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.qc-portal-btn-secondary {
+    flex: 1;
+    min-width: 200px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.875rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.qc-portal-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* Info Grid at Bottom */
+.qc-portal-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.qc-info-card {
+    background: rgba(17, 24, 39, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s ease;
+}
+
+.qc-info-card:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.qc-info-icon {
+    color: #6366f1;
+    margin-bottom: 0.75rem;
+}
+
+.qc-info-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin: 0 0 0.5rem 0;
+}
+
+.qc-info-card p {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.qc-info-card code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    color: #f43f5e;
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .qc-portal-title {
+        font-size: 1.8rem;
+    }
+    .qc-portal-info-grid {
+        grid-template-columns: 1fr;
+    }
+    .qc-portal-btn-group {
+        flex-direction: column;
+    }
+}

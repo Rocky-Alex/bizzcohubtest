@@ -132,15 +132,13 @@ export default function ResourcesContent() {
                         href="/resources/touch-test"
                         actionText="Test Touch"
                     />
-
                     <ResourceCard
-                        title="Web-to-Local Bridge"
+                        title="QC Management Portal"
                         description="Diagnostic Tool Controller for laptop refurbishment & quality checking workstations."
                         icon={<Terminal size={32} />}
                         href="/qc"
-                        actionText="Open Bridge"
+                        actionText="Open Portal"
                     />
-
                 </div>
             </section>
 
