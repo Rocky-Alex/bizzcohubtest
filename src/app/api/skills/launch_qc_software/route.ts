@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import util from "util";
@@ -48,7 +48,11 @@ export async function GET() {
         // Step B: Execute the file using native OS command
         // "start" is the Windows native command to launch applications asynchronously
         try {
-            await execPromise(`start "" "${targetPath}"`);
+            const child = spawn("cmd.exe", ["/c", "start", '""', targetPath], {
+                detached: true,
+                stdio: "ignore"
+            });
+            child.unref();
             return NextResponse.json({
                 success: true,
                 message: "QC Software launched successfully"
