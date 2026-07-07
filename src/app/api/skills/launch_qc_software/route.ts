@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
+import util from "util";
+
+const execPromise = util.promisify(exec);
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
     const targetDir = "C:\\QC Software";
@@ -33,22 +38,19 @@ export async function GET() {
 
         // Step B: Execute the file using native OS command
         // "start" is the Windows native command to launch applications asynchronously
-        return new Promise((resolve) => {
-            exec(`start "" "${targetPath}"`, (error) => {
-                if (error) {
-                    console.error("Failed to execute application:", error);
-                    resolve(NextResponse.json({
-                        success: false,
-                        error: `Failed to launch QC Software: ${error.message}`
-                    }, { status: 500 }));
-                    return;
-                }
-                resolve(NextResponse.json({
-                    success: true,
-                    message: "QC Software launched successfully"
-                }));
+        try {
+            await execPromise(`start "" "${targetPath}"`);
+            return NextResponse.json({
+                success: true,
+                message: "QC Software launched successfully"
             });
-        });
+        } catch (error: any) {
+            console.error("Failed to execute application:", error);
+            return NextResponse.json({
+                success: false,
+                error: `Failed to launch QC Software: ${error.message}`
+            }, { status: 500 });
+        }
     } catch (e: any) {
         console.error("Install or Launch failed:", e);
         return NextResponse.json({
