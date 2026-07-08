@@ -40,6 +40,7 @@ function Download-FileWithProgress {
         $request.Method = "GET"
         $request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         $request.Timeout = 30000
+        $request.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor [System.Net.DecompressionMethods]::Deflate
         
         $response = $request.GetResponse()
         $totalBytes = $response.ContentLength
