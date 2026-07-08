@@ -173,9 +173,13 @@ if ($whitelist.ContainsKey($command)) {
     } else {
         # Regular execution
         if (Test-Path $fullPath) {
-            # Launch the local application
-            Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
-            Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+            try {
+                # Launch the local application
+                Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+                Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+            } catch {
+                [System.Windows.MessageBox]::Show("Failed to launch application:`n$fullPath`n`nError: $_", "Launch Error", "OK", "Error")
+            }
         } else {
             # Auto-installer block: create folder and download file if missing (without prompt query)
             $downloadUrl = "$origin/QC_Software/$fileName"
@@ -190,9 +194,13 @@ if ($whitelist.ContainsKey($command)) {
                 Start-FileDownload -Uri $downloadUrl -OutFile $fullPath
                 
                 if (Test-Path $fullPath) {
-                    # Run it
-                    Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
-                    Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+                    try {
+                        # Run it
+                        Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+                        Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+                    } catch {
+                        [System.Windows.MessageBox]::Show("Failed to launch application after download:`n$fullPath`n`nError: $_", "Launch Error", "OK", "Error")
+                    }
                 } else {
                     [System.Windows.MessageBox]::Show("Download completed, but file could not be written to '$fullPath'.", "Installation Failed", "OK", "Error")
                 }
