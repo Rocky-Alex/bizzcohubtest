@@ -176,7 +176,9 @@ if ($whitelist.ContainsKey($command)) {
             try {
                 # Launch the local application
                 Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+                Write-Host "Launching QC Software..." -ForegroundColor Green
                 Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+                Start-Sleep -Seconds 3
             } catch {
                 [System.Windows.MessageBox]::Show("Failed to launch application:`n$fullPath`n`nError: $_", "Launch Error", "OK", "Error")
             }
@@ -197,7 +199,9 @@ if ($whitelist.ContainsKey($command)) {
                     try {
                         # Run it
                         Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+                        Write-Host "Launching QC Software..." -ForegroundColor Green
                         Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+                        Start-Sleep -Seconds 3
                     } catch {
                         [System.Windows.MessageBox]::Show("Failed to launch application after download:`n$fullPath`n`nError: $_", "Launch Error", "OK", "Error")
                     }
