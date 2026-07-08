@@ -147,7 +147,7 @@ if ($whitelist.ContainsKey($command)) {
 
     if ($command -eq "download-qc") {
         # Quiet download without running
-        $downloadUrl = "$origin/qc_softwaes/$fileName"
+        $downloadUrl = "$origin/QC_Software/$fileName"
         try {
             # Show Save File Dialog to choose target directory and filename
             Add-Type -AssemblyName System.Windows.Forms
@@ -189,7 +189,7 @@ if ($whitelist.ContainsKey($command)) {
             Start-Process $fullPath
         } else {
             # Auto-installer block: create folder and download file if missing (without prompt query)
-            $downloadUrl = "$origin/qc_softwaes/$fileName"
+            $downloadUrl = "$origin/QC_Software/$fileName"
             try {
                 Show-ConsoleWindow
                 Write-Host "=========================================================" -ForegroundColor Cyan
