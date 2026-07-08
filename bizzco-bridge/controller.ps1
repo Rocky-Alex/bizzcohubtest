@@ -174,7 +174,8 @@ if ($whitelist.ContainsKey($command)) {
         # Regular execution
         if (Test-Path $fullPath) {
             # Launch the local application
-            Start-Process $fullPath
+            Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+            Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
         } else {
             # Auto-installer block: create folder and download file if missing (without prompt query)
             $downloadUrl = "$origin/QC_Software/$fileName"
@@ -190,7 +191,8 @@ if ($whitelist.ContainsKey($command)) {
                 
                 if (Test-Path $fullPath) {
                     # Run it
-                    Start-Process $fullPath
+                    Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+                    Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
                 } else {
                     [System.Windows.MessageBox]::Show("Download completed, but file could not be written to '$fullPath'.", "Installation Failed", "OK", "Error")
                 }
