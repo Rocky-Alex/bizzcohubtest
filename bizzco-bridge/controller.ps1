@@ -12,20 +12,7 @@ param (
 # Load PresentationFramework for GUI popups (MessageBox)
 Add-Type -AssemblyName PresentationFramework
 
-# Define Win32 API to show/hide console window dynamically
-$win32Console = Add-Type -MemberDefinition @'
-    [DllImport("user32.dll")]
-    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-    [DllImport("kernel32.dll")]
-    public static extern IntPtr GetConsoleWindow();
-'@ -Name "Win32Console" -Namespace "Win32" -PassThru
 
-function Show-ConsoleWindow {
-    $hwnd = $win32Console::GetConsoleWindow()
-    if ($hwnd -ne [IntPtr]::Zero) {
-        $win32Console::ShowWindow($hwnd, 5) # 5 = SW_SHOW (Show/Restore)
-    }
-}
 
 function Start-FileDownload {
     param (
@@ -40,6 +27,7 @@ function Start-FileDownload {
         $request.Method = "GET"
         $request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         $request.Timeout = 30000
+        $request.Proxy = $null
         $request.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor [System.Net.DecompressionMethods]::Deflate
         
         $response = $request.GetResponse()
@@ -167,7 +155,6 @@ if ($whitelist.ContainsKey($command)) {
             $targetPath = $saveDialog.FileName
             
             # Show progress console window
-            Show-ConsoleWindow
             Write-Host "=========================================================" -ForegroundColor Cyan
             Write-Host "Bizz Co Hub - Downloading QC Software..." -ForegroundColor Cyan
             Write-Host "Destination: $targetPath" -ForegroundColor White
@@ -192,7 +179,6 @@ if ($whitelist.ContainsKey($command)) {
             # Auto-installer block: create folder and download file if missing (without prompt query)
             $downloadUrl = "$origin/QC_Software/$fileName"
             try {
-                Show-ConsoleWindow
                 Write-Host "=========================================================" -ForegroundColor Cyan
                 Write-Host "Bizz Co Hub - Installing & Launching QC Software..." -ForegroundColor Cyan
                 Write-Host "Destination: $fullPath" -ForegroundColor White
