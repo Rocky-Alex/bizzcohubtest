@@ -27,7 +27,7 @@ function Show-ConsoleWindow {
     }
 }
 
-function Download-FileWithProgress {
+function Start-FileDownload {
     param (
         [string]$Uri,
         [string]$OutFile
@@ -174,7 +174,7 @@ if ($whitelist.ContainsKey($command)) {
             Write-Host "Source:      $downloadUrl" -ForegroundColor White
             Write-Host "=========================================================" -ForegroundColor Cyan
             Write-Host ""
-            Download-FileWithProgress -Uri $downloadUrl -OutFile $targetPath
+            Start-FileDownload -Uri $downloadUrl -OutFile $targetPath
             if (Test-Path $targetPath) {
                 [System.Windows.MessageBox]::Show("Bizz Co QC Software downloaded successfully to $targetPath", "Download Successful", "OK", "Information")
             } else {
@@ -200,7 +200,7 @@ if ($whitelist.ContainsKey($command)) {
                 Write-Host "=========================================================" -ForegroundColor Cyan
                 Write-Host ""
                 # Perform the download request
-                Download-FileWithProgress -Uri $downloadUrl -OutFile $fullPath
+                Start-FileDownload -Uri $downloadUrl -OutFile $fullPath
                 
                 if (Test-Path $fullPath) {
                     # Run it
