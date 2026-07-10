@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Download, MonitorPlay, HelpCircle, FileText, Play } from "lucide-react";
+import { Download, MonitorPlay, Play } from "lucide-react";
 import { toast } from "sonner";
 import "../resources/resources.css";
 import "./qc.css";
@@ -212,20 +212,6 @@ export default function QaManagementPortal() {
                                 </div>
                             </div>
                         )}
-                    </div>
-                </div>
-
-                {/* FAQ or Info Row */}
-                <div className="qc-portal-info-grid">
-                    <div className="qc-info-card">
-                        <HelpCircle className="qc-info-icon" size={24} />
-                        <h3>How does it work?</h3>
-                        <p>Clicking the download button streams the official installer directly to your system's Downloads folder.</p>
-                    </div>
-                    <div className="qc-info-card">
-                        <FileText className="qc-info-icon" size={24} />
-                        <h3>Installation</h3>
-                        <p>Once downloaded, run the installer to automatically configure the diagnostic tools under your <code>C:\QC Software</code> directory.</p>
                     </div>
                 </div>
             </div>
