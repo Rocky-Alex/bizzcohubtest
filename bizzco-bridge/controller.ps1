@@ -192,7 +192,7 @@ elseif ($relativePaths.ContainsKey($command)) {
         }
     }
     else {
-        # Auto-installer block: download and install suite silently
+        # Auto-installer block: install from Downloads if present, else alert user
         $installerName = "QC Software.exe"
         $installerPath = Join-Path $basePath $installerName
         $localDownloadsInstaller = Join-Path (Join-Path $env:USERPROFILE "Downloads") $installerName
@@ -205,56 +205,43 @@ elseif ($relativePaths.ContainsKey($command)) {
                 Write-Host "=========================================================" -ForegroundColor Cyan
                 Write-Host ""
                 Copy-Item -Path $localDownloadsInstaller -Destination $installerPath -Force
-            } else {
-                $downloadUrl = "$origin/QC_Software/QC_Software.exe"
-                Write-Host "=========================================================" -ForegroundColor Cyan
-                Write-Host "Bizz Co Hub - Downloading & Installing QC Software..." -ForegroundColor Cyan
-                Write-Host "Source:      $downloadUrl" -ForegroundColor White
-                Write-Host "Destination: $installerPath" -ForegroundColor White
-                Write-Host "=========================================================" -ForegroundColor Cyan
-                Write-Host ""
-                # Perform the download request
-                Start-FileDownload -Uri $downloadUrl -OutFile $installerPath
-            }
-            
-            if (Test-Path $installerPath) {
-                try {
-                    # Run installer silently and wait for it to finish
-                    Unblock-File -Path $installerPath -ErrorAction SilentlyContinue
-                    Write-Host "Running installation silently..." -ForegroundColor Green
-                    $process = Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBBOXES", "/NORESTART", "/DIR=""$basePath""" -PassThru -Wait
-                    
-                    if (Test-Path $fullPath) {
-                        # Run it
-                        Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
-                        Write-Host "Launching $command..." -ForegroundColor Green
-                        Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
-                        Start-Sleep -Seconds 3
+                
+                if (Test-Path $installerPath) {
+                    try {
+                        # Run installer silently and wait for it to finish
+                        Unblock-File -Path $installerPath -ErrorAction SilentlyContinue
+                        Write-Host "Running installation silently..." -ForegroundColor Green
+                        Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBBOXES", "/NORESTART", "/DIR=""$basePath""" -Wait
+                        
+                        if (Test-Path $fullPath) {
+                            # Run it
+                            Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+                            Write-Host "Launching $command..." -ForegroundColor Green
+                            Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+                            Start-Sleep -Seconds 3
+                        }
+                        else {
+                            [System.Windows.MessageBox]::Show("Installation completed, but could not find the target file:`n$fullPath", "Installation Failed", "OK", "Error")
+                        }
                     }
-                    else {
-                        [System.Windows.MessageBox]::Show("Installation completed, but could not find the target file:`n$fullPath", "Installation Failed", "OK", "Error")
+                    catch {
+                        [System.Windows.MessageBox]::Show("Failed to launch application after download:`n$installerPath`n`nError: $_", "Launch Error", "OK", "Error")
                     }
-                }
-                catch {
-                    [System.Windows.MessageBox]::Show("Failed to launch application after download:`n$installerPath`n`nError: $_", "Launch Error", "OK", "Error")
                 }
             }
             else {
-                [System.Windows.MessageBox]::Show("Download completed, but file could not be written to '$installerPath'.", "Installation Failed", "OK", "Error")
+                [System.Windows.MessageBox]::Show(
+                    "QC Software installer not found in your Downloads folder. Please download the software first.",
+                    "Bizz Co QA Bridge - Installation Required",
+                    "OK",
+                    "Warning"
+                )
             }
         }
         catch {
-            [System.Windows.MessageBox]::Show("Failed to download the tool from:`n$downloadUrl`n`nPlease ensure your workstation is connected to the network.", "Download Error", "OK", "Error")
+            [System.Windows.MessageBox]::Show("Failed to launch installation: $_", "Launch Error", "OK", "Error")
         }
     }
-}
-else {
-    [System.Windows.MessageBox]::Show(
-        "Unauthorized or invalid command:`n'$command'`n`nFor security reasons, only pre-configured diagnostic commands are permitted.",
-        "Security Alert - Bizz Co QA Bridge",
-        "OK",
-        "Warning"
-    )
 }
 else {
     [System.Windows.MessageBox]::Show(

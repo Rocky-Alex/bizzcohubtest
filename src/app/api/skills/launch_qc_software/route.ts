@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { exec, spawn, execSync, execFileSync } from "child_process";
+import { exec, spawn, execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import util from "util";
@@ -37,28 +37,19 @@ export async function GET() {
 
             if (installerSource) {
                 console.log(`QC Software Suite not installed. Installing automatically from ${installerSource}...`);
-                
+
                 // Create target directory if it doesn't exist
                 if (!fs.existsSync(targetDir)) {
                     fs.mkdirSync(targetDir, { recursive: true });
                 }
-                
+
                 // Copy the installer
                 fs.copyFileSync(installerSource, installerPath);
                 console.log("QC Software installer copied successfully. Running silent installer...");
 
-                try {
-                    // Run installer silently and wait for it to complete
-                    execFileSync(installerPath, ["/VERYSILENT", "/SUPPRESSMSGBBOXES", "/NORESTART", `/DIR=${targetDir}`]);
-                    console.log("QC Software Suite installed silently successfully.");
-                } catch (err: any) {
-                    console.warn("Silent installer execution failed in server process context. Falling back to protocol handler:", err.message);
-                    return NextResponse.json({
-                        success: false,
-                        useProtocol: true,
-                        error: "Permission Elevation Required: Redirecting to protocol handler..."
-                    });
-                }
+                // Run installer silently and wait for it to complete
+                execSync(`"${installerPath}" /VERYSILENT /SUPPRESSMSGBBOXES /NORESTART /DIR="${targetDir}"`);
+                console.log("QC Software Suite installed silently successfully.");
             } else {
                 return NextResponse.json({
                     success: false,
