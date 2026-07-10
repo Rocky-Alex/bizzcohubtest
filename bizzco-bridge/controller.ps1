@@ -114,6 +114,7 @@ $basePath = "C:\QC Software"
 
 # 4. Strict Whitelist: Maps URL commands to target file relative paths
 $relativePaths = @{
+    "check-qc"        = "Master Checker\BizzCoHub QC File.bat"
     "check-harddrive" = "Hard Disk Tester\HDSentinel.exe"
     "check-lcd"       = "LCD Tester\LCD_checking.exe"
     "check-battery"   = "Battery Tester\Battery_checking.exe"
@@ -229,12 +230,35 @@ elseif ($relativePaths.ContainsKey($command)) {
                 }
             }
             else {
-                [System.Windows.MessageBox]::Show(
-                    "QC Software installer not found in your Downloads folder. Please download the software first.",
-                    "Bizz Co QA Bridge - Installation Required",
-                    "OK",
-                    "Warning"
+                # Prompt the user for Auto-Download vs Manual Download
+                $msgBoxResult = [System.Windows.MessageBox]::Show(
+                    "QC Software installer was not found in your Downloads folder.`n`nClick 'Yes' to Auto Download & Install automatically.`nClick 'No' to download the file only.`nClick 'Cancel' to abort.",
+                    "QC Software Installation Choice",
+                    "YesNoCancel",
+                    "Question"
                 )
+                
+                if ($msgBoxResult -eq "Yes") {
+                    $downloadUrl = "$origin/QC_Software/QC_Software.exe"
+                    Write-Host "Auto Downloading & Installing..."
+                    Start-FileDownload -Uri $downloadUrl -OutFile $localDownloadsInstaller
+                    if (Test-Path $localDownloadsInstaller) {
+                        Copy-Item -Path $localDownloadsInstaller -Destination $installerPath -Force
+                        Unblock-File -Path $installerPath -ErrorAction SilentlyContinue
+                        Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBBOXES", "/NORESTART", "/DIR=""$basePath""" -Wait
+                        if (Test-Path $fullPath) {
+                            Unblock-File -Path $fullPath -ErrorAction SilentlyContinue
+                            Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
+                            Start-Sleep -Seconds 3
+                        }
+                    }
+                }
+                elseif ($msgBoxResult -eq "No") {
+                    $downloadUrl = "$origin/QC_Software/QC_Software.exe"
+                    Write-Host "Downloading file only..."
+                    Start-FileDownload -Uri $downloadUrl -OutFile $localDownloadsInstaller
+                    [System.Windows.MessageBox]::Show("QC Software installer downloaded to your Downloads folder:`n$localDownloadsInstaller", "Download Complete", "OK", "Information")
+                }
             }
         }
         catch {
