@@ -1,7 +1,7 @@
 @echo off
 :: ==============================================================================
 :: Bizz Co Hub QA - Web-to-Local Bridge Controller (Batch Version)
-:: Location: C:\BizzCo_QC_Software\controller.bat
+:: Location: C:\QC Software\controller.bat
 :: Description: Receives custom URI protocol arguments and runs specific whitelisted
 ::              diagnostic utilities locally on the workstation.
 :: ==============================================================================
@@ -23,23 +23,26 @@ if "%URL:~-1%"=="/" set "URL=%URL:~0,-1%"
 set "COMMAND=%URL:bizzco-qa://=%"
 
 :: 4. Define local path
-set "QA_DIR=C:\BizzCo_QC_Software"
+set "QA_DIR=C:\QC Software"
 
 :: 5. Security Whitelist Check & Execution
-if /i "%COMMAND%"=="check-harddrive" (
-    set "EXE_PATH=%QA_DIR%\hdd_checking.exe"
+if /i "%COMMAND%"=="check-qc" (
+    set "EXE_PATH=%QA_DIR%\Master Checker\BizzCoHub QC File.bat"
+    goto LAUNCH
+) else if /i "%COMMAND%"=="check-harddrive" (
+    set "EXE_PATH=%QA_DIR%\Hard Disk Tester\HDSentinel.exe"
     goto LAUNCH
 ) else if /i "%COMMAND%"=="check-lcd" (
-    set "EXE_PATH=%QA_DIR%\LCD_checking.exe"
+    set "EXE_PATH=%QA_DIR%\LCD Tester\LCD_checking.exe"
     goto LAUNCH
 ) else if /i "%COMMAND%"=="check-battery" (
-    set "EXE_PATH=%QA_DIR%\Battery_checking.exe"
+    set "EXE_PATH=%QA_DIR%\Battery Tester\Battery_checking.exe"
     goto LAUNCH
 ) else if /i "%COMMAND%"=="check-keyboard" (
-    set "EXE_PATH=%QA_DIR%\Keyboard_checking.exe"
+    set "EXE_PATH=%QA_DIR%\Keyboard Tester\Keyboard_checking.exe"
     goto LAUNCH
 ) else if /i "%COMMAND%"=="check-audio" (
-    set "EXE_PATH=%QA_DIR%\Sound_checking.mp4"
+    set "EXE_PATH=%QA_DIR%\Sound Tester\Sound_checking.mp4"
     goto LAUNCH
 ) else (
     msg * "Security Alert: Unauthorized or unknown diagnostic command: %COMMAND%"

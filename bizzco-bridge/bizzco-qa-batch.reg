@@ -14,4 +14,4 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open]
 
 [HKEY_CURRENT_USER\Software\Classes\bizzco-qa\shell\open\command]
-@="\"C:\\BizzCo_QC_Software\\controller.bat\" \"%1\""
+@="\"C:\\QC Software\\controller.bat\" \"%1\""

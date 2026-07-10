@@ -4,7 +4,7 @@
 #              registers the custom bizzco-qa:// URI protocol handler.
 # ==============================================================================
 
-$targetDir = "C:\BizzCo_QC_Software"
+$targetDir = "C:\QC Software"
 $currentDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Load PresentationFramework for MessageBox
