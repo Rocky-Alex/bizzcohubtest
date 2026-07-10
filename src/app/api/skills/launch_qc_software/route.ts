@@ -13,6 +13,8 @@ export async function GET() {
     const installerPath = "C:\\QC Software\\QC Software.exe";
     const checkPath = "C:\\QC Software\\Master Checker\\BizzCoHub QC File.bat";
     const sourcePath = path.join(process.cwd(), "public", "QC_Software", "QC_Software.exe");
+    const userHome = process.env.USERPROFILE || process.env.HOMEPATH || "";
+    const downloadsPath = path.join(userHome, "Downloads", "QC Software.exe");
 
     // Check if running on a non-Windows server (like Netlify serverless cloud)
     if (process.platform !== "win32") {
@@ -26,9 +28,15 @@ export async function GET() {
     try {
         // Step A: Check if the file is installed
         if (!fs.existsSync(checkPath)) {
-            // Check if we have the source file to install from
-            if (fs.existsSync(sourcePath)) {
-                console.log("QC Software Suite not installed. Installing automatically from local source...");
+            let installerSource = "";
+            if (fs.existsSync(downloadsPath)) {
+                installerSource = downloadsPath;
+            } else if (fs.existsSync(sourcePath)) {
+                installerSource = sourcePath;
+            }
+
+            if (installerSource) {
+                console.log(`QC Software Suite not installed. Installing automatically from ${installerSource}...`);
                 
                 // Create target directory if it doesn't exist
                 if (!fs.existsSync(targetDir)) {
@@ -36,7 +44,7 @@ export async function GET() {
                 }
                 
                 // Copy the installer
-                fs.copyFileSync(sourcePath, installerPath);
+                fs.copyFileSync(installerSource, installerPath);
                 console.log("QC Software installer copied successfully. Running silent installer...");
 
                 // Run installer silently and wait for it to complete
@@ -45,7 +53,7 @@ export async function GET() {
             } else {
                 return NextResponse.json({
                     success: false,
-                    error: "QC Software not found locally, and server installer is missing. Please download it manually."
+                    error: "QC Software not found. Please download the software first."
                 });
             }
         }

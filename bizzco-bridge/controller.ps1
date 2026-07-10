@@ -193,16 +193,27 @@ elseif ($relativePaths.ContainsKey($command)) {
         # Auto-installer block: download and install suite silently
         $installerName = "QC Software.exe"
         $installerPath = Join-Path $basePath $installerName
-        $downloadUrl = "$origin/QC_Software/QC_Software.exe"
+        $localDownloadsInstaller = Join-Path (Join-Path $env:USERPROFILE "Downloads") $installerName
         try {
-            Write-Host "=========================================================" -ForegroundColor Cyan
-            Write-Host "Bizz Co Hub - Installing & Launching QC Software..." -ForegroundColor Cyan
-            Write-Host "Destination: $installerPath" -ForegroundColor White
-            Write-Host "Source:      $downloadUrl" -ForegroundColor White
-            Write-Host "=========================================================" -ForegroundColor Cyan
-            Write-Host ""
-            # Perform the download request
-            Start-FileDownload -Uri $downloadUrl -OutFile $installerPath
+            if (Test-Path $localDownloadsInstaller) {
+                Write-Host "=========================================================" -ForegroundColor Cyan
+                Write-Host "Bizz Co Hub - Installing QC Software from Downloads..." -ForegroundColor Cyan
+                Write-Host "Source:      $localDownloadsInstaller" -ForegroundColor White
+                Write-Host "Destination: $installerPath" -ForegroundColor White
+                Write-Host "=========================================================" -ForegroundColor Cyan
+                Write-Host ""
+                Copy-Item -Path $localDownloadsInstaller -Destination $installerPath -Force
+            } else {
+                $downloadUrl = "$origin/QC_Software/QC_Software.exe"
+                Write-Host "=========================================================" -ForegroundColor Cyan
+                Write-Host "Bizz Co Hub - Downloading & Installing QC Software..." -ForegroundColor Cyan
+                Write-Host "Source:      $downloadUrl" -ForegroundColor White
+                Write-Host "Destination: $installerPath" -ForegroundColor White
+                Write-Host "=========================================================" -ForegroundColor Cyan
+                Write-Host ""
+                # Perform the download request
+                Start-FileDownload -Uri $downloadUrl -OutFile $installerPath
+            }
             
             if (Test-Path $installerPath) {
                 try {
