@@ -114,7 +114,6 @@ $basePath = "C:\QC Software"
 
 # 4. Strict Whitelist: Maps URL commands to target file relative paths
 $relativePaths = @{
-    "check-qc"        = "Master Checker\BizzCoHub QC File.bat"
     "check-harddrive" = "Hard Disk Tester\HDSentinel.exe"
     "check-lcd"       = "LCD Tester\LCD_checking.exe"
     "check-battery"   = "Battery Tester\Battery_checking.exe"

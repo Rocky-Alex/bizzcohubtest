@@ -26,10 +26,7 @@ set "COMMAND=%URL:bizzco-qa://=%"
 set "QA_DIR=C:\QC Software"
 
 :: 5. Security Whitelist Check & Execution
-if /i "%COMMAND%"=="check-qc" (
-    set "EXE_PATH=%QA_DIR%\Master Checker\BizzCoHub QC File.bat"
-    goto LAUNCH
-) else if /i "%COMMAND%"=="check-harddrive" (
+if /i "%COMMAND%"=="check-harddrive" (
     set "EXE_PATH=%QA_DIR%\Hard Disk Tester\HDSentinel.exe"
     goto LAUNCH
 ) else if /i "%COMMAND%"=="check-lcd" (
