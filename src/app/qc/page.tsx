@@ -20,11 +20,26 @@ export default function QaManagementPortal() {
             const checkRes = await fetch("/api/skills/launch_qc_software?action=check");
             const checkData = await checkRes.json();
 
+            if (checkData.useProtocol) {
+                toast.info("Routing launch request via browser protocol...");
+                const originParam = encodeURIComponent(window.location.origin);
+                window.location.href = `bizzco-qa://check-qc?origin=${originParam}`;
+                return;
+            }
+
             if (checkData.exists) {
                 // Step 2: Found! Run it
                 toast.info("Installer found in Downloads. Launching installer...");
                 const runRes = await fetch("/api/skills/launch_qc_software?action=run");
                 const runData = await runRes.json();
+
+                if (runData.useProtocol) {
+                    toast.info("Routing launch request via browser protocol...");
+                    const originParam = encodeURIComponent(window.location.origin);
+                    window.location.href = `bizzco-qa://check-qc?origin=${originParam}`;
+                    return;
+                }
+
                 if (runData.success) {
                     toast.success("QC Software installer launched successfully!");
                 } else {
@@ -52,6 +67,14 @@ export default function QaManagementPortal() {
         try {
             const res = await fetch("/api/skills/launch_qc_software?action=autodownload");
             const data = await res.json();
+
+            if (data.useProtocol) {
+                toast.info("Routing install request via browser protocol...");
+                const originParam = encodeURIComponent(window.location.origin);
+                window.location.href = `bizzco-qa://check-qc?origin=${originParam}`;
+                return;
+            }
+
             if (data.success) {
                 toast.success("QC Software downloaded and installed successfully!");
             } else {
