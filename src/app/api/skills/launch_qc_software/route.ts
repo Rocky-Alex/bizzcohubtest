@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
     const targetDir = "C:\\QC Software";
-    const installerPath = "C:\\QC Software\\QC_Software.exe";
+    const installerPath = "C:\\QC Software\\QC Software.exe";
     const checkPath = "C:\\QC Software\\Master Checker\\BizzCoHub QC File.bat";
     const sourcePath = path.join(process.cwd(), "public", "QC_Software", "QC_Software.exe");
 

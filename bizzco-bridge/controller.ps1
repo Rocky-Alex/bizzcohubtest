@@ -52,7 +52,8 @@ function Start-FileDownload {
                 $percent = [Math]::Round(($bytesReadTotal / $totalBytes) * 100, 0)
                 Write-Host -NoNewline "`rDownloaded: $currentMb MB / $totalSizeMb MB ($percent%)"
                 Write-Progress -Activity "Downloading file" -Status "$currentMb MB / $totalSizeMb MB ($percent%)" -PercentComplete $percent
-            } else {
+            }
+            else {
                 Write-Host -NoNewline "`rDownloaded: $currentMb MB"
                 Write-Progress -Activity "Downloading file" -Status "$currentMb MB"
             }
@@ -65,7 +66,8 @@ function Start-FileDownload {
         $response.Close()
         
         Write-Host "`nDownload complete!" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         if ($fileStream) { $fileStream.Close(); $fileStream.Dispose() }
         throw $_
     }
@@ -87,7 +89,8 @@ if (-not $Url) {
 try {
     $uri = [System.Uri]$Url
     $command = $uri.Host
-} catch {
+}
+catch {
     # Fallback manual parsing if URI parsing fails
     $command = $Url -replace "^bizzco-qa://", ""
     $command = $command -replace "\?.*$", ""
@@ -102,7 +105,8 @@ if ($Url -match "origin=([^&]+)") {
     try {
         $rawOrigin = $Matches[1]
         $origin = [System.Uri]::UnescapeDataString($rawOrigin)
-    } catch {}
+    }
+    catch {}
 }
 
 # 3. Define the base path for diagnostic tools
@@ -120,8 +124,8 @@ $relativePaths = @{
 
 # 5. Execute the diagnostic tool if it exists in the whitelist
 if ($command -eq "download-qc") {
-    $fileName = "QC_Software.exe"
-    $downloadUrl = "$origin/QC_Software/$fileName"
+    $fileName = "QC Software.exe"
+    $downloadUrl = "$origin/QC_Software/QC_Software.exe"
     try {
         # Show Save File Dialog to choose target directory and filename
         Add-Type -AssemblyName System.Windows.Forms
@@ -149,13 +153,16 @@ if ($command -eq "download-qc") {
         Start-FileDownload -Uri $downloadUrl -OutFile $targetPath
         if (Test-Path $targetPath) {
             [System.Windows.MessageBox]::Show("Bizz Co QC Software downloaded successfully to $targetPath", "Download Successful", "OK", "Information")
-        } else {
+        }
+        else {
             [System.Windows.MessageBox]::Show("Download completed, but file could not be written to '$targetPath'.", "Download Failed", "OK", "Error")
         }
-    } catch {
+    }
+    catch {
         [System.Windows.MessageBox]::Show("Failed to download the tool from:`n$downloadUrl`n`nPlease ensure the local server is running.", "Download Error", "OK", "Error")
     }
-} elseif ($relativePaths.ContainsKey($command)) {
+}
+elseif ($relativePaths.ContainsKey($command)) {
     $relPath = $relativePaths[$command]
     $fullPath = Join-Path $basePath $relPath
 
@@ -163,7 +170,8 @@ if ($command -eq "download-qc") {
     if (-not (Test-Path $basePath)) {
         try {
             New-Item -ItemType Directory -Force -Path $basePath | Out-Null
-        } catch {
+        }
+        catch {
             [System.Windows.MessageBox]::Show("Failed to create folder '$basePath'. Please check user write permissions.", "Installation Error", "OK", "Error")
             exit 1
         }
@@ -176,14 +184,16 @@ if ($command -eq "download-qc") {
             Write-Host "Launching $command..." -ForegroundColor Green
             Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
             Start-Sleep -Seconds 3
-        } catch {
+        }
+        catch {
             [System.Windows.MessageBox]::Show("Failed to launch application:`n$fullPath`n`nError: $_", "Launch Error", "OK", "Error")
         }
-    } else {
+    }
+    else {
         # Auto-installer block: download and install suite silently
-        $installerName = "QC_Software.exe"
+        $installerName = "QC Software.exe"
         $installerPath = Join-Path $basePath $installerName
-        $downloadUrl = "$origin/QC_Software/$installerName"
+        $downloadUrl = "$origin/QC_Software/QC_Software.exe"
         try {
             Write-Host "=========================================================" -ForegroundColor Cyan
             Write-Host "Bizz Co Hub - Installing & Launching QC Software..." -ForegroundColor Cyan
@@ -207,27 +217,33 @@ if ($command -eq "download-qc") {
                         Write-Host "Launching $command..." -ForegroundColor Green
                         Start-Process $fullPath -WorkingDirectory (Split-Path -Parent $fullPath)
                         Start-Sleep -Seconds 3
-                    } else {
+                    }
+                    else {
                         [System.Windows.MessageBox]::Show("Installation completed, but could not find the target file:`n$fullPath", "Installation Failed", "OK", "Error")
                     }
-                } catch {
+                }
+                catch {
                     [System.Windows.MessageBox]::Show("Failed to launch application after download:`n$installerPath`n`nError: $_", "Launch Error", "OK", "Error")
                 }
-            } else {
+            }
+            else {
                 [System.Windows.MessageBox]::Show("Download completed, but file could not be written to '$installerPath'.", "Installation Failed", "OK", "Error")
             }
-        } catch {
+        }
+        catch {
             [System.Windows.MessageBox]::Show("Failed to download the tool from:`n$downloadUrl`n`nPlease ensure your workstation is connected to the network.", "Download Error", "OK", "Error")
         }
     }
-} else {
+}
+else {
     [System.Windows.MessageBox]::Show(
         "Unauthorized or invalid command:`n'$command'`n`nFor security reasons, only pre-configured diagnostic commands are permitted.",
         "Security Alert - Bizz Co QA Bridge",
         "OK",
         "Warning"
     )
-} else {
+}
+else {
     [System.Windows.MessageBox]::Show(
         "Unauthorized or invalid command:`n'$command'`n`nFor security reasons, only pre-configured diagnostic commands are permitted.",
         "Security Alert - Bizz Co QA Bridge",

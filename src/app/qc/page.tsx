@@ -8,6 +8,8 @@ import "./qc.css";
 
 export default function QaManagementPortal() {
     const [loading, setLoading] = useState(false);
+    const [downloading, setDownloading] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
 
     const handleOpenSoftware = async () => {
         setLoading(true);
@@ -35,6 +37,64 @@ export default function QaManagementPortal() {
             window.location.href = `bizzco-qa://check-qc?origin=${originParam}`;
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDownload = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (downloading) return;
+
+        setDownloading(true);
+        setDownloadProgress(0);
+        toast.info("Starting download of QC Software...");
+
+        try {
+            const response = await fetch("/QC_Software/QC_Software.exe");
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const contentLength = response.headers.get("content-length");
+            const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+            if (!response.body) {
+                throw new Error("ReadableStream not supported or no response body returned");
+            }
+
+            const reader = response.body.getReader();
+            let loaded = 0;
+            const chunks: Uint8Array[] = [];
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                if (value) {
+                    chunks.push(value);
+                    loaded += value.length;
+                    if (total > 0) {
+                        setDownloadProgress(Math.round((loaded / total) * 100));
+                    }
+                }
+            }
+
+            const blob = new Blob(chunks as BlobPart[], { type: "application/octet-stream" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = "QC Software.exe";
+            document.body.appendChild(a);
+            a.click();
+
+            // Clean up
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast.success("Download completed successfully!");
+        } catch (error: any) {
+            console.error("Download failed:", error);
+            toast.error(`Download failed: ${error.message || error}`);
+        } finally {
+            setDownloading(false);
+            setDownloadProgress(null);
         }
     };
 
@@ -80,15 +140,30 @@ export default function QaManagementPortal() {
                             </button>
 
                             {/* Download Button */}
-                            <a
-                                href="/QC_Software/QC_Software.exe"
-                                download="QC_Software.exe"
+                            <button
+                                onClick={handleDownload}
+                                disabled={downloading}
                                 className="qc-portal-btn-secondary"
                             >
                                 <Download size={20} />
-                                Download QC Software
-                            </a>
+                                {downloading ? `Downloading (${downloadProgress}%)` : "Download QC Software"}
+                            </button>
                         </div>
+
+                        {downloadProgress !== null && (
+                            <div className="qc-progress-container">
+                                <div className="qc-progress-info">
+                                    <span>Downloading QC Software.exe</span>
+                                    <span>{downloadProgress}%</span>
+                                </div>
+                                <div className="qc-progress-bar-bg">
+                                    <div 
+                                        className="qc-progress-bar-fill" 
+                                        style={{ width: `${downloadProgress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
