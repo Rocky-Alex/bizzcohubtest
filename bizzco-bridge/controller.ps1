@@ -141,7 +141,9 @@ if ($command -eq "download-qc") {
             exit 0
         }
         
-        $targetPath = $saveDialog.FileName
+        # Force redirect chosen path to the user's Downloads folder
+        $downloadsFolder = Join-Path $env:USERPROFILE "Downloads"
+        $targetPath = Join-Path $downloadsFolder $fileName
         
         # Show progress console window
         Write-Host "=========================================================" -ForegroundColor Cyan
