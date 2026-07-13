@@ -6,6 +6,17 @@ import { ArrowLeft, Camera, RefreshCw, Settings, Video, Image as ImageIcon, Chec
 import { toast } from 'sonner';
 
 export default function CameraTestPage() {
+    const [backUrl, setBackUrl] = useState("/resources");
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("from") === "qc") {
+                setBackUrl("/qc");
+            }
+        }
+    }, []);
+
     return (
         <div style={{
             minHeight: '100vh',
@@ -24,7 +35,7 @@ export default function CameraTestPage() {
                 gap: '16px'
             }}>
                 <button
-                    onClick={() => window.location.href = '/resources'}
+                    onClick={() => window.location.href = backUrl}
                     style={{
                         background: 'transparent',
                         border: 'none',

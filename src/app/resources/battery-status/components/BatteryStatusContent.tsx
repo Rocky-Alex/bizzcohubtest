@@ -170,6 +170,8 @@ export default function BatteryStatusContent() {
     const [clientDetails, setClientDetails] = useState<any | null>(null);
     const searchParams = useSearchParams();
     const router = useRouter();
+    const from = searchParams.get('from');
+    const backUrl = from === 'qc' ? '/qc' : '/resources';
 
     useEffect(() => {
         const reportId = searchParams.get('reportId');
@@ -305,7 +307,7 @@ pause
                 alignItems: 'center',
                 gap: '16px'
             }}>
-                <Link href="/resources" style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                <Link href={backUrl} style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
                     <ArrowLeft size={20} /> Back
                 </Link>
                 <div style={{ width: '1px', height: '24px', background: '#404040' }}></div>

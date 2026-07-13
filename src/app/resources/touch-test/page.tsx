@@ -9,6 +9,7 @@ export default function TouchTestPage() {
     const [isDragging, setIsDragging] = useState(false);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [showControls, setShowControls] = useState(true);
+    const [backUrl, setBackUrl] = useState("/resources");
 
     const boxRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,6 +18,15 @@ export default function TouchTestPage() {
 
     // Auto-Fullscreen and Key Listener
     useEffect(() => {
+        let currentBackUrl = "/resources";
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('from') === 'qc') {
+                currentBackUrl = '/qc';
+                setBackUrl('/qc');
+            }
+        }
+
         // Enter Fullscreen on mount
         const enterFullscreen = async () => {
             try {
@@ -52,7 +62,7 @@ export default function TouchTestPage() {
                 if (document.fullscreenElement) {
                     document.exitFullscreen().catch(() => { });
                 }
-                window.location.href = '/resources';
+                window.location.href = currentBackUrl;
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -176,7 +186,7 @@ export default function TouchTestPage() {
                 onTouchStart={() => setShowControls(true)}
             >
                 <button
-                    onClick={() => window.location.href = '/resources'}
+                    onClick={() => window.location.href = backUrl}
                     style={{
                         pointerEvents: 'auto',
                         background: 'rgba(0,0,0,0.6)',

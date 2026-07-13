@@ -7,6 +7,16 @@ import { ArrowLeft, Volume2, Mic, Play, Pause, Square, Music } from 'lucide-reac
 
 export default function SoundTestPage() {
     const [audioFiles, setAudioFiles] = useState<{ name: string; path: string }[]>([]);
+    const [backUrl, setBackUrl] = useState("/resources");
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("from") === "qc") {
+                setBackUrl("/qc");
+            }
+        }
+    }, []);
 
     useEffect(() => {
         getAudioFiles().then(setAudioFiles);
@@ -29,7 +39,7 @@ export default function SoundTestPage() {
                 alignItems: 'center',
                 gap: '16px'
             }}>
-                <Link href="/resources" style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                <Link href={backUrl} style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
                     <ArrowLeft size={20} /> Back
                 </Link>
                 <div style={{ width: '1px', height: '24px', background: '#404040' }}></div>

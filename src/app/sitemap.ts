@@ -10,7 +10,6 @@ const resourcePages = [
     'sound-test',
     'camera-test',
     'connectivity-test',
-    'specification',
     'touch-test',
     'bg-remover',
     'compressor',

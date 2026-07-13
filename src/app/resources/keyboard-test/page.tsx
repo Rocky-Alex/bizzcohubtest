@@ -165,6 +165,16 @@ const NUMPAD_KEYS = [
 
 export default function KeyboardCheckPage() {
     const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+    const [backUrl, setBackUrl] = useState("/resources");
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("from") === "qc") {
+                setBackUrl("/qc");
+            }
+        }
+    }, []);
     const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
     const [lastKey, setLastKey] = useState<string>("");
 
@@ -358,7 +368,7 @@ export default function KeyboardCheckPage() {
                 marginRight: 'auto'
             }}>
                 <Link
-                    href="/resources"
+                    href={backUrl}
                     style={{
                         display: 'flex',
                         alignItems: 'center',

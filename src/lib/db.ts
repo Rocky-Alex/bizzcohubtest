@@ -1,4 +1,5 @@
 import { neon } from '@neondatabase/serverless';
+import { Pool } from 'pg';
 
 const isVercel = process.env.VERCEL === '1' || process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined;
 const isNetlify = process.env.NETLIFY === 'true';
@@ -21,11 +22,34 @@ if (!mainUrl) {
 // Define a global type to persist connections during dev hot-reloads
 const globalForDb = global as unknown as {
     sqlHandlers: Record<string, any>;
+    pgPools: Record<string, Pool>;
 };
 
 if (!globalForDb.sqlHandlers) {
     globalForDb.sqlHandlers = {};
 }
+if (!globalForDb.pgPools) {
+    globalForDb.pgPools = {};
+}
+
+// Helper to mimic Neon template tag queries using standard pg Pool
+const pgTemplateWrapper = (pool: Pool) => {
+    return async (strings: any, ...values: any[]) => {
+        if (typeof strings === 'string') {
+            const result = await pool.query(strings, values);
+            return result.rows;
+        }
+        let queryText = '';
+        for (let i = 0; i < strings.length; i++) {
+            queryText += strings[i];
+            if (i < values.length) {
+                queryText += `$${i + 1}`;
+            }
+        }
+        const result = await pool.query(queryText, values);
+        return result.rows;
+    };
+};
 
 const createSql = (url: string | undefined, name: string) => {
     if (globalForDb.sqlHandlers[name]) {
@@ -44,16 +68,35 @@ const createSql = (url: string | undefined, name: string) => {
         return fallback;
     }
 
-    const neonHandler = neon(url);
-    const wrapper = (strings: any, ...values: any[]) => {
-        if (typeof strings === 'string') {
-            return (neonHandler as any).query(strings, values);
-        }
-        return neonHandler(strings, ...values);
-    };
+    // Determine if we should use local pg client (direct TCP) instead of HTTP serverless fetch
+    const useLocalPg = process.env.VERCEL !== '1';
 
-    globalForDb.sqlHandlers[name] = wrapper;
-    return wrapper;
+    if (useLocalPg) {
+        console.log(`[DB] Using standard pg TCP Pool for ${name}`);
+        if (!globalForDb.pgPools[name]) {
+            globalForDb.pgPools[name] = new Pool({
+                connectionString: url,
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            });
+        }
+        const pool = globalForDb.pgPools[name];
+        const wrapper = pgTemplateWrapper(pool);
+        globalForDb.sqlHandlers[name] = wrapper;
+        return wrapper;
+    } else {
+        console.log(`[DB] Using serverless HTTP fetch for ${name}`);
+        const neonHandler = neon(url);
+        const wrapper = (strings: any, ...values: any[]) => {
+            if (typeof strings === 'string') {
+                return (neonHandler as any).query(strings, values);
+            }
+            return neonHandler(strings, ...values);
+        };
+        globalForDb.sqlHandlers[name] = wrapper;
+        return wrapper;
+    }
 };
 
 export const sql = createSql(mainUrl, 'Main');
@@ -66,5 +109,6 @@ export const query = async (text: string, params?: any[]) => {
     const results = await sql(text, ...(params || []));
     return { rows: results };
 };
+
 
 

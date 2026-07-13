@@ -8,6 +8,16 @@ import { toast } from 'sonner';
 
 export default function ConnectivityPage() {
     const [data, setData] = useState<{ interfaces: any[], wifi: any[] } | null>(null);
+    const [backUrl, setBackUrl] = useState("/resources");
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("from") === "qc") {
+                setBackUrl("/qc");
+            }
+        }
+    }, []);
     const [online, setOnline] = useState(true);
     const [speed, setSpeed] = useState<number | null>(null);
     const [loadingSpeed, setLoadingSpeed] = useState(false);
@@ -62,7 +72,7 @@ export default function ConnectivityPage() {
                 alignItems: 'center',
                 gap: '16px'
             }}>
-                <Link href="/resources" style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                <Link href={backUrl} style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
                     <ArrowLeft size={20} /> Back
                 </Link>
                 <div style={{ width: '1px', height: '24px', background: '#404040' }}></div>

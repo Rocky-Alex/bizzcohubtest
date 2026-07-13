@@ -31,6 +31,8 @@ export default function Footer() {
                         <Link href="/products">Products</Link>
                         <Link href="/services">Services</Link>
                         <Link href="/contact">Contact</Link>
+                        <Link href="/resources">Resources</Link>
+                        <Link href="/qc">Quality Check</Link>
                     </div>
 
                     <div className="footer-address">

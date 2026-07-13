@@ -7,6 +7,16 @@ import { toast } from 'sonner';
 
 export default function TrackpadPage() {
     const [events, setEvents] = useState<string[]>([]);
+    const [backUrl, setBackUrl] = useState("/resources");
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("from") === "qc") {
+                setBackUrl("/qc");
+            }
+        }
+    }, []);
     const [stats, setStats] = useState({
         leftClick: false,
         rightClick: false,
@@ -63,7 +73,7 @@ export default function TrackpadPage() {
                 alignItems: 'center',
                 gap: '16px'
             }}>
-                <Link href="/resources" style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                <Link href={backUrl} style={{ color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
                     <ArrowLeft size={20} /> Back
                 </Link>
                 <div style={{ width: '1px', height: '24px', background: '#404040' }}></div>

@@ -24,6 +24,16 @@ export default function LcdCheckPage() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [showHint, setShowHint] = useState(true);
     const router = useRouter();
+    const [backUrl, setBackUrl] = useState("/resources");
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("from") === "qc") {
+                setBackUrl("/qc");
+            }
+        }
+    }, []);
 
     const enterFullscreen = async () => {
         try {
@@ -60,8 +70,8 @@ export default function LcdCheckPage() {
 
     const exitTest = useCallback(() => {
         exitFullscreen();
-        router.push("/resources");
-    }, [router]);
+        router.push(backUrl);
+    }, [router, backUrl]);
 
     const handleContainerClick = () => {
         if (!document.fullscreenElement) {

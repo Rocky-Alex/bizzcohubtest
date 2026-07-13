@@ -174,6 +174,10 @@ export default function Header() {
                         Resources
                     </Link>
 
+                    <Link href="/qc" className={`nav-link ${pathname.startsWith('/qc') ? 'active' : ''}`}>
+                        Quality Check
+                    </Link>
+
                     <Link href="/services" className={`nav-link ${isActive('/services') ? 'active' : ''}`}>
                         Services
                     </Link>
