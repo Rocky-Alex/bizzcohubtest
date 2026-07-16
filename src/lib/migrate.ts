@@ -234,7 +234,6 @@ async function main() {
                 batch_code VARCHAR(255) NOT NULL,
                 session_id VARCHAR(255),
                 timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                operator VARCHAR(255),
                 specs JSONB
             )
         `;
