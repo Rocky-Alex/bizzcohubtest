@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
         // Find operator in qc_users table
         const qcUsers = await sql`
-            SELECT q.username, c.name as customer_name, q.customer_id
+            SELECT q.username, c.name as customer_name
             FROM qc_users q
             JOIN customers c ON q.customer_id = c.id
             WHERE LOWER(q.username) = LOWER(${username}) AND q.password_hash = ${passwordHash}
@@ -46,8 +46,7 @@ export async function POST(request: NextRequest) {
         const res = NextResponse.json({ 
             success: true, 
             operator: qcUsers[0].username, 
-            customerName: qcUsers[0].customer_name,
-            customerId: qcUsers[0].customer_id
+            customerName: qcUsers[0].customer_name 
         });
         res.headers.set('Access-Control-Allow-Origin', '*');
         return res;
