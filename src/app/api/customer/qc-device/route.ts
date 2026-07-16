@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { customerId, recordId, updatedSpecs, batchCode } = body;
 
-        if (!customerId || !recordId || !updatedSpecs) {
+        if (!customerId || !updatedSpecs) {
             return NextResponse.json({ error: 'Missing required parameters.' }, { status: 400 });
         }
 
@@ -63,25 +63,51 @@ export async function POST(request: NextRequest) {
 
         const operatorUsername = qcUsers[0].username;
 
-        // Check if the record belongs to this operator
-        const verifyRecord = await sql`
-            SELECT id FROM qc_device_specs 
-            WHERE id = ${recordId} AND LOWER(operator) = LOWER(${operatorUsername})
-        `;
+        if (recordId) {
+            // Check if the record belongs to this operator
+            const verifyRecord = await sql`
+                SELECT id FROM qc_device_specs 
+                WHERE id = ${recordId} AND LOWER(operator) = LOWER(${operatorUsername})
+            `;
 
-        if (verifyRecord.length === 0) {
-            return NextResponse.json({ error: 'Unauthorized to modify this record.' }, { status: 403 });
+            if (verifyRecord.length === 0) {
+                return NextResponse.json({ error: 'Unauthorized to modify this record.' }, { status: 403 });
+            }
+
+            // Update the specs and batch code
+            await sql`
+                UPDATE qc_device_specs
+                SET specs = ${JSON.stringify(updatedSpecs)},
+                    batch_code = ${batchCode || ''}
+                WHERE id = ${recordId}
+            `;
+
+            return NextResponse.json({ success: true, message: 'Device diagnostics successfully updated.' });
+        } else {
+            // INSERT (New record)
+            const serialNumber = updatedSpecs.serialNumber;
+            if (serialNumber) {
+                const existing = await sql`
+                    SELECT id FROM qc_device_specs 
+                    WHERE specs->>'serialNumber' = ${serialNumber}
+                `;
+                if (existing.length > 0) {
+                    return NextResponse.json(
+                        { error: 'Device specifications with this Serial Number already exist in the database.' }, 
+                        { status: 409 }
+                    );
+                }
+            }
+
+            const sessionId = 'web_manual_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+            await sql`
+                INSERT INTO qc_device_specs (batch_code, session_id, timestamp, operator, specs)
+                VALUES (${batchCode || ''}, ${sessionId}, CURRENT_TIMESTAMP, ${operatorUsername}, ${JSON.stringify(updatedSpecs)})
+            `;
+
+            return NextResponse.json({ success: true, message: 'Device diagnostics successfully uploaded.' });
         }
-
-        // Update the specs and batch code
-        await sql`
-            UPDATE qc_device_specs
-            SET specs = ${JSON.stringify(updatedSpecs)},
-                batch_code = ${batchCode || ''}
-            WHERE id = ${recordId}
-        `;
-
-        return NextResponse.json({ success: true, message: 'Device diagnostics successfully updated.' });
     } catch (error: any) {
         console.error('[API customer-qc-device POST] Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
