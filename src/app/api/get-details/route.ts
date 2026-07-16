@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
         // Query database
         const rows = await sql`
-            SELECT timestamp, specs, session_id as "sessionId", batch_code as "batchCode"
+            SELECT timestamp, specs, session_id as "sessionId", batch_code as "batchCode", operator
             FROM qc_device_specs
             WHERE batch_code = ${batchCode}
             ORDER BY timestamp DESC
