@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { 
-    FolderPlus, CloudLightning, Search, RefreshCw, 
+    FolderPlus, CloudLightning, Search, RefreshCw, Upload,
     FileSpreadsheet, FileText, Loader2, Database,
     Laptop, Calendar, CheckCircle2, ShieldAlert,
     FolderOpen, X, Clock, HelpCircle, Pencil, Trash2,
@@ -32,7 +32,9 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
     const [isLookupModalOpen, setIsLookupModalOpen] = useState(false);
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [inputBatchCode, setInputBatchCode] = useState('');
+    const [formSerialNumber, setFormSerialNumber] = useState('');
     
     // Rename states
     const [oldBatchName, setOldBatchName] = useState('');
@@ -497,6 +499,67 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
         }
     };
 
+    const handleUploadDeviceSpecs = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!formSerialNumber.trim()) {
+            toast.error('Serial Number is required.');
+            return;
+        }
+
+        setSaveEditLoading(true);
+        try {
+            const updatedSpecs = {
+                serialNumber: formSerialNumber.trim(),
+                productName: formProductName.trim(),
+                cpu: formCpu.trim(),
+                ram: formRam.trim(),
+                ssd: formSsd.trim(),
+                graphics: formGraphics.trim(),
+                battery: formBattery.trim(),
+                windowsVer: formWindowsVer.trim()
+            };
+
+            const res = await fetch('/api/customer/qc-device', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customerId,
+                    updatedSpecs,
+                    batchCode: formBatchCode.trim()
+                })
+            });
+
+            if (res.ok) {
+                toast.success('Device diagnostics successfully uploaded.');
+                setIsUploadModalOpen(false);
+                setFormSerialNumber('');
+                setFormProductName('');
+                setFormCpu('');
+                setFormRam('');
+                setFormSsd('');
+                setFormGraphics('');
+                setFormBattery('');
+                setFormWindowsVer('');
+                setFormBatchCode('');
+                
+                // Refresh records list
+                if (searchBatchCode) {
+                    fetchBatchSpecs(searchBatchCode);
+                }
+                fetchBatches();
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Failed to upload device details.');
+            }
+        } catch (error) {
+            console.error('Upload device error:', error);
+            toast.error('An error occurred while uploading.');
+        } finally {
+            setSaveEditLoading(false);
+        }
+    };
+
+
     // Combine local batches (not uploaded yet) and database batches (with counts)
     const getCombinedBatchesList = () => {
         const combined = [...batches];
@@ -626,7 +689,7 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
                     </div>
                     <div>
                         <span style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--profile-text-main)' }}>View Batch</span>
-                        <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--profile-text-muted)', marginTop: '2px' }}>Sync profile to database</span>
+                        <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--profile-text-muted)', marginTop: '2px' }}>Load active batch records</span>
                     </div>
                 </div>
 
@@ -702,6 +765,51 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
                     <div>
                         <span style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--profile-text-main)' }}>Update Details</span>
                         <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--profile-text-muted)', marginTop: '2px' }}>Edit specs by Serial Number</span>
+                    </div>
+                </div>
+
+                {/* Action 5: Details Upload */}
+                <div 
+                    onClick={() => {
+                        setFormSerialNumber('');
+                        setFormProductName('');
+                        setFormCpu('');
+                        setFormRam('');
+                        setFormSsd('');
+                        setFormGraphics('');
+                        setFormBattery('');
+                        setFormWindowsVer('');
+                        setFormBatchCode(activeBatchCode || '');
+                        setIsUploadModalOpen(true);
+                    }}
+                    style={{
+                        padding: '20px',
+                        borderRadius: '16px',
+                        border: '1px solid var(--profile-card-border)',
+                        background: 'var(--profile-input-bg)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                    className="qc-action-card"
+                >
+                    <div style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '8px',
+                        background: 'rgba(255, 149, 0, 0.1)',
+                        color: '#f97316',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <Upload size={20} />
+                    </div>
+                    <div>
+                        <span style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--profile-text-main)' }}>Details Upload</span>
+                        <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--profile-text-muted)', marginTop: '2px' }}>Upload new specs manually</span>
                     </div>
                 </div>
             </div>
@@ -1317,6 +1425,175 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
                                 </div>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Modal: Details Upload */}
+            {isUploadModalOpen && (
+                <div className="qc-modal-overlay">
+                    <div className="qc-modal-card" style={{ maxWidth: '650px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--profile-text-main)' }}>
+                                Details Upload (Manual Spec Entry)
+                            </h4>
+                            <X 
+                                size={18} 
+                                style={{ cursor: 'pointer', color: 'var(--profile-text-muted)' }} 
+                                onClick={() => {
+                                    setIsUploadModalOpen(false);
+                                    setFormSerialNumber('');
+                                    setFormProductName('');
+                                    setFormCpu('');
+                                    setFormRam('');
+                                    setFormSsd('');
+                                    setFormGraphics('');
+                                    setFormBattery('');
+                                    setFormWindowsVer('');
+                                    setFormBatchCode('');
+                                }} 
+                            />
+                        </div>
+
+                        <form onSubmit={handleUploadDeviceSpecs} className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                                <label className="form-label">Serial Number</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="Enter serial number..."
+                                    value={formSerialNumber}
+                                    onChange={e => setFormSerialNumber(e.target.value)}
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Product Name</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. HP EliteBook 840 G8..."
+                                    value={formProductName}
+                                    onChange={e => setFormProductName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Processor (CPU)</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. Intel Core i7-1185G7..."
+                                    value={formCpu}
+                                    onChange={e => setFormCpu(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Memory (RAM)</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. 16 GB..."
+                                    value={formRam}
+                                    onChange={e => setFormRam(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Storage (SSD)</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. 512 GB NVMe SSD..."
+                                    value={formSsd}
+                                    onChange={e => setFormSsd(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Graphics Card</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. Intel Iris Xe Graphics..."
+                                    value={formGraphics}
+                                    onChange={e => setFormGraphics(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Battery Health</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. 88%..."
+                                    value={formBattery}
+                                    onChange={e => setFormBattery(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Windows Version</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. Windows 11 Pro..."
+                                    value={formWindowsVer}
+                                    onChange={e => setFormWindowsVer(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Batch Code Mapping</label>
+                                <input 
+                                    type="text" 
+                                    className="form-input" 
+                                    placeholder="e.g. BATCH-A..."
+                                    value={formBatchCode}
+                                    onChange={e => setFormBatchCode(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px', borderTop: '1px solid var(--profile-card-border)', paddingTop: '16px' }}>
+                                <button 
+                                    type="button" 
+                                    onClick={() => {
+                                        setIsUploadModalOpen(false);
+                                        setFormSerialNumber('');
+                                        setFormProductName('');
+                                        setFormCpu('');
+                                        setFormRam('');
+                                        setFormSsd('');
+                                        setFormGraphics('');
+                                        setFormBattery('');
+                                        setFormWindowsVer('');
+                                        setFormBatchCode('');
+                                    }}
+                                    style={{
+                                        padding: '8px 18px',
+                                        borderRadius: '10px',
+                                        border: '1px solid var(--profile-card-border)',
+                                        background: 'transparent',
+                                        color: 'var(--profile-text-main)',
+                                        fontWeight: '600',
+                                        fontSize: '12.5px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="save-btn" 
+                                    style={{ margin: 0, padding: '8px 24px', fontSize: '12.5px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    disabled={saveEditLoading}
+                                >
+                                    {saveEditLoading && <Loader2 size={14} className="animate-spin" />} Upload Details
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
