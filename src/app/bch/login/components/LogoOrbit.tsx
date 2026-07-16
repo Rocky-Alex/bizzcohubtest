@@ -63,8 +63,8 @@ const LogoOrbit = () => {
                     <React.Fragment key={ringIndex}>
                         {Array.from({ length: ring.dots }).map((_, i) => {
                             const angle = ((i / ring.dots) * 2 * Math.PI) + ring.offset;
-                            const x = ring.radius * Math.cos(angle);
-                            const y = ring.radius * Math.sin(angle);
+                            const x = Number((ring.radius * Math.cos(angle)).toFixed(4));
+                            const y = Number((ring.radius * Math.sin(angle)).toFixed(4));
                             
                             const color = getColorAtAngle(angle);
 

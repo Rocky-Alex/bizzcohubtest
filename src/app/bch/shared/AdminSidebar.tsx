@@ -38,27 +38,6 @@ export default function AdminSidebar({
     const menuItems: SidebarItem[] = [
         { id: "dashboard", icon: "fa-tachometer-alt", label: "Dashboard", color: "#6366f1" },
         {
-            id: "orders",
-            icon: "fa-shopping-cart",
-            label: "Orders Manage",
-            color: "#10b981",
-            subItems: [
-                { id: "orders-all", label: "All Orders" },
-                { id: "orders-create", label: "Create Order" },
-                { id: "orders-returns", label: "Returns" }
-            ]
-        },
-        {
-            id: "customers",
-            icon: "fa-users",
-            label: "Customer Manage",
-            color: "#3b82f6",
-            subItems: [
-                { id: "customers-all", label: "All Customers" },
-                { id: "customers-groups", label: "Groups" }
-            ]
-        },
-        {
             id: "invoicing",
             icon: "fa-file-invoice",
             label: "Billing",
@@ -79,7 +58,8 @@ export default function AdminSidebar({
             color: "#0ea5e9",
             subItems: [
                 { id: "users-all", label: "All Users" },
-                { id: "users-roles", label: "Roles and Permissions" }
+                { id: "users-roles", label: "Roles and Permissions" },
+                { id: "customers-all", label: "Client User Manage" }
             ]
         },
         {
@@ -179,7 +159,7 @@ export default function AdminSidebar({
             'receipts-new': '/bch/billing/newreceipts',
             'users-all': '/bch/users',
             'users-roles': '/bch/users',
-            'production-dashboard': '/bch/production?section=production-dashboard',
+            'production-dashboard': '/bch/production',
             'production-qc': '/bch/production/productionqcchecking',
             'production-inventory-qc': '/bch/production/inventoryqcchecking',
             'production-model-checking': '/bch/production/modelchecking',
@@ -188,13 +168,13 @@ export default function AdminSidebar({
             'sales-dashboard': '/bch/sales/dashboard',
             'sales-port': '/bch/sales/port',
             'sales-inventory': '/bch/sales/inventory',
-            'inventory-dashboard': '/bch/inventory/inventorydashboard',
+            'inventory-dashboard': '/bch/inventory/laptopinventory',
             'products-list': '/bch/inventory/ecommproductlist',
             'add-product': '/bch/inventory/addecommproduct',
             'inventory-qc': '/bch/inventory/masterinventory',
             'inventory-drops': '/bch/inventory/dropdownManage',
             'purchase-dashboard': '/bch/purchases/Dashboard',
-            'purchase-history': '/bch/purchases/purchaselot',
+            'purchase-history': '/bch/purchases/Dashboard',
             'purchase-lot-inventory': '/bch/purchases/inventory',
             'suppliers': '/bch/purchases/suppliersmanage',
             'packing-dashboard': '/bch/packing/packingdashboard',
@@ -219,12 +199,13 @@ export default function AdminSidebar({
     const handleMainItemClick = (item: any, returnOnly = false) => {
         const routeMap: Record<string, string> = {
             'dashboard': '/bch/dashboard',
+            'dashboard-prod': '/bch/dashboard?workspace=production',
             'user-passwords': '/bch/passwords',
             'activity-log': '/bch/activity-log',
             'featured-manage': '/bch/featured',
             'production': '/bch/production',
             'sales': '/bch/sales/dashboard',
-            'inventory': '/bch/inventory',
+            'inventory': '/bch/inventory/laptopinventory',
             'packing': '/bch/packing',
             'product-pricing': '/bch/pricing',
             'accounting': '/bch/accounting/dashboard',
@@ -246,7 +227,49 @@ export default function AdminSidebar({
         }
     };
 
-    const displayedItems = menuItems.filter(item => {
+    const isProductionWorkspace = searchParams?.get('workspace') === 'production' ||
+        pathname?.startsWith('/bch/production') ||
+        pathname?.startsWith('/bch/purchase') ||
+        pathname?.startsWith('/bch/inventory') ||
+        pathname?.startsWith('/bch/sales') ||
+        pathname?.startsWith('/bch/packing') ||
+        pathname?.startsWith('/bch/accounting');
+
+    const productionMenuItems: SidebarItem[] = [
+        { id: "dashboard-prod", icon: "fa-tachometer-alt", label: "Production Dashboard", color: "#6366f1" },
+        {
+            id: "inventory",
+            icon: "fa-laptop",
+            label: "Laptop Inventory",
+            color: "#10b981",
+            subItems: [
+                { id: "inventory-dashboard", label: "Laptop Inventory" },
+                { id: "inventory-drops", label: "Dropdown Manage" }
+            ]
+        },
+        {
+            id: "purchases",
+            icon: "fa-truck",
+            label: "Purchases",
+            color: "#f59e0b",
+            subItems: [
+                { id: "purchase-history", label: "Purchase Lots" }
+            ]
+        },
+        {
+            id: "production",
+            icon: "fa-cogs",
+            label: "Production QC",
+            color: "#ec4899",
+            subItems: [
+                { id: "production-dashboard", label: "QC Checking" }
+            ]
+        }
+    ];
+
+    const activeMenuItems = isProductionWorkspace ? productionMenuItems : menuItems;
+
+    const displayedItems = activeMenuItems.filter(item => {
         if (userRole?.toLowerCase() === 'accountant') {
             return ['dashboard', 'orders', 'invoicing'].includes(item.id);
         }
@@ -256,14 +279,26 @@ export default function AdminSidebar({
     const isMainItemActive = (item: any) => {
         const routeMap: Record<string, string> = {
             'dashboard': '/bch/dashboard',
+            'dashboard-prod': '/bch/dashboard',
             'orders': '/bch/Order',
             'customers': '/bch/customers',
             'invoicing': '/bch/billing',
             'users': '/bch/users',
             'activity-log': '/bch/activity-log',
             'database': '/bch/database',
-            'auto-refresh': '/bch/autorefresh'
+            'auto-refresh': '/bch/autorefresh',
+            'inventory': '/bch/inventory',
+            'purchases': '/bch/purchases',
+            'production': '/bch/production'
         };
+
+        if (item.id === 'dashboard-prod') {
+            return pathname === '/bch/dashboard' && searchParams?.get('workspace') === 'production';
+        }
+        if (item.id === 'dashboard') {
+            return pathname === '/bch/dashboard' && searchParams?.get('workspace') !== 'production';
+        }
+
         const targetRoute = routeMap[item.id];
         if (pathname === targetRoute) return true;
         if (targetRoute && pathname.startsWith(targetRoute)) return true;

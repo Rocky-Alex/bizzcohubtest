@@ -77,6 +77,12 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                         <a href="#" onClick={(e) => handleNav('profile-info', e)} className={`submenu-item ${activeSection === 'profile-info' ? 'active' : ''}`}>
                             Manage Profile
                         </a>
+                        <a href="#" onClick={(e) => handleNav('qc-user-management', e)} className={`submenu-item ${activeSection === 'qc-user-management' ? 'active' : ''}`}>
+                            QC User Management
+                        </a>
+                        <a href="#" onClick={(e) => handleNav('qc-management', e)} className={`submenu-item ${activeSection === 'qc-management' ? 'active' : ''}`}>
+                            QC Management
+                        </a>
                     </div>
                 </div>
 

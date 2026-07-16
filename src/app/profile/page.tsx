@@ -25,6 +25,12 @@ const ProfileOrders = dynamic(() => import('@/components/profile/ProfileOrders')
 const ProfileWishlist = dynamic(() => import('@/components/profile/ProfileWishlist'), {
     loading: () => <div className="loading-placeholder">Loading Wishlist...</div>
 });
+const QcUserManagementPanel = dynamic(() => import('@/components/profile/QcUserManagementPanel'), {
+    loading: () => <div className="loading-placeholder">Loading QC Settings...</div>
+});
+const QcManagementPanel = dynamic(() => import('@/components/profile/QcManagementPanel'), {
+    loading: () => <div className="loading-placeholder">Loading QC Dashboard...</div>
+});
 const AvatarUploader = dynamic(() => import('@/components/ui/AvatarUploader'), { ssr: false });
 
 function ProfileContent() {
@@ -299,9 +305,8 @@ function ProfileContent() {
                         />
                     )}
 
-                    <form onSubmit={handleSave}>
                         {activeView === 'profile-info' && (
-                            <div className="profile-card">
+                            <form onSubmit={handleSave} className="profile-card">
                                 <div style={{ marginBottom: '24px' }}>
                                     <h2 className="section-title" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px', margin: 0 }}>Manage Profile</h2>
                                 </div>
@@ -440,6 +445,24 @@ function ProfileContent() {
                                         </div>
                                     </div>
                                 </div>
+                            </form>
+                        )}
+
+                        {activeView === 'qc-user-management' && (
+                            <div className="profile-card">
+                                <div style={{ marginBottom: '24px' }}>
+                                    <h2 className="section-title" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px', margin: 0 }}>QC User Management</h2>
+                                </div>
+                                <QcUserManagementPanel customerId={userId} />
+                            </div>
+                        )}
+
+                        {activeView === 'qc-management' && (
+                            <div className="profile-card">
+                                <div style={{ marginBottom: '24px' }}>
+                                    <h2 className="section-title" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px', margin: 0 }}>QC Management</h2>
+                                </div>
+                                <QcManagementPanel customerId={userId} />
                             </div>
                         )}
 
@@ -479,7 +502,6 @@ function ProfileContent() {
                                 <ProfileWishlist user={{ id: userEmail }} />
                             </div>
                         )}
-                    </form>
                 </div>
             </div>
         </div>

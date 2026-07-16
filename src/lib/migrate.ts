@@ -227,6 +227,32 @@ async function main() {
             )
         `;
 
+        console.log('migrating qc_device_specs...');
+        await sql`
+            CREATE TABLE IF NOT EXISTS qc_device_specs (
+                id SERIAL PRIMARY KEY,
+                batch_code VARCHAR(255) NOT NULL,
+                session_id VARCHAR(255),
+                timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                operator VARCHAR(255),
+                specs JSONB
+            )
+        `;
+        await sql`CREATE INDEX IF NOT EXISTS idx_qc_device_specs_batch_code ON qc_device_specs(batch_code)`;
+
+        console.log('migrating qc_users...');
+        await sql`
+            CREATE TABLE IF NOT EXISTS qc_users (
+                id SERIAL PRIMARY KEY,
+                customer_id INTEGER UNIQUE REFERENCES customers(id) ON DELETE CASCADE,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+        await sql`CREATE INDEX IF NOT EXISTS idx_qc_users_customer_id ON qc_users(customer_id)`;
+
         console.log('✅ Migration completed successfully');
     } catch (error) {
         console.error('❌ Migration failed:', error);
