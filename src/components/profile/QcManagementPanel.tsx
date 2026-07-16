@@ -56,6 +56,35 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
     const [formWindowsVer, setFormWindowsVer] = useState('');
     const [formBatchCode, setFormBatchCode] = useState('');
 
+    // Specific states for Details Upload modal
+    const [uploadBrand, setUploadBrand] = useState('');
+    const [uploadSeries, setUploadSeries] = useState('');
+    const [uploadModel, setUploadModel] = useState('');
+    const [uploadProductName, setUploadProductName] = useState('');
+    
+    const [uploadProcessorCore, setUploadProcessorCore] = useState('');
+    const [uploadProcessorGen, setUploadProcessorGen] = useState('');
+    const [uploadCpuFullModel, setUploadCpuFullModel] = useState('');
+
+    const [uploadRam, setUploadRam] = useState('');
+    const [uploadSsd, setUploadSsd] = useState('');
+    
+    const [uploadIntegratedName, setUploadIntegratedName] = useState('');
+    const [uploadIntegratedVram, setUploadIntegratedVram] = useState('');
+    const [uploadDedicatedName, setUploadDedicatedName] = useState('');
+    const [uploadDedicatedVram, setUploadDedicatedVram] = useState('');
+
+    const [uploadDisplayResolution, setUploadDisplayResolution] = useState('');
+    const [uploadSerialNumber, setUploadSerialNumber] = useState('');
+    const [uploadBattery, setUploadBattery] = useState('');
+    const [uploadWindowsVer, setUploadWindowsVer] = useState('');
+    const [uploadBatchCode, setUploadBatchCode] = useState('');
+
+    // Issue Tracking
+    const [uploadIssuePart, setUploadIssuePart] = useState('None');
+    const [uploadIssueDetail, setUploadIssueDetail] = useState('');
+
+
     useEffect(() => {
         if (customerId) {
             // Load active batch from localStorage if available
@@ -501,22 +530,70 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
 
     const handleUploadDeviceSpecs = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formSerialNumber.trim()) {
+        if (!uploadSerialNumber.trim()) {
             toast.error('Serial Number is required.');
             return;
         }
 
         setSaveEditLoading(true);
         try {
+            // 1. Processor Type: Prepend "Intel Core" if it's generic i3/i5/i7/i9 (and not already prepended)
+            let coreType = uploadProcessorCore.trim();
+            if (coreType && !/^intel core/i.test(coreType) && !/^amd/i.test(coreType)) {
+                if (/^i\d/i.test(coreType)) {
+                    coreType = `Intel Core ${coreType}`;
+                }
+            }
+
+            // 2. Generation: Suffix with "th gen"
+            let genStr = uploadProcessorGen.trim();
+            if (genStr && !/gen$/i.test(genStr)) {
+                if (/^\d+$/.test(genStr)) {
+                    const num = parseInt(genStr);
+                    let suffix = "th";
+                    if (num % 10 === 1 && num % 100 !== 11) suffix = "st";
+                    else if (num % 10 === 2 && num % 100 !== 12) suffix = "nd";
+                    else if (num % 10 === 3 && num % 100 !== 13) suffix = "rd";
+                    genStr = `${num}${suffix} gen`;
+                } else {
+                    genStr = `${genStr}th gen`;
+                }
+            }
+
+            // Combine CPU full model & Gen for the database representation
+            const finalCpu = `${coreType} (${uploadCpuFullModel.trim() || 'N/A'}, ${genStr || 'N/A'})`;
+
+            // 3. Dual Graphics formatting
+            let finalGraphics = '';
+            const integrated = uploadIntegratedName.trim();
+            const integratedSize = uploadIntegratedVram.trim();
+            if (integrated) {
+                finalGraphics += `Integrated: ${integrated} (${integratedSize || 'Shared'})`;
+            }
+
+            const dedicated = uploadDedicatedName.trim();
+            const dedicatedSize = uploadDedicatedVram.trim();
+            if (dedicated) {
+                if (finalGraphics) finalGraphics += ' / ';
+                finalGraphics += `Dedicated: ${dedicated} (${dedicatedSize || 'VRAM'})`;
+            }
+
             const updatedSpecs = {
-                serialNumber: formSerialNumber.trim(),
-                productName: formProductName.trim(),
-                cpu: formCpu.trim(),
-                ram: formRam.trim(),
-                ssd: formSsd.trim(),
-                graphics: formGraphics.trim(),
-                battery: formBattery.trim(),
-                windowsVer: formWindowsVer.trim()
+                serialNumber: uploadSerialNumber.trim(),
+                productName: uploadProductName.trim(),
+                cpu: finalCpu,
+                ram: uploadRam.trim(),
+                ssd: uploadSsd.trim(),
+                graphics: finalGraphics,
+                battery: uploadBattery.trim(),
+                windowsVer: uploadWindowsVer.trim(),
+                displayResolution: uploadDisplayResolution.trim(),
+                processorCore: coreType,
+                processorGen: genStr,
+                cpuFullModel: uploadCpuFullModel.trim(),
+                integratedGraphics: integrated ? { name: integrated, size: integratedSize } : null,
+                dedicatedGraphics: dedicated ? { name: dedicated, size: dedicatedSize } : null,
+                issueFound: uploadIssuePart !== 'None' ? { part: uploadIssuePart, details: uploadIssueDetail.trim() } : null
             };
 
             const res = await fetch('/api/customer/qc-device', {
@@ -525,22 +602,35 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
                 body: JSON.stringify({
                     customerId,
                     updatedSpecs,
-                    batchCode: formBatchCode.trim()
+                    batchCode: uploadBatchCode.trim()
                 })
             });
 
             if (res.ok) {
                 toast.success('Device diagnostics successfully uploaded.');
                 setIsUploadModalOpen(false);
-                setFormSerialNumber('');
-                setFormProductName('');
-                setFormCpu('');
-                setFormRam('');
-                setFormSsd('');
-                setFormGraphics('');
-                setFormBattery('');
-                setFormWindowsVer('');
-                setFormBatchCode('');
+                
+                // Clear fields
+                setUploadBrand('');
+                setUploadSeries('');
+                setUploadModel('');
+                setUploadProductName('');
+                setUploadProcessorCore('');
+                setUploadProcessorGen('');
+                setUploadCpuFullModel('');
+                setUploadRam('');
+                setUploadSsd('');
+                setUploadIntegratedName('');
+                setUploadIntegratedVram('');
+                setUploadDedicatedName('');
+                setUploadDedicatedVram('');
+                setUploadDisplayResolution('');
+                setUploadSerialNumber('');
+                setUploadBattery('');
+                setUploadWindowsVer('');
+                setUploadBatchCode('');
+                setUploadIssuePart('None');
+                setUploadIssueDetail('');
                 
                 // Refresh records list
                 if (searchBatchCode) {
@@ -1432,144 +1522,372 @@ export default function QcManagementPanel({ customerId }: QcManagementPanelProps
             {/* Custom Modal: Details Upload */}
             {isUploadModalOpen && (
                 <div className="qc-modal-overlay">
-                    <div className="qc-modal-card" style={{ maxWidth: '650px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--profile-text-main)' }}>
-                                Details Upload (Manual Spec Entry)
-                            </h4>
+                    <div className="qc-modal-card" style={{ maxWidth: '750px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--profile-card-border)', paddingBottom: '12px' }}>
+                            <div>
+                                <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--profile-text-main)' }}>
+                                    Detail Upload
+                                </h4>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: 'var(--profile-text-muted)' }}>Record new device details with exact formatting rules.</p>
+                            </div>
                             <X 
                                 size={18} 
                                 style={{ cursor: 'pointer', color: 'var(--profile-text-muted)' }} 
                                 onClick={() => {
                                     setIsUploadModalOpen(false);
-                                    setFormSerialNumber('');
-                                    setFormProductName('');
-                                    setFormCpu('');
-                                    setFormRam('');
-                                    setFormSsd('');
-                                    setFormGraphics('');
-                                    setFormBattery('');
-                                    setFormWindowsVer('');
-                                    setFormBatchCode('');
+                                    setUploadBrand('');
+                                    setUploadSeries('');
+                                    setUploadModel('');
+                                    setUploadProductName('');
+                                    setUploadProcessorCore('');
+                                    setUploadProcessorGen('');
+                                    setUploadCpuFullModel('');
+                                    setUploadRam('');
+                                    setUploadSsd('');
+                                    setUploadIntegratedName('');
+                                    setUploadIntegratedVram('');
+                                    setUploadDedicatedName('');
+                                    setUploadDedicatedVram('');
+                                    setUploadDisplayResolution('');
+                                    setUploadSerialNumber('');
+                                    setUploadBattery('');
+                                    setUploadWindowsVer('');
+                                    setUploadBatchCode('');
+                                    setUploadIssuePart('None');
+                                    setUploadIssueDetail('');
                                 }} 
                             />
                         </div>
 
-                        <form onSubmit={handleUploadDeviceSpecs} className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                                <label className="form-label">Serial Number</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="Enter serial number..."
-                                    value={formSerialNumber}
-                                    onChange={e => setFormSerialNumber(e.target.value)}
-                                    required
-                                    autoFocus
-                                />
+                        <form onSubmit={handleUploadDeviceSpecs} className="form-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            
+                            {/* Section 1: Device Identity */}
+                            <div>
+                                <h5 style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: '600', color: 'var(--profile-accent)', borderBottom: '1px dashed var(--profile-card-border)', paddingBottom: '6px' }}>
+                                    1. Device Identity & Brand
+                                </h5>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Serial Number</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="Enter unique identifier (e.g. S/N)..."
+                                            value={uploadSerialNumber}
+                                            onChange={e => setUploadSerialNumber(e.target.value)}
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Batch Code Mapping</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. BATCH-A..."
+                                            value={uploadBatchCode}
+                                            onChange={e => setUploadBatchCode(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Brand</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. HP, Dell, Lenovo"
+                                            value={uploadBrand}
+                                            onChange={e => {
+                                                setUploadBrand(e.target.value);
+                                                const parts = [e.target.value.trim(), uploadSeries.trim(), uploadModel.trim()].filter(Boolean);
+                                                setUploadProductName(parts.join(' > '));
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Series</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. EliteBook, Latitude"
+                                            value={uploadSeries}
+                                            onChange={e => {
+                                                setUploadSeries(e.target.value);
+                                                const parts = [uploadBrand.trim(), e.target.value.trim(), uploadModel.trim()].filter(Boolean);
+                                                setUploadProductName(parts.join(' > '));
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Model</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. 840 G8, 7420"
+                                            value={uploadModel}
+                                            onChange={e => {
+                                                setUploadModel(e.target.value);
+                                                const parts = [uploadBrand.trim(), uploadSeries.trim(), e.target.value.trim()].filter(Boolean);
+                                                setUploadProductName(parts.join(' > '));
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Product Name (Editable Path)</label>
+                                    <input 
+                                        type="text" 
+                                        className="form-input" 
+                                        placeholder="Generated name displays here..."
+                                        value={uploadProductName}
+                                        onChange={e => setUploadProductName(e.target.value)}
+                                        required
+                                    />
+                                    <span style={{ fontSize: '10.5px', color: 'var(--profile-text-muted)' }}>Format: [Brand] &gt; [Series] &gt; [Model]. Must remain manually editable.</span>
+                                </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Product Name</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. HP EliteBook 840 G8..."
-                                    value={formProductName}
-                                    onChange={e => setFormProductName(e.target.value)}
-                                    required
-                                />
+
+                            {/* Section 2: Core Hardware */}
+                            <div>
+                                <h5 style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: '600', color: 'var(--profile-accent)', borderBottom: '1px dashed var(--profile-card-border)', paddingBottom: '6px' }}>
+                                    2. Processor & Memory
+                                </h5>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Processor Type (Core)</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. i5, i7, Ryzen 7..."
+                                            value={uploadProcessorCore}
+                                            onChange={e => setUploadProcessorCore(e.target.value)}
+                                            required
+                                        />
+                                        <span style={{ fontSize: '10px', color: 'var(--profile-text-muted)' }}>"Intel Core" is prepended by default.</span>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">CPU Full Model</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. i7-11850H, i5-10310U..."
+                                            value={uploadCpuFullModel}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setUploadCpuFullModel(val);
+                                                // Extract gen automatically
+                                                const intelMatch = val.match(/i[3579]-(\d{1,2})\d{3}/i);
+                                                if (intelMatch) {
+                                                    setUploadProcessorGen(intelMatch[1]);
+                                                } else {
+                                                    const directGenMatch = val.match(/(\d{1,2})(?:th|rd|nd|st)?\s*gen/i);
+                                                    if (directGenMatch) {
+                                                        setUploadProcessorGen(directGenMatch[1]);
+                                                    }
+                                                }
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Generation (Gen)</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. 11, 10, 8..."
+                                            value={uploadProcessorGen}
+                                            onChange={e => setUploadProcessorGen(e.target.value)}
+                                            required
+                                        />
+                                        <span style={{ fontSize: '10px', color: 'var(--profile-text-muted)' }}>Recorded with "th gen" suffix.</span>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Memory capacity (RAM)</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. 16GB, 32GB..."
+                                            value={uploadRam}
+                                            onChange={e => setUploadRam(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Storage capacity (SSD)</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. 512GB, 1TB..."
+                                            value={uploadSsd}
+                                            onChange={e => setUploadSsd(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Display Resolution</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. 1920x1080..."
+                                            value={uploadDisplayResolution}
+                                            onChange={e => setUploadDisplayResolution(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Processor (CPU)</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. Intel Core i7-1185G7..."
-                                    value={formCpu}
-                                    onChange={e => setFormCpu(e.target.value)}
-                                    required
-                                />
+
+                            {/* Section 3: Dual Graphics */}
+                            <div>
+                                <h5 style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: '600', color: 'var(--profile-accent)', borderBottom: '1px dashed var(--profile-card-border)', paddingBottom: '6px' }}>
+                                    3. Dual Graphics Specifications
+                                </h5>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
+                                    <div style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--profile-card-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                        <span style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--profile-text-main)', marginBottom: '8px' }}>Integrated Graphics</span>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                style={{ flexGrow: 2 }}
+                                                placeholder="Name (e.g. Intel Iris Xe)" 
+                                                value={uploadIntegratedName}
+                                                onChange={e => setUploadIntegratedName(e.target.value)}
+                                            />
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                style={{ width: '90px' }}
+                                                placeholder="Size/VRAM" 
+                                                value={uploadIntegratedVram}
+                                                onChange={e => setUploadIntegratedVram(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--profile-card-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                        <span style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--profile-text-main)', marginBottom: '8px' }}>Dedicated Graphics</span>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                style={{ flexGrow: 2 }}
+                                                placeholder="Name (e.g. NVIDIA RTX 3060)" 
+                                                value={uploadDedicatedName}
+                                                onChange={e => setUploadDedicatedName(e.target.value)}
+                                            />
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                style={{ width: '90px' }}
+                                                placeholder="Size/VRAM (e.g. 6GB)" 
+                                                value={uploadDedicatedVram}
+                                                onChange={e => setUploadDedicatedVram(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Battery Health / Status</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. 92%, Excellent..."
+                                            value={uploadBattery}
+                                            onChange={e => setUploadBattery(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Windows Version / OS</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            placeholder="e.g. Windows 11 Pro..."
+                                            value={uploadWindowsVer}
+                                            onChange={e => setUploadWindowsVer(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Memory (RAM)</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. 16 GB..."
-                                    value={formRam}
-                                    onChange={e => setFormRam(e.target.value)}
-                                    required
-                                />
+
+                            {/* Section 4: Issue Tracking */}
+                            <div>
+                                <h5 style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: '600', color: 'var(--profile-accent)', borderBottom: '1px dashed var(--profile-card-border)', paddingBottom: '6px' }}>
+                                    4. Issue Tracking ("Issue Found")
+                                </h5>
+                                <div className="form-group" style={{ marginBottom: '12px' }}>
+                                    <label className="form-label">Parts or Section Dropdown</label>
+                                    <select 
+                                        className="form-input"
+                                        style={{ background: 'var(--profile-input-bg)', color: 'var(--profile-text-main)', border: '1px solid var(--profile-card-border)' }}
+                                        value={uploadIssuePart}
+                                        onChange={e => setUploadIssuePart(e.target.value)}
+                                    >
+                                        <option value="None">No Issues Identified (Pass)</option>
+                                        <option value="Screen">Screen / Display Panel</option>
+                                        <option value="Keyboard">Keyboard / Backlight</option>
+                                        <option value="Motherboard">Motherboard / Charging Circuit</option>
+                                        <option value="Battery">Battery Health / Swelling</option>
+                                        <option value="Touchpad">Touchpad / Clickpad</option>
+                                        <option value="Audio">Audio / Speakers / Mic</option>
+                                        <option value="Ports">Ports (USB, HDMI, Type-C)</option>
+                                        <option value="Body/Casing">Body / Casing / Hinges</option>
+                                        <option value="Webcam">Webcam / IR Sensor</option>
+                                        <option value="Wi-Fi/Bluetooth">Wi-Fi / Bluetooth Module</option>
+                                        <option value="RAM">Memory / RAM module</option>
+                                        <option value="Storage">Storage / SSD health</option>
+                                        <option value="CPU">CPU throttling / Thermal issues</option>
+                                        <option value="Fan/Cooling">Fan / Cooling system noise</option>
+                                        <option value="Other">Other (Specify below)</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Detailed Description</label>
+                                    <textarea 
+                                        className="form-input" 
+                                        style={{ height: '70px', resize: 'vertical', fontFamily: 'inherit' }}
+                                        placeholder="Type symptoms, description, or notes regarding the hardware/software issue identified..."
+                                        value={uploadIssueDetail}
+                                        onChange={e => setUploadIssueDetail(e.target.value)}
+                                        disabled={uploadIssuePart === 'None'}
+                                    />
+                                </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Storage (SSD)</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. 512 GB NVMe SSD..."
-                                    value={formSsd}
-                                    onChange={e => setFormSsd(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Graphics Card</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. Intel Iris Xe Graphics..."
-                                    value={formGraphics}
-                                    onChange={e => setFormGraphics(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Battery Health</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. 88%..."
-                                    value={formBattery}
-                                    onChange={e => setFormBattery(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Windows Version</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. Windows 11 Pro..."
-                                    value={formWindowsVer}
-                                    onChange={e => setFormWindowsVer(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Batch Code Mapping</label>
-                                <input 
-                                    type="text" 
-                                    className="form-input" 
-                                    placeholder="e.g. BATCH-A..."
-                                    value={formBatchCode}
-                                    onChange={e => setFormBatchCode(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px', borderTop: '1px solid var(--profile-card-border)', paddingTop: '16px' }}>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px', borderTop: '1px solid var(--profile-card-border)', paddingTop: '16px' }}>
                                 <button 
                                     type="button" 
                                     onClick={() => {
                                         setIsUploadModalOpen(false);
-                                        setFormSerialNumber('');
-                                        setFormProductName('');
-                                        setFormCpu('');
-                                        setFormRam('');
-                                        setFormSsd('');
-                                        setFormGraphics('');
-                                        setFormBattery('');
-                                        setFormWindowsVer('');
-                                        setFormBatchCode('');
+                                        setUploadBrand('');
+                                        setUploadSeries('');
+                                        setUploadModel('');
+                                        setUploadProductName('');
+                                        setUploadProcessorCore('');
+                                        setUploadProcessorGen('');
+                                        setUploadCpuFullModel('');
+                                        setUploadRam('');
+                                        setUploadSsd('');
+                                        setUploadIntegratedName('');
+                                        setUploadIntegratedVram('');
+                                        setUploadDedicatedName('');
+                                        setUploadDedicatedVram('');
+                                        setUploadDisplayResolution('');
+                                        setUploadSerialNumber('');
+                                        setUploadBattery('');
+                                        setUploadWindowsVer('');
+                                        setUploadBatchCode('');
+                                        setUploadIssuePart('None');
+                                        setUploadIssueDetail('');
                                     }}
                                     style={{
                                         padding: '8px 18px',
