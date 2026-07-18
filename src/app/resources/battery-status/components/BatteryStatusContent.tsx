@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Battery, AlertTriangle, Terminal, UploadCloud, FileCode, CheckCircle, Play } from 'lucide-react';
+import { ArrowLeft, Battery, AlertTriangle, Terminal, UploadCloud, FileCode, CheckCircle, Play, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -257,38 +257,21 @@ export default function BatteryStatusContent() {
         }
     };
 
-    const downloadAutoScanScript = () => {
+    const [copied, setCopied] = useState(false);
+
+    const getCommandText = () => {
+        if (typeof window === 'undefined') return '';
         const apiUrl = `${window.location.origin}/api/battery-check`;
         const resultUrl = `${window.location.origin}/resources/battery-status`;
+        return `powercfg /batteryreport /xml /output "%TEMP%\\battery.xml" && powershell -Command "$res = Invoke-RestMethod -Uri '${apiUrl}' -Method Post -InFile '%TEMP%\\battery.xml' -ContentType 'text/xml'; Start-Process ('${resultUrl}?reportId=' + $res.id)"`;
+    };
 
-        // Powershell script is more robust for HTTPS/Parsing
-        const scriptContent = `
-@echo off
-echo ==========================================
-echo      BizzcoHub Battery Diagnostics
-echo ==========================================
-echo.
-echo 1. Generating Battery Report...
-powercfg /batteryreport /xml /output "%TEMP%\\battery_report.xml"
-
-echo 2. Uploading Data for Analysis...
-powershell -Command "$res = Invoke-RestMethod -Uri '${apiUrl}' -Method Post -InFile '%TEMP%\\battery_report.xml' -ContentType 'text/xml'; $url = '${resultUrl}?reportId=' + $res.id; Start-Process $url"
-
-echo.
-echo Done! Please check your browser.
-pause
-        `;
-
-        const blob = new Blob([scriptContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'AutoScan_Battery.bat'; // Windows Batch File
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.success("Script Downloaded. Run it to scan!");
+    const handleCopyCommand = () => {
+        const cmd = getCommandText();
+        navigator.clipboard.writeText(cmd);
+        setCopied(true);
+        toast.success("Command copied to clipboard!");
+        setTimeout(() => setCopied(false), 2000);
     };
 
     return (
@@ -337,41 +320,85 @@ pause
                             flexDirection: 'column',
                             gap: '24px'
                         }}>
-                            {/* OPTION 1: ONE-CLICK ACTION */}
+                            {/* OPTION 1: ONE-CLICK ACTION (VIA COMMAND PROMPT) */}
                             <div style={{
                                 padding: '24px',
                                 background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                                 borderRadius: '16px',
                                 border: '1px solid #334155',
-                                textAlign: 'center'
+                                textAlign: 'left',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '16px'
                             }}>
-                                <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#38bdf8' }}>Option 1: One-Click Auto Scan</h3>
-                                <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>
-                                    Automatically generate, upload, and view your battery health.
-                                </p>
-                                <button
-                                    onClick={downloadAutoScanScript}
-                                    style={{
-                                        background: '#0ea5e9',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '12px 24px',
-                                        borderRadius: '8px',
-                                        fontSize: '16px',
-                                        fontWeight: 'bold',
-                                        cursor: 'pointer',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)'
-                                    }}
-                                >
-                                    <Play size={20} fill="currentColor" />
-                                    Download & Run Scanner
-                                </button>
-                                <p style={{ fontSize: '12px', color: '#64748b', marginTop: '12px' }}>
-                                    *Downloads a small .bat file. Run it to see magic.
-                                </p>
+                                <div>
+                                    <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px', color: '#38bdf8', textAlign: 'center' }}>Option 1: Fast Auto Scan</h3>
+                                    <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '0px', textAlign: 'center' }}>
+                                        Run a single command in Command Prompt to automatically scan and upload your report.
+                                    </p>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <span style={{ fontSize: '12.5px', color: '#cbd5e1', fontWeight: '600' }}>
+                                        1. Open Command Prompt (Search for <code style={{ color: '#38bdf8' }}>cmd</code> in Windows Search)
+                                    </span>
+                                    <span style={{ fontSize: '12.5px', color: '#cbd5e1', fontWeight: '600' }}>
+                                        2. Copy & paste the command below, then press Enter:
+                                    </span>
+                                </div>
+
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    background: '#090d16',
+                                    border: '1px solid #1e293b',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    gap: '12px',
+                                    position: 'relative'
+                                }}>
+                                    <code style={{
+                                        color: '#cbd5e1',
+                                        fontSize: '11px',
+                                        fontFamily: 'monospace',
+                                        whiteSpace: 'nowrap',
+                                        overflowX: 'auto',
+                                        flex: 1,
+                                        paddingRight: '40px',
+                                        scrollbarWidth: 'thin'
+                                    }}>
+                                        {getCommandText()}
+                                    </code>
+                                    <button
+                                        onClick={handleCopyCommand}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '12px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: copied ? '#22c55e' : '#1e293b',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            width: '32px',
+                                            height: '32px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            color: 'white',
+                                            transition: 'all 0.2s',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                                        }}
+                                        title="Copy to clipboard"
+                                    >
+                                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                                    </button>
+                                </div>
+                                <div style={{ textAlign: 'center' }}>
+                                    <p style={{ fontSize: '11.5px', color: '#64748b', margin: 0 }}>
+                                        💡 Zero downloads required. Safe and direct scan.
+                                    </p>
+                                </div>
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
